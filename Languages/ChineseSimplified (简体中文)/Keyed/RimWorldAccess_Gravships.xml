@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Gravships module strings (src/Gravships/). Four files contribute:
+      - GravshipDestinationState.cs  (world-map destination targeting via CompPilotConsole)
+      - GravshipHelper.cs            (engine fuel/component/readiness summaries)
+      - GravshipPatch.cs             (landing-marker spawn guidance)
+      - SubstructureOverlayState.cs  (disconnected-substructure scanner category)
+
+    These keys cover every user-facing phrase the module speaks or writes into
+    a scanner label. Fuel numbers, tile counts, component names, and similar
+    data come from the game's own state and are injected as placeholders.
+    Guard-style messages ("No valid tile selected", "World navigation not
+    active") delegate to the shared Common keys, so they don't appear here.
+
+    Gravships is Odyssey-DLC content. Vanilla gravship keys referenced by the
+    C# (StoredChemfuel, FuelPerTile, ConnectedSubstructure, CannotLaunchOnCooldown,
+    TransportPodDestinationBeyondMaximumRange, CannotLaunchDestination,
+    ConfirmLandGravship, GravshipLandingMarkerNotPlaced, DesignatorMoveGravship,
+    AbortLandGravship, etc.) are NOT duplicated here - they're reused directly
+    from RimWorld's own Odyssey language files.
+  -->
+
+  <!-- Destination-targeting open announcement (GravshipDestinationState.Open).
+       {0} = total chemfuel available, {1} = max range in tiles. Launching is
+       the active-flight path that ends with Enter; ViewRange is the preview
+       path used from a pilot console without actually launching. -->
+  <RimWorldAccess.Gravships.Destination.OpenLaunching>逆重飞船目的地定位。可用化合燃料 {0}，最大航程 {1} 格。使用扫描器浏览目的地，回车键确认，退出键取消。</RimWorldAccess.Gravships.Destination.OpenLaunching>
+  <RimWorldAccess.Gravships.Destination.OpenViewRange>查看逆重飞船航程。可用化合燃料 {0}，最大航程 {1} 格。使用扫描器浏览目的地，退出键关闭。</RimWorldAccess.Gravships.Destination.OpenViewRange>
+
+  <!-- Destination confirmation errors (GravshipDestinationState.ConfirmCurrentDestination). -->
+  <RimWorldAccess.Gravships.Destination.CannotAccessCallbacks>无法访问地块选择器回调</RimWorldAccess.Gravships.Destination.CannotAccessCallbacks>
+  <RimWorldAccess.Gravships.Destination.ErrorSelecting>选择目的地时出错</RimWorldAccess.Gravships.Destination.ErrorSelecting>
+
+  <!-- Cancellation (GravshipDestinationState.CancelTargeting). Spoken after
+       the TilePicker is stopped and the camera returns to the pilot console. -->
+  <RimWorldAccess.Gravships.Destination.Cancelled>已取消逆重飞船定位</RimWorldAccess.Gravships.Destination.Cancelled>
+
+  <!-- Fuel status summary (F key, GravshipDestinationState.AnnounceFuelStatus).
+       {0} = current fuel, {1} = max fuel capacity, {2} = max range in tiles,
+       {3} = fuel burned per tile of travel. -->
+  <RimWorldAccess.Gravships.Destination.FuelStatus>燃料: {0} / {1} 化合燃料。最大航程: {2} 格。每格燃料: {3}。</RimWorldAccess.Gravships.Destination.FuelStatus>
+
+  <!-- Per-tile fuel cost announcements (GravshipDestinationState.GetFuelCostAnnouncement).
+       Spoken by WorldScannerState / WorldNavigationState as the user browses
+       destinations. CostOnly = "12 chemfuel". CostNotEnough = cost + warning.
+       Vanilla keys TransportPodDestinationBeyondMaximumRange and
+       CannotLaunchDestination handle the other two error branches. -->
+  <RimWorldAccess.Gravships.Destination.CostOnly>{0} 化合燃料</RimWorldAccess.Gravships.Destination.CostOnly>
+  <RimWorldAccess.Gravships.Destination.CostNotEnough>{0} 化合燃料，燃料不足</RimWorldAccess.Gravships.Destination.CostNotEnough>
+
+  <!-- Engine fuel summary (GravshipHelper.GetFuelSummary).
+       Most of the sentence is built from vanilla RimWorld keys (StoredChemfuel,
+       FuelConsumption, FuelPerTile, GravshipRange). FuelSavings is our
+       addition; {0} = percentage (e.g. "25%") when the engine has any savings. -->
+  <RimWorldAccess.Gravships.Engine.FuelSavings>燃料节省: {0}</RimWorldAccess.Gravships.Engine.FuelSavings>
+
+  <!-- Engine component status (GravshipHelper.GetComponentStatus).
+       ComponentsConnectedOne/Many: split for English singular/plural because
+       these appear as bare number+noun. {0} = count of components.
+       The "Requires: ..." suffix uses the vanilla Requires key plus a
+       comma-joined list of component labels from the game. -->
+  <RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>已连接 {0} 个部件</RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>
+  <RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>已连接 {0} 个部件</RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>
+
+  <!-- Engine launch readiness (GravshipHelper.GetLaunchReadiness).
+       NotReadyMissing: prepended to a comma-joined list of missing-component
+       labels.
+       AllConnected: spoken when no components are missing. -->
+  <RimWorldAccess.Gravships.Engine.NotReadyMissing>未就绪: 缺少</RimWorldAccess.Gravships.Engine.NotReadyMissing>
+  <RimWorldAccess.Gravships.Engine.AllConnected>所有部件已连接</RimWorldAccess.Gravships.Engine.AllConnected>
+
+  <!-- Landing-marker spawn guidance (GravshipPatch.GravshipLandingMarker_SpawnSetup_Patch).
+       Spoken once when the marker first appears (not on save load). -->
+  <RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>逆重飞船着陆区已放置在有效的默认位置。导航至着陆标记并按 G 键确认着陆，或先使用移动着陆区命令重新定位。</RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>
+
+  <!-- Disconnected-substructure scanner category (SubstructureOverlayState).
+       CategoryLabel is the scanner category title. ItemLabel is the per-region
+       label spoken when the user navigates onto a disconnected cluster. -->
+  <RimWorldAccess.Gravships.Substructure.CategoryLabel>断开连接的基架</RimWorldAccess.Gravships.Substructure.CategoryLabel>
+  <RimWorldAccess.Gravships.Substructure.ItemLabel>断开连接的基架</RimWorldAccess.Gravships.Substructure.ItemLabel>
+</LanguageData>

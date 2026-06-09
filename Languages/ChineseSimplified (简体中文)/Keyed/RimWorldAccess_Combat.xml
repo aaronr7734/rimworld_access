@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Combat module strings (src/Combat/). Three files contribute:
+      - CombatLogState.cs  (Alt+B combat log viewer)
+      - ShellImpactPatch.cs  (mortar/artillery impact announcements)
+      - TargetingPatch.cs  (Enter-to-target, range/LOS feedback, multi-select)
+
+    The multi-select keys (Combat.MultiSelect.*) exist as whole phrases per
+    semantic case so translators can reorder subject/verb/object freely. C#
+    picks which key to use based on succeeded/unchanged pawn counts. Singular
+    and plural subject forms are separate keys because English needs subject-
+    verb agreement ("Only Bob attacks" vs "Only Bob and Alice attack"); other
+    languages can collapse or split these further in their own XML.
+  -->
+
+  <!-- Combat log (Alt+B). -->
+  <RimWorldAccess.Combat.Log.NoBattleLog>无可用战斗记录</RimWorldAccess.Combat.Log.NoBattleLog>
+  <RimWorldAccess.Combat.Log.Header>{0}的战斗记录</RimWorldAccess.Combat.Log.Header>
+  <RimWorldAccess.Combat.Log.NoEntries>未找到战斗记录条目。</RimWorldAccess.Combat.Log.NoEntries>
+  <RimWorldAccess.Combat.Log.ShowingLastN>显示共 {0} 条中的最近 10 条。</RimWorldAccess.Combat.Log.ShowingLastN>
+  <RimWorldAccess.Combat.Log.Total>共 {0} 条。</RimWorldAccess.Combat.Log.Total>
+
+  <!-- Shell impacts (mortars, artillery). {0} = shell source label,
+       {1} = target label (Hit only), last two = impact cell x, z. -->
+  <RimWorldAccess.Combat.Shell.SourceDefault>炮弹</RimWorldAccess.Combat.Shell.SourceDefault>
+  <RimWorldAccess.Combat.Shell.SourceOurs>我方炮弹</RimWorldAccess.Combat.Shell.SourceOurs>
+  <RimWorldAccess.Combat.Shell.SourceEnemy>敌方炮弹</RimWorldAccess.Combat.Shell.SourceEnemy>
+  <RimWorldAccess.Combat.Shell.Hit>{0}命中{1}，位置 {2}, {3}</RimWorldAccess.Combat.Shell.Hit>
+  <RimWorldAccess.Combat.Shell.Landed>{0}落在 {1}, {2}</RimWorldAccess.Combat.Shell.Landed>
+
+  <!-- Generic target and location fallbacks. Used when target.HasThing is
+       false and a labeled placeholder is needed for sentence composition. -->
+  <RimWorldAccess.Combat.Target.GenericTargetLabel>目标</RimWorldAccess.Combat.Target.GenericTargetLabel>
+  <RimWorldAccess.Combat.Target.GenericLocationLabel>位置</RimWorldAccess.Combat.Target.GenericLocationLabel>
+
+  <!-- Range/distance feedback during targeting. -->
+  <RimWorldAccess.Combat.Target.NoRangeInfo>无可用射程信息</RimWorldAccess.Combat.Target.NoRangeInfo>
+  <RimWorldAccess.Combat.Target.DistanceInRange>距离: {0} 格，在射程内</RimWorldAccess.Combat.Target.DistanceInRange>
+  <RimWorldAccess.Combat.Target.DistanceOutOfRange>距离: {0} 格，超出射程（最大 {1}）</RimWorldAccess.Combat.Target.DistanceOutOfRange>
+  <RimWorldAccess.Combat.Target.OutOfRange>超出射程。距离: {0}，最大射程: {1}</RimWorldAccess.Combat.Target.OutOfRange>
+
+  <!-- Target validation and errors. -->
+  <RimWorldAccess.Combat.Target.InvalidPosition>无效的目标位置</RimWorldAccess.Combat.Target.InvalidPosition>
+  <RimWorldAccess.Combat.Target.InvalidTarget>无效目标</RimWorldAccess.Combat.Target.InvalidTarget>
+  <RimWorldAccess.Combat.Target.NotValidTarget>{0}不是有效目标</RimWorldAccess.Combat.Target.NotValidTarget>
+  <RimWorldAccess.Combat.Target.NoValidAtCursorWithDesc>光标处无有效目标。{0}</RimWorldAccess.Combat.Target.NoValidAtCursorWithDesc>
+  <RimWorldAccess.Combat.Target.NoActionAvailable>无可用的指定目标操作</RimWorldAccess.Combat.Target.NoActionAvailable>
+  <RimWorldAccess.Combat.Target.ErrorUsing>对目标使用时出错: {0}</RimWorldAccess.Combat.Target.ErrorUsing>
+
+  <!-- Targeting success announcements (single-select path). -->
+  <RimWorldAccess.Combat.Target.Targeting>指定目标: {0}</RimWorldAccess.Combat.Target.Targeting>
+  <RimWorldAccess.Combat.Target.TargetingLocation>指定目标位置</RimWorldAccess.Combat.Target.TargetingLocation>
+  <RimWorldAccess.Combat.Target.Selected>已选定目标: {0}</RimWorldAccess.Combat.Target.Selected>
+
+  <!-- Second-phase (destination) selection, e.g. Skip ability. -->
+  <RimWorldAccess.Combat.Target.SelectDestination>现在选择目的地</RimWorldAccess.Combat.Target.SelectDestination>
+  <RimWorldAccess.Combat.Target.SelectDestinationInRange>现在选择 {0} 格内的目的地</RimWorldAccess.Combat.Target.SelectDestinationInRange>
+
+  <!-- Multi-select attack feedback. Whole-phrase keys per semantic case so
+       word order and subject-verb agreement can be localized naturally.
+         Everyone:  all selected pawns accepted the order.
+         NoOne:     none of the selected pawns accepted the order.
+         Only:      some accepted, fewer accepted than rejected.
+         Except:    some rejected, fewer rejected than accepted.
+       English uses singular "attacks" for the Everyone and EveryoneExcept
+       forms because "everyone" takes singular agreement. Only has split
+       singular/plural forms because its subject is the name list itself.
+       Translators can collapse or further split these as their grammar requires.
+       {0} = everyone-label from vanilla key (Except) or name-list (Only),
+       {1} = name-list of the exception / attack target,
+       {2} = attack target (Except key only). -->
+  <RimWorldAccess.Combat.MultiSelect.EveryoneAttacks>{0}攻击{1}</RimWorldAccess.Combat.MultiSelect.EveryoneAttacks>
+  <RimWorldAccess.Combat.MultiSelect.NoOneCouldAttack>无人能够攻击{0}</RimWorldAccess.Combat.MultiSelect.NoOneCouldAttack>
+  <RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks>{0}中除{1}外攻击{2}</RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks>
+  <RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks>仅{0}攻击{1}</RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks>
+  <RimWorldAccess.Combat.MultiSelect.OnlyManyAttack>仅{0}攻击{1}</RimWorldAccess.Combat.MultiSelect.OnlyManyAttack>
+</LanguageData>

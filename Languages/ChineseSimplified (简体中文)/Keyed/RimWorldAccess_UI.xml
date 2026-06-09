@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    UI module strings (src/UI/). The UI module hosts shared dialog and
+    menu infrastructure used by the rest of the mod; many of its files
+    (TypeaheadSearchHelper, GuardHelper, MenuHelper, TreeNavigationHelper,
+    TwoLevelMenuHelper, NumericStepperHelper) were already wired through
+    Common.xml in earlier phases. This file covers the remaining
+    state/patch/helper files that still emit module-specific phrasing:
+
+      - WindowlessSaveMenuState.cs       (save/load file browser)
+      - WindowlessFloatMenuState.cs      (keyboard-navigable float menu)
+      - WindowlessPauseMenuState.cs      (in-game pause menu)
+      - WindowlessOptionsMenuState.cs    (options panel + setting hints)
+      - WindowlessDialogState.cs         (generic dialog frame)
+      - WindowlessConfirmationState.cs   (yes/no confirmation)
+      - QuantityMenuState.cs             (numeric quantity picker)
+      - GiveNameDialogPatch.cs           (Dialog_GiveName randomize/accept)
+      - DialogElementExtractor.cs        (Dialog_Rename / Dialog_GiveName /
+                                           Dialog_NamePawn OK feedback)
+      - TransferableQuantityHelper.cs    (caravan/trade quantity setters)
+      - MessageBoxAccessibilityPatch.cs  (Dialog_MessageBox Cancel)
+      - ExtraMenusState.cs               (extra-menus picker)
+      - Dialog_NameAllowedArea.cs        (zone-area name dialog)
+
+    Phrasing decisions:
+      - "{Label}. {Position}" appears across pause/options/extra menus.
+        It uses a shared key (UI.Item.WithPosition).
+      - The "{Label}. {Position}. No matches for '{X}'" pattern (typeahead
+        no-match in pause/extra menus) is also shared.
+      - "OK", "Accept", "Cancel" button labels delegate to vanilla
+        translation keys via .Translate() at the call site.
+      - The "RimWorld Access" settings sub-category in the in-game options
+        panel reuses the existing RimWorldAccess.Core.Settings.* keys
+        (canonical wording lives in RimWorldAccess_Core.xml).
+
+    Data such as save file names, faction names, settings category labels
+    from the game (Prefs categories), modder-supplied SettingsCategory()
+    text, mass values, item labels, and dialog button text extracted via
+    reflection from RimWorld dialogs is NOT translated here.
+  -->
+
+  <!-- =================================================================
+       Composition keys shared across multiple state classes.
+       Item.WithPosition: {0} = label/option text, {1} = position string.
+       Item.WithPositionNoMatches: {0} = label, {1} = position,
+                                    {2} = current search buffer (failed).
+       ================================================================= -->
+  <RimWorldAccess.UI.Item.WithPosition>{0}. {1}</RimWorldAccess.UI.Item.WithPosition>
+  <RimWorldAccess.UI.Item.WithPositionNoMatches>{0}. {1}. 无匹配项：“{2}”</RimWorldAccess.UI.Item.WithPositionNoMatches>
+
+  <!-- =================================================================
+       Save / load menu (WindowlessSaveMenuState +
+                         WindowlessDeleteConfirmationState).
+       Save mode introduces a virtual "Create New Save" entry at index 0,
+       so position composition has its own keys. Load mode shares
+       Item.WithPosition for the basic line.
+       ================================================================= -->
+  <RimWorldAccess.UI.Save.NoFiles>没有可用的存档文件</RimWorldAccess.UI.Save.NoFiles>
+  <RimWorldAccess.UI.Save.InvalidSelection>无效的存档选择</RimWorldAccess.UI.Save.InvalidSelection>
+  <RimWorldAccess.UI.Save.NeedName>需要为存档文件输入名称</RimWorldAccess.UI.Save.NeedName>
+  <RimWorldAccess.UI.Save.SavedAs>已保存为 {0}</RimWorldAccess.UI.Save.SavedAs>
+  <RimWorldAccess.UI.Save.Loading>正在载入 {0}</RimWorldAccess.UI.Save.Loading>
+  <RimWorldAccess.UI.Save.CannotDeleteCreateNew>无法删除“新建存档”选项</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
+  <!-- {0} = file name (stripped of extension). -->
+  <RimWorldAccess.UI.Save.DeleteConfirmPrompt>删除 {0}？按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Save.DeleteConfirmPrompt>
+  <RimWorldAccess.UI.Save.Deleted>已删除 {0}</RimWorldAccess.UI.Save.Deleted>
+  <RimWorldAccess.UI.Save.DeleteCancelled>已取消删除</RimWorldAccess.UI.Save.DeleteCancelled>
+  <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
+       {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
+       date-time, {2} = position. -->
+  <RimWorldAccess.UI.Save.CreateNewRow>新建存档：{0}. {1}</RimWorldAccess.UI.Save.CreateNewRow>
+  <RimWorldAccess.UI.Save.OverwriteRow>覆盖：{0} - {1}. {2}</RimWorldAccess.UI.Save.OverwriteRow>
+  <RimWorldAccess.UI.Save.LoadRow>载入：{0} - {1}. {2}</RimWorldAccess.UI.Save.LoadRow>
+
+  <!-- =================================================================
+       Float menu (WindowlessFloatMenuState). The selection announcement
+       differentiates between a queued action (Shift held while clicking
+       a colonist order) and a normal one. {0} = option label.
+       FloatMenu.OptionTooltip: {0} = option text, {1} = tooltip text,
+                                 {2} = position phrase.
+       (The Item.WithPosition shared key handles the no-tooltip case.)
+       ================================================================= -->
+  <RimWorldAccess.UI.FloatMenu.SelectedQueued>{0}, {1}</RimWorldAccess.UI.FloatMenu.SelectedQueued>
+  <RimWorldAccess.UI.FloatMenu.Selected>已选择 {0}</RimWorldAccess.UI.FloatMenu.Selected>
+  <!-- Suffix appended to a disabled option label. -->
+  <RimWorldAccess.UI.FloatMenu.UnavailableSuffix>（不可用）</RimWorldAccess.UI.FloatMenu.UnavailableSuffix>
+  <!-- Spoken when activating a disabled float-menu option. {0} = option label. -->
+  <RimWorldAccess.UI.FloatMenu.LabelUnavailable>{0} - 不可用</RimWorldAccess.UI.FloatMenu.LabelUnavailable>
+  <!-- Generic confirmation prompt (WindowlessConfirmationState). {0} = the
+       caller-supplied message; the instruction tail is owned here. -->
+  <RimWorldAccess.UI.Confirm.MessageWithInstructions>{0} - 按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Confirm.MessageWithInstructions>
+  <RimWorldAccess.UI.FloatMenu.OptionTooltip>{0}. {1} {2}</RimWorldAccess.UI.FloatMenu.OptionTooltip>
+  <!-- Tooltip variant inside an active typeahead search; the search
+       buffer suffix is appended by typeahead.BuildSearchContextSuffix(),
+       so this key does not include the query. -->
+  <RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>{0}. {1}</RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>
+
+  <!-- =================================================================
+       Quantity menu (QuantityMenuState).
+       OpenInstructions: {0} = item label.
+       Selected: {0} = quantity, {1} = item label.
+       Invalid: {0} = current numeric buffer.
+       Maximum / Minimum spoken when increment cap is hit. -->
+  <RimWorldAccess.UI.Quantity.OpenInstructions>{0} 的数量菜单。使用上下方向键调整，输入数字，或按回车键确认。</RimWorldAccess.UI.Quantity.OpenInstructions>
+  <RimWorldAccess.UI.Quantity.Selected>已选择 {0} {1}</RimWorldAccess.UI.Quantity.Selected>
+  <RimWorldAccess.UI.Quantity.Cancelled>已取消数量选择</RimWorldAccess.UI.Quantity.Cancelled>
+  <RimWorldAccess.UI.Quantity.Maximum>最大数量</RimWorldAccess.UI.Quantity.Maximum>
+  <RimWorldAccess.UI.Quantity.Minimum>最小数量</RimWorldAccess.UI.Quantity.Minimum>
+  <RimWorldAccess.UI.Quantity.InvalidNumber>无效数字：{0}</RimWorldAccess.UI.Quantity.InvalidNumber>
+
+  <!-- =================================================================
+       Pause menu (WindowlessPauseMenuState).
+       Quit prompts share a "Press Enter to confirm, Escape to cancel"
+       suffix. Each prompt is a whole-phrase key so translators can vary
+       wording for politeness register (e.g. "Quit to desktop?" might be
+       expressed differently in some locales). -->
+  <RimWorldAccess.UI.Pause.QuitMainMenuPrompt>确认退出到主菜单？按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Pause.QuitMainMenuPrompt>
+  <RimWorldAccess.UI.Pause.QuitDesktopPrompt>确认退出到桌面？按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Pause.QuitDesktopPrompt>
+  <RimWorldAccess.UI.Pause.ResumedGame>已恢复游戏</RimWorldAccess.UI.Pause.ResumedGame>
+
+  <!-- =================================================================
+       Options menu (WindowlessOptionsMenuState).
+       The "Press Enter to ..." button hints share a small key set;
+       each is one full phrase so translators can vary verb choice. -->
+  <RimWorldAccess.UI.Options.PressEnterToReset>按回车键重置所有设置</RimWorldAccess.UI.Options.PressEnterToReset>
+  <RimWorldAccess.UI.Options.PressEnterToModify>按回车键修改</RimWorldAccess.UI.Options.PressEnterToModify>
+  <RimWorldAccess.UI.Options.PressEnterToOpen>按回车键打开</RimWorldAccess.UI.Options.PressEnterToOpen>
+  <RimWorldAccess.UI.Options.OpeningResetDialog>正在打开重置确认对话框</RimWorldAccess.UI.Options.OpeningResetDialog>
+  <RimWorldAccess.UI.Options.CannotChangeStoryteller>当前无法更改故事叙述者</RimWorldAccess.UI.Options.CannotChangeStoryteller>
+  <!-- {0} = mod's SettingsCategory() string. -->
+  <RimWorldAccess.UI.Options.OpeningModSettings>正在打开 {0} 的设置</RimWorldAccess.UI.Options.OpeningModSettings>
+
+  <!-- =================================================================
+       Generic dialog frame (WindowlessDialogState).
+       ButtonExecuted: {0} = button label.
+       ButtonCannotActivate: {0} = disabled reason text.
+       Disabled suffix: ButtonAnnouncement: {0} = button label,
+                          DisabledSuffix: {0} = disabled reason. The two
+                        keys compose because the suffix is conditional. -->
+  <RimWorldAccess.UI.Dialog.ButtonExecuted>已激活 {0}</RimWorldAccess.UI.Dialog.ButtonExecuted>
+  <RimWorldAccess.UI.Dialog.ButtonCannotActivate>无法激活：{0}</RimWorldAccess.UI.Dialog.ButtonCannotActivate>
+  <RimWorldAccess.UI.Dialog.ButtonAnnouncement>{0} 按钮</RimWorldAccess.UI.Dialog.ButtonAnnouncement>
+  <RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>{0}（已禁用：{1}）</RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>
+  <!-- TextField announcement: {0} = label, {1} = current value or
+       Empty marker. The Empty placeholder is its own key so non-Latin
+       languages can choose a punctuation-free word. -->
+  <RimWorldAccess.UI.Dialog.TextField>文本框：{0}. 当前值：{1}. 按回车键编辑。</RimWorldAccess.UI.Dialog.TextField>
+  <RimWorldAccess.UI.Dialog.TextFieldEmpty>空</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+
+  <!-- =================================================================
+       Name dialogs (DialogElementExtractor + GiveNameDialogPatch).
+       Both surfaces (Dialog_GiveName Patch + DialogElementExtractor's
+       reflection-based OK handlers) emit the same announcement set, so
+       the keys live in one place.
+       ================================================================= -->
+  <RimWorldAccess.UI.Name.Invalid>名称无效</RimWorldAccess.UI.Name.Invalid>
+  <RimWorldAccess.UI.Name.InvalidSecond>姓氏无效</RimWorldAccess.UI.Name.InvalidSecond>
+  <!-- {0} = randomized name. -->
+  <RimWorldAccess.UI.Name.Randomized>已随机生成：{0}</RimWorldAccess.UI.Name.Randomized>
+  <RimWorldAccess.UI.Name.RandomizedFirst>已随机生成名字：{0}</RimWorldAccess.UI.Name.RandomizedFirst>
+  <RimWorldAccess.UI.Name.RandomizedSecond>已随机生成姓氏：{0}</RimWorldAccess.UI.Name.RandomizedSecond>
+  <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
+  <RimWorldAccess.UI.Name.Accepted>已确认名称：{0}</RimWorldAccess.UI.Name.Accepted>
+  <RimWorldAccess.UI.Name.AcceptedBoth>已确认名称：{0}, {1}</RimWorldAccess.UI.Name.AcceptedBoth>
+  <RimWorldAccess.UI.Name.Renamed>已重命名为 {0}</RimWorldAccess.UI.Name.Renamed>
+  <RimWorldAccess.UI.Name.NamedSingle>已命名为 {0}</RimWorldAccess.UI.Name.NamedSingle>
+  <RimWorldAccess.UI.Name.NamedBoth>已命名为 {0} {1}</RimWorldAccess.UI.Name.NamedBoth>
+
+  <!-- Dialog_GiveName keyboard announcements (GiveNameDialogPatch).
+       DialogIntro {0} = first prompt; the text-field keys take {0} = prompt,
+       {1} = current value. -->
+  <RimWorldAccess.UI.GiveName.DialogIntro>命名对话框。{0}</RimWorldAccess.UI.GiveName.DialogIntro>
+  <RimWorldAccess.UI.GiveName.NavHint>使用 Tab 键在各字段间导航。按回车键确认。</RimWorldAccess.UI.GiveName.NavHint>
+  <RimWorldAccess.UI.GiveName.TextField>文本框：{0}. 当前值：{1}</RimWorldAccess.UI.GiveName.TextField>
+  <RimWorldAccess.UI.GiveName.FirstTextField>第一文本框：{0}. 当前值：{1}</RimWorldAccess.UI.GiveName.FirstTextField>
+  <RimWorldAccess.UI.GiveName.SecondTextField>第二文本框：{0}. 当前值：{1}</RimWorldAccess.UI.GiveName.SecondTextField>
+  <RimWorldAccess.UI.GiveName.RandomizeButton>随机生成按钮</RimWorldAccess.UI.GiveName.RandomizeButton>
+  <RimWorldAccess.UI.GiveName.RandomizeFirstButton>随机生成名字按钮</RimWorldAccess.UI.GiveName.RandomizeFirstButton>
+  <RimWorldAccess.UI.GiveName.RandomizeSecondButton>随机生成姓氏按钮</RimWorldAccess.UI.GiveName.RandomizeSecondButton>
+  <RimWorldAccess.UI.GiveName.OkButton>确定按钮</RimWorldAccess.UI.GiveName.OkButton>
+
+  <!-- Dialog_NameAllowedArea opening prompt. -->
+  <RimWorldAccess.UI.NameArea.OpenPrompt>命名此活动区。输入名称后按确定或回车键继续。</RimWorldAccess.UI.NameArea.OpenPrompt>
+
+  <!-- =================================================================
+       TransferableQuantityHelper (caravan/trade quantity setters).
+       AdjustTo and SetToZero share a "{count} {item}" phrasing. The
+       SetToMax variant adds a localized "maximum" suffix and an
+       optional mass tag. {0} = count, {1} = item label.
+       MaxLine: {0} = count, {1} = item, {2} = mass suffix or empty.
+       MassSuffix: {0} = total mass formatted to one decimal. -->
+  <RimWorldAccess.UI.Transferable.QuantitySpoken>{0} {1}</RimWorldAccess.UI.Transferable.QuantitySpoken>
+  <RimWorldAccess.UI.Transferable.MaxLine>{0} {1}，最大{2}</RimWorldAccess.UI.Transferable.MaxLine>
+  <RimWorldAccess.UI.Transferable.MassSuffix>，{0} 千克</RimWorldAccess.UI.Transferable.MassSuffix>
+
+  <!-- =================================================================
+       MessageBox patch + ExtraMenusState + WindowlessConfirmationState.
+       Cancelled is shared (used by all three). -->
+  <RimWorldAccess.UI.Cancelled>已取消</RimWorldAccess.UI.Cancelled>
+  <RimWorldAccess.UI.Extra.None>没有可用的额外菜单</RimWorldAccess.UI.Extra.None>
+
+  <!-- MessageBox button prompts. {0} = accept button label, {1} = cancel button label. -->
+  <RimWorldAccess.UI.MessageBox.TwoButtons>按回车键选择 {0}，按 Esc 键选择 {1}。</RimWorldAccess.UI.MessageBox.TwoButtons>
+  <RimWorldAccess.UI.MessageBox.OneButton>按回车键选择 {0}。</RimWorldAccess.UI.MessageBox.OneButton>
+
+  <!-- =================================================================
+       Slider dialog (SliderDialogState — Dialog_Slider keyboard nav).
+       OpenPrompt: {0} = current value text (from textGetter), {1} = min, {2} = max.
+       Confirmed: {0} = confirmed integer value.
+       Cleared: spoken when digit buffer is emptied via Backspace. -->
+  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. 范围 {1} 至 {2}。按上下方向键微调，按左右方向键调整百分之十，输入数字后按回车键设定，按回车键确认，按 Esc 键取消。</RimWorldAccess.UI.Slider.OpenPrompt>
+  <RimWorldAccess.UI.Slider.Confirmed>已确认 {0}</RimWorldAccess.UI.Slider.Confirmed>
+  <RimWorldAccess.UI.Slider.Cleared>已清除</RimWorldAccess.UI.Slider.Cleared>
+
+  <!-- Save menu: no existing files to overwrite (save mode, Down from text field). -->
+  <RimWorldAccess.UI.Save.NoExistingSaves>没有可覆盖的现有存档。</RimWorldAccess.UI.Save.NoExistingSaves>
+
+  <!-- TwoLevelMenuHelper fallback messages, used when a caller does not supply
+       its own context-specific text. -->
+  <RimWorldAccess.TwoLevel.OpenFirstDefault>请先按回车键打开此项</RimWorldAccess.TwoLevel.OpenFirstDefault>
+  <RimWorldAccess.TwoLevel.NavigateDownDefault>请先向下导航至按钮</RimWorldAccess.TwoLevel.NavigateDownDefault>
+  <RimWorldAccess.TwoLevel.NoButtonsDefault>没有可用的按钮</RimWorldAccess.TwoLevel.NoButtonsDefault>
+
+
+  <!-- Generic dialog nav instructions + give-name field labels (src/UI/WindowlessDialogState.cs, DialogElementExtractor.cs). -->
+  <RimWorldAccess.UI.Dialog.NavInstructions>{0} 个元素。使用方向键导航，按回车键激活，按 Esc 键取消。</RimWorldAccess.UI.Dialog.NavInstructions>
+  <RimWorldAccess.UI.GiveName.SettlementNameLabel>定居点名称</RimWorldAccess.UI.GiveName.SettlementNameLabel>
+  <RimWorldAccess.UI.GiveName.SecondNameLabel>姓氏</RimWorldAccess.UI.GiveName.SecondNameLabel>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.UI.Dialog.FieldCannotBeEdited>{0} {1}. 无法编辑。</RimWorldAccess.UI.Dialog.FieldCannotBeEdited>
+  <RimWorldAccess.UI.SaveMenu.NoSaveFiles>没有可用的存档文件</RimWorldAccess.UI.SaveMenu.NoSaveFiles>
+</LanguageData>

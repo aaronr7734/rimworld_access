@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Biotech module strings (src/Biotech/). Ten files contribute:
+      - GeneInspectionPatch.cs    (Harmony patch, no user-facing text)
+      - GeneInspectionState.cs    (baby/embryo/genepack/xenogerm gene tree)
+      - GeneTreeBuilder.cs        (gene-tree node labels, biostats summary)
+      - GrowthMomentPatch.cs      (Harmony patch, no user-facing text)
+      - GrowthMomentState.cs      (child growth moment dialog: info/passions/traits)
+      - MechControlGroupState.cs  (mechanitor control group settings/members)
+      - XenogermPatch.cs          (Harmony patch, no user-facing text)
+      - XenogermState.cs          (Dialog_CreateXenogerm tabbed tree)
+      - XenotypeEditorPatch.cs    (Harmony patch, no user-facing text)
+      - XenotypeEditorState.cs    (Dialog_CreateXenotype tabbed tree)
+
+    Shared vocabulary (edge announcements, info-card unavailable, typeahead
+    feedback, tree expansion state, level suffix) is sourced from
+    RimWorldAccess_Common.xml. Gene names, xenotype labels, category labels,
+    and all biostat terms (Complexity, Metabolism, Archites) come from the
+    game's own vanilla translation keys via .Translate(), so they are NOT
+    duplicated here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). One/Many variants exist
+    where English needs singular/plural agreement (e.g. "1 gene" vs "N genes").
+    Other languages can collapse or further split these using their own XML.
+  -->
+
+  <!-- ============================================================
+       Gene tree builder (GeneTreeBuilder.cs).
+       Used to label gene-tree nodes built by both GeneInspectionState
+       and XenogermState/XenotypeEditorState.
+       ============================================================ -->
+
+  <!-- Skin shade descriptions from perceptual luminance. -->
+  <RimWorldAccess.Biotech.Color.SkinVeryLight>极浅</RimWorldAccess.Biotech.Color.SkinVeryLight>
+  <RimWorldAccess.Biotech.Color.SkinLight>浅</RimWorldAccess.Biotech.Color.SkinLight>
+  <RimWorldAccess.Biotech.Color.SkinFair>白皙</RimWorldAccess.Biotech.Color.SkinFair>
+  <RimWorldAccess.Biotech.Color.SkinMedium>中等</RimWorldAccess.Biotech.Color.SkinMedium>
+  <RimWorldAccess.Biotech.Color.SkinTan>古铜</RimWorldAccess.Biotech.Color.SkinTan>
+  <RimWorldAccess.Biotech.Color.SkinBrown>棕</RimWorldAccess.Biotech.Color.SkinBrown>
+  <RimWorldAccess.Biotech.Color.SkinDarkBrown>深棕</RimWorldAccess.Biotech.Color.SkinDarkBrown>
+
+  <!-- Grayscale / brightness descriptions (hair, non-skin). -->
+  <RimWorldAccess.Biotech.Color.VeryDark>极深</RimWorldAccess.Biotech.Color.VeryDark>
+  <RimWorldAccess.Biotech.Color.Dark>深</RimWorldAccess.Biotech.Color.Dark>
+  <RimWorldAccess.Biotech.Color.MediumDark>中深</RimWorldAccess.Biotech.Color.MediumDark>
+  <RimWorldAccess.Biotech.Color.Medium>中等</RimWorldAccess.Biotech.Color.Medium>
+  <RimWorldAccess.Biotech.Color.Light>浅</RimWorldAccess.Biotech.Color.Light>
+  <RimWorldAccess.Biotech.Color.VeryLight>极浅</RimWorldAccess.Biotech.Color.VeryLight>
+
+  <!-- Hue-based color descriptions. -->
+  <RimWorldAccess.Biotech.Color.Orange>橙</RimWorldAccess.Biotech.Color.Orange>
+  <RimWorldAccess.Biotech.Color.Brown>棕</RimWorldAccess.Biotech.Color.Brown>
+  <RimWorldAccess.Biotech.Color.Pink>粉</RimWorldAccess.Biotech.Color.Pink>
+  <RimWorldAccess.Biotech.Color.Red>红</RimWorldAccess.Biotech.Color.Red>
+  <RimWorldAccess.Biotech.Color.LightGreen>浅绿</RimWorldAccess.Biotech.Color.LightGreen>
+  <RimWorldAccess.Biotech.Color.Green>绿</RimWorldAccess.Biotech.Color.Green>
+  <RimWorldAccess.Biotech.Color.LightBlue>浅蓝</RimWorldAccess.Biotech.Color.LightBlue>
+  <RimWorldAccess.Biotech.Color.Blue>蓝</RimWorldAccess.Biotech.Color.Blue>
+  <RimWorldAccess.Biotech.Color.Blonde>金黄</RimWorldAccess.Biotech.Color.Blonde>
+  <RimWorldAccess.Biotech.Color.Gray>灰</RimWorldAccess.Biotech.Color.Gray>
+
+  <!-- Gene tree root labels.
+       {0} = xenotype label, {1} = gene count (with unit suffix). -->
+  <RimWorldAccess.Biotech.Gene.RootBabyGenes>婴儿基因</RimWorldAccess.Biotech.Gene.RootBabyGenes>
+  <RimWorldAccess.Biotech.Gene.RootBabyGenesWithXenotype>婴儿基因: {0}</RimWorldAccess.Biotech.Gene.RootBabyGenesWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootBabyGenesNone>婴儿基因: 无</RimWorldAccess.Biotech.Gene.RootBabyGenesNone>
+  <RimWorldAccess.Biotech.Gene.RootEmbryoGenes>胚胎基因 {0}</RimWorldAccess.Biotech.Gene.RootEmbryoGenes>
+  <RimWorldAccess.Biotech.Gene.RootEmbryoGenesWithXenotype>胚胎基因: {0} {1}</RimWorldAccess.Biotech.Gene.RootEmbryoGenesWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootXenogermGenes>异种胚芽基因: {0} {1}</RimWorldAccess.Biotech.Gene.RootXenogermGenes>
+  <RimWorldAccess.Biotech.Gene.RootGenepackGenes>基因组基因 {0}</RimWorldAccess.Biotech.Gene.RootGenepackGenes>
+  <RimWorldAccess.Biotech.Gene.RootGenepackWithXenotype>基因组: {0} {1}</RimWorldAccess.Biotech.Gene.RootGenepackWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootGenes>基因 {0}</RimWorldAccess.Biotech.Gene.RootGenes>
+  <RimWorldAccess.Biotech.Gene.RootGenesWithXenotype>基因: {0} {1}</RimWorldAccess.Biotech.Gene.RootGenesWithXenotype>
+  <RimWorldAccess.Biotech.Gene.RootAdultGenes>基因: {0} {1}</RimWorldAccess.Biotech.Gene.RootAdultGenes>
+
+  <!-- Gene count suffix (appended to root labels).
+       One: "(1 gene)"; Many: "(N genes)". -->
+  <RimWorldAccess.Biotech.Gene.CountSuffixOne>（1 个基因）</RimWorldAccess.Biotech.Gene.CountSuffixOne>
+  <RimWorldAccess.Biotech.Gene.CountSuffixMany>（{0} 个基因）</RimWorldAccess.Biotech.Gene.CountSuffixMany>
+
+  <!-- Gene node and status markers. -->
+  <RimWorldAccess.Biotech.Gene.StatusOverridden>[已覆盖]</RimWorldAccess.Biotech.Gene.StatusOverridden>
+  <RimWorldAccess.Biotech.Gene.StatusInactive>[未激活]</RimWorldAccess.Biotech.Gene.StatusInactive>
+  <RimWorldAccess.Biotech.Gene.CosmeticNoEffects>外观基因，无玩法效果</RimWorldAccess.Biotech.Gene.CosmeticNoEffects>
+  <RimWorldAccess.Biotech.Gene.NoDetails>无更多详情</RimWorldAccess.Biotech.Gene.NoDetails>
+
+  <!-- Biostats summary label for gene tree (composed with vanilla
+       Complexity/Metabolism/ArchitesRequired keys and signed values). -->
+  <RimWorldAccess.Biotech.Gene.TotalBiostats>生物统计总计: {0}</RimWorldAccess.Biotech.Gene.TotalBiostats>
+  <RimWorldAccess.Biotech.Gene.BiostatComplexityValue>复杂度 {0}</RimWorldAccess.Biotech.Gene.BiostatComplexityValue>
+  <RimWorldAccess.Biotech.Gene.BiostatMetabolismValue>代谢效率 {0}</RimWorldAccess.Biotech.Gene.BiostatMetabolismValue>
+  <RimWorldAccess.Biotech.Gene.BiostatArchitesValue>超凡胶囊 {0}</RimWorldAccess.Biotech.Gene.BiostatArchitesValue>
+  <RimWorldAccess.Biotech.Gene.BiostatComplexityWithDesc>复杂度: {0}. {1}</RimWorldAccess.Biotech.Gene.BiostatComplexityWithDesc>
+  <RimWorldAccess.Biotech.Gene.BiostatMetabolismWithDesc>代谢效率: {0}. {1}</RimWorldAccess.Biotech.Gene.BiostatMetabolismWithDesc>
+  <RimWorldAccess.Biotech.Gene.BiostatArchitesWithDesc>所需超凡胶囊: {0}. {1}</RimWorldAccess.Biotech.Gene.BiostatArchitesWithDesc>
+
+  <!-- ============================================================
+       Gene inspection (GeneInspectionState.cs).
+       ITab_GenesPregnancy / ITab_Genes keyboard overlay.
+       ============================================================ -->
+
+  <RimWorldAccess.Biotech.GeneInspection.NoPregnancy>未发现妊娠。</RimWorldAccess.Biotech.GeneInspection.NoPregnancy>
+  <RimWorldAccess.Biotech.GeneInspection.Closed>基因查看已关闭。</RimWorldAccess.Biotech.GeneInspection.Closed>
+  <RimWorldAccess.Biotech.GeneInspection.FirstGene>第一个基因: {0}</RimWorldAccess.Biotech.GeneInspection.FirstGene>
+  <RimWorldAccess.Biotech.GeneInspection.NavHint>使用上下键导航，右键展开，左键折叠。Page Up 和 Page Down 在基因之间跳转。</RimWorldAccess.Biotech.GeneInspection.NavHint>
+  <RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded>已展开。</RimWorldAccess.Biotech.GeneInspection.AlreadyExpanded>
+  <RimWorldAccess.Biotech.GeneInspection.NoAction>此项无可用操作。</RimWorldAccess.Biotech.GeneInspection.NoAction>
+
+  <!-- ============================================================
+       Growth moment (GrowthMomentState.cs).
+       Dialog_GrowthMomentChoices keyboard overlay: Info / Passions / Traits.
+       ============================================================ -->
+
+  <!-- Tab names. -->
+  <RimWorldAccess.Biotech.GrowthMoment.TabInfo>信息</RimWorldAccess.Biotech.GrowthMoment.TabInfo>
+  <RimWorldAccess.Biotech.GrowthMoment.TabPassions>兴趣度</RimWorldAccess.Biotech.GrowthMoment.TabPassions>
+  <RimWorldAccess.Biotech.GrowthMoment.TabTraits>特性</RimWorldAccess.Biotech.GrowthMoment.TabTraits>
+  <RimWorldAccess.Biotech.GrowthMoment.TabUnknown>未知</RimWorldAccess.Biotech.GrowthMoment.TabUnknown>
+  <RimWorldAccess.Biotech.GrowthMoment.OnlyOneTab>仅有一个选项卡</RimWorldAccess.Biotech.GrowthMoment.OnlyOneTab>
+
+  <!-- Tab announcements. {0} = count for passions, {1} = total. -->
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseOne>选择 1 项</RimWorldAccess.Biotech.GrowthMoment.ChooseOne>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseNOfM>从 {1} 项中选择 {0} 项</RimWorldAccess.Biotech.GrowthMoment.ChooseNOfM>
+
+  <!-- Info tab. {0} = growth tier number, {1} = old name, {2} = new name,
+       {3} = passions list, {4} = trait label. -->
+  <RimWorldAccess.Biotech.GrowthMoment.NoInformation>无可用信息</RimWorldAccess.Biotech.GrowthMoment.NoInformation>
+  <RimWorldAccess.Biotech.GrowthMoment.GrowthTier>成长评级: {0}</RimWorldAccess.Biotech.GrowthMoment.GrowthTier>
+  <RimWorldAccess.Biotech.GrowthMoment.NicknameChanged>昵称从 {0} 改为 {1}</RimWorldAccess.Biotech.GrowthMoment.NicknameChanged>
+  <RimWorldAccess.Biotech.GrowthMoment.ChosenPassions>已选兴趣度: {0}</RimWorldAccess.Biotech.GrowthMoment.ChosenPassions>
+  <RimWorldAccess.Biotech.GrowthMoment.ChosenTrait>已选特性: {0}</RimWorldAccess.Biotech.GrowthMoment.ChosenTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.NoTraitChosen>无特性</RimWorldAccess.Biotech.GrowthMoment.NoTraitChosen>
+
+  <!-- Passion tab item/action announcements. {0} = skill label,
+       {1} = current passion, {2} = new passion, {3} = count, {4} = total. -->
+  <RimWorldAccess.Biotech.GrowthMoment.NoPassions>无可用兴趣度</RimWorldAccess.Biotech.GrowthMoment.NoPassions>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionTransition>{0}, {1} 至 {2}. {3}</RimWorldAccess.Biotech.GrowthMoment.PassionTransition>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionSelectedStatus>已选择</RimWorldAccess.Biotech.GrowthMoment.PassionSelectedStatus>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionNotSelectedStatus>未选择</RimWorldAccess.Biotech.GrowthMoment.PassionNotSelectedStatus>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback>已选择 {0}. 已选 {1} 项，共 {2} 项兴趣度</RimWorldAccess.Biotech.GrowthMoment.PassionSelectedFeedback>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionDeselectedFeedback>已取消选择 {0}. 已选 {1} 项，共 {2} 项兴趣度</RimWorldAccess.Biotech.GrowthMoment.PassionDeselectedFeedback>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionLimitReached>已选满 {0} 项中的 {0} 项兴趣度。请先取消选择一项</RimWorldAccess.Biotech.GrowthMoment.PassionLimitReached>
+
+  <!-- Passion name enum display. -->
+  <RimWorldAccess.Biotech.GrowthMoment.PassionNone>无</RimWorldAccess.Biotech.GrowthMoment.PassionNone>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionMinor>好奇</RimWorldAccess.Biotech.GrowthMoment.PassionMinor>
+  <RimWorldAccess.Biotech.GrowthMoment.PassionMajor>狂热</RimWorldAccess.Biotech.GrowthMoment.PassionMajor>
+
+  <!-- Trait tab announcements. -->
+  <RimWorldAccess.Biotech.GrowthMoment.NoTraits>无可用特性</RimWorldAccess.Biotech.GrowthMoment.NoTraits>
+  <RimWorldAccess.Biotech.GrowthMoment.TraitWithDesc>{0}. {1}. {2}</RimWorldAccess.Biotech.GrowthMoment.TraitWithDesc>
+  <RimWorldAccess.Biotech.GrowthMoment.TraitWithoutDesc>{0}. {1}</RimWorldAccess.Biotech.GrowthMoment.TraitWithoutDesc>
+  <RimWorldAccess.Biotech.GrowthMoment.TraitSelected>已选择 {0}</RimWorldAccess.Biotech.GrowthMoment.TraitSelected>
+  <RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected>未选择特性</RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected>
+
+  <!-- Archive view announcement. -->
+  <RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>归档视图，只读</RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>
+
+  <!-- Opening announcement and navigation hints.
+       {0} = tab count, {1} = passion count, {2} = passion total. -->
+  <RimWorldAccess.Biotech.GrowthMoment.TabCount>{0} 个选项卡</RimWorldAccess.Biotech.GrowthMoment.TabCount>
+  <RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>按 Enter 确认</RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>
+  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>从 {1} 项中选择 {0} 项兴趣度和 1 项特性。{2}. 按 Tab 切换页面，按 Alt+S 确认</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>选择 1 项特性。{0}. 按 Tab 切换页面，按 Alt+S 确认</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
+
+  <!-- Confirm / postpone. {0} = pawn short label. -->
+  <RimWorldAccess.Biotech.GrowthMoment.Confirmed>已为 {0} 确认成长选择</RimWorldAccess.Biotech.GrowthMoment.Confirmed>
+  <RimWorldAccess.Biotech.GrowthMoment.Postponed>成长阶段已推迟</RimWorldAccess.Biotech.GrowthMoment.Postponed>
+  <RimWorldAccess.Biotech.GrowthMoment.PawnFallback>角色</RimWorldAccess.Biotech.GrowthMoment.PawnFallback>
+
+  <!-- ============================================================
+       Mechanitor control group (MechControlGroupState.cs).
+       Two-page overlay: Settings (work mode, recharge range, select all)
+       and Members (individual mech list).
+       ============================================================ -->
+
+  <!-- Page labels and open/close announcements. -->
+  <RimWorldAccess.Biotech.Mech.Settings>设置</RimWorldAccess.Biotech.Mech.Settings>
+  <RimWorldAccess.Biotech.Mech.Members>成员</RimWorldAccess.Biotech.Mech.Members>
+  <RimWorldAccess.Biotech.Mech.GroupSettingsHeader>{0} 设置</RimWorldAccess.Biotech.Mech.GroupSettingsHeader>
+  <RimWorldAccess.Biotech.Mech.GroupClosed>控制组已关闭</RimWorldAccess.Biotech.Mech.GroupClosed>
+
+  <!-- Work mode menu. {0} = work mode label. -->
+  <RimWorldAccess.Biotech.Mech.NoWorkModes>无可用行动模式</RimWorldAccess.Biotech.Mech.NoWorkModes>
+  <RimWorldAccess.Biotech.Mech.WorkModeSet>行动模式已设为 {0}</RimWorldAccess.Biotech.Mech.WorkModeSet>
+
+  <!-- Recharge range editor. {0} = min%, {1} = max%, {2} = current label. -->
+  <RimWorldAccess.Biotech.Mech.RangeSaved>充电范围已保存: {0} 至 {1}</RimWorldAccess.Biotech.Mech.RangeSaved>
+  <RimWorldAccess.Biotech.Mech.RangeCancelled>已取消充电范围编辑</RimWorldAccess.Biotech.Mech.RangeCancelled>
+  <RimWorldAccess.Biotech.Mech.RangeMinimum>最小值</RimWorldAccess.Biotech.Mech.RangeMinimum>
+  <RimWorldAccess.Biotech.Mech.RangeMaximum>最大值</RimWorldAccess.Biotech.Mech.RangeMaximum>
+  <RimWorldAccess.Biotech.Mech.RangeSelection>{0}: {1}. 范围: {2} 至 {3}</RimWorldAccess.Biotech.Mech.RangeSelection>
+
+  <!-- Select-all and reassignment. -->
+  <RimWorldAccess.Biotech.Mech.NoMechsInGroup>此组中无机械族</RimWorldAccess.Biotech.Mech.NoMechsInGroup>
+  <RimWorldAccess.Biotech.Mech.SelectedMechOne>已选择 {0} 个机械族</RimWorldAccess.Biotech.Mech.SelectedMechOne>
+  <RimWorldAccess.Biotech.Mech.SelectedMechMany>已选择 {0} 个机械族</RimWorldAccess.Biotech.Mech.SelectedMechMany>
+  <RimWorldAccess.Biotech.Mech.NoOtherGroups>无其他可用控制组</RimWorldAccess.Biotech.Mech.NoOtherGroups>
+  <RimWorldAccess.Biotech.Mech.AssignedToGroup>{0} 已分配至 {1} {2}</RimWorldAccess.Biotech.Mech.AssignedToGroup>
+
+  <!-- Mech labels and uncontrolled marker. -->
+  <RimWorldAccess.Biotech.Mech.Uncontrolled>未受控</RimWorldAccess.Biotech.Mech.Uncontrolled>
+
+  <!-- Gizmo label fallback and merged-group suffixes. -->
+  <RimWorldAccess.Biotech.Mech.GizmoLabelFallback>机械师控制组</RimWorldAccess.Biotech.Mech.GizmoLabelFallback>
+  <RimWorldAccess.Biotech.Mech.MechCountOne>{0} 个机械族</RimWorldAccess.Biotech.Mech.MechCountOne>
+  <RimWorldAccess.Biotech.Mech.MechCountMany>{0} 个机械族</RimWorldAccess.Biotech.Mech.MechCountMany>
+  <RimWorldAccess.Biotech.Mech.AverageEnergy>平均 {0}: {1}</RimWorldAccess.Biotech.Mech.AverageEnergy>
+
+  <!-- ============================================================
+       Xenogerm creation (XenogermState.cs).
+       Dialog_CreateXenogerm tabbed tree: Library / Selected / Controls.
+       ============================================================ -->
+
+  <!-- Tab announcements. {0} = label, {1} = count. -->
+  <RimWorldAccess.Biotech.Xenogerm.Controls>控制项。</RimWorldAccess.Biotech.Xenogerm.Controls>
+  <RimWorldAccess.Biotech.Xenogerm.TabSummaryOne>{0}, 1 项。</RimWorldAccess.Biotech.Xenogerm.TabSummaryOne>
+  <RimWorldAccess.Biotech.Xenogerm.TabSummaryMany>{0}, {1} 项。</RimWorldAccess.Biotech.Xenogerm.TabSummaryMany>
+
+  <!-- Opening announcement. {0} = header, {1} = complexity label,
+       {2} = max complexity value, {3} = tab announcement. -->
+  <RimWorldAccess.Biotech.Xenogerm.OpeningSummary>{0}. {1} 上限 {2}. {3}</RimWorldAccess.Biotech.Xenogerm.OpeningSummary>
+
+  <!-- Rename feedback. {0} = new name. -->
+  <RimWorldAccess.Biotech.Xenogerm.RenameCancelled>已取消重命名。</RimWorldAccess.Biotech.Xenogerm.RenameCancelled>
+  <RimWorldAccess.Biotech.Xenogerm.Renamed>已重命名为 {0}。名称已锁定。</RimWorldAccess.Biotech.Xenogerm.Renamed>
+
+  <!-- Toggle feedback. {0} = pack label, {1} = biostats summary. -->
+  <RimWorldAccess.Biotech.Xenogerm.PackAdded>已添加 {0}. {1}</RimWorldAccess.Biotech.Xenogerm.PackAdded>
+  <RimWorldAccess.Biotech.Xenogerm.PackRemoved>已移除 {0}. {1}</RimWorldAccess.Biotech.Xenogerm.PackRemoved>
+
+  <!-- Template operations. {0} = template name, {1} = matched pack count,
+       {2} = missing genes list, {3} = biostats summary. -->
+  <RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates>无已保存的模板。</RimWorldAccess.Biotech.Xenogerm.NoSavedTemplates>
+  <RimWorldAccess.Biotech.Xenogerm.TemplateLabel>{0}: {1}</RimWorldAccess.Biotech.Xenogerm.TemplateLabel>
+  <RimWorldAccess.Biotech.Xenogerm.TemplateLoaded>已载入 {0}。匹配到 {1} 个基因组。</RimWorldAccess.Biotech.Xenogerm.TemplateLoaded>
+  <RimWorldAccess.Biotech.Xenogerm.TemplateMissingGenes> 缺失基因: {0}。</RimWorldAccess.Biotech.Xenogerm.TemplateMissingGenes>
+
+  <!-- Genepack formatting. {0} = gene list, {1} = complexity label+value,
+       {2} = metabolism label+value, {3} = archites label+value (optional). -->
+  <RimWorldAccess.Biotech.Xenogerm.PackUnpowered>无电力</RimWorldAccess.Biotech.Xenogerm.PackUnpowered>
+
+  <!-- Biostats formatting. {0} = complexity label, {1} = gcx, {2} = maxGCX,
+       {3} = metabolism label, {4} = met value, {5} = archites label, {6} = arc. -->
+  <RimWorldAccess.Biotech.Xenogerm.BiostatsOfMax>{0} {1}，上限 {2}</RimWorldAccess.Biotech.Xenogerm.BiostatsOfMax>
+  <RimWorldAccess.Biotech.Xenogerm.BiostatsNoMax>{0} {1}</RimWorldAccess.Biotech.Xenogerm.BiostatsNoMax>
+
+  <!-- Name display fields. {0} = label, {1} = value. -->
+  <RimWorldAccess.Biotech.Xenogerm.NameWithValue>{0}: {1}</RimWorldAccess.Biotech.Xenogerm.NameWithValue>
+  <RimWorldAccess.Biotech.Xenogerm.NameNone>{0}: ({1})</RimWorldAccess.Biotech.Xenogerm.NameNone>
+
+  <!-- ============================================================
+       Xenotype editor (XenotypeEditorState.cs).
+       Dialog_CreateXenotype tabbed tree: Selected / Library / Controls.
+       ============================================================ -->
+
+  <!-- Tab announcements. {0} = label, {1} = count. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryOne>{0}, 1 项。</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryMany>{0}, {1} 项。</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryMany>
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryOne>{0}, 1 个类别。</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryMany>{0}, {1} 个类别。</RimWorldAccess.Biotech.XenotypeEditor.TabSummaryCategoryMany>
+
+  <!-- Opening announcement. {0} = header, {1} = tab summary. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.OpeningSummary>{0}. {1}</RimWorldAccess.Biotech.XenotypeEditor.OpeningSummary>
+
+  <!-- Gene selection / library / rename feedback. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.GeneAdded>已添加 {0}. {1}</RimWorldAccess.Biotech.XenotypeEditor.GeneAdded>
+  <RimWorldAccess.Biotech.XenotypeEditor.GeneRemoved>已移除 {0}. {1}</RimWorldAccess.Biotech.XenotypeEditor.GeneRemoved>
+  <RimWorldAccess.Biotech.XenotypeEditor.Uncategorized>未分类</RimWorldAccess.Biotech.XenotypeEditor.Uncategorized>
+  <RimWorldAccess.Biotech.XenotypeEditor.RenameCancelled>已取消重命名。</RimWorldAccess.Biotech.XenotypeEditor.RenameCancelled>
+  <RimWorldAccess.Biotech.XenotypeEditor.Renamed>已重命名为 {0}。名称已锁定。</RimWorldAccess.Biotech.XenotypeEditor.Renamed>
+
+  <!-- Save/apply validation. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.TooManySaved>已保存的自定义异种人过多。请先删除一些。</RimWorldAccess.Biotech.XenotypeEditor.TooManySaved>
+  <RimWorldAccess.Biotech.XenotypeEditor.NoCustom>无已保存的自定义异种人。</RimWorldAccess.Biotech.XenotypeEditor.NoCustom>
+  <RimWorldAccess.Biotech.XenotypeEditor.FailedToLoad>载入异种人失败。</RimWorldAccess.Biotech.XenotypeEditor.FailedToLoad>
+  <RimWorldAccess.Biotech.XenotypeEditor.NoPremade>无可用的预设异种人。</RimWorldAccess.Biotech.XenotypeEditor.NoPremade>
+
+  <!-- Load feedback. {0} = name, {1} = gene count, {2} = biostats summary. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne>已载入 {0}。1 个基因。{1}</RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany>已载入 {0}。{1} 个基因。{2}</RimWorldAccess.Biotech.XenotypeEditor.LoadedSummaryMany>
+
+  <!-- Controls formatting. {0} = label, {1} = value. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.NameWithValue>{0}: {1}</RimWorldAccess.Biotech.XenotypeEditor.NameWithValue>
+  <RimWorldAccess.Biotech.XenotypeEditor.NameNone>{0}: ({1})</RimWorldAccess.Biotech.XenotypeEditor.NameNone>
+  <RimWorldAccess.Biotech.XenotypeEditor.YesValue>是</RimWorldAccess.Biotech.XenotypeEditor.YesValue>
+  <RimWorldAccess.Biotech.XenotypeEditor.NoValue>否</RimWorldAccess.Biotech.XenotypeEditor.NoValue>
+
+  <!-- Ignore-restrictions toggle-off: archite genes removed. {0} = count. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedOne>. 已移除 1 个超凡基因。</RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedOne>
+  <RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedMany>. 已移除 {0} 个超凡基因。</RimWorldAccess.Biotech.XenotypeEditor.AchiteRemovedMany>
+
+  <!-- Controls tab fallback announcement. -->
+  <RimWorldAccess.Biotech.XenotypeEditor.ControlsLabel>控制项。</RimWorldAccess.Biotech.XenotypeEditor.ControlsLabel>
+
+</LanguageData>

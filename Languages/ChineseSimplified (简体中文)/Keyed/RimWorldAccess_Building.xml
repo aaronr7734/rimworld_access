@@ -1,0 +1,1024 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Building module: construction, zones, areas, building components,
+    storage linking, shape placement. Strings are emitted from src/Building/.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Keys for status
+    announcements compose via AnnouncementBuilder (period-separated by
+    default) so each key is a clean phrase fragment without trailing
+    punctuation or embedded "\n" — the builder owns separators.
+
+    Vanilla key reuse: where vanilla supplies the noun ("Yes"/"No",
+    "On"/"Off", "BrokenDown", "NoPower", "TargetTemperature",
+    "DesignatorUninstall", "CommandToggleDoorHoldOpen",
+    "PowerConsumptionHigh"/"Low"/"Off", "ConfiguredTargetFuelLevel",
+    "FuelLabel" via the def, etc.) we resolve those at speak-time
+    rather than duplicating the noun in this file.
+  -->
+
+  <!-- Breakdown status (src/Building/BreakdownableComponentState.cs).
+       Read-only view describing CompBreakdownable status. Composed via
+       AnnouncementBuilder; vanilla "BrokenDown" supplies the broken-status
+       noun. -->
+  <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>建筑不会发生故障</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
+  <RimWorldAccess.Building.Breakdown.StatusBrokenDown>状态: 已故障</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
+  <RimWorldAccess.Building.Breakdown.NeedsRepair>此建筑需要先修理才能运作</RimWorldAccess.Building.Breakdown.NeedsRepair>
+  <RimWorldAccess.Building.Breakdown.RepairSkill>有建造技能的殖民者可以修理它</RimWorldAccess.Building.Breakdown.RepairSkill>
+  <RimWorldAccess.Building.Breakdown.StatusOperational>状态: 正常运作</RimWorldAccess.Building.Breakdown.StatusOperational>
+  <RimWorldAccess.Building.Breakdown.OperationalDescription>此建筑运作正常</RimWorldAccess.Building.Breakdown.OperationalDescription>
+  <RimWorldAccess.Building.Breakdown.BreakdownsOverTime>带有故障组件的建筑会随时间发生故障</RimWorldAccess.Building.Breakdown.BreakdownsOverTime>
+  <RimWorldAccess.Building.Breakdown.UnpoweredImmune>注意: 建筑未通电。未通电的建筑不会发生故障</RimWorldAccess.Building.Breakdown.UnpoweredImmune>
+
+  <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
+       Toggles CompForbiddable. Status-row keys compose with the building
+       label via AnnouncementBuilder.
+       LabelStatus: {0} = building label, {1} = StatusForbidden/StatusAllowed. -->
+  <RimWorldAccess.Building.Forbid.NoForbidComponent>物品无法被禁用</RimWorldAccess.Building.Forbid.NoForbidComponent>
+  <RimWorldAccess.Building.Forbid.StatusForbidden>已禁用</RimWorldAccess.Building.Forbid.StatusForbidden>
+  <RimWorldAccess.Building.Forbid.StatusAllowed>已解禁</RimWorldAccess.Building.Forbid.StatusAllowed>
+  <RimWorldAccess.Building.Forbid.LabelStatus>{0} - 状态: {1}</RimWorldAccess.Building.Forbid.LabelStatus>
+  <RimWorldAccess.Building.Forbid.DetailStatusForbidden>状态: 已禁用</RimWorldAccess.Building.Forbid.DetailStatusForbidden>
+  <RimWorldAccess.Building.Forbid.DetailNoInteract>殖民者不会与此物品交互</RimWorldAccess.Building.Forbid.DetailNoInteract>
+  <RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>他们不会搬运、使用或装备它</RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>
+  <RimWorldAccess.Building.Forbid.DetailStatusAllowed>状态: 已解禁</RimWorldAccess.Building.Forbid.DetailStatusAllowed>
+  <RimWorldAccess.Building.Forbid.DetailCanInteract>殖民者可以正常与此物品交互</RimWorldAccess.Building.Forbid.DetailCanInteract>
+
+  <!-- Door controls (src/Building/DoorControlState.cs).
+       Toggles Building_Door.holdOpenInt. Vanilla supplies the
+       "Hold open" command label (CommandToggleDoorHoldOpen) and the
+       "On"/"Off" booleans.
+       LabelStatusOpenness: {0} = door label, {1} = HoldOpenWithValue,
+       {2} = CurrentlyOpen/Closed. -->
+  <RimWorldAccess.Building.Door.NotADoor>建筑不是门</RimWorldAccess.Building.Door.NotADoor>
+  <RimWorldAccess.Building.Door.HoldOpenAccessError>错误: 无法访问门的保持开启设置</RimWorldAccess.Building.Door.HoldOpenAccessError>
+  <RimWorldAccess.Building.Door.HoldOpenWithValue>{0}: {1}</RimWorldAccess.Building.Door.HoldOpenWithValue>
+  <RimWorldAccess.Building.Door.CurrentlyOpen>(当前开启)</RimWorldAccess.Building.Door.CurrentlyOpen>
+  <RimWorldAccess.Building.Door.CurrentlyClosed>(当前关闭)</RimWorldAccess.Building.Door.CurrentlyClosed>
+  <RimWorldAccess.Building.Door.LabelStatusOpenness>{0} - {1} {2}</RimWorldAccess.Building.Door.LabelStatusOpenness>
+  <RimWorldAccess.Building.Door.DetailStateOpen>当前: 开启</RimWorldAccess.Building.Door.DetailStateOpen>
+  <RimWorldAccess.Building.Door.DetailStateClosed>当前: 关闭</RimWorldAccess.Building.Door.DetailStateClosed>
+  <RimWorldAccess.Building.Door.DetailPoweredFast>状态: 已通电 - 开启更快</RimWorldAccess.Building.Door.DetailPoweredFast>
+  <RimWorldAccess.Building.Door.DetailNoPowerSlow>状态: 无电力 - 开启更慢</RimWorldAccess.Building.Door.DetailNoPowerSlow>
+  <RimWorldAccess.Building.Door.DetailManual>状态: 手动门 (无需电力)</RimWorldAccess.Building.Door.DetailManual>
+
+  <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
+       Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
+       LabelPowerSwitch: {0} = building label, {1} = vanilla "On"/"Off". -->
+  <RimWorldAccess.Building.Flickable.NoFlickComponent>建筑没有电力控制</RimWorldAccess.Building.Flickable.NoFlickComponent>
+  <RimWorldAccess.Building.Flickable.AlreadyOn>电力已开启</RimWorldAccess.Building.Flickable.AlreadyOn>
+  <RimWorldAccess.Building.Flickable.AlreadyOff>电力已关闭</RimWorldAccess.Building.Flickable.AlreadyOff>
+  <RimWorldAccess.Building.Flickable.LabelPowerStatus>{0} - 电力: {1}</RimWorldAccess.Building.Flickable.LabelPowerStatus>
+  <RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix> (无可用电力)</RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix>
+  <RimWorldAccess.Building.Flickable.ConsumingSuffix> - 消耗: {0}W</RimWorldAccess.Building.Flickable.ConsumingSuffix>
+  <RimWorldAccess.Building.Flickable.ProducingSuffix> - 产出: {0}W</RimWorldAccess.Building.Flickable.ProducingSuffix>
+  <RimWorldAccess.Building.Flickable.LabelPowerSwitch>{0} - 电源开关: {1}</RimWorldAccess.Building.Flickable.LabelPowerSwitch>
+  <RimWorldAccess.Building.Flickable.DetailConnected>已连接到电网</RimWorldAccess.Building.Flickable.DetailConnected>
+  <RimWorldAccess.Building.Flickable.DetailActiveSuffix> - 运作中</RimWorldAccess.Building.Flickable.DetailActiveSuffix>
+  <RimWorldAccess.Building.Flickable.DetailNoPowerSuffix> - 无可用电力</RimWorldAccess.Building.Flickable.DetailNoPowerSuffix>
+  <RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix> - 已关闭</RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix>
+  <RimWorldAccess.Building.Flickable.DetailNotConnected>未连接到电网</RimWorldAccess.Building.Flickable.DetailNotConnected>
+  <RimWorldAccess.Building.Flickable.DetailConsuming>消耗: {0}W</RimWorldAccess.Building.Flickable.DetailConsuming>
+  <RimWorldAccess.Building.Flickable.DetailProducing>产出: {0}W</RimWorldAccess.Building.Flickable.DetailProducing>
+
+  <!-- Uninstall designation (src/Building/UninstallControlState.cs).
+       Toggles DesignationDefOf.Uninstall on minifiable buildings. Vanilla
+       "DesignatorUninstall" / "DesignatorUninstallDesc" supply the verb;
+       these keys are the announcement-shaped wrappers. -->
+  <RimWorldAccess.Building.Uninstall.NotMinifiable>建筑无法卸载</RimWorldAccess.Building.Uninstall.NotMinifiable>
+  <RimWorldAccess.Building.Uninstall.DesignationRemoved>{0} - 已移除卸载标记</RimWorldAccess.Building.Uninstall.DesignationRemoved>
+  <RimWorldAccess.Building.Uninstall.InstantlyUninstalled>{0} - 已立即卸载</RimWorldAccess.Building.Uninstall.InstantlyUninstalled>
+  <RimWorldAccess.Building.Uninstall.DesignatedForUninstall>{0} - 已标记卸载</RimWorldAccess.Building.Uninstall.DesignatedForUninstall>
+  <RimWorldAccess.Building.Uninstall.LabelStatusDesignated>{0} - 状态: 已标记卸载</RimWorldAccess.Building.Uninstall.LabelStatusDesignated>
+  <RimWorldAccess.Building.Uninstall.LabelStatusNotDesignated>{0} - 状态: 未标记</RimWorldAccess.Building.Uninstall.LabelStatusNotDesignated>
+  <RimWorldAccess.Building.Uninstall.DetailDesignated>状态: 已标记卸载</RimWorldAccess.Building.Uninstall.DetailDesignated>
+  <RimWorldAccess.Building.Uninstall.DetailDisassemblerTip>有建造技能的殖民者将拆解它</RimWorldAccess.Building.Uninstall.DetailDisassemblerTip>
+  <RimWorldAccess.Building.Uninstall.DetailMinifiedTip>该建筑将转换为可移动的小型物品</RimWorldAccess.Building.Uninstall.DetailMinifiedTip>
+  <RimWorldAccess.Building.Uninstall.DetailNotDesignated>状态: 未标记卸载</RimWorldAccess.Building.Uninstall.DetailNotDesignated>
+  <RimWorldAccess.Building.Uninstall.DetailCanUninstallTip>此建筑可以卸载为便携物品</RimWorldAccess.Building.Uninstall.DetailCanUninstallTip>
+  <RimWorldAccess.Building.Uninstall.DetailHotkeyTip>按空格键或回车键以标记卸载</RimWorldAccess.Building.Uninstall.DetailHotkeyTip>
+
+  <!-- Temperature control (src/Building/TempControlMenuState.cs).
+       Adjusts CompTempControl.TargetTemperature. Vanilla "PowerConsumptionOff",
+       "PowerConsumptionHigh", "PowerConsumptionLow" supply the power-mode
+       words; the "_X power" / "_off" wording is the announcement suffix.
+       LabelTarget: {0} = building label, {1} = formatted target temperature,
+       {2} = power mode suffix (may be empty). -->
+  <RimWorldAccess.Building.Temp.NoTempComponent>建筑没有温度控制</RimWorldAccess.Building.Temp.NoTempComponent>
+  <RimWorldAccess.Building.Temp.LabelTarget>{0} - 目标: {1}{2}</RimWorldAccess.Building.Temp.LabelTarget>
+  <RimWorldAccess.Building.Temp.PowerModeOffSuffix> - 关闭</RimWorldAccess.Building.Temp.PowerModeOffSuffix>
+  <RimWorldAccess.Building.Temp.PowerModeHighSuffix> - 高功率</RimWorldAccess.Building.Temp.PowerModeHighSuffix>
+  <RimWorldAccess.Building.Temp.PowerModeLowSuffix> - 低功率</RimWorldAccess.Building.Temp.PowerModeLowSuffix>
+
+  <!-- Refuelable component menu (src/Building/RefuelableComponentState.cs).
+       Drives a small menu over CompRefuelable showing current fuel status,
+       optional auto-refuel toggle, optional adjustable target. Vanilla keys
+       used: ConfiguredTargetFuelLevel for the inspect-status line, and the
+       def's FuelLabel/outOfFuelMessage for fuel-type-specific wording.
+
+       AutoRefuel and ToggleValue are split into On/Off whole-phrase variants
+       per the "no glue particles" rule (the colon-separator pattern is
+       English-specific; languages may want to drop it or reorder).
+       FuelStatusLine: {0} = capitalized fuel label, {1} = current fuel,
+       {2} = capacity. RemainingTimeSuffix: {0} = formatted time period.
+       OutOfFuelSuffix: {0} = the def's outOfFuelMessage. -->
+  <RimWorldAccess.Building.Refuel.NoFuelComponent>建筑没有燃料系统</RimWorldAccess.Building.Refuel.NoFuelComponent>
+  <RimWorldAccess.Building.Refuel.OptionViewStatus>查看详细燃料状态</RimWorldAccess.Building.Refuel.OptionViewStatus>
+  <RimWorldAccess.Building.Refuel.AutoRefuelOn>自动补充燃料: 开</RimWorldAccess.Building.Refuel.AutoRefuelOn>
+  <RimWorldAccess.Building.Refuel.AutoRefuelOff>自动补充燃料: 关</RimWorldAccess.Building.Refuel.AutoRefuelOff>
+  <RimWorldAccess.Building.Refuel.ToggleValueOn>开</RimWorldAccess.Building.Refuel.ToggleValueOn>
+  <RimWorldAccess.Building.Refuel.ToggleValueOff>关</RimWorldAccess.Building.Refuel.ToggleValueOff>
+  <RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>目标燃料量: {0} / {1}</RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>
+  <RimWorldAccess.Building.Refuel.AdjustHint>使用左右方向键调整。当前: {0} / {1}</RimWorldAccess.Building.Refuel.AdjustHint>
+  <RimWorldAccess.Building.Refuel.ClassicMortarStatus>经典迫击炮模式，无炮管磨损</RimWorldAccess.Building.Refuel.ClassicMortarStatus>
+  <RimWorldAccess.Building.Refuel.FuelStatusLine>{0}: {1} / {2}</RimWorldAccess.Building.Refuel.FuelStatusLine>
+  <RimWorldAccess.Building.Refuel.RemainingTimeSuffix> ({0})</RimWorldAccess.Building.Refuel.RemainingTimeSuffix>
+  <RimWorldAccess.Building.Refuel.FuelTypeLabel>燃料类型: {0}</RimWorldAccess.Building.Refuel.FuelTypeLabel>
+
+  <!-- Rename modal results (src/Building/{Pen,Zone,Storage}RenameState.cs).
+       The "Renamed to {0}" success key is shared with the rest of the mod
+       via RimWorldAccess.UI.Name.Renamed; only the cancel/error/validation
+       phrasings vary per renamable type, so those live here.
+
+       NameAlreadyUsedByZone / NameAlreadyUsedByGroup are validator messages
+       returned to the text-input layer in an AcceptanceReport — they appear
+       to the user as the rejection reason.
+       {0} = the conflicting name. -->
+  <RimWorldAccess.Building.Rename.Cancelled>重命名已取消</RimWorldAccess.Building.Rename.Cancelled>
+  <RimWorldAccess.Building.Rename.StorageCancelled>已取消</RimWorldAccess.Building.Rename.StorageCancelled>
+  <RimWorldAccess.Building.Rename.PenError>重命名畜栏标牌时出错: {0}</RimWorldAccess.Building.Rename.PenError>
+  <RimWorldAccess.Building.Rename.ZoneError>重命名区域时出错: {0}</RimWorldAccess.Building.Rename.ZoneError>
+  <RimWorldAccess.Building.Rename.StorageError>错误: {0}</RimWorldAccess.Building.Rename.StorageError>
+  <RimWorldAccess.Building.Rename.StorageMapMissing>错误: 找不到地图。</RimWorldAccess.Building.Rename.StorageMapMissing>
+  <RimWorldAccess.Building.Rename.StorageGroupCreated>已创建存储组 {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
+  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>名称 {0} 已被一个区域使用</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
+  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>名称 {0} 已被另一个存储组使用</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
+
+  <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
+       Replaces the vanilla FloatMenu shown when an area designator is
+       chosen from the architect tree. Delegates "No map" to Common.
+       Open: {0} = the designator's own label (e.g. "Allowed area").
+       AreaWithCells: {0} = area label, {1} = cell count.
+       Position keys come from RimWorldAccess.Menu.Position. -->
+  <RimWorldAccess.Building.AreaSelect.NoAreasAvailable>没有可用区域。请先使用「管理区域」选项创建一个区域。</RimWorldAccess.Building.AreaSelect.NoAreasAvailable>
+  <RimWorldAccess.Building.AreaSelect.OpenPrompt>{0}. 选择一个区域。</RimWorldAccess.Building.AreaSelect.OpenPrompt>
+  <RimWorldAccess.Building.AreaSelect.Selected>已选择: {0}</RimWorldAccess.Building.AreaSelect.Selected>
+  <RimWorldAccess.Building.AreaSelect.Cancelled>区域选择已取消</RimWorldAccess.Building.AreaSelect.Cancelled>
+  <RimWorldAccess.Building.AreaSelect.ManageAreas>管理区域</RimWorldAccess.Building.AreaSelect.ManageAreas>
+  <RimWorldAccess.Building.AreaSelect.AreaWithCells>{0}, {1} 格</RimWorldAccess.Building.AreaSelect.AreaWithCells>
+  <RimWorldAccess.Building.AreaSelect.OpenFallbackName>区域</RimWorldAccess.Building.AreaSelect.OpenFallbackName>
+  <RimWorldAccess.Building.AreaSelect.ItemWithPosition>{0}, {1}</RimWorldAccess.Building.AreaSelect.ItemWithPosition>
+
+  <!-- Shape selection menu (src/Building/ShapeSelectionMenuState.cs).
+       Picks a placement shape (Line / Rectangle / Oval) from the architect
+       flow. Shape names and descriptions are produced by ShapeHelper —
+       those will be wired during ShapeHelper localization.
+       ShapeWithPosition: {0} = shape name, {1} = position, {2} = description.
+       ShapeNoPosition: {0} = shape name, {1} = description. -->
+  <RimWorldAccess.Building.ShapeSelect.MenuOpened>形状菜单</RimWorldAccess.Building.ShapeSelect.MenuOpened>
+  <RimWorldAccess.Building.ShapeSelect.ShapeWithPosition>{0}, {1}. {2}</RimWorldAccess.Building.ShapeSelect.ShapeWithPosition>
+  <RimWorldAccess.Building.ShapeSelect.ShapeNoPosition>{0}. {1}</RimWorldAccess.Building.ShapeSelect.ShapeNoPosition>
+  <RimWorldAccess.Building.ShapeSelect.ShapeSelected>已选择 {0}</RimWorldAccess.Building.ShapeSelect.ShapeSelected>
+  <RimWorldAccess.Building.ShapeSelect.Cancelled>形状选择已取消</RimWorldAccess.Building.ShapeSelect.Cancelled>
+
+  <!-- Area painting (src/Building/AreaPaintingState.cs).
+       Drives keyboard expand/shrink of an Area with shape selection,
+       per-cell toggling, and stage-then-confirm.
+
+       EnterExpand / EnterShrink: {0} = area label, {1} = shape name.
+       The hint suffix (Tab to switch mode... Enter to confirm) is split
+       out as PromptHint so the verb-prefixed keys stay short.
+
+       Confirmed: {0} = action verb (added to / removed from),
+       {1} = area label, {2} = total cells. Per the no-glue rule,
+       AddedTo / RemovedFrom whole-phrase variants own the verb-and-label
+       phrasing instead of swapping a verb particle.
+
+       ConfirmShape{Regular,Irregular}: {0} = "WxH" string, {1} = added
+       count, {2} = staged total (Regular only adds the dimension info). -->
+  <RimWorldAccess.Building.Paint.ModeBox>框选模式</RimWorldAccess.Building.Paint.ModeBox>
+  <RimWorldAccess.Building.Paint.ModeSingle>单格选择模式</RimWorldAccess.Building.Paint.ModeSingle>
+  <RimWorldAccess.Building.Paint.ShapeChanged>形状: {0}</RimWorldAccess.Building.Paint.ShapeChanged>
+  <RimWorldAccess.Building.Paint.ShapeUnavailable>此区域类型不可用此形状</RimWorldAccess.Building.Paint.ShapeUnavailable>
+  <RimWorldAccess.Building.Paint.PromptHint>按 Tab 切换模式。按回车键确认，按 Escape 取消</RimWorldAccess.Building.Paint.PromptHint>
+  <RimWorldAccess.Building.Paint.EnterExpand>扩展区域: {0}. {1}. {2}</RimWorldAccess.Building.Paint.EnterExpand>
+  <RimWorldAccess.Building.Paint.EnterShrink>缩小区域: {0}. {1}. {2}</RimWorldAccess.Building.Paint.EnterShrink>
+  <RimWorldAccess.Building.Paint.NoShapeToConfirm>没有可确认的形状</RimWorldAccess.Building.Paint.NoShapeToConfirm>
+  <RimWorldAccess.Building.Paint.PositionOutOfBounds>位置超出边界</RimWorldAccess.Building.Paint.PositionOutOfBounds>
+  <RimWorldAccess.Building.Paint.Deselected>已取消选择, {0}, {1}</RimWorldAccess.Building.Paint.Deselected>
+  <RimWorldAccess.Building.Paint.NoCellsSelected>未选择任何格。区域未更改。</RimWorldAccess.Building.Paint.NoCellsSelected>
+  <RimWorldAccess.Building.Paint.AddedTo>已向 {1} 添加 {0} 格。总格数: {2}</RimWorldAccess.Building.Paint.AddedTo>
+  <RimWorldAccess.Building.Paint.RemovedFrom>已从 {1} 移除 {0} 格。总格数: {2}</RimWorldAccess.Building.Paint.RemovedFrom>
+  <RimWorldAccess.Building.Paint.Cancelled>区域编辑已取消</RimWorldAccess.Building.Paint.Cancelled>
+  <RimWorldAccess.Building.Paint.ConfirmShapeRegular>{0}, 已添加 {1} 格。总计: {2}</RimWorldAccess.Building.Paint.ConfirmShapeRegular>
+  <RimWorldAccess.Building.Paint.ConfirmShapeIrregular>已添加 {0} 格。总计: {1}</RimWorldAccess.Building.Paint.ConfirmShapeIrregular>
+
+  <!-- Zone editing (src/Building/ZoneEditingHelper.cs + GizmoZoneEditState.cs).
+       Returned in ZoneEditResult.Message and announced when a cell is
+       toggled into or out of a zone. CellRemoved/CellAdded compose the
+       zone label as data via {0}; the bare ZoneFallbackName covers the
+       case where zone.label is null.
+       ZoneDeleted: {0} = zone label or fallback. -->
+  <RimWorldAccess.Building.Zone.NoZoneBeingEdited>当前没有正在编辑的区域</RimWorldAccess.Building.Zone.NoZoneBeingEdited>
+  <RimWorldAccess.Building.Zone.NoZoneSelectedForEditing>未选择要编辑的区域</RimWorldAccess.Building.Zone.NoZoneSelectedForEditing>
+  <RimWorldAccess.Building.Zone.NoZoneAtLocation>此位置没有可编辑的区域</RimWorldAccess.Building.Zone.NoZoneAtLocation>
+  <RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>扩展期间无法移除原始区域格</RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>
+  <RimWorldAccess.Building.Zone.WouldDisconnect>无法移除该格，会断开区域</RimWorldAccess.Building.Zone.WouldDisconnect>
+  <RimWorldAccess.Building.Zone.CellAlreadyInThisZone>该格已在此区域内</RimWorldAccess.Building.Zone.CellAlreadyInThisZone>
+  <RimWorldAccess.Building.Zone.CellInOtherZone>该格在 {0} 内</RimWorldAccess.Building.Zone.CellInOtherZone>
+  <RimWorldAccess.Building.Zone.CellNotPartOfOriginal>该格不属于原始区域</RimWorldAccess.Building.Zone.CellNotPartOfOriginal>
+  <RimWorldAccess.Building.Zone.CellMustBeAdjacent>该格必须与区域相邻</RimWorldAccess.Building.Zone.CellMustBeAdjacent>
+  <RimWorldAccess.Building.Zone.CannotAddCellHere>无法在此处添加格</RimWorldAccess.Building.Zone.CannotAddCellHere>
+  <RimWorldAccess.Building.Zone.CellRemoved>已从 {0} 移除格</RimWorldAccess.Building.Zone.CellRemoved>
+  <RimWorldAccess.Building.Zone.CellAdded>已向 {0} 添加格</RimWorldAccess.Building.Zone.CellAdded>
+  <RimWorldAccess.Building.Zone.ZoneDeleted>{0} 已删除，无剩余格</RimWorldAccess.Building.Zone.ZoneDeleted>
+  <RimWorldAccess.Building.Zone.FailedToRemoveCell>移除格失败</RimWorldAccess.Building.Zone.FailedToRemoveCell>
+  <RimWorldAccess.Building.Zone.FailedToAddCell>添加格失败</RimWorldAccess.Building.Zone.FailedToAddCell>
+  <RimWorldAccess.Building.Zone.FallbackName>区域</RimWorldAccess.Building.Zone.FallbackName>
+
+  <!-- Plant selection menu (src/Building/PlantSelectionMenuState.cs).
+       Sets the plant to grow on a zone or planter. Plant labels and the
+       displayText / detailedInfo come from vanilla data; the wrapper keys
+       here own the announcement composition.
+       OpenPrompt: {0} = current crop label.
+       SelectionWithDetail: {0} = displayText, {1} = detailedInfo.
+       NoColonistCanPlant: {0} = plant label, {1} = required Plants skill.
+       CavePlantExposed: {0} = plant LabelCap. -->
+  <RimWorldAccess.Building.PlantSelect.OpenPrompt>植物选择。当前作物: {0}</RimWorldAccess.Building.PlantSelect.OpenPrompt>
+  <RimWorldAccess.Building.PlantSelect.Selected>已选择: {0}</RimWorldAccess.Building.PlantSelect.Selected>
+  <RimWorldAccess.Building.PlantSelect.SelectionWithDetail>{0}. {1}</RimWorldAccess.Building.PlantSelect.SelectionWithDetail>
+  <RimWorldAccess.Building.PlantSelect.NoColonistCanPlant>警告: 没有殖民者能种植 {0} (需要种植技能 {1})</RimWorldAccess.Building.PlantSelect.NoColonistCanPlant>
+  <RimWorldAccess.Building.PlantSelect.CavePlantExposed>警告: {0} 是洞穴植物，但区域内有暴露于光照的格</RimWorldAccess.Building.PlantSelect.CavePlantExposed>
+
+  <!-- Area manager (src/Building/WindowlessAreaState.cs).
+       Two-mode menu: AreaList (browse/select areas) + AreaActions (act on
+       selected area or create new). Action labels are dispatched through
+       a parallel AreaAction enum so localized labels can vary per language.
+
+       AreaWithCellsAndPosition: {0} = label, {1} = cell count, {2} = position.
+       AreaWithCellsNoPosition: {0} = label, {1} = cell count.
+       Action.* keys are the per-action menu rows. -->
+  <RimWorldAccess.Building.AreaMgr.Closed>区域管理器已关闭</RimWorldAccess.Building.AreaMgr.Closed>
+  <RimWorldAccess.Building.AreaMgr.MaxAreasReached>无法创建区域。已达到 10 个区域上限。</RimWorldAccess.Building.AreaMgr.MaxAreasReached>
+  <RimWorldAccess.Building.AreaMgr.MaxAreasReachedCopy>无法复制区域。已达到 10 个区域上限。</RimWorldAccess.Building.AreaMgr.MaxAreasReachedCopy>
+  <RimWorldAccess.Building.AreaMgr.CreatedNewArea>已创建新区域: {0}</RimWorldAccess.Building.AreaMgr.CreatedNewArea>
+  <RimWorldAccess.Building.AreaMgr.RenamePrompt>重命名区域: {0}. 输入新名称并按回车键。</RimWorldAccess.Building.AreaMgr.RenamePrompt>
+  <RimWorldAccess.Building.AreaMgr.Inverted>已反转区域: {0}. 所有格已切换。</RimWorldAccess.Building.AreaMgr.Inverted>
+  <RimWorldAccess.Building.AreaMgr.CopiedTo>已将区域复制到: {0}</RimWorldAccess.Building.AreaMgr.CopiedTo>
+  <RimWorldAccess.Building.AreaMgr.Deleted>已删除区域: {0}</RimWorldAccess.Building.AreaMgr.Deleted>
+  <RimWorldAccess.Building.AreaMgr.AreaWithCellsAndPosition>{0} ({1} 格), {2}. 按右方括号键查看操作。</RimWorldAccess.Building.AreaMgr.AreaWithCellsAndPosition>
+  <RimWorldAccess.Building.AreaMgr.AreaWithCellsNoPosition>{0} ({1} 格). 按右方括号键查看操作。</RimWorldAccess.Building.AreaMgr.AreaWithCellsNoPosition>
+  <RimWorldAccess.Building.AreaMgr.NoAreasAvailable>没有可用区域。按右方括号键创建一个。</RimWorldAccess.Building.AreaMgr.NoAreasAvailable>
+  <RimWorldAccess.Building.AreaMgr.ActionWithPosition>{0}, {1}</RimWorldAccess.Building.AreaMgr.ActionWithPosition>
+  <RimWorldAccess.Building.AreaMgr.Action.NewArea>新建区域</RimWorldAccess.Building.AreaMgr.Action.NewArea>
+  <RimWorldAccess.Building.AreaMgr.Action.RenameArea>重命名区域</RimWorldAccess.Building.AreaMgr.Action.RenameArea>
+  <RimWorldAccess.Building.AreaMgr.Action.ExpandArea>扩展区域</RimWorldAccess.Building.AreaMgr.Action.ExpandArea>
+  <RimWorldAccess.Building.AreaMgr.Action.ShrinkArea>缩小区域</RimWorldAccess.Building.AreaMgr.Action.ShrinkArea>
+  <RimWorldAccess.Building.AreaMgr.Action.InvertArea>反转区域</RimWorldAccess.Building.AreaMgr.Action.InvertArea>
+  <RimWorldAccess.Building.AreaMgr.Action.CopyArea>复制区域</RimWorldAccess.Building.AreaMgr.Action.CopyArea>
+  <RimWorldAccess.Building.AreaMgr.Action.DeleteArea>删除区域</RimWorldAccess.Building.AreaMgr.Action.DeleteArea>
+  <RimWorldAccess.Building.AreaMgr.Action.Close>关闭</RimWorldAccess.Building.AreaMgr.Action.Close>
+
+  <!-- Shape names + descriptions (src/Building/ShapeHelper.cs).
+       Spoken by every menu that lets the user pick a placement shape
+       (ShapeSelectionMenuState, AreaPaintingState, ShapePreviewHelper).
+       Names are nouns; descriptions are full sentences with terminal
+       punctuation. ShapeFallbackUnknown is for the DrawStyleDef defName
+       case where neither label nor a known shape type is available. -->
+  <RimWorldAccess.Building.Shape.Name.Manual>手动</RimWorldAccess.Building.Shape.Name.Manual>
+  <RimWorldAccess.Building.Shape.Name.Line>直线</RimWorldAccess.Building.Shape.Name.Line>
+  <RimWorldAccess.Building.Shape.Name.AngledLine>斜线</RimWorldAccess.Building.Shape.Name.AngledLine>
+  <RimWorldAccess.Building.Shape.Name.FilledRectangle>实心矩形</RimWorldAccess.Building.Shape.Name.FilledRectangle>
+  <RimWorldAccess.Building.Shape.Name.EmptyRectangle>空心矩形</RimWorldAccess.Building.Shape.Name.EmptyRectangle>
+  <RimWorldAccess.Building.Shape.Name.FilledOval>实心椭圆</RimWorldAccess.Building.Shape.Name.FilledOval>
+  <RimWorldAccess.Building.Shape.Name.EmptyOval>空心椭圆</RimWorldAccess.Building.Shape.Name.EmptyOval>
+  <RimWorldAccess.Building.Shape.Name.Unknown>未知</RimWorldAccess.Building.Shape.Name.Unknown>
+  <RimWorldAccess.Building.Shape.Desc.Manual>一次放置一格。按空格键放置，然后移动后再次放置。</RimWorldAccess.Building.Shape.Desc.Manual>
+  <RimWorldAccess.Building.Shape.Desc.Line>在两点之间创建一条水平或垂直的直线。如果两点呈对角，游戏会选择较长的轴。</RimWorldAccess.Building.Shape.Desc.Line>
+  <RimWorldAccess.Building.Shape.Desc.AngledLine>在两点之间创建任意角度的斜线。</RimWorldAccess.Building.Shape.Desc.AngledLine>
+  <RimWorldAccess.Building.Shape.Desc.FilledRectangle>填充由两个对角顶点定义的矩形区域内的所有格。</RimWorldAccess.Building.Shape.Desc.FilledRectangle>
+  <RimWorldAccess.Building.Shape.Desc.EmptyRectangle>仅放置矩形的边框，内部留空。适合用于墙体和栅栏。</RimWorldAccess.Building.Shape.Desc.EmptyRectangle>
+  <RimWorldAccess.Building.Shape.Desc.FilledOval>填充一个椭圆形状。尺寸较小时看起来像矩形。6 乘 6 或更大时会出现圆角。</RimWorldAccess.Building.Shape.Desc.FilledOval>
+  <RimWorldAccess.Building.Shape.Desc.EmptyOval>仅放置椭圆的边框。3 乘 3 或更大时形成环状。更小的尺寸看起来是实心的。</RimWorldAccess.Building.Shape.Desc.EmptyOval>
+
+  <!-- Shape size readouts (src/Building/ShapeHelper.FormatShapeSize).
+       SizeWxH: regular rectangles ("5 by 7"); SizeCount: irregular shapes
+       ("32 cells"). The One/Many split covers the 0-cell and 1-cell
+       boundary cases. -->
+  <RimWorldAccess.Building.Shape.SizeZero>0 格</RimWorldAccess.Building.Shape.SizeZero>
+  <RimWorldAccess.Building.Shape.SizeOne>1 格</RimWorldAccess.Building.Shape.SizeOne>
+  <RimWorldAccess.Building.Shape.SizeMany>{0} 格</RimWorldAccess.Building.Shape.SizeMany>
+  <RimWorldAccess.Building.Shape.SizeWxH>{0} 乘 {1}</RimWorldAccess.Building.Shape.SizeWxH>
+
+  <!-- Shape preview helper (src/Building/ShapePreviewHelper.cs).
+       Two-point selection feedback shared by ShapePlacementState,
+       ZoneCreationState, and AreaPaintingState.
+       FirstPoint: {0} = x, {1} = z.
+       SecondPointRegular: {0} = "WxH" string, {1} = cell count.
+       SecondPointIrregular: {0} = "N cells" size text. -->
+  <RimWorldAccess.Building.Preview.FirstPoint>第一点, {0}, {1}</RimWorldAccess.Building.Preview.FirstPoint>
+  <RimWorldAccess.Building.Preview.SecondPointRegular>第二点, {0}, {1} 格</RimWorldAccess.Building.Preview.SecondPointRegular>
+  <RimWorldAccess.Building.Preview.SecondPointIrregular>第二点, {0}</RimWorldAccess.Building.Preview.SecondPointIrregular>
+  <RimWorldAccess.Building.Preview.SizeConfirmed>{0} 已确认</RimWorldAccess.Building.Preview.SizeConfirmed>
+  <RimWorldAccess.Building.Preview.ShapeCancelled>形状已取消</RimWorldAccess.Building.Preview.ShapeCancelled>
+
+  <!-- Shape placement state (src/Building/ShapePlacementState.cs).
+       Two-corner shape designation flow (Build / Order / Zone designators).
+       Most multi-fragment announcements compose via period-joined parts;
+       each fragment here is a clean phrase without trailing punctuation.
+
+       BuildEnter parts: ModeManual / ModeShape, ShapeNameSelected (label
+       reused from ShapeSelect.ShapeSelected), PlacingDesignator,
+       SizeOneTile / SizeWxH, the four hint variants. The shape-mode parts
+       use designator label as data via {0}.
+
+       Placed/Designated: {0} = count, {1} = pluralized name, {2} = optional
+       resource cost suffix (or empty); the cost suffix carries its own paren
+       formatting via PlacedCostSuffix.
+
+       DesignatorActionMap gerunds (haul/hunt/mine/etc.): keys here cover
+       the standard English designator labels that ship with vanilla. The
+       lookup itself is a substring match against English keywords —
+       non-English players fall through to the translated lowercased label.
+       TODO: replace with Designator_* type-check switch in a follow-up. -->
+  <RimWorldAccess.Building.Place.NoDesignatorActive>没有激活的标记工具</RimWorldAccess.Building.Place.NoDesignatorActive>
+  <RimWorldAccess.Building.Place.NoCellsSelected>未选择任何格</RimWorldAccess.Building.Place.NoCellsSelected>
+  <RimWorldAccess.Building.Place.ZoneDeleted>区域 {0} 已删除。</RimWorldAccess.Building.Place.ZoneDeleted>
+  <RimWorldAccess.Building.Place.CancelFromFirstCorner>形状放置已取消</RimWorldAccess.Building.Place.CancelFromFirstCorner>
+  <RimWorldAccess.Building.Place.CancelFromSecondCorner>形状已取消，返回第一点</RimWorldAccess.Building.Place.CancelFromSecondCorner>
+  <RimWorldAccess.Building.Place.CancelFromPreview>预览已取消</RimWorldAccess.Building.Place.CancelFromPreview>
+  <RimWorldAccess.Building.Place.SelectionClearedFromPreview>选择已清除。再次按 Escape 退出，或按回车键后再按等号键添加另一段。</RimWorldAccess.Building.Place.SelectionClearedFromPreview>
+  <RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint>选择已取消，返回第一点</RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint>
+  <RimWorldAccess.Building.Place.SecondPointRemoved>已移除第二点</RimWorldAccess.Building.Place.SecondPointRemoved>
+  <RimWorldAccess.Building.Place.FirstPointRemoved>已移除第一点</RimWorldAccess.Building.Place.FirstPointRemoved>
+  <RimWorldAccess.Building.Place.NoPointsToRemove>没有可移除的点</RimWorldAccess.Building.Place.NoPointsToRemove>
+  <RimWorldAccess.Building.Place.ModeManual>手动模式</RimWorldAccess.Building.Place.ModeManual>
+  <RimWorldAccess.Building.Place.ModeShape>形状模式</RimWorldAccess.Building.Place.ModeShape>
+  <RimWorldAccess.Building.Place.PlacingDesignator>正在放置 {0}</RimWorldAccess.Building.Place.PlacingDesignator>
+  <RimWorldAccess.Building.Place.SizeOneTile>尺寸: 1 格</RimWorldAccess.Building.Place.SizeOneTile>
+  <RimWorldAccess.Building.Place.SizeWxH>尺寸: {0}x{1}</RimWorldAccess.Building.Place.SizeWxH>
+  <RimWorldAccess.Building.Place.HintManualOrder>移动到目标，按空格键选择，按回车键确认，按 Tab 选择形状，按 Escape 取消</RimWorldAccess.Building.Place.HintManualOrder>
+  <RimWorldAccess.Building.Place.HintManualBuildRotatable>移动到位置并按空格键放置，按 R 旋转，按 Escape 取消</RimWorldAccess.Building.Place.HintManualBuildRotatable>
+  <RimWorldAccess.Building.Place.HintManualBuildFixed>移动到位置并按空格键放置，按 Escape 取消</RimWorldAccess.Building.Place.HintManualBuildFixed>
+  <RimWorldAccess.Building.Place.HintShape>移动到第一点并按空格键</RimWorldAccess.Building.Place.HintShape>
+  <RimWorldAccess.Building.Place.PlacedBuild>已放置 {0} {1}{2}</RimWorldAccess.Building.Place.PlacedBuild>
+  <RimWorldAccess.Building.Place.PlacedCostSuffix> ({0} {1})</RimWorldAccess.Building.Place.PlacedCostSuffix>
+  <RimWorldAccess.Building.Place.DesignatedFor>已标记 {0} 用于 {1}</RimWorldAccess.Building.Place.DesignatedFor>
+  <RimWorldAccess.Building.Place.NoBlueprintsPlaced>未放置蓝图</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
+  <RimWorldAccess.Building.Place.NoDesignationsPlaced>未放置标记</RimWorldAccess.Building.Place.NoDesignationsPlaced>
+  <RimWorldAccess.Building.Place.ObstaclesFound>发现 {0} 个障碍物</RimWorldAccess.Building.Place.ObstaclesFound>
+  <RimWorldAccess.Building.Place.MeditationDisableHint>在树形菜单中禁用警告开关以在此建造</RimWorldAccess.Building.Place.MeditationDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <RimWorldAccess.Building.Place.MeditationProtectedBy>受 {0} 保护。{1}。</RimWorldAccess.Building.Place.MeditationProtectedBy>
+  <RimWorldAccess.Building.Place.Action.haul>搬运</RimWorldAccess.Building.Place.Action.haul>
+  <RimWorldAccess.Building.Place.Action.hunt>狩猎</RimWorldAccess.Building.Place.Action.hunt>
+  <RimWorldAccess.Building.Place.Action.mine>开采</RimWorldAccess.Building.Place.Action.mine>
+  <RimWorldAccess.Building.Place.Action.deconstruct>拆除</RimWorldAccess.Building.Place.Action.deconstruct>
+  <RimWorldAccess.Building.Place.Action.cut>割除</RimWorldAccess.Building.Place.Action.cut>
+  <RimWorldAccess.Building.Place.Action.smooth>打磨</RimWorldAccess.Building.Place.Action.smooth>
+  <RimWorldAccess.Building.Place.Action.tame>驯服</RimWorldAccess.Building.Place.Action.tame>
+  <RimWorldAccess.Building.Place.Action.cancel>取消</RimWorldAccess.Building.Place.Action.cancel>
+
+  <!-- Zone creation (src/Building/ZoneCreationState.cs).
+       Drives create / expand / shrink for Stockpile, Dumping, Growing,
+       Allowed-Area, and Home zones via the same shape-pick flow used by
+       AreaPaintingState. Mode-toggle reuses Building.Paint.ModeBox /
+       ModeSingle; "Shape: {0}" reuses Building.Paint.ShapeChanged;
+       "No shape to confirm" reuses Building.Paint.NoShapeToConfirm;
+       "{N} cells added. Total: {M}" reuses Building.Paint.ConfirmShapeIrregular.
+
+       Validation: CellOutOfBounds / CellAlreadyInZone / CannotPlaceZoneHere
+       / MustBeAdjacentToSelection. CellAlreadyInZone "Cell is already in
+       {label}" vs Building.Zone.CellInOtherZone "Cell is in {label}" — the
+       wording differs intentionally (zone-creation context vs zone-edit
+       context).
+
+       Entry instructions / progress: per the no-glue rule, the long
+       Creating/Expanding/Shrinking openers are split into a verb+target
+       fragment plus the shape-mode instructions key.
+
+       GetZoneTypeName covers the 5 zone-type lowercased nouns plus the
+       "zone" fallback (this is a different fallback than
+       Building.Zone.FallbackName, which is for zone.label being null). -->
+  <RimWorldAccess.Building.Create.CannotRemoveDisconnect>无法移除，会断开选择区</RimWorldAccess.Building.Create.CannotRemoveDisconnect>
+  <RimWorldAccess.Building.Create.Deselected>已取消选择, {0}, {1}. 总计: {2}</RimWorldAccess.Building.Create.Deselected>
+  <RimWorldAccess.Building.Create.SelectedWithTotal>{0}. 总计: {1}</RimWorldAccess.Building.Create.SelectedWithTotal>
+  <RimWorldAccess.Building.Create.CellOutOfBounds>该格超出边界</RimWorldAccess.Building.Create.CellOutOfBounds>
+  <RimWorldAccess.Building.Create.CellAlreadyInZone>该格已在 {0} 内</RimWorldAccess.Building.Create.CellAlreadyInZone>
+  <RimWorldAccess.Building.Create.CannotPlaceZoneHere>无法在此处放置区域</RimWorldAccess.Building.Create.CannotPlaceZoneHere>
+  <RimWorldAccess.Building.Create.MustBeAdjacentToSelection>该格必须与选择区相邻</RimWorldAccess.Building.Create.MustBeAdjacentToSelection>
+  <RimWorldAccess.Building.Create.ShapeUnavailable>此区域类型不可用此形状</RimWorldAccess.Building.Create.ShapeUnavailable>
+  <RimWorldAccess.Building.Create.ShapeInstructions>{0}: 按空格键设置角点。按 Tab 切换模式。按回车键创建，按 Escape 取消。</RimWorldAccess.Building.Create.ShapeInstructions>
+  <RimWorldAccess.Building.Create.ExpandShrinkInstructions>{0}: 按空格键设置角点，按回车键确认，按 Escape 取消。</RimWorldAccess.Building.Create.ExpandShrinkInstructions>
+  <RimWorldAccess.Building.Create.OpenCreating>正在创建 {0}. {1}</RimWorldAccess.Building.Create.OpenCreating>
+  <RimWorldAccess.Building.Create.OpenExpanding>正在扩展 {0}. 当前已选择 {1} 格。{2}</RimWorldAccess.Building.Create.OpenExpanding>
+  <RimWorldAccess.Building.Create.OpenShrinking>正在缩小 {0}. 选择要移除的格。{1}</RimWorldAccess.Building.Create.OpenShrinking>
+  <RimWorldAccess.Building.Create.NoZoneProvidedExpand>无法扩展: 未提供区域</RimWorldAccess.Building.Create.NoZoneProvidedExpand>
+  <RimWorldAccess.Building.Create.NoZoneProvidedShrink>无法缩小: 未提供区域</RimWorldAccess.Building.Create.NoZoneProvidedShrink>
+  <RimWorldAccess.Building.Create.NoCellsZoneNotCreated>未选择任何格。区域未创建。</RimWorldAccess.Building.Create.NoCellsZoneNotCreated>
+  <RimWorldAccess.Building.Create.NoCellsZoneUnchanged>未选择任何格。区域未更改。</RimWorldAccess.Building.Create.NoCellsZoneUnchanged>
+  <RimWorldAccess.Building.Create.MaxAllowedAreasReached>无法创建更多活动区。已达到 10 个上限。</RimWorldAccess.Building.Create.MaxAllowedAreasReached>
+  <RimWorldAccess.Building.Create.HomeAreaNotFound>错误: 找不到居住区</RimWorldAccess.Building.Create.HomeAreaNotFound>
+  <RimWorldAccess.Building.Create.NoZoneToModify>错误: 没有可修改的区域</RimWorldAccess.Building.Create.NoZoneToModify>
+  <RimWorldAccess.Building.Create.AllCellsRemovedZoneDeleted>所有格已移除。区域已删除。</RimWorldAccess.Building.Create.AllCellsRemovedZoneDeleted>
+  <RimWorldAccess.Building.Create.AllCellsRemovedNamedDeleted>所有格已移除。{0} 已删除。</RimWorldAccess.Building.Create.AllCellsRemovedNamedDeleted>
+  <RimWorldAccess.Building.Create.ZoneCreated>{0} 已创建，含 {1} 格。{2}</RimWorldAccess.Building.Create.ZoneCreated>
+  <RimWorldAccess.Building.Create.ObstaclesFoundSuffix> 发现 {0} 个障碍物。</RimWorldAccess.Building.Create.ObstaclesFoundSuffix>
+  <RimWorldAccess.Building.Create.ObstaclesInNewAreaSuffix>. 新区域中有 {0} 个障碍物。</RimWorldAccess.Building.Create.ObstaclesInNewAreaSuffix>
+  <RimWorldAccess.Building.Create.RemovedCellsFromZone>已从 {1} 移除 {0} 格。剩余 {2} 格。</RimWorldAccess.Building.Create.RemovedCellsFromZone>
+  <RimWorldAccess.Building.Create.UpdatePrefix>已更新 {0}: </RimWorldAccess.Building.Create.UpdatePrefix>
+  <RimWorldAccess.Building.Create.UpdateAddedAndRemoved>添加 {0} 格，移除 {1} 格</RimWorldAccess.Building.Create.UpdateAddedAndRemoved>
+  <RimWorldAccess.Building.Create.UpdateAddedOnly>添加 {0} 格</RimWorldAccess.Building.Create.UpdateAddedOnly>
+  <RimWorldAccess.Building.Create.UpdateRemovedOnly>移除 {0} 格</RimWorldAccess.Building.Create.UpdateRemovedOnly>
+  <RimWorldAccess.Building.Create.UpdateNoChanges>无更改</RimWorldAccess.Building.Create.UpdateNoChanges>
+  <RimWorldAccess.Building.Create.AllowedAreaName>活动区「{0}」</RimWorldAccess.Building.Create.AllowedAreaName>
+  <RimWorldAccess.Building.Create.ErrorCreatingZone>创建区域时出错: {0}</RimWorldAccess.Building.Create.ErrorCreatingZone>
+  <RimWorldAccess.Building.Create.ErrorExpandingZone>扩展区域时出错: {0}</RimWorldAccess.Building.Create.ErrorExpandingZone>
+  <RimWorldAccess.Building.Create.ErrorShrinkingZone>缩小区域时出错: {0}</RimWorldAccess.Building.Create.ErrorShrinkingZone>
+  <RimWorldAccess.Building.Create.Cancelled>区域创建已取消</RimWorldAccess.Building.Create.Cancelled>
+  <RimWorldAccess.Building.Create.ZoneTypeName.Stockpile>储存区</RimWorldAccess.Building.Create.ZoneTypeName.Stockpile>
+  <RimWorldAccess.Building.Create.ZoneTypeName.DumpingStockpile>垃圾储存区</RimWorldAccess.Building.Create.ZoneTypeName.DumpingStockpile>
+  <RimWorldAccess.Building.Create.ZoneTypeName.GrowingZone>种植区</RimWorldAccess.Building.Create.ZoneTypeName.GrowingZone>
+  <RimWorldAccess.Building.Create.ZoneTypeName.AllowedArea>活动区</RimWorldAccess.Building.Create.ZoneTypeName.AllowedArea>
+  <RimWorldAccess.Building.Create.ZoneTypeName.HomeZone>居住区</RimWorldAccess.Building.Create.ZoneTypeName.HomeZone>
+  <RimWorldAccess.Building.Create.ZoneTypeName.Default>区域</RimWorldAccess.Building.Create.ZoneTypeName.Default>
+  <RimWorldAccess.Building.Create.ZoneCapped.Stockpile>储存区</RimWorldAccess.Building.Create.ZoneCapped.Stockpile>
+  <RimWorldAccess.Building.Create.ZoneCapped.DumpingStockpile>垃圾储存区</RimWorldAccess.Building.Create.ZoneCapped.DumpingStockpile>
+  <RimWorldAccess.Building.Create.ZoneCapped.GrowingZone>种植区</RimWorldAccess.Building.Create.ZoneCapped.GrowingZone>
+  <RimWorldAccess.Building.Create.ZoneCapped.HomeZone>居住区</RimWorldAccess.Building.Create.ZoneCapped.HomeZone>
+
+  <!-- Viewing mode (src/Building/ViewingModeState.cs).
+       Post-placement preview. Shape-name-and-description data still flows
+       through ViewingModeAnnouncer (~45 internal strings, deferred to a
+       later commit); these keys cover the 19 direct Speak calls in
+       ViewingModeState plus the long Confirm() composition.
+
+       Confirm One/Many splits per the no-glue rule: each subject-verb
+       agreement case gets its own whole-phrase key. The {0}=count,
+       {1}=zoneName lowercase, {2}=zone size string variants.
+
+       Subject grammar for the "{0} smaller zone(s)" suffix: One = "zone",
+       Many = "zones".
+
+       Dialog button labels (Leave / Stay / Confirm Exit) match vanilla's
+       generic dialog buttons; we own these labels because the
+       Dialog_MessageBox call sites supply our keys verbatim. -->
+  <RimWorldAccess.Building.View.ReturnedToPreview>已返回预览模式</RimWorldAccess.Building.View.ReturnedToPreview>
+  <RimWorldAccess.Building.View.AddAnotherShape>添加另一个形状</RimWorldAccess.Building.View.AddAnotherShape>
+  <RimWorldAccess.Building.View.NoDesignatorAvailable>没有可用的标记工具</RimWorldAccess.Building.View.NoDesignatorAvailable>
+  <RimWorldAccess.Building.View.CannotPlaceHere>无法在此处放置</RimWorldAccess.Building.View.CannotPlaceHere>
+  <RimWorldAccess.Building.View.PlacedAt>{0} 放置于 {1}, {2}</RimWorldAccess.Building.View.PlacedAt>
+  <RimWorldAccess.Building.View.BlueprintFallback>蓝图</RimWorldAccess.Building.View.BlueprintFallback>
+  <RimWorldAccess.Building.View.FailedToAddBlueprint>添加蓝图失败</RimWorldAccess.Building.View.FailedToAddBlueprint>
+  <RimWorldAccess.Building.View.NoBlueprintHere>此处没有可取消的蓝图</RimWorldAccess.Building.View.NoBlueprintHere>
+  <RimWorldAccess.Building.View.CancelledBlueprint>已取消 {0}</RimWorldAccess.Building.View.CancelledBlueprint>
+  <RimWorldAccess.Building.View.ActionRestored>已恢复</RimWorldAccess.Building.View.ActionRestored>
+  <RimWorldAccess.Building.View.ActionRemoved>已移除</RimWorldAccess.Building.View.ActionRemoved>
+  <RimWorldAccess.Building.View.SegmentRemovedSomeRemain>{0} {1} ({2}). 剩余 {3}{4}.</RimWorldAccess.Building.View.SegmentRemovedSomeRemain>
+  <RimWorldAccess.Building.View.SegmentRemovedNoneRemain>{0} {1} ({2}). 无剩余段。</RimWorldAccess.Building.View.SegmentRemovedNoneRemain>
+  <RimWorldAccess.Building.View.RemainingInShapeSuffix> 于 {0}</RimWorldAccess.Building.View.RemainingInShapeSuffix>
+  <RimWorldAccess.Building.View.RemainingInSegmentsSuffix> 于 {0} 段</RimWorldAccess.Building.View.RemainingInSegmentsSuffix>
+  <RimWorldAccess.Building.View.RemovedItemsReturning>已移除 {0} {1}. 返回放置。</RimWorldAccess.Building.View.RemovedItemsReturning>
+  <RimWorldAccess.Building.View.ReturningToPlacement>返回放置。</RimWorldAccess.Building.View.ReturningToPlacement>
+  <RimWorldAccess.Building.View.RemovedItems>已移除 {0} {1}</RimWorldAccess.Building.View.RemovedItems>
+  <RimWorldAccess.Building.View.RemovedAllItems>已移除全部 {0} {1}</RimWorldAccess.Building.View.RemovedAllItems>
+  <RimWorldAccess.Building.View.ZoneEditingCancelled>区域编辑已取消。</RimWorldAccess.Building.View.ZoneEditingCancelled>
+  <RimWorldAccess.Building.View.PlacementCancelled>放置已取消。</RimWorldAccess.Building.View.PlacementCancelled>
+  <RimWorldAccess.Building.View.ExitWithRemoval>{0} {1} {2}. {3}</RimWorldAccess.Building.View.ExitWithRemoval>
+  <RimWorldAccess.Building.View.ExitWithRemovalAll>{0} 全部 {1} {2}. {3}</RimWorldAccess.Building.View.ExitWithRemovalAll>
+  <RimWorldAccess.Building.View.LeavePreviewBlueprints>离开预览？所有蓝图将丢失。</RimWorldAccess.Building.View.LeavePreviewBlueprints>
+  <RimWorldAccess.Building.View.LeavePreviewZones>离开预览？所有区域更改将被撤销。</RimWorldAccess.Building.View.LeavePreviewZones>
+  <RimWorldAccess.Building.View.LeavePreviewDesignations>离开预览？所有标记将被移除。</RimWorldAccess.Building.View.LeavePreviewDesignations>
+  <RimWorldAccess.Building.View.DialogLeave>离开</RimWorldAccess.Building.View.DialogLeave>
+  <RimWorldAccess.Building.View.DialogStay>留下</RimWorldAccess.Building.View.DialogStay>
+  <RimWorldAccess.Building.View.DialogConfirmExit>确认退出</RimWorldAccess.Building.View.DialogConfirmExit>
+
+  <!-- ViewingModeState.Confirm() zone-result composition. -->
+  <RimWorldAccess.Building.View.ConfirmZoneCellsRemovedOne>已确认。已移除 {0} 个区域格。</RimWorldAccess.Building.View.ConfirmZoneCellsRemovedOne>
+  <RimWorldAccess.Building.View.ConfirmZoneCellsRemovedMany>已确认。已移除 {0} 个区域格。</RimWorldAccess.Building.View.ConfirmZoneCellsRemovedMany>
+  <RimWorldAccess.Building.View.ConfirmCellsAddedToZoneOne>已确认。已向 {1} 区域添加 {0} 格。</RimWorldAccess.Building.View.ConfirmCellsAddedToZoneOne>
+  <RimWorldAccess.Building.View.ConfirmCellsAddedToZoneMany>已确认。已向 {1} 区域添加 {0} 格。</RimWorldAccess.Building.View.ConfirmCellsAddedToZoneMany>
+  <RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsOne>已确认。已用 {0} 格创建 {1} 区域。</RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsOne>
+  <RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsMany>已确认。已用 {0} 格创建 {1} 区域。</RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsMany>
+  <RimWorldAccess.Building.View.ConfirmZoneExpanded>已确认。已扩展 {0} {1} 区域。</RimWorldAccess.Building.View.ConfirmZoneExpanded>
+  <RimWorldAccess.Building.View.ConfirmZoneCreated>已确认。已创建 {0} {1} 区域。</RimWorldAccess.Building.View.ConfirmZoneCreated>
+  <RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedOne>已确认。已创建 {0} {1} 区域: {2}.</RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedOne>
+  <RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedMany>已确认。已创建 {0} {1} 区域: {2}.</RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedMany>
+  <RimWorldAccess.Building.View.SmallerZonesOne>, 以及 {0} 个较小区域</RimWorldAccess.Building.View.SmallerZonesOne>
+  <RimWorldAccess.Building.View.SmallerZonesMany>, 以及 {0} 个较小区域</RimWorldAccess.Building.View.SmallerZonesMany>
+  <RimWorldAccess.Building.View.OrdersConfirmedBlueprints>命令已确认。已放置 {0} 个蓝图。</RimWorldAccess.Building.View.OrdersConfirmedBlueprints>
+  <RimWorldAccess.Building.View.OrdersConfirmedDesignations>命令已确认。已放置 {0} 个标记。</RimWorldAccess.Building.View.OrdersConfirmedDesignations>
+
+  <!-- Storage linking (src/Building/ShelfLinking{State,Patch,Helper,ConfirmDialog}.cs).
+       Keyboard-driven manual storage-link mode and the room-based gizmo
+       linking flow. Open prompt and per-cell feedback are spoken; linking
+       confirmation is shown via Dialog_MessageBox (visible text contains
+       newlines for paragraph breaks — those are formatting, not separators).
+
+       OpenPrompt: {0} = source storage label.
+       StorageWithCountSelected/Deselected: {0} = label, {1} = selected count.
+       LinkedCount / AddedToGroupCount: {0} = formatted count phrase
+       (e.g. "3 shelves, 1 bookcase") from FormatStorageCount.
+
+       FormatStorageCount falls back to English pluralization for def
+       labels; the per-def "{count} {label}" composition reuses
+       Find.ActiveLanguageWorker.Pluralize so non-English languages get
+       proper plural forms. The "shelf"/"shelves" English-specific
+       short-circuit is removed — Pluralize handles it. -->
+  <RimWorldAccess.Building.Shelf.NoStorageSelected>未选择存储</RimWorldAccess.Building.Shelf.NoStorageSelected>
+  <RimWorldAccess.Building.Shelf.OpenPrompt>存储链接模式。已选择 {0}. 用方向键导航，按空格键选择兼容的存储，按回车键链接。</RimWorldAccess.Building.Shelf.OpenPrompt>
+  <RimWorldAccess.Building.Shelf.LinkingCancelled>存储链接已取消</RimWorldAccess.Building.Shelf.LinkingCancelled>
+  <RimWorldAccess.Building.Shelf.InvalidPosition>无效位置</RimWorldAccess.Building.Shelf.InvalidPosition>
+  <RimWorldAccess.Building.Shelf.IncompatibleStorageType>{0} - 不兼容的存储类型</RimWorldAccess.Building.Shelf.IncompatibleStorageType>
+  <RimWorldAccess.Building.Shelf.NoStorageHere>此处没有存储</RimWorldAccess.Building.Shelf.NoStorageHere>
+  <RimWorldAccess.Building.Shelf.SourceCannotDeselect>源存储，无法取消选择</RimWorldAccess.Building.Shelf.SourceCannotDeselect>
+  <RimWorldAccess.Building.Shelf.StorageDeselected>{0} 已取消选择。已选择 {1}</RimWorldAccess.Building.Shelf.StorageDeselected>
+  <RimWorldAccess.Building.Shelf.StorageSelected>{0} 已选择。已选择 {1}</RimWorldAccess.Building.Shelf.StorageSelected>
+  <RimWorldAccess.Building.Shelf.SelectAtLeastOneOther>至少选择另一个存储以链接。导航到存储，按空格键选择。</RimWorldAccess.Building.Shelf.SelectAtLeastOneOther>
+  <RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting>链接已取消。仍处于选择模式。按 Escape 退出。</RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting>
+  <RimWorldAccess.Building.Shelf.LinkedCount>已链接 {0}</RimWorldAccess.Building.Shelf.LinkedCount>
+  <RimWorldAccess.Building.Shelf.AddedToGroup>已将 {0} 添加到组</RimWorldAccess.Building.Shelf.AddedToGroup>
+  <RimWorldAccess.Building.Shelf.LinkingFailed>链接失败</RimWorldAccess.Building.Shelf.LinkingFailed>
+  <RimWorldAccess.Building.Shelf.LinkingCancelledShort>链接已取消</RimWorldAccess.Building.Shelf.LinkingCancelledShort>
+  <RimWorldAccess.Building.Shelf.NoStorage>无存储</RimWorldAccess.Building.Shelf.NoStorage>
+  <RimWorldAccess.Building.Shelf.StorageItemsCount>{0} 个存储物</RimWorldAccess.Building.Shelf.StorageItemsCount>
+  <RimWorldAccess.Building.Shelf.StorageItemEntry>{0} {1}</RimWorldAccess.Building.Shelf.StorageItemEntry>
+  <RimWorldAccess.Building.Shelf.StorageFallback>存储</RimWorldAccess.Building.Shelf.StorageFallback>
+  <RimWorldAccess.Building.Shelf.NoGroup>无组</RimWorldAccess.Building.Shelf.NoGroup>
+  <RimWorldAccess.Building.Shelf.UnnamedGroup>未命名的组</RimWorldAccess.Building.Shelf.UnnamedGroup>
+
+  <!-- Confirm dialog. Newlines (\n) in DialogMessage are visual paragraph
+       breaks rendered by Dialog_MessageBox, not screen reader separators.
+       DialogItem and DialogItemWord (One/Many) compose the bullet list
+       and the "is/are" phrasing for the lead sentence.
+       DialogMessage: {0} = count, {1} = "item is" / "items are",
+       {2} = newline-joined list. -->
+  <RimWorldAccess.Building.Shelf.DialogItem>  - {0}: 已链接到「{1}」</RimWorldAccess.Building.Shelf.DialogItem>
+  <RimWorldAccess.Building.Shelf.DialogItemWordOne>个物品</RimWorldAccess.Building.Shelf.DialogItemWordOne>
+  <RimWorldAccess.Building.Shelf.DialogItemWordMany>个物品</RimWorldAccess.Building.Shelf.DialogItemWordMany>
+  <RimWorldAccess.Building.Shelf.DialogMessage>{0} {1}已在不同的存储组中:&#10;&#10;{2}&#10;&#10;将它们移动到此存储组吗？</RimWorldAccess.Building.Shelf.DialogMessage>
+  <RimWorldAccess.Building.Shelf.DialogYesLinkAnyway>是，仍然链接</RimWorldAccess.Building.Shelf.DialogYesLinkAnyway>
+  <RimWorldAccess.Building.Shelf.DialogDontLink>不链接</RimWorldAccess.Building.Shelf.DialogDontLink>
+  <RimWorldAccess.Building.Shelf.DialogTitle>存储链接</RimWorldAccess.Building.Shelf.DialogTitle>
+
+  <!-- Viewing mode announcer (src/Building/ViewingModeAnnouncer.cs).
+       Pure announcement-composition for ViewingModeState's post-placement preview.
+       ViewingModeState speaks the announcer's return values verbatim (it does NOT
+       re-wrap them), so every fragment the announcer returns is resolved here.
+
+       Composition: the four entry branches (order / zone / area / build) each build
+       a "Viewing mode" prefix + body parts joined by the AnnouncementBuilder, which
+       owns the separators and trailing period. Fragments below therefore carry NO
+       trailing punctuation and NO newline separators. The one exception is
+       SegmentSuffix, which is concatenated INTO a body part (not added as its own
+       part), so it keeps its leading space and parentheses on purpose.
+
+       Placeholder meaning is consistent across keys:
+         {0} count, OR a designator/area/zone label, OR a shape-size string ("7 by 4")
+       Read each value to see the exact order; multi-arg keys note it inline.
+
+       One/Many splits (no-glue rule - whole phrase per agreement case):
+         CellsBlocked(By) cell / cells; Blocked(By) (build) singular/plural;
+         AllCellsBlockedBy cell / cells; ZonesCreatedList zone / zones;
+         EnclosureGapSuffix / EnclosureTotalGapSuffix gap / gaps;
+         TerrainTiles tile / tiles; MoreInGroups / MoreItemsInGroupsSuffix /
+         ItemsInGroups group / groups. The branch in C# picks the key by count==1.
+
+       Vanilla-noun note: shape SIZE strings ("7 by 4", "12 cells") come from the
+       already-localized RimWorldAccess.Building.Shape.Size* keys via
+       ShapeHelper.FormatShapeSize - not duplicated here. Zone-type nouns here are a
+       distinct lowercase-in-sentence form ("stockpile zone created"); the capitalized
+       menu-label forms live under Building.Shape.Name.* / Building.Create.Zone*.
+
+       List joining: ListTwo / ListMany hold the conjunction so "and" never appears as
+       a bare glue particle. CountLabel is the universal "{0} {1}" count+noun fragment.
+
+       Game-data note: the English .Contains() zone/area-label matching in
+       GetZoneTypeName / GetBuiltInAreaName only fires for English game data and falls
+       through to the Generic / game-label path otherwise (TODO-comment pattern). The
+       category-name and stripped game-label fallbacks deliberately surface the game's
+       own text for mod compatibility and are not keyed. -->
+
+  <!-- Prefix and shared composition -->
+  <RimWorldAccess.Building.Announcer.ViewingMode>预览模式</RimWorldAccess.Building.Announcer.ViewingMode>
+  <RimWorldAccess.Building.Announcer.SegmentSuffix> ({0})</RimWorldAccess.Building.Announcer.SegmentSuffix>
+  <RimWorldAccess.Building.Announcer.CountLabel>{0} {1}</RimWorldAccess.Building.Announcer.CountLabel>
+  <RimWorldAccess.Building.Announcer.ListTwo>{0} 和 {1}</RimWorldAccess.Building.Announcer.ListTwo>
+  <RimWorldAccess.Building.Announcer.ListMany>{0}, 和 {1}</RimWorldAccess.Building.Announcer.ListMany>
+
+  <!-- Control hints (joined with commas by the announcer) -->
+  <RimWorldAccess.Building.Announcer.HintNavigateTargets>按 Page Up/Down 导航目标</RimWorldAccess.Building.Announcer.HintNavigateTargets>
+  <RimWorldAccess.Building.Announcer.HintNavigateObstacles>按 Page Up/Down 导航障碍物</RimWorldAccess.Building.Announcer.HintNavigateObstacles>
+  <RimWorldAccess.Building.Announcer.HintAddShape>按等号键添加另一个形状</RimWorldAccess.Building.Announcer.HintAddShape>
+  <RimWorldAccess.Building.Announcer.HintUndoLast>按减号键撤销上一步</RimWorldAccess.Building.Announcer.HintUndoLast>
+  <RimWorldAccess.Building.Announcer.HintConfirm>按回车键确认</RimWorldAccess.Building.Announcer.HintConfirm>
+
+  <!-- Order designator entry. {0}=designator label, then shape size and/or target list -->
+  <RimWorldAccess.Building.Announcer.OrderFallback>命令</RimWorldAccess.Building.Announcer.OrderFallback>
+  <RimWorldAccess.Building.Announcer.OrderOnTargeting>{1} 上的 {0} 命令，目标为 {2}</RimWorldAccess.Building.Announcer.OrderOnTargeting>
+  <RimWorldAccess.Building.Announcer.OrderTargeting>{0} 命令，目标为 {1}</RimWorldAccess.Building.Announcer.OrderTargeting>
+  <RimWorldAccess.Building.Announcer.OrderOn>{1} 上的 {0} 命令</RimWorldAccess.Building.Announcer.OrderOn>
+  <RimWorldAccess.Building.Announcer.OrderDesignations>{0} {1} 标记</RimWorldAccess.Building.Announcer.OrderDesignations>
+
+  <!-- Order target list grouping. {0}=item count, {1}=group count -->
+  <RimWorldAccess.Building.Announcer.UnknownTarget>未知</RimWorldAccess.Building.Announcer.UnknownTarget>
+  <RimWorldAccess.Building.Announcer.TileFallback>格</RimWorldAccess.Building.Announcer.TileFallback>
+  <RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne>, 以及 {1} 个较小组中的 {0} 个物品</RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne>
+  <RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany>, 以及 {1} 个较小组中的 {0} 个物品</RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany>
+  <RimWorldAccess.Building.Announcer.ItemsInGroupsOne>{1} 个组中的 {0} 个物品</RimWorldAccess.Building.Announcer.ItemsInGroupsOne>
+  <RimWorldAccess.Building.Announcer.ItemsInGroupsMany>{1} 个组中的 {0} 个物品</RimWorldAccess.Building.Announcer.ItemsInGroupsMany>
+
+  <!-- Zone designator entry. zoneName ({1}/{0}) is a lowercase-in-sentence noun from ZoneType.* -->
+  <RimWorldAccess.Building.Announcer.RemovedFromZone>已从区域移除 {0}</RimWorldAccess.Building.Announcer.RemovedFromZone>
+  <RimWorldAccess.Building.Announcer.NoZoneCellsRemoved>未移除任何区域格</RimWorldAccess.Building.Announcer.NoZoneCellsRemoved>
+  <RimWorldAccess.Building.Announcer.NoZoneCellsPlaced>未放置任何区域格</RimWorldAccess.Building.Announcer.NoZoneCellsPlaced>
+  <RimWorldAccess.Building.Announcer.ZoneCreated>{0} {1} 区域已创建</RimWorldAccess.Building.Announcer.ZoneCreated>
+  <RimWorldAccess.Building.Announcer.ZoneExpandedBy>{0} 区域已扩展 {1}</RimWorldAccess.Building.Announcer.ZoneExpandedBy>
+  <RimWorldAccess.Building.Announcer.ZonesCreatedListOne>{0} {1} 区域已创建: {2}</RimWorldAccess.Building.Announcer.ZonesCreatedListOne>
+  <RimWorldAccess.Building.Announcer.ZonesCreatedListMany>{0} {1} 区域已创建: {2}</RimWorldAccess.Building.Announcer.ZonesCreatedListMany>
+
+  <!-- "blocked" clauses. {0}=count, {1}=obstacle summary -->
+  <RimWorldAccess.Building.Announcer.CellsBlockedByOne>, {0} 格被 {1} 阻挡</RimWorldAccess.Building.Announcer.CellsBlockedByOne>
+  <RimWorldAccess.Building.Announcer.CellsBlockedByMany>, {0} 格被 {1} 阻挡</RimWorldAccess.Building.Announcer.CellsBlockedByMany>
+  <RimWorldAccess.Building.Announcer.CellsBlockedOne>, {0} 格被阻挡</RimWorldAccess.Building.Announcer.CellsBlockedOne>
+  <RimWorldAccess.Building.Announcer.CellsBlockedMany>, {0} 格被阻挡</RimWorldAccess.Building.Announcer.CellsBlockedMany>
+  <RimWorldAccess.Building.Announcer.AllCellsBlockedByOne>全部 {0} 格被 {1} 阻挡</RimWorldAccess.Building.Announcer.AllCellsBlockedByOne>
+  <RimWorldAccess.Building.Announcer.AllCellsBlockedByMany>全部 {0} 格被 {1} 阻挡</RimWorldAccess.Building.Announcer.AllCellsBlockedByMany>
+
+  <!-- Zone-type nouns (lowercase-in-sentence) -->
+  <RimWorldAccess.Building.Announcer.ZoneType.Stockpile>储存</RimWorldAccess.Building.Announcer.ZoneType.Stockpile>
+  <RimWorldAccess.Building.Announcer.ZoneType.Growing>种植</RimWorldAccess.Building.Announcer.ZoneType.Growing>
+  <RimWorldAccess.Building.Announcer.ZoneType.Dumping>垃圾</RimWorldAccess.Building.Announcer.ZoneType.Dumping>
+  <RimWorldAccess.Building.Announcer.ZoneType.Fishing>捕鱼</RimWorldAccess.Building.Announcer.ZoneType.Fishing>
+  <RimWorldAccess.Building.Announcer.ZoneType.Generic>区域</RimWorldAccess.Building.Announcer.ZoneType.Generic>
+
+  <!-- Zone-blocking obstacle labels (single cell, fed into the counted list) -->
+  <RimWorldAccess.Building.Announcer.UnbuiltSuffix>{0} (未建造)</RimWorldAccess.Building.Announcer.UnbuiltSuffix>
+  <RimWorldAccess.Building.Announcer.StructureFallback>结构</RimWorldAccess.Building.Announcer.StructureFallback>
+  <RimWorldAccess.Building.Announcer.ExistingZone>现有 {0}</RimWorldAccess.Building.Announcer.ExistingZone>
+  <RimWorldAccess.Building.Announcer.EdgeArea>边缘区域</RimWorldAccess.Building.Announcer.EdgeArea>
+  <RimWorldAccess.Building.Announcer.FogOfWar>战争迷雾</RimWorldAccess.Building.Announcer.FogOfWar>
+  <RimWorldAccess.Building.Announcer.TerrainFallback>地形</RimWorldAccess.Building.Announcer.TerrainFallback>
+  <RimWorldAccess.Building.Announcer.UnknownTerrain>未知地形</RimWorldAccess.Building.Announcer.UnknownTerrain>
+  <RimWorldAccess.Building.Announcer.BlockedCell>被阻挡的格</RimWorldAccess.Building.Announcer.BlockedCell>
+
+  <!-- Area designator entry. {0}=area name, {1}=size (Allowed); {0}=size, {1}=area name (BuiltIn) -->
+  <RimWorldAccess.Building.Announcer.AreaFallback>区域</RimWorldAccess.Building.Announcer.AreaFallback>
+  <RimWorldAccess.Building.Announcer.AllowedAreaExpanded>已将 {0} 扩展 {1}</RimWorldAccess.Building.Announcer.AllowedAreaExpanded>
+  <RimWorldAccess.Building.Announcer.AllowedAreaCleared>已将 {0} 清除 {1}</RimWorldAccess.Building.Announcer.AllowedAreaCleared>
+  <RimWorldAccess.Building.Announcer.BuiltInAreaMarked>已将 {0} 标记用于 {1}</RimWorldAccess.Building.Announcer.BuiltInAreaMarked>
+  <RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked>已将 {0} 从 {1} 取消标记</RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsExpanded>未扩展任何区域格</RimWorldAccess.Building.Announcer.NoAreaCellsExpanded>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsCleared>未清除任何区域格</RimWorldAccess.Building.Announcer.NoAreaCellsCleared>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsMarked>未标记任何区域格</RimWorldAccess.Building.Announcer.NoAreaCellsMarked>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked>未取消标记任何区域格</RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked>
+
+  <!-- Built-in area names (only used when the game's own label is empty) -->
+  <RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand>清除积雪和沙</RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.Home>居住区</RimWorldAccess.Building.Announcer.BuiltInArea.Home>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof>建造屋顶区</RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof>移除屋顶区</RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof>屋顶区</RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear>污染清除区</RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear>
+
+  <!-- Build designator entry. {0}=placed size, {1}=total intended, {2}=plural label, {3}=cost suffix -->
+  <RimWorldAccess.Building.Announcer.BlueprintsFallback>蓝图</RimWorldAccess.Building.Announcer.BlueprintsFallback>
+  <RimWorldAccess.Building.Announcer.PlacedOfTotal>已放置 {1} 中的 {0} {2}{3}</RimWorldAccess.Building.Announcer.PlacedOfTotal>
+  <RimWorldAccess.Building.Announcer.AllBlockedBy>全部被 {0} 阻挡</RimWorldAccess.Building.Announcer.AllBlockedBy>
+
+  <!-- Build "blocked" clauses (no "cells" noun - count is of blueprints). {0}=count, {1}=summary -->
+  <RimWorldAccess.Building.Announcer.BlockedByOne>, {0} 个被 {1} 阻挡</RimWorldAccess.Building.Announcer.BlockedByOne>
+  <RimWorldAccess.Building.Announcer.BlockedByMany>, {0} 个被 {1} 阻挡</RimWorldAccess.Building.Announcer.BlockedByMany>
+  <RimWorldAccess.Building.Announcer.BlockedOne>, {0} 个被阻挡</RimWorldAccess.Building.Announcer.BlockedOne>
+  <RimWorldAccess.Building.Announcer.BlockedMany>, {0} 个被阻挡</RimWorldAccess.Building.Announcer.BlockedMany>
+
+  <!-- Build obstacle single-cell labels -->
+  <RimWorldAccess.Building.Announcer.ObstacleFallback>障碍物</RimWorldAccess.Building.Announcer.ObstacleFallback>
+  <RimWorldAccess.Building.Announcer.BlueprintObstacle>蓝图</RimWorldAccess.Building.Announcer.BlueprintObstacle>
+  <RimWorldAccess.Building.Announcer.ItemObstacle>物品</RimWorldAccess.Building.Announcer.ItemObstacle>
+
+  <!-- Enclosure clauses. {0}=size, {1}=contents (containing forms); {0}=gap count (suffixes) -->
+  <RimWorldAccess.Building.Announcer.EnclosureFormed>{0} 围合区已形成</RimWorldAccess.Building.Announcer.EnclosureFormed>
+  <RimWorldAccess.Building.Announcer.EnclosureFormedContaining>{0} 围合区已形成，包含 {1}</RimWorldAccess.Building.Announcer.EnclosureFormedContaining>
+  <RimWorldAccess.Building.Announcer.EnclosureSizeContaining>{0}，包含 {1}</RimWorldAccess.Building.Announcer.EnclosureSizeContaining>
+  <RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne>, 但有 {0} 个缺口</RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne>
+  <RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany>, 但有 {0} 个缺口</RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany>
+  <RimWorldAccess.Building.Announcer.EnclosuresFormedList>{0} 个围合区已形成: {1}</RimWorldAccess.Building.Announcer.EnclosuresFormedList>
+  <RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne>, 但共有 {0} 个缺口</RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne>
+  <RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany>, 但共有 {0} 个缺口</RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany>
+
+  <!-- Meditation/tree protection hint (the summary itself comes from MeditationProtectionHelper) -->
+
+  <!-- Counted-list formatting (FormatCountedList). {0}=item count, {1}=group count -->
+  <RimWorldAccess.Building.Announcer.TerrainTilesOne>{0} {1} 格</RimWorldAccess.Building.Announcer.TerrainTilesOne>
+  <RimWorldAccess.Building.Announcer.TerrainTilesMany>{0} {1} 格</RimWorldAccess.Building.Announcer.TerrainTilesMany>
+  <RimWorldAccess.Building.Announcer.MoreInGroupsOne>{1} 个较小组中的另 {0} 个</RimWorldAccess.Building.Announcer.MoreInGroupsOne>
+  <RimWorldAccess.Building.Announcer.MoreInGroupsMany>{1} 个较小组中的另 {0} 个</RimWorldAccess.Building.Announcer.MoreInGroupsMany>
+
+  <!-- Shape display names (lowercase-in-sentence; distinct from the capitalized
+       Building.Shape.Name.* menu labels because these are pluralized and embedded mid-sentence) -->
+  <RimWorldAccess.Building.Announcer.ShapeName.Manual>手动放置</RimWorldAccess.Building.Announcer.ShapeName.Manual>
+  <RimWorldAccess.Building.Announcer.ShapeName.Line>直线</RimWorldAccess.Building.Announcer.ShapeName.Line>
+  <RimWorldAccess.Building.Announcer.ShapeName.AngledLine>斜线</RimWorldAccess.Building.Announcer.ShapeName.AngledLine>
+  <RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle>实心矩形</RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle>
+  <RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle>空心矩形</RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle>
+  <RimWorldAccess.Building.Announcer.ShapeName.FilledOval>实心椭圆</RimWorldAccess.Building.Announcer.ShapeName.FilledOval>
+  <RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>空心椭圆</RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>
+  <RimWorldAccess.Building.Announcer.ShapeName.Generic>形状</RimWorldAccess.Building.Announcer.ShapeName.Generic>
+
+  <!-- Architect mode state machine (src/Building/ArchitectState.cs).
+       Central category/tool/material/placement flow plus building rotation
+       and size readouts. The rotation/size announcements compose via
+       AnnouncementBuilder (period-separated), so each fragment here is a
+       clean phrase without trailing punctuation.
+
+       Reuse decisions (NOT re-added here):
+       - Mode toggle reuses Building.Paint.ModeBox / ModeSingle.
+       - "Cannot remove, would disconnect selection" reuses
+         Building.Create.CannotRemoveDisconnect.
+       - "Deselected, {x}, {z}" reuses Building.Paint.Deselected.
+       - "Cell is already in {0}" reuses Building.Create.CellAlreadyInZone.
+       - "Cell must be adjacent to selection" reuses
+         Building.Create.MustBeAdjacentToSelection.
+       - "No cells selected" reuses Building.Place.NoCellsSelected.
+       - Rotation nouns (capitalized) reuse Map.Direction.North/East/South/West;
+         the relative-extent and wind-turbine direction nouns (lowercase)
+         reuse Map.Direction.Lower.North/South/East/West. GetRotationName is
+         also consumed by BuildingCellHelper, which lowercases it itself.
+
+       Placeholders:
+       - CategorySelected: {0} = category LabelCap.
+       - SelectMaterialFor: {0} = buildable label.
+       - Facing: {0} = capitalized rotation direction.
+       - SizeWxH: {0} = width, {1} = depth (tiles).
+       - ExtendDirection: {0} = tile count, {1} = lowercase direction noun.
+       - Extends: {0} = comma-joined ExtendDirection fragments.
+       - TilesDirection: {0} = tile count, {1} = lowercase direction noun.
+       - WindTurbineClearSpace: {0} = front clearance, {1} = back clearance.
+       - Invalid: {0} = vanilla AcceptanceReport.Reason (already localized).
+       - PlacedOnCells: {0} = designator label, {1} = cell count.
+       - ErrorPlacing: {0} = exception message.
+
+       English-keyword substring lookups: none in this file — designator
+       action gerunds live in ShapePlacementState. -->
+  <RimWorldAccess.Building.Architect.SelectionModeZoneOnly>选择模式切换仅适用于区域标记工具</RimWorldAccess.Building.Architect.SelectionModeZoneOnly>
+  <RimWorldAccess.Building.Architect.CategorySelected>已选择 {0} 类别。选择一个工具</RimWorldAccess.Building.Architect.CategorySelected>
+  <RimWorldAccess.Building.Architect.SelectMaterialFor>为 {0} 选择材料</RimWorldAccess.Building.Architect.SelectMaterialFor>
+  <RimWorldAccess.Building.Architect.Facing>朝向 {0}</RimWorldAccess.Building.Architect.Facing>
+  <RimWorldAccess.Building.Architect.SizeWxH>尺寸: {0} 乘 {1}</RimWorldAccess.Building.Architect.SizeWxH>
+  <RimWorldAccess.Building.Architect.ExtendDirection>{0} {1}</RimWorldAccess.Building.Architect.ExtendDirection>
+  <RimWorldAccess.Building.Architect.Extends>向 {0} 延伸</RimWorldAccess.Building.Architect.Extends>
+  <RimWorldAccess.Building.Architect.TilesDirection>{1} {0} 格</RimWorldAccess.Building.Architect.TilesDirection>
+  <RimWorldAccess.Building.Architect.WindTurbineClearSpace>需要净空: {0}, {1}</RimWorldAccess.Building.Architect.WindTurbineClearSpace>
+  <RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric>需要前后净空</RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric>
+  <RimWorldAccess.Building.Architect.CannotDesignateHere>无法在此处标记</RimWorldAccess.Building.Architect.CannotDesignateHere>
+  <RimWorldAccess.Building.Architect.Invalid>无效: {0}</RimWorldAccess.Building.Architect.Invalid>
+  <RimWorldAccess.Building.Architect.PlacedOnCells>{0} 已放置于 {1} 格</RimWorldAccess.Building.Architect.PlacedOnCells>
+  <RimWorldAccess.Building.Architect.ErrorPlacing>放置标记时出错: {0}</RimWorldAccess.Building.Architect.ErrorPlacing>
+  <RimWorldAccess.Building.Architect.MenuClosed>建造菜单已关闭</RimWorldAccess.Building.Architect.MenuClosed>
+
+  <!-- Architect menu Tab-key entry (src/Building/ArchitectMenuPatch.cs).
+       Harmony patch on UIRoot.UIRootOnGUI that opens/closes the accessible
+       architect treeview and handles per-designator actions (right-click
+       options, info card, material selection). Spoken via TolkHelper.
+
+       These keys are shared with the wider Architect group (ArchitectState /
+       ArchitectPlacementPatch). MenuClosed is announced from two close paths
+       in this file (Tab-toggle and Escape) and is a strong candidate for
+       reuse across the trio; if a sibling file already defines an identical
+       "Architect menu closed" phrase, the merge step should dedupe to one key.
+
+       Placeholders ({0}) follow string.Format:
+         OptionsFor          {0} = designator label (LabelCap)
+         NoMaterialsAvailable {0} = buildable label
+       Single-fragment phrases (no AnnouncementBuilder needed): no trailing
+       punctuation, no embedded newlines. No One/Many splits required here. -->
+  <RimWorldAccess.Building.Architect.NoDesignatorSelected>未选择标记工具</RimWorldAccess.Building.Architect.NoDesignatorSelected>
+  <RimWorldAccess.Building.Architect.NoAdditionalOptions>没有其他选项</RimWorldAccess.Building.Architect.NoAdditionalOptions>
+  <RimWorldAccess.Building.Architect.OptionsFor>{0} 的选项</RimWorldAccess.Building.Architect.OptionsFor>
+  <RimWorldAccess.Building.Architect.SelectBuildingForInfoCard>选择一个建筑以查看其信息卡</RimWorldAccess.Building.Architect.SelectBuildingForInfoCard>
+  <RimWorldAccess.Building.Architect.NoMaterialsAvailable>{0} 没有可用材料</RimWorldAccess.Building.Architect.NoMaterialsAvailable>
+
+  <!-- Architect placement input (src/Building/ArchitectPlacementPatch.cs).
+       Biggest single Building file: placement validation, designator
+       entry/exit, rotation, shape-mode prompts, transport-pod / gravship
+       landing, and the entire-zone-deletion confirmation dialog. Strings are
+       emitted from the ArchitectPlacementInputPatch keyboard handler.
+
+       Placeholders follow string.Format ({0}, {1}, ...).
+       GravshipPositioned / LandingConfirmed: {0} = cell x, {1} = cell z.
+       CannotBeRotated: {0} = capitalized building/designator label.
+       GravshipFacing: {0} = direction word (reuses Map.Direction.*).
+       InvalidReason / CannotLandHere / ErrorPlacing / ErrorCreatingZone: {0}
+       = the underlying reason or exception message (game-supplied where it
+       comes from an AcceptanceReport; our fallback noun where it doesn't).
+
+       Reuse decisions (NOT re-added here):
+       - "No points to remove" -> RimWorldAccess.Building.Place.NoPointsToRemove
+       - "No cells selected"    -> RimWorldAccess.Building.Place.NoCellsSelected
+       - "Cancelled {0}"        -> RimWorldAccess.Building.View.CancelledBlueprint
+       - "No blueprint to cancel here" -> RimWorldAccess.Building.View.NoBlueprintHere
+       - "{0} placed at {1}, {2}" -> RimWorldAccess.Building.View.PlacedAt
+       - Gravship facing words  -> RimWorldAccess.Map.Direction.North/East/South/West
+       - Dialog Cancel button   -> vanilla "CancelButton".Translate()
+
+       Whole-phrase / no-glue splits:
+       - Expand vs create: ZoneExpandedWithCells vs ZoneCreatedWithCells are
+         two complete phrases driven by selectionResult.IsExpansion, rather
+         than abstracting the verb ("expanded"/"created") as a particle.
+       - Zone-deletion dialog: the visual dialog text (DeleteZoneDialogText)
+         keeps its &#10;&#10; paragraph break (genuine dialog formatting). The
+         spoken announcement re-uses the same wording as clean fragments
+         (DeleteZoneConfirmHeading + WillDelete + CannotUndo + UseGizmoHint)
+         composed via AnnouncementBuilder, so no newline acts as a separator.
+         DeleteZoneConfirmTitle ("Delete Zone") is the dialog title and is
+         distinct from DeleteZoneConfirmHeading ("Delete Zone confirmation"),
+         which is the spoken lead-in.
+
+       Landing-invalid reasons (LandReason.*) are spoken via CannotLandHere;
+       building.LabelCap (vanilla) is used directly when an edifice blocks the
+       spot, so no key is added for that case. -->
+  <RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing>放置过程中无法更改形状。请先按 Escape 清除选择。</RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing>
+  <RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable>没有可用的形状。</RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable>
+  <RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode>已处于手动模式。</RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode>
+  <RimWorldAccess.Building.ArchitectPlace.RotateFallbackSubject>此物</RimWorldAccess.Building.ArchitectPlace.RotateFallbackSubject>
+  <RimWorldAccess.Building.ArchitectPlace.CannotBeRotated>{0} 无法旋转。</RimWorldAccess.Building.ArchitectPlace.CannotBeRotated>
+  <RimWorldAccess.Building.ArchitectPlace.GravshipFacing>逆重飞船朝向 {0}。</RimWorldAccess.Building.ArchitectPlace.GravshipFacing>
+  <RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>放置时出错: {0}</RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>
+  <RimWorldAccess.Building.ArchitectPlace.InvalidReason>无效: {0}</RimWorldAccess.Building.ArchitectPlace.InvalidReason>
+  <RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>逆重飞船已定位于 {0}, {1}。选择着陆标记并使用命令确认着陆。</RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>
+  <!-- {0} = footprint width, {1} = footprint height (cells). -->
+  <RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt>定位逆重飞船着陆区。占地: {0} 乘 {1} 格。用方向键移动，按 R 旋转，按空格键放置。</RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt>
+  <RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>选择区中没有区域格。请重试。</RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>
+  <RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>选择区中没有有效的格。请重试。</RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>放置失败。正在清除选择。</RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>
+  <RimWorldAccess.Building.ArchitectPlace.PlaceFirstPoint>按空格键放置第一点</RimWorldAccess.Building.ArchitectPlace.PlaceFirstPoint>
+  <RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint>按空格键放置第二点</RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementCompleted>放置已完成</RimWorldAccess.Building.ArchitectPlace.PlacementCompleted>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted>区域编辑已完成</RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted>
+  <RimWorldAccess.Building.ArchitectPlace.SelectionCleared>选择已清除</RimWorldAccess.Building.ArchitectPlace.SelectionCleared>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementCancelled>放置已取消</RimWorldAccess.Building.ArchitectPlace.PlacementCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition>无效的目标位置</RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition>
+  <RimWorldAccess.Building.ArchitectPlace.CannotLandHere>无法在此处着陆: {0}</RimWorldAccess.Building.ArchitectPlace.CannotLandHere>
+  <RimWorldAccess.Building.ArchitectPlace.LandingConfirmed>着陆已确认于 {0}, {1}</RimWorldAccess.Building.ArchitectPlace.LandingConfirmed>
+  <RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget>错误: 无法确认目标。请尝试使用鼠标。</RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget>
+  <RimWorldAccess.Building.ArchitectPlace.TargetingCancelled>瞄准已取消</RimWorldAccess.Building.ArchitectPlace.TargetingCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.OutOfBounds>超出边界</RimWorldAccess.Building.ArchitectPlace.LandReason.OutOfBounds>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Water>水域</RimWorldAccess.Building.ArchitectPlace.LandReason.Water>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.OverheadMountain>厚山岩顶</RimWorldAccess.Building.ArchitectPlace.LandReason.OverheadMountain>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Impassable>无法通行的地形</RimWorldAccess.Building.ArchitectPlace.LandReason.Impassable>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Fogged>迷雾区域</RimWorldAccess.Building.ArchitectPlace.LandReason.Fogged>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.AnotherTransportPod>另一个运输舱</RimWorldAccess.Building.ArchitectPlace.LandReason.AnotherTransportPod>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.IncomingSkyfaller>即将到来的坠落物</RimWorldAccess.Building.ArchitectPlace.LandReason.IncomingSkyfaller>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.InvalidSpot>无效的位置</RimWorldAccess.Building.ArchitectPlace.LandReason.InvalidSpot>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneFallbackName>此区域</RimWorldAccess.Building.ArchitectPlace.DeleteZoneFallbackName>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneDialogText>这将删除整个区域 ({0})。此操作无法在预览模式中用 Escape 撤销。&#10;&#10;要删除区域，你也可以使用命令菜单中的删除选项 (G)。</RimWorldAccess.Building.ArchitectPlace.DeleteZoneDialogText>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmHeading>删除区域确认</RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmHeading>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmTitle>删除区域</RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmTitle>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneWillDelete>这将删除整个区域 ({0})</RimWorldAccess.Building.ArchitectPlace.DeleteZoneWillDelete>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo>此操作无法在预览模式中用 Escape 撤销</RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint>要删除区域，你也可以使用命令菜单中的删除选项 (G)</RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint>
+  <RimWorldAccess.Building.ArchitectPlace.DeletionCancelled>删除已取消。仍处于形状放置模式。</RimWorldAccess.Building.ArchitectPlace.DeletionCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneFallbackName>区域</RimWorldAccess.Building.ArchitectPlace.ZoneFallbackName>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells>{0} 已扩展，含 {1} 格</RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells>{0} 已创建，含 {1} 格</RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells>
+
+  <!--
+       ArchitectTree group: the treeview-style architect (build) menu with
+       expandable category nodes (Orders, Structure, etc.) and designator
+       leaves (Wall, Door, etc.). Two announcement strings:
+       - MenuOpened   : spoken once when the menu opens, before the current
+                        item is re-announced. Clean phrase fragment, no
+                        trailing punctuation.
+       - NoCategories : spoken when no architect categories are available
+                        (menu immediately closes). No placeholders.
+       Neither string takes arguments. No One/Many splits needed. No existing
+       Building or Common key matched these values, so both are new.
+  -->
+  <RimWorldAccess.Building.ArchitectTree.MenuOpened>建造菜单</RimWorldAccess.Building.ArchitectTree.MenuOpened>
+  <RimWorldAccess.Building.ArchitectTree.NoCategories>没有可用的建造类别</RimWorldAccess.Building.ArchitectTree.NoCategories>
+
+  <!-- =================================================================
+       Facility link info (FacilityLinkHelper). Spoken on placement of
+       facility-linked buildings and in the building inspection tree's
+       "Linked Facilities" category. {N} are counts; lists are game-data
+       labels joined with commas. One/Many splits for building/facility
+       noun agreement. Status words active/inactive used for both the
+       inline "(inactive)" suffix and the " (active)/(inactive)" form.
+       ================================================================= -->
+  <RimWorldAccess.Building.Facility.Adjacent>相邻</RimWorldAccess.Building.Facility.Adjacent>
+  <RimWorldAccess.Building.Facility.WithinTiles>{0} 格以内</RimWorldAccess.Building.Facility.WithinTiles>
+  <RimWorldAccess.Building.Facility.BoostsStats>设施: 提升 {0}, {1}</RimWorldAccess.Building.Facility.BoostsStats>
+  <RimWorldAccess.Building.Facility.LinksToBuildings>设施: 链接至建筑 {0}</RimWorldAccess.Building.Facility.LinksToBuildings>
+  <RimWorldAccess.Building.Facility.MaxPerBuilding>每个建筑最多 {0}</RimWorldAccess.Building.Facility.MaxPerBuilding>
+  <RimWorldAccess.Building.Facility.AndNMore>{0} 以及另 {1} 个</RimWorldAccess.Building.Facility.AndNMore>
+  <RimWorldAccess.Building.Facility.AcceptsFacilities>可接受设施: {0}</RimWorldAccess.Building.Facility.AcceptsFacilities>
+  <RimWorldAccess.Building.Facility.ProvidesBonuses>提供加成:</RimWorldAccess.Building.Facility.ProvidesBonuses>
+  <RimWorldAccess.Building.Facility.StatOffset>{0}: {1}</RimWorldAccess.Building.Facility.StatOffset>
+  <RimWorldAccess.Building.Facility.LinkedToOne>已链接至 {0} 座建筑:</RimWorldAccess.Building.Facility.LinkedToOne>
+  <RimWorldAccess.Building.Facility.LinkedToMany>已链接至 {0} 座建筑:</RimWorldAccess.Building.Facility.LinkedToMany>
+  <RimWorldAccess.Building.Facility.NotLinkedToBuildings>未链接到任何建筑。</RimWorldAccess.Building.Facility.NotLinkedToBuildings>
+  <RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding>每个建筑最大链接数: {0}</RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding>
+  <RimWorldAccess.Building.Facility.BoostedByOne>受 {0} 座设施提升:</RimWorldAccess.Building.Facility.BoostedByOne>
+  <RimWorldAccess.Building.Facility.BoostedByMany>受 {0} 座设施提升:</RimWorldAccess.Building.Facility.BoostedByMany>
+  <RimWorldAccess.Building.Facility.NoFacilitiesLinked>没有链接的设施。</RimWorldAccess.Building.Facility.NoFacilitiesLinked>
+  <RimWorldAccess.Building.Facility.CompatibleFacilities>兼容的设施: {0}</RimWorldAccess.Building.Facility.CompatibleFacilities>
+  <RimWorldAccess.Building.Facility.Active>运作中</RimWorldAccess.Building.Facility.Active>
+  <RimWorldAccess.Building.Facility.Inactive>闲置</RimWorldAccess.Building.Facility.Inactive>
+
+  <!-- Storage-linking gizmo labels and tooltip fallbacks (src/Building/ShelfLinkingPatch.cs).
+       {0}/{1} are localized storage counts from ShelfLinkingHelper.FormatStorageCount. -->
+  <RimWorldAccess.Building.Shelf.AddToGroupWithLinked>将 {0} 添加到组 ({1} 已链接)</RimWorldAccess.Building.Shelf.AddToGroupWithLinked>
+  <RimWorldAccess.Building.Shelf.AddToGroup>将 {0} 添加到组</RimWorldAccess.Building.Shelf.AddToGroup>
+  <RimWorldAccess.Building.Shelf.LinkWithInRoom>与房间内的 {0} 链接</RimWorldAccess.Building.Shelf.LinkWithInRoom>
+  <RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>将此房间内所有兼容的存储链接在一起。它们将共享相同的存储设置。</RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>
+  <RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>进入选择模式以手动选择要链接在一起的存储建筑。</RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>
+  <RimWorldAccess.Building.Shelf.LinkManuallyLabel>手动链接存储</RimWorldAccess.Building.Shelf.LinkManuallyLabel>
+  <RimWorldAccess.Building.Shelf.StorageSettingsLabel>存储设置</RimWorldAccess.Building.Shelf.StorageSettingsLabel>
+
+  <!-- Architect buildable skill requirement (src/Building/ArchitectHelper.cs). {0}=skill level. -->
+  <RimWorldAccess.Building.Architect.RequiresConstruction>需要建造技能 {0}</RimWorldAccess.Building.Architect.RequiresConstruction>
+
+  <!-- Plant-selection menu option details (src/Building/PlantSelectionMenuState.cs). -->
+  <RimWorldAccess.Building.Plant.MinSkillSuffix> (最低技能: {0})</RimWorldAccess.Building.Plant.MinSkillSuffix>
+  <RimWorldAccess.Building.Plant.RequiresPlantsSkill>需要种植技能 {0}</RimWorldAccess.Building.Plant.RequiresPlantsSkill>
+  <RimWorldAccess.Building.Plant.GrowsInDays>{0} 天后成熟</RimWorldAccess.Building.Plant.GrowsInDays>
+  <RimWorldAccess.Building.Plant.Yields>产出 {0}</RimWorldAccess.Building.Plant.Yields>
+  <RimWorldAccess.Building.Plant.YieldMultiplier> (x{0})</RimWorldAccess.Building.Plant.YieldMultiplier>
+  <RimWorldAccess.Building.Plant.PurposeFood>食物作物</RimWorldAccess.Building.Plant.PurposeFood>
+  <RimWorldAccess.Building.Plant.PurposeHealth>药用植物</RimWorldAccess.Building.Plant.PurposeHealth>
+  <RimWorldAccess.Building.Plant.PurposeBeauty>装饰植物</RimWorldAccess.Building.Plant.PurposeBeauty>
+  <RimWorldAccess.Building.Plant.PurposeMisc>杂项</RimWorldAccess.Building.Plant.PurposeMisc>
+  <RimWorldAccess.Building.Plant.PurposeUnknown>未知</RimWorldAccess.Building.Plant.PurposeUnknown>
+  <RimWorldAccess.Building.Plant.RoofWarning>警告: 需要无屋顶，但区域内有带屋顶的格</RimWorldAccess.Building.Plant.RoofWarning>
+  <RimWorldAccess.Building.Plant.CavePlant>洞穴植物 - 需要黑暗</RimWorldAccess.Building.Plant.CavePlant>
+
+  <!-- Meditation focus label fallback when game data lacks a label (src/Building/MeditationProtectionHelper.cs). -->
+  <RimWorldAccess.Building.Meditation.FocusFallback>冥想聚焦物</RimWorldAccess.Building.Meditation.FocusFallback>
+
+  <!-- Item-type nouns for viewing-mode removal counts (src/Building/ViewingModeSegmentManager.cs). One/Many per type. -->
+  <RimWorldAccess.Building.View.ItemTypeBlueprintOne>蓝图</RimWorldAccess.Building.View.ItemTypeBlueprintOne>
+  <RimWorldAccess.Building.View.ItemTypeBlueprintMany>蓝图</RimWorldAccess.Building.View.ItemTypeBlueprintMany>
+  <RimWorldAccess.Building.View.ItemTypeZoneCellOne>区域格</RimWorldAccess.Building.View.ItemTypeZoneCellOne>
+  <RimWorldAccess.Building.View.ItemTypeZoneCellMany>区域格</RimWorldAccess.Building.View.ItemTypeZoneCellMany>
+  <RimWorldAccess.Building.View.ItemTypeDesignationOne>标记</RimWorldAccess.Building.View.ItemTypeDesignationOne>
+  <RimWorldAccess.Building.View.ItemTypeDesignationMany>标记</RimWorldAccess.Building.View.ItemTypeDesignationMany>
+
+  <!-- Ctrl+A / Ctrl+Shift+A select-all and undo-scope announcements
+       (src/Building/ArchitectPlacementPatch.cs).
+       Scope labels: {0}=width, {1}=height (integers).
+       Scope-aware announce strings: {0}=scopeLabel, {1}=shapeName, {2}=cellCount.
+       ReturnedToPreviousSelection: {0}=shapeName, {1}=cellCount.
+       ReturnedToScope / NoEnclosureSelectedScope: {0}=scopeName or scopeLabel, {1}=shapeName, {2}=cellCount. -->
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom>房间, {0} 乘 {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure>蓝图围合区, {0} 乘 {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap>整个地图, {0} 乘 {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure>围合区</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap>整个地图</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape>全选需要一个形状。按 Tab 选择一个。</RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines>全选不可用于直线形状。</RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected>已选择整个地图。按 Ctrl 加 Shift 加 A 退回一步。</RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope>已选择 {0}. {1}, {2} 格。按 Ctrl 加 A 再次选择整个地图。按回车键确认。</RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope>已扩展到 {0}. {1}, {2} 格。按 Ctrl 加 Shift 加 A 退回一步。按回车键确认。</RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope>未检测到围合区，已选择 {0}. {1}, {2} 格。按 Ctrl 加 Shift 加 A 退回一步。按回车键确认。</RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope>没有可返回的上一个选择范围。</RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint>选择已清除。移动到第一点并按空格键。</RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>已返回上一个选择。{0}, {1} 格。</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>已返回 {0}. {1}, {2} 格。按回车键确认。</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>
+
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Building.Scanner.CategoryTargets>目标</RimWorldAccess.Building.Scanner.CategoryTargets>
+  <RimWorldAccess.Building.Scanner.CategoryObstacles>障碍物</RimWorldAccess.Building.Scanner.CategoryObstacles>
+  <RimWorldAccess.Building.Scanner.FallbackOrder>命令</RimWorldAccess.Building.Scanner.FallbackOrder>
+  <RimWorldAccess.Building.Scanner.FallbackTarget>目标</RimWorldAccess.Building.Scanner.FallbackTarget>
+  <RimWorldAccess.Building.Scanner.HuntTargets>狩猎目标</RimWorldAccess.Building.Scanner.HuntTargets>
+  <RimWorldAccess.Building.Scanner.MineTargets>开采目标</RimWorldAccess.Building.Scanner.MineTargets>
+  <RimWorldAccess.Building.Scanner.CanceledOrders>已取消的命令</RimWorldAccess.Building.Scanner.CanceledOrders>
+  <RimWorldAccess.Building.Scanner.HaulTargets>搬运目标</RimWorldAccess.Building.Scanner.HaulTargets>
+  <RimWorldAccess.Building.Scanner.CutTargets>割除目标</RimWorldAccess.Building.Scanner.CutTargets>
+  <RimWorldAccess.Building.Scanner.HarvestTargets>收获目标</RimWorldAccess.Building.Scanner.HarvestTargets>
+  <RimWorldAccess.Building.Scanner.TameTargets>驯服目标</RimWorldAccess.Building.Scanner.TameTargets>
+  <RimWorldAccess.Building.Scanner.SlaughterTargets>宰杀目标</RimWorldAccess.Building.Scanner.SlaughterTargets>
+  <RimWorldAccess.Building.Scanner.DeconstructTargets>拆除目标</RimWorldAccess.Building.Scanner.DeconstructTargets>
+  <RimWorldAccess.Building.Scanner.GenericTargets>{0} 目标</RimWorldAccess.Building.Scanner.GenericTargets>
+  <RimWorldAccess.Building.Scanner.ObstacleWithDesc>障碍物: {0}</RimWorldAccess.Building.Scanner.ObstacleWithDesc>
+  <RimWorldAccess.Building.Scanner.Enclosure>{0} 围合区</RimWorldAccess.Building.Scanner.Enclosure>
+  <RimWorldAccess.Building.Scanner.EnclosureNumbered>{0} 围合区 {1}</RimWorldAccess.Building.Scanner.EnclosureNumbered>
+  <RimWorldAccess.Building.Scanner.ObstacleInEnclosure>{1} 中的 {0}</RimWorldAccess.Building.Scanner.ObstacleInEnclosure>
+  <RimWorldAccess.Building.Scanner.ObstacleSomething>某物</RimWorldAccess.Building.Scanner.ObstacleSomething>
+  <RimWorldAccess.Building.Scanner.ObstacleBlueprint>蓝图</RimWorldAccess.Building.Scanner.ObstacleBlueprint>
+  <RimWorldAccess.Building.Scanner.ObstacleItem>物品</RimWorldAccess.Building.Scanner.ObstacleItem>
+  <RimWorldAccess.Building.Scanner.ObstacleTerrain>地形</RimWorldAccess.Building.Scanner.ObstacleTerrain>
+  <RimWorldAccess.Building.Scanner.ObstacleOutOfBounds>超出边界</RimWorldAccess.Building.Scanner.ObstacleOutOfBounds>
+  <RimWorldAccess.Building.Scanner.ObstacleRoofedArea>带屋顶的区域</RimWorldAccess.Building.Scanner.ObstacleRoofedArea>
+  <RimWorldAccess.Building.Scanner.ObstacleBlocked>被阻挡</RimWorldAccess.Building.Scanner.ObstacleBlocked>
+  <RimWorldAccess.Building.Scanner.ZoneObstacle>障碍物</RimWorldAccess.Building.Scanner.ZoneObstacle>
+  <RimWorldAccess.Building.Scanner.ZoneExisting>现有 {0}</RimWorldAccess.Building.Scanner.ZoneExisting>
+  <RimWorldAccess.Building.Scanner.ZoneEdgeArea>边缘区域</RimWorldAccess.Building.Scanner.ZoneEdgeArea>
+  <RimWorldAccess.Building.Scanner.ZoneFogOfWar>战争迷雾</RimWorldAccess.Building.Scanner.ZoneFogOfWar>
+  <RimWorldAccess.Building.Components.RefuelableStatusLine>燃料: {0}/{1} ({2}%) - {3}</RimWorldAccess.Building.Components.RefuelableStatusLine>
+  <RimWorldAccess.Building.Zone.WillExpandExisting>将扩展现有区域。</RimWorldAccess.Building.Zone.WillExpandExisting>
+  <RimWorldAccess.Building.Zone.WillCreateNew>将创建新区域。</RimWorldAccess.Building.Zone.WillCreateNew>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Building.Meditation.SkippedProtected>{0} 已跳过，受 {1} 保护</RimWorldAccess.Building.Meditation.SkippedProtected>
+</LanguageData>

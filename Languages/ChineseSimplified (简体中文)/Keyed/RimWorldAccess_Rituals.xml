@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Rituals module strings (src/Rituals/). Four files contribute:
+      - RitualPatch.cs           (dialog-lifecycle Harmony patches, on-screen indicator)
+      - RitualState.cs           (three-mode navigation: RoleList, PawnSelection, QualityStats)
+      - RitualStatFormatter.cs   (role / pawn / quality announcement composition)
+      - RitualTreeBuilder.cs     (role-list, pawn-list, and quality-factor construction)
+
+    This is Ideology-DLC ritual-setup content (Dialog_BeginRitual). Ritual
+    names, role names, outcome labels, pawn names, and quality-factor labels
+    are data from the game and flow through as placeholders.
+
+    Gravship-launch checkbox strings (forceVisitorsToLeave, boardColonyAnimals,
+    boardColonyMechs) are sourced from the Gravships module and localized in
+    RimWorldAccess_Gravships.xml — they are NOT duplicated here. The Rituals
+    module reads those labels/tooltips via their translation keys.
+
+    Guard-style messages ("Search cleared") delegate to the shared Common keys.
+
+    One/Many splits exist for English subject-verb agreement (role/roles,
+    candidate/candidates) — translators can collapse or split further.
+  -->
+
+  <!-- Dialog lifecycle (RitualPatch.cs). -->
+  <RimWorldAccess.Rituals.Dialog.Closed>仪式对话框已关闭。</RimWorldAccess.Rituals.Dialog.Closed>
+  <RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator>键盘模式已启用</RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator>
+
+  <!-- Opening announcement (RitualState.Open).
+       Begin: {0} = ritual name (e.g., "Wedding", "Funeral").
+       Warning: {0} = blocking-issue text joined with periods.
+       RoleCount One/Many: {0} = role count. English splits singular "role"
+       from plural "roles".
+       OpenInstructions: one-time instruction line appended to the opener. -->
+  <RimWorldAccess.Rituals.Open.Begin>开始{0}。</RimWorldAccess.Rituals.Open.Begin>
+  <RimWorldAccess.Rituals.Open.Warning>警告: {0}</RimWorldAccess.Rituals.Open.Warning>
+  <RimWorldAccess.Rituals.Open.RoleCountOne>{0} 个职位。</RimWorldAccess.Rituals.Open.RoleCountOne>
+  <RimWorldAccess.Rituals.Open.RoleCountMany>{0} 个职位。</RimWorldAccess.Rituals.Open.RoleCountMany>
+  <RimWorldAccess.Rituals.Open.Instructions>上/下键导航，回车键分配角色，Tab 键查看质量数据，Alt+S 开始。</RimWorldAccess.Rituals.Open.Instructions>
+
+  <!-- Expected-quality summary, used both at dialog-open and in the quality
+       stats list (RitualState.GetExpectedQualitySummary,
+       RitualStatFormatter.FormatQualitySummary).
+       Single: {0} = single percentage (min == max).
+       Range:  {0} = min percentage, {1} = max percentage. -->
+  <RimWorldAccess.Rituals.Open.ExpectedQualitySingle>预期质量: {0}。</RimWorldAccess.Rituals.Open.ExpectedQualitySingle>
+  <RimWorldAccess.Rituals.Open.ExpectedQualityRange>预期质量: {0} 至 {1}。</RimWorldAccess.Rituals.Open.ExpectedQualityRange>
+  <RimWorldAccess.Rituals.Quality.ExpectedQualitySingle>预期质量: {0}。</RimWorldAccess.Rituals.Quality.ExpectedQualitySingle>
+  <RimWorldAccess.Rituals.Quality.ExpectedQualityRange>预期质量: {0} 至 {1}。</RimWorldAccess.Rituals.Quality.ExpectedQualityRange>
+
+  <!-- Role announcement composition (RitualStatFormatter.FormatRoleAnnouncement).
+       The role/spectator label is emitted first, followed by one of the count
+       clauses below, followed by optional Required/Locked suffixes.
+       AssignedOfMax: {0} = assigned count, {1} = max count.
+       AssignedOptional: {0} = assigned count (role has maxCount == 0).
+       AssignedUnlimited: {0} = assigned count (role has maxCount == -1). -->
+  <RimWorldAccess.Rituals.Role.AssignedOfMax>已分配 {0}，最多 {1}</RimWorldAccess.Rituals.Role.AssignedOfMax>
+  <RimWorldAccess.Rituals.Role.AssignedOptional>已分配 {0}，可选</RimWorldAccess.Rituals.Role.AssignedOptional>
+  <RimWorldAccess.Rituals.Role.AssignedUnlimited>已分配 {0}</RimWorldAccess.Rituals.Role.AssignedUnlimited>
+  <RimWorldAccess.Rituals.Role.Required>，必需</RimWorldAccess.Rituals.Role.Required>
+  <RimWorldAccess.Rituals.Role.Locked>，已锁定</RimWorldAccess.Rituals.Role.Locked>
+
+  <!-- Gravship checkbox state words (RitualStatFormatter.FormatCheckboxAnnouncement,
+       RitualState.ToggleGravshipCheckbox). The checkbox LABEL and TOOLTIP
+       themselves are sourced from RimWorldAccess_Gravships.xml. -->
+  <RimWorldAccess.Rituals.Checkbox.Checked>已勾选</RimWorldAccess.Rituals.Checkbox.Checked>
+  <RimWorldAccess.Rituals.Checkbox.Unchecked>未勾选</RimWorldAccess.Rituals.Checkbox.Unchecked>
+  <RimWorldAccess.Rituals.Checkbox.Toggled>{0}: {1}。</RimWorldAccess.Rituals.Checkbox.Toggled>
+
+  <!-- Pawn announcement fragments (RitualStatFormatter.FormatPawnAnnouncement). -->
+  <RimWorldAccess.Rituals.Pawn.ForcedCannotChange>已强制，无法更改</RimWorldAccess.Rituals.Pawn.ForcedCannotChange>
+  <RimWorldAccess.Rituals.Pawn.Selected>已选择</RimWorldAccess.Rituals.Pawn.Selected>
+  <RimWorldAccess.Rituals.Pawn.CannotAssignReason>无法分配: {0}</RimWorldAccess.Rituals.Pawn.CannotAssignReason>
+
+  <!-- Stat / skill disability marker used in suitability-info strings
+       (RitualStatFormatter.FormatPawnSuitability). Spoken as
+       "<StatLabel>: Disabled" when the pawn cannot use that stat/skill. -->
+  <RimWorldAccess.Rituals.Pawn.StatDisabled>已禁用</RimWorldAccess.Rituals.Pawn.StatDisabled>
+
+  <!-- Quality-factor status suffixes (RitualStatFormatter.FormatQualityFactor).
+       Appended to "{Label}: {Change}." when Change doesn't already provide
+       context and the factor isn't informational. -->
+  <RimWorldAccess.Rituals.Quality.UncertainOutcome>结果不确定。</RimWorldAccess.Rituals.Quality.UncertainOutcome>
+  <RimWorldAccess.Rituals.Quality.Bonus>加成。</RimWorldAccess.Rituals.Quality.Bonus>
+  <RimWorldAccess.Rituals.Quality.Penalty>惩罚。</RimWorldAccess.Rituals.Quality.Penalty>
+  <RimWorldAccess.Rituals.Quality.NotMet>未满足。</RimWorldAccess.Rituals.Quality.NotMet>
+
+  <!-- Quality-factor list construction (RitualTreeBuilder.BuildQualityStatsList,
+       RitualState.BuildQualityStatsList).
+       UnknownFactor: fallback when a QualityFactor has no label.
+       ExpectedQualityLabel: row label for the summary row appended after all
+       factors. ExpectedQualitySummaryTooltip: description for that row. -->
+  <RimWorldAccess.Rituals.Quality.UnknownFactor>未知</RimWorldAccess.Rituals.Quality.UnknownFactor>
+  <RimWorldAccess.Rituals.Quality.ExpectedQualityLabel>预期质量</RimWorldAccess.Rituals.Quality.ExpectedQualityLabel>
+  <RimWorldAccess.Rituals.Quality.ExpectedQualityTooltip>根据所有因素得出的此仪式的总体预期质量。</RimWorldAccess.Rituals.Quality.ExpectedQualityTooltip>
+
+  <!-- No-data fallbacks (RitualState.BuildQualityStatsList).
+       NoQualityFactorsLabel: row label when a ritual has zero quality factors.
+       NoQualityFactorsTooltip: description spoken via Alt+I. -->
+  <RimWorldAccess.Rituals.Quality.NoQualityFactorsLabel>无质量因素</RimWorldAccess.Rituals.Quality.NoQualityFactorsLabel>
+  <RimWorldAccess.Rituals.Quality.NoQualityFactorsTooltip>此仪式没有影响其结果的质量因素。</RimWorldAccess.Rituals.Quality.NoQualityFactorsTooltip>
+  <RimWorldAccess.Rituals.Quality.Unavailable>质量数据不可用</RimWorldAccess.Rituals.Quality.Unavailable>
+
+  <!-- Location row prepended to the quality-stats list (RitualState.BuildQualityStatsList,
+       GetLocationDescription). The "Location" label is the row title; the
+       room/outdoors suffixes compose the value. -->
+  <RimWorldAccess.Rituals.Quality.LocationLabel>地点</RimWorldAccess.Rituals.Quality.LocationLabel>
+  <RimWorldAccess.Rituals.Location.InRoom>位于{0}</RimWorldAccess.Rituals.Location.InRoom>
+  <RimWorldAccess.Rituals.Location.Outdoors>户外</RimWorldAccess.Rituals.Location.Outdoors>
+  <RimWorldAccess.Rituals.Location.Cell>单元格 ({0}, {1})</RimWorldAccess.Rituals.Location.Cell>
+
+  <!-- Fluid-ideology development points (RitualState.AddIdeologyDevelopmentPoints).
+       Header row announcing the section. FluidIdeologyTag is the parenthetical
+       appended to the header's Change column. -->
+  <RimWorldAccess.Rituals.Quality.DevelopmentPointsLabel>发展点数</RimWorldAccess.Rituals.Quality.DevelopmentPointsLabel>
+  <RimWorldAccess.Rituals.Quality.FluidIdeologyTag>（演进文化）</RimWorldAccess.Rituals.Quality.FluidIdeologyTag>
+  <RimWorldAccess.Rituals.Quality.DevelopmentPointsTooltip>根据仪式结果授予你的演进文化的点数。</RimWorldAccess.Rituals.Quality.DevelopmentPointsTooltip>
+
+  <!-- Role-list / pawn-list / quality-stats empty announcements
+       (RitualState.AnnounceCurrentRole/Pawn/QualityStat). -->
+  <RimWorldAccess.Rituals.Empty.NoRoles>没有可用的职位。</RimWorldAccess.Rituals.Empty.NoRoles>
+  <RimWorldAccess.Rituals.Empty.NoPawns>没有可用的角色。</RimWorldAccess.Rituals.Empty.NoPawns>
+  <RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable>没有可用的质量因素。</RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable>
+
+  <!-- Fallback labels used by RitualTreeBuilder when game data is missing. -->
+  <RimWorldAccess.Rituals.Fallback.Spectators>参与者</RimWorldAccess.Rituals.Fallback.Spectators>
+  <RimWorldAccess.Rituals.Fallback.Ritual>仪式</RimWorldAccess.Rituals.Fallback.Ritual>
+  <RimWorldAccess.Rituals.Fallback.Role>职位</RimWorldAccess.Rituals.Fallback.Role>
+
+  <!-- Pawn-selection mode transitions (RitualState.EnterPawnSelection / ExitPawnSelection).
+       EnterInstructions: {0} = role label, {1} = candidate-count clause below.
+       CandidateCountOne/Many: {0} = count; split for English "1 candidate" vs
+       "N candidates". -->
+  <RimWorldAccess.Rituals.PawnSelection.NoRoleSelected>未选择职位。</RimWorldAccess.Rituals.PawnSelection.NoRoleSelected>
+  <RimWorldAccess.Rituals.PawnSelection.RoleLocked>职位已锁定。所有已分配的角色均为仪式所必需。</RimWorldAccess.Rituals.PawnSelection.RoleLocked>
+  <RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns>没有符合此职位条件的角色。</RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns>
+  <RimWorldAccess.Rituals.PawnSelection.CandidateCountOne>{0} 名候选人</RimWorldAccess.Rituals.PawnSelection.CandidateCountOne>
+  <RimWorldAccess.Rituals.PawnSelection.CandidateCountMany>{0} 名候选人</RimWorldAccess.Rituals.PawnSelection.CandidateCountMany>
+  <RimWorldAccess.Rituals.PawnSelection.EnterInstructions>正在为{0}选择角色。{1}。空格键切换选择，回车键确认，Esc 键取消。</RimWorldAccess.Rituals.PawnSelection.EnterInstructions>
+  <RimWorldAccess.Rituals.PawnSelection.Cancelled>已取消。已返回职位列表。</RimWorldAccess.Rituals.PawnSelection.Cancelled>
+  <RimWorldAccess.Rituals.PawnSelection.Confirmed>已确认选择。已返回职位列表。</RimWorldAccess.Rituals.PawnSelection.Confirmed>
+
+  <!-- Pawn assignment feedback (RitualState.TogglePawnAssignment).
+       Forced/CannotAssign/CannotAssignReason: {0} = pawn name, {1} = reason.
+       Selected / Deselected: {0} = pawn name. NowAt: {0} = pawn name (spoken
+       after the list reorders so the user knows their cursor's current row). -->
+  <RimWorldAccess.Rituals.Pawn.IsForced>{0}已被强制担任此职位，无法更改。</RimWorldAccess.Rituals.Pawn.IsForced>
+  <RimWorldAccess.Rituals.Pawn.CannotAssignWithReason>无法分配{0}。{1}</RimWorldAccess.Rituals.Pawn.CannotAssignWithReason>
+  <RimWorldAccess.Rituals.Pawn.CannotAssign>无法分配{0}。</RimWorldAccess.Rituals.Pawn.CannotAssign>
+  <RimWorldAccess.Rituals.Pawn.SelectedName>已选择{0}。</RimWorldAccess.Rituals.Pawn.SelectedName>
+  <RimWorldAccess.Rituals.Pawn.DeselectedName>已取消选择{0}。</RimWorldAccess.Rituals.Pawn.DeselectedName>
+  <RimWorldAccess.Rituals.Pawn.NowAt>当前位于: {0}</RimWorldAccess.Rituals.Pawn.NowAt>
+
+  <!-- Quality-stats mode transitions (RitualState.ToggleQualityStatsView).
+       ReturnedToRoleList / ReturnedToPawnSelection: spoken on Tab/Escape back.
+       FactorsCountOne/Many: {0} = factor count; split for English "1 factor"
+       vs "N factors" (used inside the two Instructions keys below). Note: we
+       keep Instructions as a whole-sentence key so translators can reorder
+       subject/verb/object freely. -->
+  <RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList>已返回职位列表。</RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList>
+  <RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection>已返回{0}的角色选择。</RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection>
+  <RimWorldAccess.Rituals.QualityStats.InstructionsOne>质量数据。{0} 个因素。上/下键导航，Alt+I 查看明细，Tab 键返回。</RimWorldAccess.Rituals.QualityStats.InstructionsOne>
+  <RimWorldAccess.Rituals.QualityStats.InstructionsMany>质量数据。{0} 个因素。上/下键导航，Alt+I 查看明细，Tab 键返回。</RimWorldAccess.Rituals.QualityStats.InstructionsMany>
+  <RimWorldAccess.Rituals.QualityStats.HeaderOne>质量数据。{0} 个因素。</RimWorldAccess.Rituals.QualityStats.HeaderOne>
+  <RimWorldAccess.Rituals.QualityStats.HeaderMany>质量数据。{0} 个因素。</RimWorldAccess.Rituals.QualityStats.HeaderMany>
+
+  <!-- Quality breakdown (Alt+I in QualityStats, RitualState.OpenQualityStatBreakdown). -->
+  <RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip>{0}. {1}</RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip>
+  <RimWorldAccess.Rituals.QualityStats.NoBreakdown>此因素没有可用的详细明细。</RimWorldAccess.Rituals.QualityStats.NoBreakdown>
+
+  <!-- Start ritual (RitualState.StartRitual). -->
+  <RimWorldAccess.Rituals.Start.NoDialog>没有打开的仪式对话框。</RimWorldAccess.Rituals.Start.NoDialog>
+  <RimWorldAccess.Rituals.Start.CannotStart>无法开始仪式。{0}</RimWorldAccess.Rituals.Start.CannotStart>
+
+  <!-- Blocking issues surfaced during Open (RitualState.GetBlockingIssues).
+       DraftedParticipants is spoken when any assigned participant is drafted. -->
+  <RimWorldAccess.Rituals.Warning.DraftedParticipants>部分参与者已被征召。</RimWorldAccess.Rituals.Warning.DraftedParticipants>
+
+  <!-- LordJobDialogState generic messages (covers ritual, psychic-ritual, gravship launch).
+       These are intentionally distinct from the Ritual-specific keys above which mention
+       "ritual" or "pawns required by the ritual" — the LordJob variants are dialog-agnostic.
+       RoleLocked: spoken when user tries to enter pawn selection for a locked role.
+       NoDialogOpen: fallback when Alt+S is pressed but no adapter is present.
+       CannotStart: {0} = blocking issues joined with ". " -->
+  <RimWorldAccess.Rituals.LordJob.RoleLocked>职位已锁定。所有已分配的角色均为必需。</RimWorldAccess.Rituals.LordJob.RoleLocked>
+  <RimWorldAccess.Rituals.LordJob.NoDialogOpen>没有打开的对话框。</RimWorldAccess.Rituals.LordJob.NoDialogOpen>
+  <RimWorldAccess.Rituals.LordJob.CannotStart>无法开始。{0}</RimWorldAccess.Rituals.LordJob.CannotStart>
+
+  <!-- DryadCasteState messages (DryadCasteState.cs, DryadCastePatch.cs).
+       OpenAnnouncement: {0} = "ChangeMode".Translate() result, {1} = caste count, {2} = pawn label.
+       NoCasteSelected: guard when Enter is pressed with no valid selection.
+       MissingTreeData: guard when the tree/pawn reflection data is null.
+       DialogClosed: spoken by DryadCastePatch when the dialog closes. -->
+  <RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement>{0}。{2}有 {1} 个品种。</RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement>
+  <RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>未选择品种。</RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>
+  <RimWorldAccess.Rituals.DryadCaste.MissingTreeData>无法应用品种: 缺少树木数据。</RimWorldAccess.Rituals.DryadCaste.MissingTreeData>
+  <RimWorldAccess.Rituals.DryadCaste.DialogClosed>树精品种对话框已关闭。</RimWorldAccess.Rituals.DryadCaste.DialogClosed>
+  <!-- Lord-job dialog adapter announcements (consumed via SpeakData in RitualPatch). -->
+  <RimWorldAccess.Rituals.Ritual.DialogNameFallback>仪式</RimWorldAccess.Rituals.Ritual.DialogNameFallback>
+  <RimWorldAccess.Rituals.Ritual.DialogClosed>仪式对话框已关闭。</RimWorldAccess.Rituals.Ritual.DialogClosed>
+  <RimWorldAccess.Rituals.Ritual.ParticipantsDrafted>部分参与者已被征召。</RimWorldAccess.Rituals.Ritual.ParticipantsDrafted>
+  <RimWorldAccess.Rituals.Gravship.DialogName>重力飞船发射</RimWorldAccess.Rituals.Gravship.DialogName>
+  <RimWorldAccess.Rituals.Gravship.DialogClosed>重力飞船发射对话框已关闭。</RimWorldAccess.Rituals.Gravship.DialogClosed>
+  <RimWorldAccess.Rituals.Psychic.DialogClosed>心灵仪式对话框已关闭。</RimWorldAccess.Rituals.Psychic.DialogClosed>
+  <!-- Fallback dialog name when the ritual def has no resolvable label. -->
+  <RimWorldAccess.Rituals.Psychic.FallbackName>心灵仪式</RimWorldAccess.Rituals.Psychic.FallbackName>
+  <!-- Disallowed-condition readout on each role. {0} is the localized, comma-joined
+       list of condition nouns the role refuses. Surfaces the assignability rules
+       sighted players see only via on-hover tooltips. -->
+  <RimWorldAccess.Rituals.Psychic.Disallows>禁止: {0}。</RimWorldAccess.Rituals.Psychic.Disallows>
+  <RimWorldAccess.Rituals.Psychic.Condition.Sleeping>睡眠</RimWorldAccess.Rituals.Psychic.Condition.Sleeping>
+  <RimWorldAccess.Rituals.Psychic.Condition.Drafted>征召</RimWorldAccess.Rituals.Psychic.Condition.Drafted>
+  <RimWorldAccess.Rituals.Psychic.Condition.Bleeding>流血</RimWorldAccess.Rituals.Psychic.Condition.Bleeding>
+  <RimWorldAccess.Rituals.Psychic.Condition.Burning>燃烧</RimWorldAccess.Rituals.Psychic.Condition.Burning>
+  <RimWorldAccess.Rituals.Psychic.Condition.MentalState>精神状态</RimWorldAccess.Rituals.Psychic.Condition.MentalState>
+  <RimWorldAccess.Rituals.Psychic.Condition.Downed>倒地</RimWorldAccess.Rituals.Psychic.Condition.Downed>
+  <RimWorldAccess.Rituals.Psychic.Condition.Prisoner>囚犯</RimWorldAccess.Rituals.Psychic.Condition.Prisoner>
+  <RimWorldAccess.Rituals.Psychic.Condition.Slave>奴隶</RimWorldAccess.Rituals.Psychic.Condition.Slave>
+  <RimWorldAccess.Rituals.Psychic.Condition.Baby>婴儿</RimWorldAccess.Rituals.Psychic.Condition.Baby>
+  <RimWorldAccess.Rituals.Psychic.Condition.Child>儿童</RimWorldAccess.Rituals.Psychic.Condition.Child>
+  <RimWorldAccess.Rituals.DryadCaste.UnknownCaste>未知品种</RimWorldAccess.Rituals.DryadCaste.UnknownCaste>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Rituals.LordJob.DialogClosed>对话框已关闭。</RimWorldAccess.Rituals.LordJob.DialogClosed>
+  <RimWorldAccess.Rituals.Quality.OutcomeChancesLabel>结果概率</RimWorldAccess.Rituals.Quality.OutcomeChancesLabel>
+  <RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel>结果描述</RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel>
+  <RimWorldAccess.Rituals.Quality.RangeFormat>{0} 至 {1}</RimWorldAccess.Rituals.Quality.RangeFormat>
+</LanguageData>

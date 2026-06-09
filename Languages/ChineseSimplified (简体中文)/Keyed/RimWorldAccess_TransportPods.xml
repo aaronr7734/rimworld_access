@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    TransportPods module strings (src/TransportPods/). Five files contribute:
+      - TransportPodHelper.cs            (pod announcement and fuel-cost formatting)
+      - TransportPodPatch.cs             (custom gizmos, dialog lifecycle, keyboard-mode overlay)
+      - TransportPodSelectionState.cs    (pod grouping selection mode on the map)
+      - TransportPodLoadingState.cs      (Dialog_LoadTransporters keyboard navigation)
+      - TransportPodLaunchState.cs       (world-map launch targeting with fuel budgeting)
+
+    Covers both transport pods (base game) and shuttles (Royalty DLC), which
+    reuse the same Dialog_LoadTransporters and CompLaunchable infrastructure.
+
+    Strings produced by shared helpers live in the owning module:
+      - GuardHelper / Edge announcements     -> RimWorldAccess_Common.xml
+      - Typeahead "Search cleared"           -> RimWorldAccess_Common.xml
+      - Map cursor "Invalid position"        -> RimWorldAccess_Input.xml
+      - CaravanQuantityHelper "Taking X of Y, N kg, capacity limit" etc.
+      - CaravanAnnouncementHelper item/search announcements
+      - CaravanStatFormatter Mass/Speed/Food/Foraging/Visibility
+      - CaravanInputHelper pawn-info shortcut announcements (Alt+H/M/N)
+      - CaravanUIHelper helpers
+      - PawnLabelHelper grouped pawn labels
+    These will be localized by the World/UI modules; TransportPods delegates.
+
+    One/Many splits exist where a bare count + noun is spoken in English, so
+    translators can pick different plural classes (pod/pods). Mass and fuel
+    announcements use whole-phrase keys per semantic case to keep word order
+    localizable.
+  -->
+
+  <!-- =========================================================
+       TransportPodHelper.cs - pod and fuel-cost announcement parts.
+       ========================================================= -->
+
+  <!-- Pod type labels. IsShuttle() picks between them for BuildPodAnnouncement
+       and GetPodTypeLabel. Shuttles are Royalty DLC; transport pods are base. -->
+  <RimWorldAccess.TransportPods.Pod.TypeTransportPod>运输舱</RimWorldAccess.TransportPods.Pod.TypeTransportPod>
+  <RimWorldAccess.TransportPods.Pod.TypeShuttle>穿梭机</RimWorldAccess.TransportPods.Pod.TypeShuttle>
+
+  <!-- Per-pod announcement fragments (BuildPodAnnouncement). Joined with ", ".
+       {0} = formatted fuel/capacity value, {1} = 1-based index, {2} = total. -->
+  <RimWorldAccess.TransportPods.Pod.Selected>已选中</RimWorldAccess.TransportPods.Pod.Selected>
+  <RimWorldAccess.TransportPods.Pod.FuelLevel>燃料 {0}</RimWorldAccess.TransportPods.Pod.FuelLevel>
+  <RimWorldAccess.TransportPods.Pod.NotConnectedToFuel>未连接至燃料供给端</RimWorldAccess.TransportPods.Pod.NotConnectedToFuel>
+  <RimWorldAccess.TransportPods.Pod.Capacity>容量 {0} 千克</RimWorldAccess.TransportPods.Pod.Capacity>
+  <RimWorldAccess.TransportPods.Pod.PositionInList>第 {0} 项，共 {1} 项</RimWorldAccess.TransportPods.Pod.PositionInList>
+
+  <!-- Fuel cost announcement (BuildFuelCostAnnouncement). Shared with
+       TransportPodLaunchState.GetFuelCostAnnouncementForTile. {0} = fuel cost,
+       {1} = fuel available. "NoLauncher" and "Unavailable" are defensive
+       fallbacks when the launchable or its props are missing. -->
+  <RimWorldAccess.TransportPods.Fuel.NoLauncher>无发射器</RimWorldAccess.TransportPods.Fuel.NoLauncher>
+  <RimWorldAccess.TransportPods.Fuel.CostUnavailable>燃料消耗不可用</RimWorldAccess.TransportPods.Fuel.CostUnavailable>
+  <RimWorldAccess.TransportPods.Fuel.NotEnough>燃料不足，需要 {0}，拥有 {1}</RimWorldAccess.TransportPods.Fuel.NotEnough>
+  <RimWorldAccess.TransportPods.Fuel.CostChemfuel>{0} 化合燃料</RimWorldAccess.TransportPods.Fuel.CostChemfuel>
+  <RimWorldAccess.TransportPods.Fuel.OutOfRange>超出范围</RimWorldAccess.TransportPods.Fuel.OutOfRange>
+
+  <!-- =========================================================
+       TransportPodPatch.cs - custom grouping gizmos and overlays.
+       ========================================================= -->
+
+  <!-- "Group all available pods" gizmo (CompTransporter_GetGizmos_Patch).
+       Label: {0} = total pod count (source + all groupable).
+       Desc: {0} = same count. Spoken when a sighted player reads the gizmo.
+       NoGroupable: disable reason when no adjacent launchers are found;
+       reused by the "Select pods to group" gizmo. -->
+  <RimWorldAccess.TransportPods.Gizmo.GroupAllLabel>编组所有可用运输舱（{0}）</RimWorldAccess.TransportPods.Gizmo.GroupAllLabel>
+  <RimWorldAccess.TransportPods.Gizmo.GroupAllDesc>选中全部 {0} 个可用运输舱并打开装载对话框。</RimWorldAccess.TransportPods.Gizmo.GroupAllDesc>
+  <RimWorldAccess.TransportPods.Gizmo.SelectPodsLabel>选择要编组的运输舱</RimWorldAccess.TransportPods.Gizmo.SelectPodsLabel>
+  <RimWorldAccess.TransportPods.Gizmo.SelectPodsDesc>进入运输舱选择模式，选择要编组在一起进行装载的运输舱。</RimWorldAccess.TransportPods.Gizmo.SelectPodsDesc>
+  <RimWorldAccess.TransportPods.Gizmo.NoGroupable>没有其他已连接发射器的运输舱可供编组。</RimWorldAccess.TransportPods.Gizmo.NoGroupable>
+
+  <!-- Gizmo action results. {0} = pod count being grouped. -->
+  <RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing>找不到装载命令</RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing>
+  <RimWorldAccess.TransportPods.Gizmo.GroupingForLoading>正在编组 {0} 个运输舱以进行装载</RimWorldAccess.TransportPods.Gizmo.GroupingForLoading>
+
+  <!-- Dialog lifecycle (Window_PostClose_LoadTransporters_Patch). Spoken when
+       the user closes the loading dialog without pressing Accept. -->
+  <RimWorldAccess.TransportPods.Loading.Cancelled>已取消运输舱装载</RimWorldAccess.TransportPods.Loading.Cancelled>
+
+  <!-- Visual keyboard-mode overlay (Dialog_LoadTransporters_DoWindowContents_Patch).
+       Sighted-user indicator drawn in the top-left of the loading dialog so
+       testers can tell keyboard mode is active. Localized for consistency. -->
+  <RimWorldAccess.TransportPods.Overlay.KeyboardModeActive>键盘模式已启用</RimWorldAccess.TransportPods.Overlay.KeyboardModeActive>
+  <RimWorldAccess.TransportPods.Overlay.InstructionsLine1>左右: 选项卡 | 上下: 项目 | 回车或空格: 数量</RimWorldAccess.TransportPods.Overlay.InstructionsLine1>
+  <RimWorldAccess.TransportPods.Overlay.InstructionsLine2>Tab: 载重汇总 | Alt+I: 查看 | Alt+A: 接受 | Esc: 取消</RimWorldAccess.TransportPods.Overlay.InstructionsLine2>
+
+  <!-- Landing-spot targeting announcement (Targeter_BeginTargeting_Announce_Patch).
+       Spoken once when the drop-pod landing targeter activates. -->
+  <RimWorldAccess.TransportPods.Landing.SelectLandingSpot>选择降落点。使用方向键导航，按空格确认。</RimWorldAccess.TransportPods.Landing.SelectLandingSpot>
+
+  <!-- =========================================================
+       TransportPodSelectionState.cs - pod grouping selection mode.
+       ========================================================= -->
+
+  <!-- Initialization errors. -->
+  <RimWorldAccess.TransportPods.Selection.NoPodSelected>未选中运输舱</RimWorldAccess.TransportPods.Selection.NoPodSelected>
+
+  <!-- Entry announcement (Open). {0} = number of pods that can be grouped
+       (source pod + reachable launchers via flood fill). -->
+  <RimWorldAccess.TransportPods.Selection.EnterMode>运输舱选择模式。{0} 个运输舱可供编组。方向键移至运输舱，空格选择，回车装载。</RimWorldAccess.TransportPods.Selection.EnterMode>
+
+  <!-- Cancellation (Close). -->
+  <RimWorldAccess.TransportPods.Selection.Cancelled>已取消运输舱选择</RimWorldAccess.TransportPods.Selection.Cancelled>
+
+  <!-- Per-toggle feedback (TogglePodAtCursor). {0} = current selected count. -->
+  <RimWorldAccess.TransportPods.Selection.NoPodHere>此处没有运输舱</RimWorldAccess.TransportPods.Selection.NoPodHere>
+  <RimWorldAccess.TransportPods.Selection.NotAdjacent>此运输舱的发射器未与该组相邻。</RimWorldAccess.TransportPods.Selection.NotAdjacent>
+  <RimWorldAccess.TransportPods.Selection.AlreadyLoading>运输舱已在装载或准备发射</RimWorldAccess.TransportPods.Selection.AlreadyLoading>
+  <RimWorldAccess.TransportPods.Selection.PodSelected>已选中运输舱。已选 {0} 个</RimWorldAccess.TransportPods.Selection.PodSelected>
+  <RimWorldAccess.TransportPods.Selection.PodDeselected>已取消选中运输舱。已选 {0} 个</RimWorldAccess.TransportPods.Selection.PodDeselected>
+
+  <!-- Confirmation errors (ConfirmSelection). -->
+  <RimWorldAccess.TransportPods.Selection.NoPodsSelected>未选中运输舱。方向键移至运输舱并按空格选择。</RimWorldAccess.TransportPods.Selection.NoPodsSelected>
+  <RimWorldAccess.TransportPods.Selection.PodsUnavailable>所选运输舱已不可用</RimWorldAccess.TransportPods.Selection.PodsUnavailable>
+  <RimWorldAccess.TransportPods.Selection.LoadCommandMissingMayBeLoading>找不到装载命令。运输舱可能已在装载。</RimWorldAccess.TransportPods.Selection.LoadCommandMissingMayBeLoading>
+
+  <!-- =========================================================
+       TransportPodLoadingState.cs - Dialog_LoadTransporters keyboard nav.
+       ========================================================= -->
+
+  <!-- Open guards. -->
+  <RimWorldAccess.TransportPods.Loading.NoDialog>没有可用的装载对话框</RimWorldAccess.TransportPods.Loading.NoDialog>
+  <RimWorldAccess.TransportPods.Loading.ReflectionFailed>因游戏更新，运输舱装载无障碍功能不可用。请检查模组更新。</RimWorldAccess.TransportPods.Loading.ReflectionFailed>
+  <RimWorldAccess.TransportPods.Loading.NoPortalDialog>没有可用的传送门对话框</RimWorldAccess.TransportPods.Loading.NoPortalDialog>
+  <RimWorldAccess.TransportPods.Loading.PortalReflectionFailed>因游戏更新，传送门装载无障碍功能不可用。请检查模组更新。</RimWorldAccess.TransportPods.Loading.PortalReflectionFailed>
+
+  <!-- Entry announcement. One/Many split so translators control pod/pods
+       agreement; the pod-noun key is inlined into the sentence so word order
+       stays natural across languages.
+       {0} = pod count, {1} = total mass capacity. -->
+  <RimWorldAccess.TransportPods.Loading.PodNounOne>运输舱</RimWorldAccess.TransportPods.Loading.PodNounOne>
+  <RimWorldAccess.TransportPods.Loading.PodNounMany>运输舱</RimWorldAccess.TransportPods.Loading.PodNounMany>
+  <RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>装载运输舱。{0} 个运输舱，容量 {1} 千克。左右切换选项卡，回车调整。</RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>
+  <RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>装载运输舱。{0} 个运输舱，容量 {1} 千克。左右切换选项卡，回车调整。</RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>
+
+  <!-- Tab navigation. -->
+  <RimWorldAccess.TransportPods.Loading.TabPawns>人物</RimWorldAccess.TransportPods.Loading.TabPawns>
+  <RimWorldAccess.TransportPods.Loading.TabItems>物品</RimWorldAccess.TransportPods.Loading.TabItems>
+  <RimWorldAccess.TransportPods.Loading.TabAnnouncement>{0} 选项卡，{1} 项</RimWorldAccess.TransportPods.Loading.TabAnnouncement>
+  <RimWorldAccess.TransportPods.Loading.ReturnedToTab>已返回 {0} 选项卡</RimWorldAccess.TransportPods.Loading.ReturnedToTab>
+
+  <!-- Shared empty-tab feedback (spoken in multiple navigation paths). -->
+  <RimWorldAccess.TransportPods.Loading.NoItemsInTab>此选项卡中没有项目</RimWorldAccess.TransportPods.Loading.NoItemsInTab>
+
+  <!-- Activation and quantity actions. {0} = item label. -->
+  <RimWorldAccess.TransportPods.Loading.ItemChecked>已勾选 {0}</RimWorldAccess.TransportPods.Loading.ItemChecked>
+  <RimWorldAccess.TransportPods.Loading.ItemUnchecked>已取消勾选 {0}</RimWorldAccess.TransportPods.Loading.ItemUnchecked>
+  <RimWorldAccess.TransportPods.Loading.ItemRemoved>已移除 {0}</RimWorldAccess.TransportPods.Loading.ItemRemoved>
+
+  <!-- Inspect results. -->
+  <RimWorldAccess.TransportPods.Loading.NoItemToInspect>没有可查看的物品</RimWorldAccess.TransportPods.Loading.NoItemToInspect>
+  <RimWorldAccess.TransportPods.Loading.CannotInspectItem>无法查看此物品</RimWorldAccess.TransportPods.Loading.CannotInspectItem>
+
+  <!-- Delete/remove guard. -->
+  <RimWorldAccess.TransportPods.Loading.AlreadyAtZero>已为零</RimWorldAccess.TransportPods.Loading.AlreadyAtZero>
+
+  <!-- Reset (Alt+R). -->
+  <RimWorldAccess.TransportPods.Loading.ResetAll>所有物品已重置为零</RimWorldAccess.TransportPods.Loading.ResetAll>
+
+  <!-- Mass summary (Tab key / AnnounceMassSummary).
+       Composed from MassLine + one of OverloadedStatus/RemainingStatus.
+       {0} = current usage, {1} = capacity, {2} = status clause. -->
+  <RimWorldAccess.TransportPods.Loading.MassSummary>载重: {0} / {1} 千克。{2}</RimWorldAccess.TransportPods.Loading.MassSummary>
+  <RimWorldAccess.TransportPods.Loading.MassOverloaded>超载 {0} 千克</RimWorldAccess.TransportPods.Loading.MassOverloaded>
+  <RimWorldAccess.TransportPods.Loading.MassRemaining>剩余 {0} 千克</RimWorldAccess.TransportPods.Loading.MassRemaining>
+
+  <!-- Summary view (Tab toggle). Empty/error states come next. -->
+  <RimWorldAccess.TransportPods.Loading.NoSummaryForDialog>此对话框没有可用的汇总</RimWorldAccess.TransportPods.Loading.NoSummaryForDialog>
+  <RimWorldAccess.TransportPods.Loading.SummaryEntry>汇总视图。上下浏览数据。Tab 返回。</RimWorldAccess.TransportPods.Loading.SummaryEntry>
+  <RimWorldAccess.TransportPods.Loading.SummaryNoData>无可用数据</RimWorldAccess.TransportPods.Loading.SummaryNoData>
+  <RimWorldAccess.TransportPods.Loading.SummaryNoTransporters>没有运输器</RimWorldAccess.TransportPods.Loading.SummaryNoTransporters>
+  <RimWorldAccess.TransportPods.Loading.SummaryStatsUnavailable>数据不可用</RimWorldAccess.TransportPods.Loading.SummaryStatsUnavailable>
+  <RimWorldAccess.TransportPods.Loading.SummaryNoSummary>无汇总数据</RimWorldAccess.TransportPods.Loading.SummaryNoSummary>
+
+  <!-- Summary item format ({item}. {position}). {0} = stat line, {1} = position. -->
+  <RimWorldAccess.TransportPods.Loading.SummaryItemAnnouncement>{0}. {1}</RimWorldAccess.TransportPods.Loading.SummaryItemAnnouncement>
+
+  <!-- Stat-breakdown view (Alt+I in summary mode). NoBreakdown is spoken when
+       the selected stat has no cached explanation (e.g. Food).
+       Stat names (spoken as the breakdown window title). -->
+  <RimWorldAccess.TransportPods.Loading.NoBreakdown>此项目没有可用的明细</RimWorldAccess.TransportPods.Loading.NoBreakdown>
+  <RimWorldAccess.TransportPods.Loading.StatMassCapacity>载重能力</RimWorldAccess.TransportPods.Loading.StatMassCapacity>
+  <RimWorldAccess.TransportPods.Loading.StatSpeed>速度</RimWorldAccess.TransportPods.Loading.StatSpeed>
+  <RimWorldAccess.TransportPods.Loading.StatForaging>食物采量</RimWorldAccess.TransportPods.Loading.StatForaging>
+  <RimWorldAccess.TransportPods.Loading.StatVisibility>可见度</RimWorldAccess.TransportPods.Loading.StatVisibility>
+
+  <!-- =========================================================
+       TransportPodLaunchState.cs - world-map launch targeting.
+       ========================================================= -->
+
+  <!-- Entry announcements (Open). -->
+  <RimWorldAccess.TransportPods.Launch.OpenWithFuel>发射目标定位。剩余 {0} 化合燃料，最大范围 {1} 格。使用扫描器浏览目的地。</RimWorldAccess.TransportPods.Launch.OpenWithFuel>
+  <RimWorldAccess.TransportPods.Launch.OpenWithRange>发射目标定位。最大范围 {0} 格。使用扫描器浏览目的地。</RimWorldAccess.TransportPods.Launch.OpenWithRange>
+  <RimWorldAccess.TransportPods.Launch.OpenUnlimited>发射目标定位。无限范围。使用扫描器浏览目的地。</RimWorldAccess.TransportPods.Launch.OpenUnlimited>
+
+  <!-- Confirmation errors and results. {0} = traversal distance in tiles,
+       {1} = fuel-cost clause (from TransportPods.Fuel.* keys). -->
+  <RimWorldAccess.TransportPods.Launch.WorldTargeterNotActive>世界目标定位器未激活</RimWorldAccess.TransportPods.Launch.WorldTargeterNotActive>
+  <RimWorldAccess.TransportPods.Launch.CannotAccessAction>无法访问世界目标定位器操作</RimWorldAccess.TransportPods.Launch.CannotAccessAction>
+  <RimWorldAccess.TransportPods.Launch.NoActionAvailable>没有可用的目标定位操作</RimWorldAccess.TransportPods.Launch.NoActionAvailable>
+  <RimWorldAccess.TransportPods.Launch.TargetSelected>已选中目标</RimWorldAccess.TransportPods.Launch.TargetSelected>
+  <RimWorldAccess.TransportPods.Launch.DestinationWithFuel>目的地: {0} 格，{1}</RimWorldAccess.TransportPods.Launch.DestinationWithFuel>
+  <RimWorldAccess.TransportPods.Launch.DestinationBare>目的地: {0} 格</RimWorldAccess.TransportPods.Launch.DestinationBare>
+  <RimWorldAccess.TransportPods.Launch.ErrorSelecting>选择目的地时出错</RimWorldAccess.TransportPods.Launch.ErrorSelecting>
+
+  <!-- Cancellation. -->
+  <RimWorldAccess.TransportPods.Launch.Cancelled>已取消发射目标定位</RimWorldAccess.TransportPods.Launch.Cancelled>
+
+  <!-- F-key fuel status. -->
+  <RimWorldAccess.TransportPods.Launch.FuelStatusPod>燃料: {0} 化合燃料。最大范围: {1} 格。</RimWorldAccess.TransportPods.Launch.FuelStatusPod>
+  <RimWorldAccess.TransportPods.Launch.FuelStatusRange>最大范围: {0} 格。</RimWorldAccess.TransportPods.Launch.FuelStatusRange>
+  <RimWorldAccess.TransportPods.Launch.FuelStatusUnlimited>无限范围。</RimWorldAccess.TransportPods.Launch.FuelStatusUnlimited>
+  <!-- Map-portal (Dialog_EnterPortal) announcements, shared via EnterPortalAdapter.
+       {0} = the portal's localized EnterString (e.g. "Enter ancient complex"). -->
+  <RimWorldAccess.TransportPods.Portal.OpenAnnouncement>{0}。左右切换选项卡，空格或回车选择，Alt S 确认。</RimWorldAccess.TransportPods.Portal.OpenAnnouncement>
+  <RimWorldAccess.TransportPods.Portal.Cancelled>已取消 {0}</RimWorldAccess.TransportPods.Portal.Cancelled>
+  <RimWorldAccess.TransportPods.Portal.FallbackEnter>装载传送门</RimWorldAccess.TransportPods.Portal.FallbackEnter>
+  <RimWorldAccess.TransportPods.Portal.FallbackLoading>装载中</RimWorldAccess.TransportPods.Portal.FallbackLoading>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.TransportPods.Loading.TabSummary>{0} 选项卡，{1} 项</RimWorldAccess.TransportPods.Loading.TabSummary>
+</LanguageData>

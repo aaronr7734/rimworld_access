@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    History module strings (src/History/). The History tab is one of the
+    bottom-bar tabs and contains a Statistics sub-tab and a Messages
+    (archive) sub-tab. Five files contribute spoken text:
+      - HistoryState.cs            (tab switching + intro/close)
+      - HistoryStatisticsState.cs  (Up/Down through colony stats)
+      - HistoryMessagesState.cs    (archive list + two-level detail view)
+      - HistoryHelper.cs           (announcement composition, archive item
+                                    wrappers, jump-to-location)
+      - HistoryPatch.cs            (window open/close hooks)
+
+    What is DATA and stays out of this file: the statistic NAME labels
+    (Play time, Storyteller, wealth lines, etc.) come from vanilla
+    RimWorld keys (Playtime, Storyteller, ThisMapColonyWealthTotal, ...);
+    archive item labels, dates, pawn/world-object names, and numeric
+    counts are game-supplied and passed in as {0}, {1} arguments. Only
+    the surrounding authored phrasing lives here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Fragments that get
+    joined into a larger announcement carry no trailing punctuation of
+    their own unless the punctuation is part of the phrase being composed
+    (e.g. the "Name: value" stat format). One/Many key variants cover
+    English singular vs. plural agreement on the item count; translators
+    with different plural classes may collapse or split them.
+  -->
+
+  <!-- Window lifecycle (HistoryState / HistoryPatch). Intro is spoken when
+       the History tab opens; it orients the user to Tab switching. -->
+  <RimWorldAccess.History.Intro>历史。Tab 键在统计数据和消息选项卡之间切换。</RimWorldAccess.History.Intro>
+  <RimWorldAccess.History.Closed>历史已关闭</RimWorldAccess.History.Closed>
+
+  <!-- Tab names and the "now on this tab" announcement (HistoryState).
+       {0} = localized tab name. -->
+  <RimWorldAccess.History.Tab.Statistics>统计数据</RimWorldAccess.History.Tab.Statistics>
+  <RimWorldAccess.History.Tab.Messages>消息</RimWorldAccess.History.Tab.Messages>
+  <RimWorldAccess.History.Tab.Current>{0}选项卡</RimWorldAccess.History.Tab.Current>
+
+  <!-- Shared fallbacks and small nouns used across the module. -->
+  <RimWorldAccess.History.Unknown>未知</RimWorldAccess.History.Unknown>
+  <RimWorldAccess.History.UnknownDate>未知日期</RimWorldAccess.History.UnknownDate>
+  <RimWorldAccess.History.Pinned>已钉选</RimWorldAccess.History.Pinned>
+  <RimWorldAccess.History.Unpinned>已取消钉选</RimWorldAccess.History.Unpinned>
+
+  <!-- Statistics tab (HistoryStatisticsState / HistoryHelper). None is
+       spoken when no statistics are available. NameValue composes a stat
+       name with its value ({0} = name, {1} = value); TooltipSuffix appends
+       an optional tooltip ({0} = tooltip) and owns its leading separator
+       because it is glued onto the end of NameValue. -->
+  <RimWorldAccess.History.Statistics.None>无可用统计数据</RimWorldAccess.History.Statistics.None>
+  <RimWorldAccess.History.Statistics.NameValue>{0}: {1}</RimWorldAccess.History.Statistics.NameValue>
+  <RimWorldAccess.History.Statistics.TooltipSuffix>. {0}</RimWorldAccess.History.Statistics.TooltipSuffix>
+
+  <!-- Archive item type nouns (HistoryHelper.TypeLabel). Spoken as part of
+       each row's announcement. -->
+  <RimWorldAccess.History.Type.Letter>信件</RimWorldAccess.History.Type.Letter>
+  <RimWorldAccess.History.Type.Message>消息</RimWorldAccess.History.Type.Message>
+  <RimWorldAccess.History.Type.Item>物品</RimWorldAccess.History.Type.Item>
+
+  <!-- Jump-to-location announcements and target descriptions (HistoryHelper).
+       Target.Position: {0} = x, {1} = z map coordinates. The other target
+       fallbacks are used when no game-supplied label is available. -->
+  <RimWorldAccess.History.NoLocation>无可用位置</RimWorldAccess.History.NoLocation>
+  <RimWorldAccess.History.FailedToJump>跳转至位置失败</RimWorldAccess.History.FailedToJump>
+  <RimWorldAccess.History.Target.Unknown>未知位置</RimWorldAccess.History.Target.Unknown>
+  <RimWorldAccess.History.Target.Thing>物体</RimWorldAccess.History.Target.Thing>
+  <RimWorldAccess.History.Target.Position>位置 {0}, {1}</RimWorldAccess.History.Target.Position>
+  <RimWorldAccess.History.Target.WorldLocation>世界位置</RimWorldAccess.History.Target.WorldLocation>
+  <RimWorldAccess.History.Target.Generic>目标位置</RimWorldAccess.History.Target.Generic>
+
+  <!-- Messages/archive tab (HistoryMessagesState). -->
+
+  <!-- Detail view (two-level menu) header and boundary messages.
+       DetailHeader: {0} = type label, {1} = item label. -->
+  <RimWorldAccess.History.Messages.DetailHeader>{0}: {1}</RimWorldAccess.History.Messages.DetailHeader>
+  <RimWorldAccess.History.Messages.EndOfMessage>消息末尾</RimWorldAccess.History.Messages.EndOfMessage>
+  <RimWorldAccess.History.Messages.StartOfMessage>消息开头</RimWorldAccess.History.Messages.StartOfMessage>
+  <RimWorldAccess.History.Messages.OpenFirst>按回车键先打开消息</RimWorldAccess.History.Messages.OpenFirst>
+
+  <!-- Hotkey orientation spoken on entering the tab, and the empty-list
+       message that carries it. NoneWithHint: {0} = the hotkey hint. -->
+  <RimWorldAccess.History.Messages.HotkeyHint>Alt+L 显示或隐藏信件，Alt+M 显示或隐藏消息</RimWorldAccess.History.Messages.HotkeyHint>
+  <RimWorldAccess.History.Messages.NoneWithHint>无归档项目。{0}。</RimWorldAccess.History.Messages.NoneWithHint>
+
+  <!-- Filter toggle status phrases (Alt+L / Alt+M). Each is spoken via the
+       FilterStatus keys below, never on its own. -->
+  <RimWorldAccess.History.Messages.ShowingLetters>显示信件</RimWorldAccess.History.Messages.ShowingLetters>
+  <RimWorldAccess.History.Messages.HidingLetters>隐藏信件</RimWorldAccess.History.Messages.HidingLetters>
+  <RimWorldAccess.History.Messages.ShowingMessages>显示消息</RimWorldAccess.History.Messages.ShowingMessages>
+  <RimWorldAccess.History.Messages.HidingMessages>隐藏消息</RimWorldAccess.History.Messages.HidingMessages>
+
+  <!-- Filter result: a status phrase plus the resulting item count.
+       FilterStatusOne is used when exactly one item remains ({0} = status);
+       FilterStatusMany otherwise ({0} = status, {1} = count). -->
+  <RimWorldAccess.History.Messages.FilterStatusOne>{0}. 1 项。</RimWorldAccess.History.Messages.FilterStatusOne>
+  <RimWorldAccess.History.Messages.FilterStatusMany>{0}. {1} 项。</RimWorldAccess.History.Messages.FilterStatusMany>
+
+  <!-- Detail-view action button labels (spoken when arrowing through
+       buttons) and the failure announcement when an action throws. -->
+  <RimWorldAccess.History.Button.Open>打开</RimWorldAccess.History.Button.Open>
+  <RimWorldAccess.History.Button.JumpToLocation>跳转至位置</RimWorldAccess.History.Button.JumpToLocation>
+  <RimWorldAccess.History.Button.Pin>钉选</RimWorldAccess.History.Button.Pin>
+  <RimWorldAccess.History.Button.Unpin>取消钉选</RimWorldAccess.History.Button.Unpin>
+  <RimWorldAccess.History.FailedToActivateButton>激活按钮失败</RimWorldAccess.History.FailedToActivateButton>
+
+
+  <!-- Keyboard-mode visual overlay (src/History/HistoryPatch.cs). -->
+  <RimWorldAccess.History.Overlay.KeyboardModeTab>键盘模式已激活 - {0}选项卡</RimWorldAccess.History.Overlay.KeyboardModeTab>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.History.Duration.DaysHoursMinutes>{0} 天 {1} 小时 {2} 分钟</RimWorldAccess.History.Duration.DaysHoursMinutes>
+  <RimWorldAccess.History.Duration.HoursMinutes>{0} 小时 {1} 分钟</RimWorldAccess.History.Duration.HoursMinutes>
+  <RimWorldAccess.History.Duration.Minutes>{0} 分钟</RimWorldAccess.History.Duration.Minutes>
+</LanguageData>

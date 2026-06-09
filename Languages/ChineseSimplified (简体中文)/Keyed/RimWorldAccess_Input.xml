@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Input module strings (src/Input/). Two files contribute:
+      - UnifiedKeyboardPatch.cs  (central keyboard router with ~40 speak calls)
+      - MapArrowKeyHandler.cs    (map arrow-key navigation prefixes + boundary)
+
+    Text-input strings live in RimWorldAccess_TextInput.xml and are owned by
+    the Input/TextInput/ subsystem; do not duplicate them here.
+
+    The Drafting.* and Forbid.* keys have One/Many splits so translators can
+    give singular and plural subject-verb agreement natural wording. The
+    MultiSelectOrder.* keys are whole phrases per semantic case, mirroring
+    the pattern in RimWorldAccess_Combat.xml's MultiSelect.* entries.
+  -->
+
+  <!-- Close / exit announcements. -->
+  <RimWorldAccess.Input.Close.ReturnedToMap>已返回地图</RimWorldAccess.Input.Close.ReturnedToMap>
+  <RimWorldAccess.Input.Close.MenuClosed>菜单已关闭</RimWorldAccess.Input.Close.MenuClosed>
+  <RimWorldAccess.Input.Close.GizmoMenuClosed>命令菜单已关闭</RimWorldAccess.Input.Close.GizmoMenuClosed>
+
+  <!-- Drafting (B key). Singular "{name} Drafted" / "{name} Undrafted" for
+       single-select, "everyone" / "only" / "except" phrases for multi-select.
+       Status is capitalized at the start of a sentence; lower-case variants
+       are used mid-phrase. -->
+  <RimWorldAccess.Input.Drafting.StatusDraftedTitle>已征召</RimWorldAccess.Input.Drafting.StatusDraftedTitle>
+  <RimWorldAccess.Input.Drafting.StatusUndraftedTitle>已解除征召</RimWorldAccess.Input.Drafting.StatusUndraftedTitle>
+  <RimWorldAccess.Input.Drafting.StatusDrafted>已征召</RimWorldAccess.Input.Drafting.StatusDrafted>
+  <RimWorldAccess.Input.Drafting.StatusUndrafted>已解除征召</RimWorldAccess.Input.Drafting.StatusUndrafted>
+  <!-- {0} = pawn name, {1} = status (Drafted/Undrafted, capitalized). -->
+  <RimWorldAccess.Input.Drafting.SinglePawnStatus>{0} {1}</RimWorldAccess.Input.Drafting.SinglePawnStatus>
+  <!-- Multi-select drafting announcements. {0} = everyone-label from vanilla
+       key, {1} = name-list, {2} = status (drafted/undrafted, lowercase). -->
+  <RimWorldAccess.Input.Drafting.EveryoneStatus>{0} {1}</RimWorldAccess.Input.Drafting.EveryoneStatus>
+  <RimWorldAccess.Input.Drafting.EveryoneExceptStatus>{0}，{1}除外 {2}</RimWorldAccess.Input.Drafting.EveryoneExceptStatus>
+  <RimWorldAccess.Input.Drafting.OnlyStatus>仅 {0}: {1}</RimWorldAccess.Input.Drafting.OnlyStatus>
+
+  <!-- Multi-select action feedback for right-bracket / left-bracket order
+       menus. Whole phrases so translators can reorder subject/verb/object.
+       {0} = everyone-label (EveryoneDoes/NoOneCould/EveryoneExcept) or
+             name-list (OnlyDoes), {1} = action label or name-list,
+       {2} = action label (EveryoneExcept only). -->
+  <RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>{0} {1}</RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>
+  <RimWorldAccess.Input.MultiSelectOrder.NoOneCould>无人可{0}</RimWorldAccess.Input.MultiSelectOrder.NoOneCould>
+  <RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>{0}，{1}除外 {2}</RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>
+  <RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>仅 {0} {1}</RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>
+
+  <!-- Multi-select guards (Alt+Space group management, reorder). -->
+  <RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>此地图上没有殖民者</RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>
+  <RimWorldAccess.Input.MultiSelect.CannotSaveGroups>无法在游戏外保存分组</RimWorldAccess.Input.MultiSelect.CannotSaveGroups>
+  <RimWorldAccess.Input.MultiSelect.CannotRecallGroups>无法在游戏外调用分组</RimWorldAccess.Input.MultiSelect.CannotRecallGroups>
+  <RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect>多选时无法重新排序</RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect>
+
+  <!-- Cursor-focused actions (rename at cursor, inspection at cursor). -->
+  <RimWorldAccess.Input.Cursor.NoPawnAtCursor>光标处没有角色</RimWorldAccess.Input.Cursor.NoPawnAtCursor>
+  <RimWorldAccess.Input.Cursor.PawnCannotBeRenamed>该角色无法重命名</RimWorldAccess.Input.Cursor.PawnCannotBeRenamed>
+  <RimWorldAccess.Input.Cursor.NothingToInspect>此处没有可查看的内容</RimWorldAccess.Input.Cursor.NothingToInspect>
+  <RimWorldAccess.Input.Cursor.InvalidPosition>无效位置</RimWorldAccess.Input.Cursor.InvalidPosition>
+  <RimWorldAccess.Input.Cursor.NoAvailableActions>没有可用操作</RimWorldAccess.Input.Cursor.NoAvailableActions>
+
+  <!-- Caravan reform (Shift+C). Spoken on the world map where Shift+C does
+       not apply. -->
+  <RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>重组远行队仅在临时地图上有效，世界地图上无效。请按 C 键从定居点组建新的远行队。</RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>
+
+  <!-- F1 work menu, F4 animals/mechs menu. -->
+  <RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>没有可用的殖民者</RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>
+  <RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>没有动物或机械族</RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>
+
+  <!-- Gizmo availability guard (G key). -->
+  <RimWorldAccess.Input.Gizmo.UnavailableDuringPlacement>放置或预览期间命令不可用</RimWorldAccess.Input.Gizmo.UnavailableDuringPlacement>
+
+  <!-- Right/left bracket order execution feedback. -->
+  <!-- {0} = single-pawn prefix ("Bob: " or ""), {1} = action label. -->
+  <RimWorldAccess.Input.Order.TopOptionUnavailable>{0}{1}，不可用</RimWorldAccess.Input.Order.TopOptionUnavailable>
+  <!-- {0} = pawn name, {1} = action label, {2} = vanilla "Queued" label. -->
+  <RimWorldAccess.Input.Order.QueuedAction>{0}: {1}, {2}</RimWorldAccess.Input.Order.QueuedAction>
+  <!-- {0} = pawn name, {1} = action label. -->
+  <RimWorldAccess.Input.Order.Action>{0}: {1}</RimWorldAccess.Input.Order.Action>
+  <!-- {0} = GoHere label from vanilla. Suffix marks the line-formation variant. -->
+  <RimWorldAccess.Input.Order.FormationOption>{0}（队形）</RimWorldAccess.Input.Order.FormationOption>
+
+  <!-- Unforbid All (Alt+F). One/Many split for subject-verb agreement. -->
+  <RimWorldAccess.Input.Unforbid.NoForbiddenItems>地图上未找到被禁用的物品</RimWorldAccess.Input.Unforbid.NoForbiddenItems>
+  <RimWorldAccess.Input.Unforbid.CountOne>已解禁 1 件物品</RimWorldAccess.Input.Unforbid.CountOne>
+  <RimWorldAccess.Input.Unforbid.CountMany>已解禁 {0} 件物品</RimWorldAccess.Input.Unforbid.CountMany>
+
+  <!-- Toggle forbid at cursor (F key). One/Many + forbidden/unforbidden
+       splits so translators can give the plural subject correct agreement. -->
+  <RimWorldAccess.Input.Forbid.NothingToForbid>此处没有可禁用或解禁的物品</RimWorldAccess.Input.Forbid.NothingToForbid>
+  <!-- {0} = item label. -->
+  <RimWorldAccess.Input.Forbid.SingleForbidden>{0}已禁用</RimWorldAccess.Input.Forbid.SingleForbidden>
+  <RimWorldAccess.Input.Forbid.SingleUnforbidden>{0}已解禁</RimWorldAccess.Input.Forbid.SingleUnforbidden>
+  <!-- {0} = toggled count. -->
+  <RimWorldAccess.Input.Forbid.ManyForbidden>已禁用 {0} 件物品</RimWorldAccess.Input.Forbid.ManyForbidden>
+  <RimWorldAccess.Input.Forbid.ManyUnforbidden>已解禁 {0} 件物品</RimWorldAccess.Input.Forbid.ManyUnforbidden>
+
+  <!-- Map arrow-key navigation prefixes (MapArrowKeyHandler.cs).
+       Composed with the tile info that follows, e.g. "Selected, stone, ...".
+       {0} = tile info. -->
+  <RimWorldAccess.Input.Map.Boundary>地图边缘</RimWorldAccess.Input.Map.Boundary>
+  <RimWorldAccess.Input.Map.PrefixSelected>已选择, {0}</RimWorldAccess.Input.Map.PrefixSelected>
+  <RimWorldAccess.Input.Map.PrefixPreview>预览, {0}</RimWorldAccess.Input.Map.PrefixPreview>
+  <RimWorldAccess.Input.Map.PrefixFirstPoint>第一个点, {0}</RimWorldAccess.Input.Map.PrefixFirstPoint>
+  <RimWorldAccess.Input.Map.PrefixSecondPoint>第二个点, {0}</RimWorldAccess.Input.Map.PrefixSecondPoint>
+  <RimWorldAccess.Input.Map.PrefixInArea>区域内, {0}</RimWorldAccess.Input.Map.PrefixInArea>
+  <RimWorldAccess.Input.Map.PrefixDisconnected>未连接, {0}</RimWorldAccess.Input.Map.PrefixDisconnected>
+
+  <!-- Schedule editor visual overlay (src/Input/UnifiedKeyboardPatch.cs). -->
+  <RimWorldAccess.Input.Schedule.OverlayTitle>作息菜单 - {0} ({1}/{2}) - 第 {3} 小时</RimWorldAccess.Input.Schedule.OverlayTitle>
+  <RimWorldAccess.Input.Schedule.OverlayCurrent>当前: {0}</RimWorldAccess.Input.Schedule.OverlayCurrent>
+  <RimWorldAccess.Input.Schedule.OverlayInstructions1>方向键: 导航 | 1-5: 选择笔刷 | 空格/回车: 应用笔刷</RimWorldAccess.Input.Schedule.OverlayInstructions1>
+  <RimWorldAccess.Input.Schedule.OverlayInstructions2>Shift+方向键: 绘制 | Ctrl+C/V: 复制/粘贴 | Tab: 区域 | Esc: 关闭</RimWorldAccess.Input.Schedule.OverlayInstructions2>
+</LanguageData>

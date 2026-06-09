@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Archonexus module strings (src/Archonexus/). Five files contribute:
+      - ArchonexusColonyState.cs         (Screen 1: choose things for new colony)
+      - NewColonyTilePickState.cs        (Screen 3: choose new colony site)
+      - ArchonexusReformIdeoState.cs     (Screen 4: reform ideoligion)
+      - ArchonexusConvertColonistsState.cs (Screen 4 sub-dialog: assign colonists)
+
+    Guard-style messages that exactly match Common.xml values are NOT repeated
+    here — callers use those shared keys directly:
+      - "World navigation not active" -> RimWorldAccess.Guard.WorldNavigationNotActive
+      - "No valid tile selected"       -> RimWorldAccess.Guard.NoValidTileSelected
+      - "Cannot access tile picker callbacks" -> RimWorldAccess.Gravships.Destination.CannotAccessCallbacks
+
+    Vanilla keys referenced by the C# (ChooseNextColonySite, ChooseThingsForNewColonyTitle,
+    ChooseThingsForNewColonyDesc, ConfigureIdeoligion, ChooseColonistsForIdeoTitle,
+    ChooseColonistsForIdeoDesc, CreateNew, CreateFluid, LoadExistingIdeoligion,
+    AssignColonists, Next, etc.) are NOT duplicated here.
+  -->
+
+  <!-- Screen 1 — opening announcement instruction fragment
+       (ArchonexusColonyState.AnnounceOpening). Appended after the vanilla
+       dialog title and description. -->
+  <RimWorldAccess.Archonexus.Colony.OpenInstructions>空格或回车键选择，Alt S 发送。</RimWorldAccess.Archonexus.Colony.OpenInstructions>
+
+  <!-- Screen 3 — tile pick (NewColonyTilePickState.Open).
+       OpenInstructions: appended after "ChooseNextColonySite".Translate().
+       MustChooseValid: spoken when the player presses Escape (cannot cancel).
+       ErrorSelectingTile: spoken on exception during tile confirmation. -->
+  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>使用方向键导航，PageUp 和 PageDown 使用扫描器，回车键确认。无法取消，你必须选择一个有效的地块。</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
+  <RimWorldAccess.Archonexus.TilePick.MustChooseValid>你必须选择一个有效的地块才能继续。</RimWorldAccess.Archonexus.TilePick.MustChooseValid>
+  <RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>选择地块时出错</RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>
+
+  <!-- Screen 4 — reform ideoligion list (ArchonexusReformIdeoState).
+       OpenInstructions: appended after "ConfigureIdeoligion".Translate().
+       CannotCancel: spoken when the player presses Escape (the dialog cannot be cancelled).
+       NoIdeoDetailsHere: spoken when Tab is pressed on a non-ideoligion row.
+       AlreadyPrimary: {0} = ideoligion name.
+       SetAsPrimary: {0} = ideoligion name.
+       NoColonistsNeedConverting: spoken when "Assign colonists" is triggered but
+         all colonists already follow the chosen ideoligion.
+       ErrorConfirming: spoken on exception during the "Next" commit. -->
+  <RimWorldAccess.Archonexus.Reform.OpenInstructions>上下键浏览，输入搜索，Tab 查看完整详情，回车键设为主要，Alt S 确认。</RimWorldAccess.Archonexus.Reform.OpenInstructions>
+  <RimWorldAccess.Archonexus.Reform.CannotCancel>无法取消重塑文化形态。按 Alt S 确认并继续。</RimWorldAccess.Archonexus.Reform.CannotCancel>
+  <RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere>此处没有文化形态详情。请先移动到一个文化形态上。</RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere>
+  <RimWorldAccess.Archonexus.Reform.AlreadyPrimary>{0} 已经是主要文化形态。</RimWorldAccess.Archonexus.Reform.AlreadyPrimary>
+  <RimWorldAccess.Archonexus.Reform.SetAsPrimary>{0} 已设为主要文化形态。</RimWorldAccess.Archonexus.Reform.SetAsPrimary>
+  <RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>没有殖民者需要教化。</RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>
+  <RimWorldAccess.Archonexus.Reform.ErrorConfirming>确认文化形态时出错</RimWorldAccess.Archonexus.Reform.ErrorConfirming>
+  <!-- PressTabToEdit: appended to an item announcement when the focused ideoligion
+       is the editable custom one and the player just returned from a sub-screen. -->
+  <RimWorldAccess.Archonexus.Reform.PressTabToEdit>按 Tab 编辑此文化形态。</RimWorldAccess.Archonexus.Reform.PressTabToEdit>
+
+  <!-- Screen 4 sub-dialog — assign colonists (ArchonexusConvertColonistsState).
+       OpenInstructions: appended after the vanilla dialog title, description,
+         and pawn count.
+       SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
+  <RimWorldAccess.Archonexus.Convert.OpenInstructions>空格或回车键教化，完成后按 Escape。</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+</LanguageData>

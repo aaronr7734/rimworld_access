@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Pawns module strings (src/Pawns/). Covers the colonist bar,
+    multi-select group, pawn info card and quick-info, the per-tab
+    info dumps (Health, Skills, Gear, Mood, Needs, Social, Training),
+    bed and area assignment, drug and reading policy editors, the
+    schedule menu, line-formation tool, name dialog, and the assign
+    menu (workers, mechs, equipment).
+
+    Phrasing decisions:
+
+    - Vanilla labels for hediffs, skills, needs, moods, traits,
+      faction names, item labels, drug names, schedule labels, and
+      pawn names come from the game's own translation system and are
+      NOT duplicated here.
+
+    - Per-tab readouts (Health, Skills, Gear, Mood, Needs, Social,
+      Training) compose many small fragments. Each readout shape is
+      its own key so translators can reorder fragments instead of
+      relying on C# concatenation.
+
+    - One/Many splits used wherever a count toggles between one
+      thing and several (e.g. "1 colonist selected" vs "{N} colonists
+      selected"). Translators with additional plural classes can
+      keep both keys identical or split further via LanguageWorker.
+
+    - Toggle / status announcements split into one key per semantic
+      case (e.g. AreaAssigned / AreaCleared) so the activity verb
+      can inflect differently than the cleared verb.
+
+    Shared phrases delegated elsewhere:
+      - Search.NoMatches / Search.Cleared       -> Common.xml
+      - Edge.* (boundary announcements)         -> Common.xml
+      - Guard.NoPawnSelected                    -> Common.xml
+      - Map.Direction.*                         -> Map.xml (when used)
+      - "Cancel" button label                    -> vanilla "Cancel"
+  -->
+
+  <!-- =================================================================
+       Pawn label composition (PawnLabelHelper.BuildGroupedPawnLabel).
+       Used by World, TransportPods, and Trade modules to label
+       grouped animals (e.g., "Male Ducklings", "Female Cows
+       (pregnant)"). Each grammatical case is its own key so the
+       gender-noun agreement stays the translator's call.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Group.MalePrefix>雄性</RimWorldAccess.Pawns.Group.MalePrefix>
+  <RimWorldAccess.Pawns.Group.FemalePrefix>雌性</RimWorldAccess.Pawns.Group.FemalePrefix>
+  <RimWorldAccess.Pawns.Group.Pregnant>怀孕</RimWorldAccess.Pawns.Group.Pregnant>
+  <!-- Final composition: "{0} = gender prefix (or empty), {1} =
+       capitalized kind label, {2} = " (suffix1, suffix2, ...)" or "". -->
+  <RimWorldAccess.Pawns.Group.Label>{0}{1}{2}</RimWorldAccess.Pawns.Group.Label>
+  <RimWorldAccess.Pawns.Group.SuffixWrap>（{0}）</RimWorldAccess.Pawns.Group.SuffixWrap>
+
+  <!-- =================================================================
+       Quick-info float-menu picker (PawnQuickInfo.Display).
+       Spoken when multi-select is active and the user presses a
+       quick-info hotkey. Each row is the pawn label + the extracted
+       info (health, mood, etc.).
+       {0} = pawn label, {1} = extractor output. -->
+  <RimWorldAccess.Pawns.QuickInfo.PickerRow>{0}: {1}</RimWorldAccess.Pawns.QuickInfo.PickerRow>
+
+  <!-- =================================================================
+       Line formation mode (LineFormationState).
+       Activated from a multi-pawn float menu; the player places two
+       points on the map and presses Enter to spread the selected
+       pawns along the line.
+       PawnsCount: {0} = number of pawns moving in formation.
+       Confirmed/AllExcept/OnlySome: {0} = pawn-name list, when the
+       confirmation produces partial success.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Formation.NoValidPawns>没有可移动的角色</RimWorldAccess.Pawns.Formation.NoValidPawns>
+  <RimWorldAccess.Pawns.Formation.Activated>队形排列模式。{0} 名角色。使用方向键导航，按空格键放置第一个点。</RimWorldAccess.Pawns.Formation.Activated>
+  <RimWorldAccess.Pawns.Formation.InvalidPosition>位置无效</RimWorldAccess.Pawns.Formation.InvalidPosition>
+  <RimWorldAccess.Pawns.Formation.FirstPlaced>第一个点已放置。导航至第二个点并按空格键。</RimWorldAccess.Pawns.Formation.FirstPlaced>
+  <RimWorldAccess.Pawns.Formation.SecondPlaced>队形线已设定。按回车键确认，按 Escape 取消。</RimWorldAccess.Pawns.Formation.SecondPlaced>
+  <RimWorldAccess.Pawns.Formation.AllMoving>{0} 正在按队形移动</RimWorldAccess.Pawns.Formation.AllMoving>
+  <RimWorldAccess.Pawns.Formation.NoneMoving>没有角色能够到达其目的地</RimWorldAccess.Pawns.Formation.NoneMoving>
+  <RimWorldAccess.Pawns.Formation.AllExcept>除 {1} 外，{0} 正在按队形移动</RimWorldAccess.Pawns.Formation.AllExcept>
+  <RimWorldAccess.Pawns.Formation.OnlySome>仅 {0} 正在按队形移动</RimWorldAccess.Pawns.Formation.OnlySome>
+  <RimWorldAccess.Pawns.Formation.Cancelled>已取消队形排列</RimWorldAccess.Pawns.Formation.Cancelled>
+
+  <!-- =================================================================
+       Multi-select state (MultiSelectState).
+       Toggling pawns in/out of the selection (Alt+Space, Alt+Shift+
+       arrows). Each shape has its own key so the suffix
+       ("removed. {N} selected.") can carry whichever count word the
+       language uses.
+       Added/Removed: {0} = pawn label, {1} = total selected count.
+       AlreadySelected: same shape with the leading note.
+       AllSelectedNamed/Count: all-colonists shortcut.
+       PawnSummary: {0} = label, {1} = selected/not-selected status,
+                    {2} = job report.
+       PawnSummaryWithPos: appends ". {0}" position fragment.
+       Idle: spoken when GetJobReport is empty.
+       SelectedStatus / NotSelectedStatus: the bare status word
+       composed into PawnSummary.
+       FocusedTask: ClearMultiSelect single-select fallback.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.MultiSelect.NoFocus>未聚焦任何角色</RimWorldAccess.Pawns.MultiSelect.NoFocus>
+  <RimWorldAccess.Pawns.MultiSelect.DeselectedCleared>{0} 已取消选择。已清空选择。</RimWorldAccess.Pawns.MultiSelect.DeselectedCleared>
+  <RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle>{0} 已移除。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle>
+  <RimWorldAccess.Pawns.MultiSelect.Removed>{0} 已移除。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.Removed>
+  <RimWorldAccess.Pawns.MultiSelect.Added>{0} 已添加。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.Added>
+  <RimWorldAccess.Pawns.MultiSelect.AlreadySelected>{0}，已在选择中。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.AlreadySelected>
+  <RimWorldAccess.Pawns.MultiSelect.Inactive>当前无多选</RimWorldAccess.Pawns.MultiSelect.Inactive>
+  <RimWorldAccess.Pawns.MultiSelect.NoColonists>此地图上没有殖民者</RimWorldAccess.Pawns.MultiSelect.NoColonists>
+  <RimWorldAccess.Pawns.MultiSelect.AllSelectedNamed>已全选: {0}。{1} 名殖民者。</RimWorldAccess.Pawns.MultiSelect.AllSelectedNamed>
+  <RimWorldAccess.Pawns.MultiSelect.AllSelectedCount>已选择全部 {0} 名殖民者</RimWorldAccess.Pawns.MultiSelect.AllSelectedCount>
+  <RimWorldAccess.Pawns.MultiSelect.SelectedStatus>已选择</RimWorldAccess.Pawns.MultiSelect.SelectedStatus>
+  <RimWorldAccess.Pawns.MultiSelect.NotSelectedStatus>未选择</RimWorldAccess.Pawns.MultiSelect.NotSelectedStatus>
+  <RimWorldAccess.Pawns.MultiSelect.Idle>闲置</RimWorldAccess.Pawns.MultiSelect.Idle>
+  <RimWorldAccess.Pawns.MultiSelect.PawnSummary>{0}, {1}, {2}</RimWorldAccess.Pawns.MultiSelect.PawnSummary>
+  <RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>{0}, {1}, {2}. {3}</RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>
+  <RimWorldAccess.Pawns.MultiSelect.FocusedTask>{0} - {1}</RimWorldAccess.Pawns.MultiSelect.FocusedTask>
+  <!-- BlockedByTargeting: spoken when a Selector action is attempted during active
+       targeting. {0} = the action verb phrase (one of the Action* keys below),
+       kept as a data slot so each blocked action names itself. -->
+  <RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>瞄准期间无法{0}。请先按 Escape 取消瞄准。</RimWorldAccess.Pawns.MultiSelect.BlockedByTargeting>
+  <RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection>更改选择</RimWorldAccess.Pawns.MultiSelect.ActionChangeSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection>扩展选择</RimWorldAccess.Pawns.MultiSelect.ActionExtendSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionClearSelection>清空选择</RimWorldAccess.Pawns.MultiSelect.ActionClearSelection>
+  <RimWorldAccess.Pawns.MultiSelect.ActionSelectAll>全选</RimWorldAccess.Pawns.MultiSelect.ActionSelectAll>
+  <!-- AddedStarted: first pawn added, entering multi-select mode.
+       {0} = pawn label, {1} = total selected count. -->
+  <RimWorldAccess.Pawns.MultiSelect.AddedStarted>{0} 已添加。已开始多选。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.AddedStarted>
+  <!-- RemovedDisabled: last pawn removed, exiting multi-select.
+       {0} = pawn label. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedDisabled>{0} 已移除。已禁用多选。</RimWorldAccess.Pawns.MultiSelect.RemovedDisabled>
+  <!-- RemovedDisabledThenSingle: shrunk to one pawn, exiting multi-select.
+       {0} = removed pawn label, {1} = remaining pawn label. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle>{0} 已移除。已禁用多选。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.RemovedDisabledThenSingle>
+  <!-- RemovedFocusChanged: removed from range, focus moved.
+       {0} = removed pawn label, {1} = new focus label, {2} = count. -->
+  <RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged>{0} 已移除。{1}，已选择 {2} 个。</RimWorldAccess.Pawns.MultiSelect.RemovedFocusChanged>
+  <!-- SelectionCleared: spoken when clearing multi-select with no focused pawn. -->
+  <RimWorldAccess.Pawns.MultiSelect.SelectionCleared>已清空选择</RimWorldAccess.Pawns.MultiSelect.SelectionCleared>
+  <!-- SelectionClearedFocus: spoken when clearing multi-select with a focused pawn.
+       {0} = pawn label, {1} = job report. -->
+  <RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus>已清空选择。{0}, {1}</RimWorldAccess.Pawns.MultiSelect.SelectionClearedFocus>
+
+  <!-- Persistent group slots (MultiSelectGroupComponent, F1-F4).
+       Saved/Empty/Recalled: {0} = 1-based slot number; lists, counts,
+       and unavailable counts vary per phrase. -->
+  <RimWorldAccess.Pawns.Group.Saved>编组 {0} 已保存: {1}</RimWorldAccess.Pawns.Group.Saved>
+  <RimWorldAccess.Pawns.Group.SlotEmpty>编组 {0} 为空</RimWorldAccess.Pawns.Group.SlotEmpty>
+  <RimWorldAccess.Pawns.Group.NoPawnsAvailable>编组 {0}: 此地图上没有可用角色</RimWorldAccess.Pawns.Group.NoPawnsAvailable>
+  <RimWorldAccess.Pawns.Group.RecalledPartial>编组 {0} 已调出: {1}。{2} 个不可用。已选择 {3} 个。</RimWorldAccess.Pawns.Group.RecalledPartial>
+  <RimWorldAccess.Pawns.Group.Recalled>编组 {0} 已调出: {1}。已选择 {2} 个。</RimWorldAccess.Pawns.Group.Recalled>
+
+  <!-- =================================================================
+       Name pawn dialog (NamePawnDialogHelper, baby/animal/mech naming).
+       Most field labels and the dialog title come from the vanilla
+       Dialog_NamePawn fields; only the announcement strings live here.
+       NameFallback: {0} = 1-based field index used when the dialog
+                     does not provide a label. -->
+  <RimWorldAccess.Pawns.NameDialog.NoPawn>错误: 找不到角色</RimWorldAccess.Pawns.NameDialog.NoPawn>
+  <RimWorldAccess.Pawns.NameDialog.MethodNotFound>错误: 找不到 BuildName 方法</RimWorldAccess.Pawns.NameDialog.MethodNotFound>
+  <RimWorldAccess.Pawns.NameDialog.Invalid>名称无效。请检查名称字段。</RimWorldAccess.Pawns.NameDialog.Invalid>
+  <RimWorldAccess.Pawns.NameDialog.Named>已命名为 {0}</RimWorldAccess.Pawns.NameDialog.Named>
+  <RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn>找不到角色</RimWorldAccess.Pawns.NameDialog.RandomCannotFindPawn>
+  <RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex>字段索引无效</RimWorldAccess.Pawns.NameDialog.RandomInvalidIndex>
+  <RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize>此字段无法随机生成</RimWorldAccess.Pawns.NameDialog.RandomCannotRandomize>
+  <RimWorldAccess.Pawns.NameDialog.RandomizedTo>已随机生成为 {0}</RimWorldAccess.Pawns.NameDialog.RandomizedTo>
+  <RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate>无法生成随机名称</RimWorldAccess.Pawns.NameDialog.RandomCouldNotGenerate>
+  <RimWorldAccess.Pawns.NameDialog.RandomFailed>无法随机生成</RimWorldAccess.Pawns.NameDialog.RandomFailed>
+  <RimWorldAccess.Pawns.NameDialog.NameFallback>名称 {0}</RimWorldAccess.Pawns.NameDialog.NameFallback>
+
+  <!-- =================================================================
+       Pawn info hotkeys (PawnInfoPatch).
+       UnknownInfoType: defensive fallback for an unrecognized info
+       type enum (should never be heard in normal play).
+       NoPawnSelected / NotAPawn: spoken when Alt+C / F1 fires without
+       a valid pawn under selection.
+       JumpPickerRow: shape for the multi-select Alt+C float menu;
+                      {0} = pawn label, {1} = job report. -->
+  <RimWorldAccess.Pawns.Info.UnknownInfoType>未知信息类型</RimWorldAccess.Pawns.Info.UnknownInfoType>
+  <RimWorldAccess.Pawns.Info.NoPawnSelected>未选择角色</RimWorldAccess.Pawns.Info.NoPawnSelected>
+  <RimWorldAccess.Pawns.Info.NotAPawn>所选对象不是角色</RimWorldAccess.Pawns.Info.NotAPawn>
+  <RimWorldAccess.Pawns.Info.JumpPickerRow>{0}: {1}</RimWorldAccess.Pawns.Info.JumpPickerRow>
+
+  <!-- =================================================================
+       Pawn area-restriction menu (PawnAreaMenuState, Alt+A).
+       NoSupport: {0} = pawn label.
+       OpenAnnouncement: {0} = pawn label, {1} = current area name
+                         (or "Unrestricted").
+       Applied: {0} = pawn label, {1} = area name.
+       AreaWithCells / AreaBare: composes the announced row.
+                                {0} = area label, {1} = "(current)" or
+                                "" suffix, {2} = cell count.
+       WithPosition: appends ", {position}" via Common's Menu.Position
+                     output. -->
+  <RimWorldAccess.Pawns.Area.NoSupport>{0} 不支持活动区限制</RimWorldAccess.Pawns.Area.NoSupport>
+  <RimWorldAccess.Pawns.Area.NoMap>没有可用的地图</RimWorldAccess.Pawns.Area.NoMap>
+  <RimWorldAccess.Pawns.Area.OpenAnnouncement>{0} 的活动区分配。当前活动区: {1}</RimWorldAccess.Pawns.Area.OpenAnnouncement>
+  <RimWorldAccess.Pawns.Area.Unrestricted>不受限制</RimWorldAccess.Pawns.Area.Unrestricted>
+  <RimWorldAccess.Pawns.Area.PawnGone>角色已不可用</RimWorldAccess.Pawns.Area.PawnGone>
+  <RimWorldAccess.Pawns.Area.Applied>{0}: 已应用 {1}</RimWorldAccess.Pawns.Area.Applied>
+  <RimWorldAccess.Pawns.Area.Cancelled>已取消活动区分配</RimWorldAccess.Pawns.Area.Cancelled>
+  <RimWorldAccess.Pawns.Area.ManageAreas>管理活动区</RimWorldAccess.Pawns.Area.ManageAreas>
+  <RimWorldAccess.Pawns.Area.ManageAreasWithPosition>管理活动区, {0}</RimWorldAccess.Pawns.Area.ManageAreasWithPosition>
+  <RimWorldAccess.Pawns.Area.UnknownLabel>未知</RimWorldAccess.Pawns.Area.UnknownLabel>
+  <RimWorldAccess.Pawns.Area.CurrentSuffix>（当前）</RimWorldAccess.Pawns.Area.CurrentSuffix>
+  <RimWorldAccess.Pawns.Area.AreaWithCells>{0}{1}, {2} 格</RimWorldAccess.Pawns.Area.AreaWithCells>
+  <RimWorldAccess.Pawns.Area.AreaBare>{0}{1}</RimWorldAccess.Pawns.Area.AreaBare>
+  <RimWorldAccess.Pawns.Area.WithPosition>{0}, {1}</RimWorldAccess.Pawns.Area.WithPosition>
+
+  <!-- =================================================================
+       Bed assignment menu (BedAssignmentState).
+       Opened from the inspection menu's "manage bed" action. Hosts a
+       four-level menu (main / assign / unassign / bed-type). Dispatch
+       happens via a separate enum so localized labels don't break
+       string-equality switches.
+       Owner-type labels and medical-status labels appear both in the
+       main menu's bed-info readout (via " - X" suffix keys) and as
+       the actual menu options for the bed-type submenu (via
+       Type.Colonist/Prisoner/Slave keys).
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Bed.NoBed>没有可配置的床</RimWorldAccess.Pawns.Bed.NoBed>
+  <RimWorldAccess.Pawns.Bed.Action.AssignPawn>分配角色</RimWorldAccess.Pawns.Bed.Action.AssignPawn>
+  <RimWorldAccess.Pawns.Bed.Action.UnassignPawn>取消分配角色</RimWorldAccess.Pawns.Bed.Action.UnassignPawn>
+  <RimWorldAccess.Pawns.Bed.Action.ChangeBedType>更改床类型</RimWorldAccess.Pawns.Bed.Action.ChangeBedType>
+  <RimWorldAccess.Pawns.Bed.Action.ToggleMedical>切换医疗床</RimWorldAccess.Pawns.Bed.Action.ToggleMedical>
+  <RimWorldAccess.Pawns.Bed.Action.CloseMenu>关闭菜单</RimWorldAccess.Pawns.Bed.Action.CloseMenu>
+  <RimWorldAccess.Pawns.Bed.ForPrisoners> - 囚犯专用</RimWorldAccess.Pawns.Bed.ForPrisoners>
+  <RimWorldAccess.Pawns.Bed.ForSlaves> - 奴隶专用</RimWorldAccess.Pawns.Bed.ForSlaves>
+  <RimWorldAccess.Pawns.Bed.ForColonists> - 殖民者专用</RimWorldAccess.Pawns.Bed.ForColonists>
+  <RimWorldAccess.Pawns.Bed.MedicalSuffix> - 医疗</RimWorldAccess.Pawns.Bed.MedicalSuffix>
+  <RimWorldAccess.Pawns.Bed.NotMedicalSuffix> - 非医疗</RimWorldAccess.Pawns.Bed.NotMedicalSuffix>
+  <RimWorldAccess.Pawns.Bed.AssignedToList> - 已分配给: {0}</RimWorldAccess.Pawns.Bed.AssignedToList>
+  <RimWorldAccess.Pawns.Bed.UnassignedSuffix> - 未分配</RimWorldAccess.Pawns.Bed.UnassignedSuffix>
+  <RimWorldAccess.Pawns.Bed.OptionSuffix> - {0}</RimWorldAccess.Pawns.Bed.OptionSuffix>
+  <RimWorldAccess.Pawns.Bed.MenuClosed>已关闭床菜单</RimWorldAccess.Pawns.Bed.MenuClosed>
+  <RimWorldAccess.Pawns.Bed.CannotAssign>无法将角色分配到这张床</RimWorldAccess.Pawns.Bed.CannotAssign>
+  <RimWorldAccess.Pawns.Bed.NoCandidates>没有可分配的角色</RimWorldAccess.Pawns.Bed.NoCandidates>
+  <RimWorldAccess.Pawns.Bed.AssignWithCannot>{0}（无法分配）</RimWorldAccess.Pawns.Bed.AssignWithCannot>
+  <RimWorldAccess.Pawns.Bed.AssignIdeologyForbids>{0}（信仰禁止）</RimWorldAccess.Pawns.Bed.AssignIdeologyForbids>
+  <RimWorldAccess.Pawns.Bed.AlreadyAssigned>{0}（已分配）</RimWorldAccess.Pawns.Bed.AlreadyAssigned>
+  <RimWorldAccess.Pawns.Bed.AssignFirstOption>分配角色 - {0}</RimWorldAccess.Pawns.Bed.AssignFirstOption>
+  <RimWorldAccess.Pawns.Bed.CannotAssignSingle>无法分配角色</RimWorldAccess.Pawns.Bed.CannotAssignSingle>
+  <RimWorldAccess.Pawns.Bed.CannotAssignToBed>无法将 {0} 分配到这张床</RimWorldAccess.Pawns.Bed.CannotAssignToBed>
+  <RimWorldAccess.Pawns.Bed.IdeologyForbidsBed>信仰禁止 {0} 使用这张床</RimWorldAccess.Pawns.Bed.IdeologyForbidsBed>
+  <RimWorldAccess.Pawns.Bed.AssignedSuccess>{0} 已分配到 {1}</RimWorldAccess.Pawns.Bed.AssignedSuccess>
+  <RimWorldAccess.Pawns.Bed.AssignFailed>分配 {0} 失败</RimWorldAccess.Pawns.Bed.AssignFailed>
+  <RimWorldAccess.Pawns.Bed.CannotUnassign>无法将角色从这张床取消分配</RimWorldAccess.Pawns.Bed.CannotUnassign>
+  <RimWorldAccess.Pawns.Bed.NoneAssigned>没有角色分配到这张床</RimWorldAccess.Pawns.Bed.NoneAssigned>
+  <RimWorldAccess.Pawns.Bed.UnassignFirstOption>取消分配角色 - {0}</RimWorldAccess.Pawns.Bed.UnassignFirstOption>
+  <RimWorldAccess.Pawns.Bed.CannotUnassignSingle>无法取消分配角色</RimWorldAccess.Pawns.Bed.CannotUnassignSingle>
+  <RimWorldAccess.Pawns.Bed.UnassignedSuccess>{0} 已从 {1} 取消分配</RimWorldAccess.Pawns.Bed.UnassignedSuccess>
+  <RimWorldAccess.Pawns.Bed.UnassignFailed>取消分配 {0} 失败</RimWorldAccess.Pawns.Bed.UnassignFailed>
+  <RimWorldAccess.Pawns.Bed.Type.Colonist>殖民者</RimWorldAccess.Pawns.Bed.Type.Colonist>
+  <RimWorldAccess.Pawns.Bed.Type.Prisoner>囚犯</RimWorldAccess.Pawns.Bed.Type.Prisoner>
+  <RimWorldAccess.Pawns.Bed.Type.Slave>奴隶</RimWorldAccess.Pawns.Bed.Type.Slave>
+  <RimWorldAccess.Pawns.Bed.ChangeTypeOption>更改床类型 - {0}（当前）</RimWorldAccess.Pawns.Bed.ChangeTypeOption>
+  <RimWorldAccess.Pawns.Bed.NeedEnclosed>无法将床设为囚犯专用——该床不在封闭的房间内。请先在床周围建造墙壁。</RimWorldAccess.Pawns.Bed.NeedEnclosed>
+  <RimWorldAccess.Pawns.Bed.TypeChanged>床类型已更改为: {0}</RimWorldAccess.Pawns.Bed.TypeChanged>
+  <RimWorldAccess.Pawns.Bed.MedicalStatus>床的医疗状态: {0}</RimWorldAccess.Pawns.Bed.MedicalStatus>
+  <RimWorldAccess.Pawns.Bed.MedicalState.Medical>医疗</RimWorldAccess.Pawns.Bed.MedicalState.Medical>
+  <RimWorldAccess.Pawns.Bed.MedicalState.NotMedical>非医疗</RimWorldAccess.Pawns.Bed.MedicalState.NotMedical>
+  <RimWorldAccess.Pawns.Bed.Prefix.Assign>分配: </RimWorldAccess.Pawns.Bed.Prefix.Assign>
+  <RimWorldAccess.Pawns.Bed.Prefix.Unassign>取消分配: </RimWorldAccess.Pawns.Bed.Prefix.Unassign>
+  <RimWorldAccess.Pawns.Bed.Prefix.BedType>床类型: </RimWorldAccess.Pawns.Bed.Prefix.BedType>
+  <RimWorldAccess.Pawns.Bed.PrefixedOption>{0}{1}</RimWorldAccess.Pawns.Bed.PrefixedOption>
+
+  <!-- =================================================================
+       Colonist bar navigation (ColonistBarState).
+       Page-based bar with mechs after colonists. Navigation uses
+       Alt+Arrow for movement and Ctrl+Alt+Arrow for reorder.
+       NoPawnAtPosition: {0} = "mech" or "colonist", {1} = 1-based
+                         page slot.
+       Reorder.Position: {0} = pawn label, {1} = 1-based new position,
+                         {2} = neighbor context.
+       BetweenContext: {0}/{1} = neighbor labels.
+       Page: {0} = 1-based page number. -->
+  <RimWorldAccess.Pawns.Bar.StartOfBar>栏首</RimWorldAccess.Pawns.Bar.StartOfBar>
+  <RimWorldAccess.Pawns.Bar.LastPage>最后一页</RimWorldAccess.Pawns.Bar.LastPage>
+  <RimWorldAccess.Pawns.Bar.FirstPage>第一页</RimWorldAccess.Pawns.Bar.FirstPage>
+  <RimWorldAccess.Pawns.Bar.AlreadyOnLastPage>已在最后一页</RimWorldAccess.Pawns.Bar.AlreadyOnLastPage>
+  <RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage>已在第一页</RimWorldAccess.Pawns.Bar.AlreadyOnFirstPage>
+  <RimWorldAccess.Pawns.Bar.NoMechsHere>此地图上没有机械族</RimWorldAccess.Pawns.Bar.NoMechsHere>
+  <RimWorldAccess.Pawns.Bar.NoColonistsHere>此地图上没有殖民者</RimWorldAccess.Pawns.Bar.NoColonistsHere>
+  <RimWorldAccess.Pawns.Bar.NotOnBar>不在殖民者栏上</RimWorldAccess.Pawns.Bar.NotOnBar>
+  <RimWorldAccess.Pawns.Bar.CannotReorderMechs>无法重新排列机械族</RimWorldAccess.Pawns.Bar.CannotReorderMechs>
+  <RimWorldAccess.Pawns.Bar.NoMechAtPosition>位置 {0} 没有机械族</RimWorldAccess.Pawns.Bar.NoMechAtPosition>
+  <RimWorldAccess.Pawns.Bar.NoColonistAtPosition>位置 {0} 没有殖民者</RimWorldAccess.Pawns.Bar.NoColonistAtPosition>
+  <RimWorldAccess.Pawns.Bar.MechsPage>机械族第 {0} 页</RimWorldAccess.Pawns.Bar.MechsPage>
+  <RimWorldAccess.Pawns.Bar.Page>第 {0} 页</RimWorldAccess.Pawns.Bar.Page>
+  <RimWorldAccess.Pawns.Bar.SectionMechs>机械族</RimWorldAccess.Pawns.Bar.SectionMechs>
+  <RimWorldAccess.Pawns.Bar.SectionColonists>殖民者</RimWorldAccess.Pawns.Bar.SectionColonists>
+  <RimWorldAccess.Pawns.Bar.OnlyColonist>唯一殖民者</RimWorldAccess.Pawns.Bar.OnlyColonist>
+  <RimWorldAccess.Pawns.Bar.Leftmost>最左</RimWorldAccess.Pawns.Bar.Leftmost>
+  <RimWorldAccess.Pawns.Bar.Rightmost>最右</RimWorldAccess.Pawns.Bar.Rightmost>
+  <RimWorldAccess.Pawns.Bar.Between>位于 {0} 与 {1} 之间</RimWorldAccess.Pawns.Bar.Between>
+  <RimWorldAccess.Pawns.Bar.ReorderResult>{0}, 位置 {1}, {2}</RimWorldAccess.Pawns.Bar.ReorderResult>
+  <RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition>已在最后位置</RimWorldAccess.Pawns.Bar.AlreadyAtLastPosition>
+  <RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition>已在第一位置</RimWorldAccess.Pawns.Bar.AlreadyAtFirstPosition>
+  <!-- JumpedTo: {0} = pawn label, {1} = tile info summary. -->
+  <RimWorldAccess.Pawns.Bar.JumpedTo>已跳转到 {0}。{1}</RimWorldAccess.Pawns.Bar.JumpedTo>
+
+  <!-- Pawn announcement composition (AnnouncePawn).
+       Bare:           {0} = label, {1} = job task.
+       WithCover:      {0} = label, {1} = cover info, {2} = task.
+       WithPosition:   {0} = pawn announcement, {1} = position phrase. -->
+  <RimWorldAccess.Pawns.Bar.PawnTask>{0} - {1}</RimWorldAccess.Pawns.Bar.PawnTask>
+  <RimWorldAccess.Pawns.Bar.PawnTaskWithCover>{0}, {1} - {2}</RimWorldAccess.Pawns.Bar.PawnTaskWithCover>
+  <RimWorldAccess.Pawns.Bar.WithPosition>{0}. {1}</RimWorldAccess.Pawns.Bar.WithPosition>
+  <RimWorldAccess.Pawns.Bar.Idle>闲置</RimWorldAccess.Pawns.Bar.Idle>
+
+  <!-- =================================================================
+       Interactive gear actions (InteractiveGearHelper).
+       Used by the inspection tree's gear category to drop, consume, or
+       view info on a pawn's equipment, apparel, or inventory items.
+       Action.Drop / Action.Consume / Action.ViewInfo are the menu labels
+       for each gear action.
+       Drop / Consume verb keys split into Cannot/Doing/Done/Failed/Error
+       so each verb can inflect independently.
+       NoItemInfo: spoken when ExecuteInfoAction is called with a missing
+                   item.
+       {0} = item label in all parameterized keys. -->
+  <RimWorldAccess.Pawns.Gear.Action.Drop>丢弃</RimWorldAccess.Pawns.Gear.Action.Drop>
+  <RimWorldAccess.Pawns.Gear.Action.Consume>食用</RimWorldAccess.Pawns.Gear.Action.Consume>
+  <RimWorldAccess.Pawns.Gear.Action.ViewInfo>查看信息</RimWorldAccess.Pawns.Gear.Action.ViewInfo>
+  <RimWorldAccess.Pawns.Gear.CannotDrop>无法丢弃 {0}</RimWorldAccess.Pawns.Gear.CannotDrop>
+  <RimWorldAccess.Pawns.Gear.Removing>正在移除 {0}</RimWorldAccess.Pawns.Gear.Removing>
+  <RimWorldAccess.Pawns.Gear.Dropping>正在丢弃 {0}</RimWorldAccess.Pawns.Gear.Dropping>
+  <RimWorldAccess.Pawns.Gear.Dropped>已丢弃 {0}</RimWorldAccess.Pawns.Gear.Dropped>
+  <RimWorldAccess.Pawns.Gear.FailedToDrop>丢弃 {0} 失败</RimWorldAccess.Pawns.Gear.FailedToDrop>
+  <RimWorldAccess.Pawns.Gear.ErrorDropping>丢弃 {0} 时出错</RimWorldAccess.Pawns.Gear.ErrorDropping>
+  <RimWorldAccess.Pawns.Gear.CannotConsume>无法食用 {0}</RimWorldAccess.Pawns.Gear.CannotConsume>
+  <RimWorldAccess.Pawns.Gear.Consuming>正在食用 {0}</RimWorldAccess.Pawns.Gear.Consuming>
+  <RimWorldAccess.Pawns.Gear.ErrorConsuming>食用 {0} 时出错</RimWorldAccess.Pawns.Gear.ErrorConsuming>
+  <RimWorldAccess.Pawns.Gear.NoItemInfo>没有可用的物品信息</RimWorldAccess.Pawns.Gear.NoItemInfo>
+  <RimWorldAccess.Pawns.Gear.NoActions>没有可用的操作</RimWorldAccess.Pawns.Gear.NoActions>
+
+  <!-- =================================================================
+       Assign menu policy CRUD (AssignMenuHelper).
+       Used when the player creates, duplicates, deletes, or sets a
+       default policy from the assign menu's per-policy context menu.
+       Each verb has its own key so it can inflect independently.
+       {0} = policy label. -->
+  <RimWorldAccess.Pawns.AssignMenu.PolicyCreated>已创建: {0}</RimWorldAccess.Pawns.AssignMenu.PolicyCreated>
+  <RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated>已复制: {0}</RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated>
+  <RimWorldAccess.Pawns.AssignMenu.PolicyDeleted>已删除方案</RimWorldAccess.Pawns.AssignMenu.PolicyDeleted>
+  <RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>{0} 已设为默认</RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>
+
+  <!-- =================================================================
+       Assign menu state (AssignMenuState).
+       The tabular pawn-by-policy table accessed from the bottom-bar
+       Assign tab (or F3 hotkey). Composed announcements split into
+       semantic-case keys so each verb (sort/set/paint/already) can
+       inflect independently.
+       Opened: {0} = tab label (e.g. "Assign"), {1} = colonist count.
+       Closed: {0} = tab label.
+       SortCannot/SortBy: {0} = column name, {1} = direction.
+       SetTo: {0} = pawn label, {1} = column name, {2} = option label.
+       ResortNowAt: {0} = cell announcement (item name + position).
+       AlreadyAt: {0} = pawn label, {1} = column name, {2} = value,
+                  {3} = position phrase.
+       AppliedAt: {0} = pawn label, {1} = applied value,
+                  {2} = position phrase.
+       PaintedTo: {0} = column name, {1} = source value, {2} = name list.
+       AllAlready: {0} = column name, {1} = source value. -->
+  <RimWorldAccess.Pawns.AssignMenu.NoColonists>未找到殖民者</RimWorldAccess.Pawns.AssignMenu.NoColonists>
+  <RimWorldAccess.Pawns.AssignMenu.Opened>{0}, {1} 名殖民者</RimWorldAccess.Pawns.AssignMenu.Opened>
+  <RimWorldAccess.Pawns.AssignMenu.Closed>{0} 已关闭</RimWorldAccess.Pawns.AssignMenu.Closed>
+  <RimWorldAccess.Pawns.AssignMenu.SortCannot>{0} 无法排序</RimWorldAccess.Pawns.AssignMenu.SortCannot>
+  <RimWorldAccess.Pawns.AssignMenu.SortCleared>已清除排序，默认顺序</RimWorldAccess.Pawns.AssignMenu.SortCleared>
+  <RimWorldAccess.Pawns.AssignMenu.SortedBy>已按 {0} 排序（{1}）</RimWorldAccess.Pawns.AssignMenu.SortedBy>
+  <RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap>角色不在地图上</RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap>
+  <RimWorldAccess.Pawns.AssignMenu.NotApplicable>不适用</RimWorldAccess.Pawns.AssignMenu.NotApplicable>
+  <RimWorldAccess.Pawns.AssignMenu.NoOptions>没有可用选项</RimWorldAccess.Pawns.AssignMenu.NoOptions>
+  <RimWorldAccess.Pawns.AssignMenu.SetTo>{0}: {1} 已设为 {2}</RimWorldAccess.Pawns.AssignMenu.SetTo>
+  <RimWorldAccess.Pawns.AssignMenu.ResortNowAt>现在位于 {0}</RimWorldAccess.Pawns.AssignMenu.ResortNowAt>
+  <RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn>此列没有右键菜单</RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn>
+  <RimWorldAccess.Pawns.AssignMenu.NoContextMenuItem>此项没有右键菜单</RimWorldAccess.Pawns.AssignMenu.NoContextMenuItem>
+  <RimWorldAccess.Pawns.AssignMenu.AlreadyAt>{0}: {1} 已为 {2}。{3}</RimWorldAccess.Pawns.AssignMenu.AlreadyAt>
+  <RimWorldAccess.Pawns.AssignMenu.AppliedAt>{0}: {1} 已应用。{2}</RimWorldAccess.Pawns.AssignMenu.AppliedAt>
+  <RimWorldAccess.Pawns.AssignMenu.PaintedTo>已为 {2} 将 {0} 涂刷为 {1}</RimWorldAccess.Pawns.AssignMenu.PaintedTo>
+  <RimWorldAccess.Pawns.AssignMenu.AllAlready>所有殖民者的 {0} 已为 {1}</RimWorldAccess.Pawns.AssignMenu.AllAlready>
+  <RimWorldAccess.Pawns.AssignMenu.NoColonistsShort>无殖民者</RimWorldAccess.Pawns.AssignMenu.NoColonistsShort>
+
+  <!-- =================================================================
+       Schedule menu (WindowlessScheduleState).
+       Two-column timetable: 24 hour cells per pawn (Schedule) and an
+       allowed-area picker (Areas). Brush keys 1-9,0 select the active
+       assignment def. Each composed shape is its own key so the
+       hour/pawn/area phrasing can localize independently.
+
+       HourColumn: {0} = hour index (0-23), used as the "column name" in
+                   table announcements.
+       Closed: {0} = schedule tab label.
+       NoSchedule: {0} = pawn label (timetable component missing).
+       Cell: {0} = pawn label, {1} = hour, {2} = assignment label.
+       CellWithPositions: appends ". Pawn {3}, Hour {4}." to Cell shape.
+       PaintApplied: {0} = pawn label, {1} = hour, {2} = assignment.
+       AlreadyAtHour: {0} = hour, {1} = assignment.
+       AlreadyAtPawnHour: {0} = pawn label, {1} = hour, {2} = assignment.
+       Brush.* keys compose the opening-announcement help text.
+       Brush.Selected: {0} = assignment label.
+       Brush.NumberKeyHelp: {0} = digit (0-9), {1} = assignment label.
+       Brush.NoBrushOnKey: {0} = digit pressed without a brush bound.
+       Brush.CopyPasteHelp: {0} = "Copy", {1} = "Paste" (vanilla
+                            translations passed in from C#).
+       Brush.TabForArea: {0} = "AllowedArea" (vanilla translation).
+       BulkPaint.HourRangeOne: {0} = single hour.
+       BulkPaint.HourRange: {0} = start hour, {1} = end hour.
+       BulkPaint.HoursLabelOne / Many: prefix word for the formatted list.
+       BulkPaint.PaintedHours: {0} = assignment, {1} = hour-range list,
+                                {2} = pawn label.
+       BulkPaint.HoursAlready: {0} = hour-range phrase, {1} = assignment,
+                                {2} = pawn label.
+       BulkPaint.HourRangeOneSlot: {0} = hour (e.g. "Hour 0").
+       BulkPaint.HourRangeFromTo: {0} = start hour, {1} = end hour.
+       AreaApplied: {0} = pawn label, {1} = area name, {2} = position.
+       AreaPaintedFor: {0} = area name, {1} = name list.
+       AreaAllAlready: {0} = area name.
+       AreaCellSummary: {0} = pawn label, {1} = area, {2} = pawn pos,
+                        {3} = area pos.
+       AreaSwitchHeader: {0} = "AllowedArea" (vanilla), {1} = AreaCellSummary
+                          composition.
+       AreaSwitchEmpty: {0} = "AllowedArea" (vanilla).
+       NoSchedCopied / NoHomeArea / ContextOnlyAreas: bare strings.
+       ContextMenu.SetAllHome / ClearAll: bulk-paint context-menu labels.
+       SetCountToHome: {0} = count.
+       ClearedCount: {0} = count. -->
+  <RimWorldAccess.Pawns.Schedule.HourColumn>{0} 时</RimWorldAccess.Pawns.Schedule.HourColumn>
+  <RimWorldAccess.Pawns.Schedule.Closed>{0} 已关闭</RimWorldAccess.Pawns.Schedule.Closed>
+  <RimWorldAccess.Pawns.Schedule.NoPawnsAvailable>没有可用角色</RimWorldAccess.Pawns.Schedule.NoPawnsAvailable>
+  <RimWorldAccess.Pawns.Schedule.NoSchedule>{0}: 无时间表</RimWorldAccess.Pawns.Schedule.NoSchedule>
+  <RimWorldAccess.Pawns.Schedule.Cell>{0}, {1} 时: {2}</RimWorldAccess.Pawns.Schedule.Cell>
+  <RimWorldAccess.Pawns.Schedule.CellWithPositions>{0}, {1} 时: {2}. 角色 {3}, {4} 时.</RimWorldAccess.Pawns.Schedule.CellWithPositions>
+  <RimWorldAccess.Pawns.Schedule.PaintApplied>{0}, {1} 时已设为 {2}</RimWorldAccess.Pawns.Schedule.PaintApplied>
+  <RimWorldAccess.Pawns.Schedule.AlreadyAtHour>{0} 时: 已设为 {1}</RimWorldAccess.Pawns.Schedule.AlreadyAtHour>
+  <RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>{0}, {1} 时: 已设为 {2}</RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>
+  <RimWorldAccess.Pawns.Schedule.Brush.Selected>当前所选画笔: {0}。</RimWorldAccess.Pawns.Schedule.Brush.Selected>
+  <RimWorldAccess.Pawns.Schedule.Brush.HelpHeader>按以下数字选择画笔:</RimWorldAccess.Pawns.Schedule.Brush.HelpHeader>
+  <RimWorldAccess.Pawns.Schedule.Brush.NumberKeyHelp>{0}: {1}。</RimWorldAccess.Pawns.Schedule.Brush.NumberKeyHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.ApplyHelp>按空格键将当前画笔应用到当前单元格。</RimWorldAccess.Pawns.Schedule.Brush.ApplyHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.PaintHelp>按住 Shift 键并点按方向键，可将所选画笔涂刷到多个单元格。</RimWorldAccess.Pawns.Schedule.Brush.PaintHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.CopyPasteHelp>{0} Ctrl+C, {1} Ctrl+V.</RimWorldAccess.Pawns.Schedule.Brush.CopyPasteHelp>
+  <RimWorldAccess.Pawns.Schedule.Brush.TabForArea>按 Tab 切换至 {0}。</RimWorldAccess.Pawns.Schedule.Brush.TabForArea>
+  <RimWorldAccess.Pawns.Schedule.Brush.NoBrushOnKey>按键 {0} 未分配画笔</RimWorldAccess.Pawns.Schedule.Brush.NoBrushOnKey>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeOne>{0}</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeOne>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRange>{0} 至 {1}</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRange>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelOne>小时</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelOne>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelMany>小时</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursLabelMany>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursWithList>{0} {1}</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursWithList>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours>已为 {2} 在 {1} 涂刷 {0}</RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready>{2} 的 {0} 已设为 {1}</RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFirstOnly>0 时</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFirstOnly>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFromZero>0 时至 {0} 时</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFromZero>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeLastOnly>23 时</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeLastOnly>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeToLast>{0} 时至 23 时</RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeToLast>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHourForPawns>已为 {2} 在 {1} 时涂刷 {0}</RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHourForPawns>
+  <RimWorldAccess.Pawns.Schedule.BulkPaint.HourAllPawnsAlready>所有角色的 {0} 时已设为 {1}</RimWorldAccess.Pawns.Schedule.BulkPaint.HourAllPawnsAlready>
+  <RimWorldAccess.Pawns.Schedule.NoSchedCopied>未复制时间表</RimWorldAccess.Pawns.Schedule.NoSchedCopied>
+  <RimWorldAccess.Pawns.Schedule.AreaApplied>{0}: 已应用 {1}。{2}</RimWorldAccess.Pawns.Schedule.AreaApplied>
+  <RimWorldAccess.Pawns.Schedule.AreaAppliedPawnPos>{0}: 已应用 {1}。角色 {2}</RimWorldAccess.Pawns.Schedule.AreaAppliedPawnPos>
+  <RimWorldAccess.Pawns.Schedule.AreaPaintedFor>已为 {1} 涂刷 {0}</RimWorldAccess.Pawns.Schedule.AreaPaintedFor>
+  <RimWorldAccess.Pawns.Schedule.AreaAllAlready>所有角色已设为 {0}</RimWorldAccess.Pawns.Schedule.AreaAllAlready>
+  <RimWorldAccess.Pawns.Schedule.AreaCellSummary>{0}: {1}. 角色 {2}, 活动区 {3}</RimWorldAccess.Pawns.Schedule.AreaCellSummary>
+  <RimWorldAccess.Pawns.Schedule.AreaSwitchHeader>{0}. {1}</RimWorldAccess.Pawns.Schedule.AreaSwitchHeader>
+  <RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty>{0}. 没有可用角色</RimWorldAccess.Pawns.Schedule.AreaSwitchEmpty>
+  <RimWorldAccess.Pawns.Schedule.AreaFocus>{0}. {1}</RimWorldAccess.Pawns.Schedule.AreaFocus>
+  <RimWorldAccess.Pawns.Schedule.ContextOnlyAreas>右键菜单仅在活动区列可用</RimWorldAccess.Pawns.Schedule.ContextOnlyAreas>
+  <RimWorldAccess.Pawns.Schedule.ContextMenu.SetAllHome>全部设为居住区</RimWorldAccess.Pawns.Schedule.ContextMenu.SetAllHome>
+  <RimWorldAccess.Pawns.Schedule.ContextMenu.ClearAll>清除全部活动区</RimWorldAccess.Pawns.Schedule.ContextMenu.ClearAll>
+  <RimWorldAccess.Pawns.Schedule.NoHomeArea>未定义居住区</RimWorldAccess.Pawns.Schedule.NoHomeArea>
+  <RimWorldAccess.Pawns.Schedule.SetCountToHome>已将 {0} 名角色设为居住区</RimWorldAccess.Pawns.Schedule.SetCountToHome>
+  <RimWorldAccess.Pawns.Schedule.ClearedCount>已清除 {0} 名角色的活动区</RimWorldAccess.Pawns.Schedule.ClearedCount>
+
+  <!-- =================================================================
+       Training tab actions (TrainingTabHelper).
+       Toggle confirmations and exception fallbacks for the inspection
+       tree's Training category. Each toggle and error has its own key
+       so verbs (toggle/set/training/setting) can inflect independently
+       across languages. -->
+  <RimWorldAccess.Pawns.Training.Wanted>需要</RimWorldAccess.Pawns.Training.Wanted>
+  <RimWorldAccess.Pawns.Training.NotWanted>不需要</RimWorldAccess.Pawns.Training.NotWanted>
+  <RimWorldAccess.Pawns.Training.ErrorToggleTraining>切换训练时出错</RimWorldAccess.Pawns.Training.ErrorToggleTraining>
+  <RimWorldAccess.Pawns.Training.ErrorSetMaster>设置主人时出错</RimWorldAccess.Pawns.Training.ErrorSetMaster>
+  <RimWorldAccess.Pawns.Training.ErrorToggleSetting>切换设置时出错</RimWorldAccess.Pawns.Training.ErrorToggleSetting>
+
+  <!-- =================================================================
+       Social tab actions (SocialTabHelper).
+       Action-result announcements for assigning ideology roles, setting
+       pregnancy approach, and initiating romance. Each verb is its own
+       key so it can inflect independently.
+       RoleAssigned: {0} = pawn label, {1} = role name.
+       RoleUnassigned: same shape, "unassigned from".
+       PregnancyApproachSet: {0} = approach label (already capitalized). -->
+  <RimWorldAccess.Pawns.Social.RoleAssigned>{0} 已任命为 {1}</RimWorldAccess.Pawns.Social.RoleAssigned>
+  <RimWorldAccess.Pawns.Social.RoleUnassigned>{0} 已卸任 {1}</RimWorldAccess.Pawns.Social.RoleUnassigned>
+  <RimWorldAccess.Pawns.Social.ErrorAssignRole>任命职责时出错</RimWorldAccess.Pawns.Social.ErrorAssignRole>
+  <RimWorldAccess.Pawns.Social.ErrorUnassignRole>卸任职责时出错</RimWorldAccess.Pawns.Social.ErrorUnassignRole>
+  <RimWorldAccess.Pawns.Social.PregnancyApproachSet>怀孕策略已设为: {0}</RimWorldAccess.Pawns.Social.PregnancyApproachSet>
+  <RimWorldAccess.Pawns.Social.ErrorSetPregnancyApproach>设置怀孕策略时出错</RimWorldAccess.Pawns.Social.ErrorSetPregnancyApproach>
+  <RimWorldAccess.Pawns.Social.ErrorInitiateRomance>发起恋爱时出错</RimWorldAccess.Pawns.Social.ErrorInitiateRomance>
+
+  <!-- =================================================================
+       Social tab tree display (SocialTabHelper + InspectionTreeBuilder
+       social/ideology/romance branches). Each phrase below is a complete
+       tree-item label, so word order can vary by language. Friend /
+       Rival / Acquaintance reuse the vanilla keys of the same names.
+       Each detail line composed by SocialTabHelper becomes one tree item;
+       no separators are glued in C#.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Social.Ideology.None>无</RimWorldAccess.Pawns.Social.Ideology.None>
+  <RimWorldAccess.Pawns.Social.Ideology.NotAvailable>没有可用的信仰信息</RimWorldAccess.Pawns.Social.Ideology.NotAvailable>
+  <RimWorldAccess.Pawns.Social.Ideology.Header>信仰: {0}</RimWorldAccess.Pawns.Social.Ideology.Header>
+
+  <!-- Relations list. Entry: {0} = pawn label, {1} = relations
+       (comma-joined or "Acquaintance"), {2} = signed opinion. Header:
+       {0} = other pawn label. Relationships: {0} = relations list.
+       MyOpinion / TheirOpinion: {0} = signed opinion. OpinionFactor:
+       {0} = factor label, {1} = signed offset. -->
+  <RimWorldAccess.Pawns.Social.Relation.NoRelations>无关系</RimWorldAccess.Pawns.Social.Relation.NoRelations>
+  <RimWorldAccess.Pawns.Social.Relation.Entry>{0}（{1}, 看法: {2}）</RimWorldAccess.Pawns.Social.Relation.Entry>
+  <RimWorldAccess.Pawns.Social.Relation.Header>与 {0} 的关系:</RimWorldAccess.Pawns.Social.Relation.Header>
+  <RimWorldAccess.Pawns.Social.Relation.Relationships>关系: {0}</RimWorldAccess.Pawns.Social.Relation.Relationships>
+  <RimWorldAccess.Pawns.Social.Relation.MyOpinion>我的看法: {0}</RimWorldAccess.Pawns.Social.Relation.MyOpinion>
+  <RimWorldAccess.Pawns.Social.Relation.TheirOpinion>对方的看法: {0}</RimWorldAccess.Pawns.Social.Relation.TheirOpinion>
+  <RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader>看法影响因素:</RimWorldAccess.Pawns.Social.Relation.OpinionFactorsHeader>
+  <RimWorldAccess.Pawns.Social.Relation.OpinionFactor>{0}: {1}</RimWorldAccess.Pawns.Social.Relation.OpinionFactor>
+  <RimWorldAccess.Pawns.Social.Relation.NoFactors>（无）</RimWorldAccess.Pawns.Social.Relation.NoFactors>
+  <RimWorldAccess.Pawns.Social.Relation.LovePartners>恋爱伴侣</RimWorldAccess.Pawns.Social.Relation.LovePartners>
+
+  <!-- Try Romance sub-menu. WillTry: {0} = initiator, {1} = target.
+       TargetEntry: {0} = target name, {1} = chance percent, {2} = the
+       vanilla "chance" word. TargetUnavailable: {0} = target name,
+       {1} = vanilla rejection reason. BreakdownHeader: {0} = target,
+       {1} = vanilla "RomanceChance" label, {2} = chance percent. -->
+  <RimWorldAccess.Pawns.Social.Romance.WillTry>{0} 将尝试追求 {1}</RimWorldAccess.Pawns.Social.Romance.WillTry>
+  <RimWorldAccess.Pawns.Social.Romance.TargetEntry>{0}（{1} {2}）</RimWorldAccess.Pawns.Social.Romance.TargetEntry>
+  <RimWorldAccess.Pawns.Social.Romance.TargetUnavailable>{0}（{1}）</RimWorldAccess.Pawns.Social.Romance.TargetUnavailable>
+  <RimWorldAccess.Pawns.Social.Romance.BreakdownHeader>{0} - {1}: {2}</RimWorldAccess.Pawns.Social.Romance.BreakdownHeader>
+
+  <!-- Ideology role assign/unassign actions and headers. LabelWithHolder:
+       {0} = role label, {1} = current holder name (or vanilla
+       "NoRoleAssigned"). Assign/Unassign: {0} = pawn name. -->
+  <RimWorldAccess.Pawns.Social.Role.LabelWithHolder>{0}: {1}</RimWorldAccess.Pawns.Social.Role.LabelWithHolder>
+  <RimWorldAccess.Pawns.Social.Role.Assign>任命 {0}</RimWorldAccess.Pawns.Social.Role.Assign>
+  <RimWorldAccess.Pawns.Social.Role.Unassign>卸任 {0}</RimWorldAccess.Pawns.Social.Role.Unassign>
+  <RimWorldAccess.Pawns.Social.Role.CannotAssignReason>无法任命: {0}</RimWorldAccess.Pawns.Social.Role.CannotAssignReason>
+  <RimWorldAccess.Pawns.Social.Role.CannotAssignDefault>无法任命: 未满足要求</RimWorldAccess.Pawns.Social.Role.CannotAssignDefault>
+  <RimWorldAccess.Pawns.Social.Role.RequirementsHeader>要求</RimWorldAccess.Pawns.Social.Role.RequirementsHeader>
+
+  <!-- =================================================================
+       Pawn quick-info readouts (PawnInfoHelper.GetHealthInfo /
+       GetMoodInfo / GetNeedsInfo / GetGearInfo / GetSocialInfo /
+       GetTrainingInfo / GetCharacterInfo / GetTopSkillsInfo /
+       GetWorkInfo). Spoken by the Alt+H/M/N/G/K hotkeys (and consumed
+       by other modules through these methods). Each helper composes
+       clean phrase fragments through AnnouncementBuilder, which owns
+       the period separators between fragments — values below carry no
+       trailing punctuation.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Info.NoPawn>无角色</RimWorldAccess.Pawns.Info.NoPawn>
+  <RimWorldAccess.Pawns.Info.Idle>闲置</RimWorldAccess.Pawns.Info.Idle>
+
+  <!-- Health (combat-focused dump). Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them.
+       NameHeader: pawn label only — opens the readout.
+       Capacity: {0} = capacity label, {1} = level label.
+       PartHealth: {0} = body part label, {1} = current HP, {2} = max HP. -->
+  <RimWorldAccess.Pawns.Health.NoTracker>{0}: 无健康追踪器</RimWorldAccess.Pawns.Health.NoTracker>
+  <RimWorldAccess.Pawns.Health.NameHeader>{0}</RimWorldAccess.Pawns.Health.NameHeader>
+  <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}</RimWorldAccess.Pawns.Health.Capacity>
+  <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}</RimWorldAccess.Pawns.Health.PartHealth>
+
+  <!-- Needs. -->
+  <RimWorldAccess.Pawns.Needs.NoTracker>{0}: 无需求追踪器</RimWorldAccess.Pawns.Needs.NoTracker>
+  <RimWorldAccess.Pawns.Needs.Header>{0} 的需求</RimWorldAccess.Pawns.Needs.Header>
+  <RimWorldAccess.Pawns.Needs.NeedLine>{0}: {1}%</RimWorldAccess.Pawns.Needs.NeedLine>
+  <RimWorldAccess.Pawns.Needs.LearningDesires>学习需求: {0}</RimWorldAccess.Pawns.Needs.LearningDesires>
+  <RimWorldAccess.Pawns.Needs.Empty>无可显示的需求</RimWorldAccess.Pawns.Needs.Empty>
+
+  <!-- Mood. -->
+  <RimWorldAccess.Pawns.Mood.NoTracker>{0}: 无心情追踪器</RimWorldAccess.Pawns.Mood.NoTracker>
+  <RimWorldAccess.Pawns.Mood.Header>{0} 的心情</RimWorldAccess.Pawns.Mood.Header>
+  <RimWorldAccess.Pawns.Mood.MoodLine>心情: {0}%（{1}）</RimWorldAccess.Pawns.Mood.MoodLine>
+  <RimWorldAccess.Pawns.Mood.ThoughtsHeader>影响心情的想法，共 {0} 项</RimWorldAccess.Pawns.Mood.ThoughtsHeader>
+  <RimWorldAccess.Pawns.Mood.ThoughtLine>{0}: {1}</RimWorldAccess.Pawns.Mood.ThoughtLine>
+  <RimWorldAccess.Pawns.Mood.ThoughtMultiplier>{0} x{1}</RimWorldAccess.Pawns.Mood.ThoughtMultiplier>
+  <RimWorldAccess.Pawns.Mood.NoThoughts>没有影响心情的想法</RimWorldAccess.Pawns.Mood.NoThoughts>
+
+  <!-- Gear. -->
+  <RimWorldAccess.Pawns.GearInfo.Header>{0} 的装备</RimWorldAccess.Pawns.GearInfo.Header>
+  <RimWorldAccess.Pawns.GearInfo.Wielding>持有: {0}</RimWorldAccess.Pawns.GearInfo.Wielding>
+  <RimWorldAccess.Pawns.GearInfo.WieldingNothing>未持有任何武器</RimWorldAccess.Pawns.GearInfo.WieldingNothing>
+  <RimWorldAccess.Pawns.GearInfo.QualifiedItem>{0}（{1}）</RimWorldAccess.Pawns.GearInfo.QualifiedItem>
+  <RimWorldAccess.Pawns.GearInfo.Wearing>穿着: {0}</RimWorldAccess.Pawns.GearInfo.Wearing>
+  <RimWorldAccess.Pawns.GearInfo.WearingNothing>未穿着任何衣物</RimWorldAccess.Pawns.GearInfo.WearingNothing>
+
+  <!-- Social. -->
+  <RimWorldAccess.Pawns.SocialInfo.NoTracker>{0}: 无关系追踪器</RimWorldAccess.Pawns.SocialInfo.NoTracker>
+  <RimWorldAccess.Pawns.SocialInfo.Header>{0} 的社交信息</RimWorldAccess.Pawns.SocialInfo.Header>
+  <RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>{0} 的关系</RimWorldAccess.Pawns.SocialInfo.RelationshipsHeader>
+  <RimWorldAccess.Pawns.SocialInfo.RelationshipLine>{0}: {1}</RimWorldAccess.Pawns.SocialInfo.RelationshipLine>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>他人的看法，共 {0} 项</RimWorldAccess.Pawns.SocialInfo.OpinionsHeader>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionLine>{0}: {1}</RimWorldAccess.Pawns.SocialInfo.OpinionLine>
+  <RimWorldAccess.Pawns.SocialInfo.OpinionsMore>还有 {0} 项</RimWorldAccess.Pawns.SocialInfo.OpinionsMore>
+  <RimWorldAccess.Pawns.SocialInfo.NoRelationships>无直接关系</RimWorldAccess.Pawns.SocialInfo.NoRelationships>
+
+  <!-- Training (animal trainable readout). -->
+  <RimWorldAccess.Pawns.TrainingInfo.NotTrainable>{0}: 无法训练</RimWorldAccess.Pawns.TrainingInfo.NotTrainable>
+  <RimWorldAccess.Pawns.TrainingInfo.Header>{0} 的训练</RimWorldAccess.Pawns.TrainingInfo.Header>
+  <RimWorldAccess.Pawns.TrainingInfo.LineLearned>{0}: 已学会</RimWorldAccess.Pawns.TrainingInfo.LineLearned>
+  <RimWorldAccess.Pawns.TrainingInfo.LineInProgress>{0}: 进行中</RimWorldAccess.Pawns.TrainingInfo.LineInProgress>
+  <RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>{0} 已训练</RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>{0} 进行中</RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.NoSkills>无可训练的技能</RimWorldAccess.Pawns.TrainingInfo.NoSkills>
+
+  <!-- Character (traits, backstory, top skills). -->
+  <RimWorldAccess.Pawns.Character.Header>{0} 的角色信息</RimWorldAccess.Pawns.Character.Header>
+  <RimWorldAccess.Pawns.Character.Age>年龄: {0} 岁</RimWorldAccess.Pawns.Character.Age>
+  <RimWorldAccess.Pawns.Character.TraitsHeader>{0} 的特性</RimWorldAccess.Pawns.Character.TraitsHeader>
+  <RimWorldAccess.Pawns.Character.Childhood>童年: {0}</RimWorldAccess.Pawns.Character.Childhood>
+  <RimWorldAccess.Pawns.Character.Adulthood>成年: {0}</RimWorldAccess.Pawns.Character.Adulthood>
+  <RimWorldAccess.Pawns.Character.TopSkillsHeader>顶尖技能</RimWorldAccess.Pawns.Character.TopSkillsHeader>
+  <RimWorldAccess.Pawns.Character.SkillLine>{0}: {1}{2}</RimWorldAccess.Pawns.Character.SkillLine>
+  <RimWorldAccess.Pawns.Character.PassionMinor> (•)</RimWorldAccess.Pawns.Character.PassionMinor>
+  <RimWorldAccess.Pawns.Character.PassionMajor> (••)</RimWorldAccess.Pawns.Character.PassionMajor>
+
+  <!-- Top-3 skills concise format (Alt+K). -->
+  <RimWorldAccess.Pawns.TopSkills.NoSkills>{0}: 无技能</RimWorldAccess.Pawns.TopSkills.NoSkills>
+  <RimWorldAccess.Pawns.TopSkills.Header>{0} 的顶尖技能</RimWorldAccess.Pawns.TopSkills.Header>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntry>{0}: {1}</RimWorldAccess.Pawns.TopSkills.SkillEntry>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>{0}: {1}, 兴趣度</RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>{0}: {1}, 双倍兴趣度</RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>
+
+  <!-- Work priorities readout. -->
+  <RimWorldAccess.Pawns.WorkInfo.NoSettings>{0}: 无工作设置</RimWorldAccess.Pawns.WorkInfo.NoSettings>
+  <RimWorldAccess.Pawns.WorkInfo.Header>{0} 的工作</RimWorldAccess.Pawns.WorkInfo.Header>
+  <RimWorldAccess.Pawns.WorkInfo.LinePriority>{0}（优先级 {1}）</RimWorldAccess.Pawns.WorkInfo.LinePriority>
+  <RimWorldAccess.Pawns.WorkInfo.LineEnabled>{0}（已启用）</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
+  <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} 已启用</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
+  <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} 已禁用</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
+  <RimWorldAccess.Pawns.WorkInfo.NoWork>未启用任何工作类型</RimWorldAccess.Pawns.WorkInfo.NoWork>
+
+  <!-- =================================================================
+       Pawn skills table (PawnSkillsTableState).
+       Read-only 2D table: rows = colonists, columns = SkillDefs.
+       Opened: {0} = colonist count, {1} = skill count.
+       Sort keys reuse RimWorldAccess.Animals.Sort.* (CannotSort/Cleared/SortedBy).
+       ================================================================= -->
+  <RimWorldAccess.Pawns.SkillsTable.Opened>技能, {0} 名殖民者, {1} 项技能</RimWorldAccess.Pawns.SkillsTable.Opened>
+  <RimWorldAccess.Pawns.SkillsTable.Closed>已关闭技能表</RimWorldAccess.Pawns.SkillsTable.Closed>
+
+  <!-- =================================================================
+       Drug policy editor (DrugPolicyEditorState) announcement glue.
+       The setting labels, tooltips, drug names, and on/off values
+       come through .Translate() at the call site (vanilla keys); the
+       composition shapes live here.
+       DrugLine: {0} = drug name, {1} = status summary, {2} = position.
+       SettingNoTooltip: {0} = setting label, {1} = value, {2} = pos.
+       SettingWithTooltip: {0} = label, {1} = value, {2} = tooltip,
+                          {3} = position.
+       SettingChange: {0} = label, {1} = new value.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.DrugPolicy.DrugLine>{0}. {1}. {2}</RimWorldAccess.Pawns.DrugPolicy.DrugLine>
+  <RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip>{0}: {1}. {2}</RimWorldAccess.Pawns.DrugPolicy.SettingNoTooltip>
+  <RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip>{0}: {1}. {2} {3}</RimWorldAccess.Pawns.DrugPolicy.SettingWithTooltip>
+  <RimWorldAccess.Pawns.DrugPolicy.SettingChange>{0}: {1}</RimWorldAccess.Pawns.DrugPolicy.SettingChange>
+
+  <!-- =================================================================
+       Policy editor announcement (PolicyEditorState).
+       Spoken when an apparel/food/drug/reading editor opens.
+       {0} = the localized "Edit" verb (vanilla "AssignTabEdit"),
+       {1} = the policy label (e.g. "Restricted"). The two-token space
+       glue is one phrase so a translator can re-order them.
+       ================================================================= -->
+  <RimWorldAccess.Pawns.Policy.EditAnnouncement>{0} {1}</RimWorldAccess.Pawns.Policy.EditAnnouncement>
+
+  <!-- Schedule copy/paste announcement (WindowlessScheduleState). The
+       leading word is the vanilla "Copy"/"Paste" key resolved at the
+       call site; the colon-space joiner lives here. {0} = verb,
+       {1} = pawn label. -->
+  <RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement>{0}: {1}</RimWorldAccess.Pawns.Schedule.CopyPasteAnnouncement>
+
+
+  <!-- Interactive gear item detail readout (src/Pawns/InteractiveGearHelper.cs). -->
+  <RimWorldAccess.Pawns.Gear.Quality>品质: {0}</RimWorldAccess.Pawns.Gear.Quality>
+  <RimWorldAccess.Pawns.Gear.Condition>状况: {0}（{1} / {2} 耐久）</RimWorldAccess.Pawns.Gear.Condition>
+  <RimWorldAccess.Pawns.Gear.Material>材料: {0}</RimWorldAccess.Pawns.Gear.Material>
+  <RimWorldAccess.Pawns.Gear.MarketValue>市场价值: {0} 白银</RimWorldAccess.Pawns.Gear.MarketValue>
+  <RimWorldAccess.Pawns.Gear.Mass>重量: {0} 千克</RimWorldAccess.Pawns.Gear.Mass>
+  <RimWorldAccess.Pawns.Gear.DescriptionHeader>描述:</RimWorldAccess.Pawns.Gear.DescriptionHeader>
+</LanguageData>

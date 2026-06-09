@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.TextInput.LabelDefault>字段</RimWorldAccess.TextInput.LabelDefault>
+  <RimWorldAccess.TextInput.LabelFaction>派系名称</RimWorldAccess.TextInput.LabelFaction>
+  <RimWorldAccess.TextInput.LabelSettlement>定居点名称</RimWorldAccess.TextInput.LabelSettlement>
+  <RimWorldAccess.TextInput.LabelPawnFirstName>名</RimWorldAccess.TextInput.LabelPawnFirstName>
+  <RimWorldAccess.TextInput.LabelPawnNickName>昵称</RimWorldAccess.TextInput.LabelPawnNickName>
+  <RimWorldAccess.TextInput.LabelPawnLastName>姓</RimWorldAccess.TextInput.LabelPawnLastName>
+  <RimWorldAccess.TextInput.LabelZone>区域名称</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelStorage>储存区名称</RimWorldAccess.TextInput.LabelStorage>
+  <RimWorldAccess.TextInput.LabelPen>畜栏名称</RimWorldAccess.TextInput.LabelPen>
+  <RimWorldAccess.TextInput.LabelScenarioTitle>剧情标题</RimWorldAccess.TextInput.LabelScenarioTitle>
+  <RimWorldAccess.TextInput.LabelScenarioSummary>剧情摘要</RimWorldAccess.TextInput.LabelScenarioSummary>
+  <RimWorldAccess.TextInput.LabelScenarioDescription>剧情描述</RimWorldAccess.TextInput.LabelScenarioDescription>
+  <RimWorldAccess.TextInput.LabelFilename>文件名</RimWorldAccess.TextInput.LabelFilename>
+  <RimWorldAccess.TextInput.LabelXenotype>异种人名称</RimWorldAccess.TextInput.LabelXenotype>
+  <RimWorldAccess.TextInput.LabelXenogerm>异种胚芽名称</RimWorldAccess.TextInput.LabelXenogerm>
+  <RimWorldAccess.TextInput.LabelWorldSeed>世界种子</RimWorldAccess.TextInput.LabelWorldSeed>
+
+  <RimWorldAccess.TextInput.EditingField>正在编辑 {0}: {1}。输入新值，回车确认，Esc 取消。</RimWorldAccess.TextInput.EditingField>
+  <RimWorldAccess.TextInput.EditingMultiLineField>正在编辑多行字段 {0}: {1}。输入内容，Shift+回车换行，上/下方向键切换行，回车确认，Esc 取消。</RimWorldAccess.TextInput.EditingMultiLineField>
+  <RimWorldAccess.TextInput.Empty>空</RimWorldAccess.TextInput.Empty>
+  <RimWorldAccess.TextInput.Deleted>已删除 {0}</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.FieldSet>{0} 已设为 {1}</RimWorldAccess.TextInput.FieldSet>
+  <RimWorldAccess.TextInput.FieldUnchanged>{0} 未更改</RimWorldAccess.TextInput.FieldUnchanged>
+  <RimWorldAccess.TextInput.NewLine>新行</RimWorldAccess.TextInput.NewLine>
+  <RimWorldAccess.TextInput.BlankLine>空行</RimWorldAccess.TextInput.BlankLine>
+
+  <RimWorldAccess.TextInput.Copied>已复制</RimWorldAccess.TextInput.Copied>
+  <RimWorldAccess.TextInput.Cut>已剪切</RimWorldAccess.TextInput.Cut>
+  <RimWorldAccess.TextInput.SelectedAll>已全选: {0}</RimWorldAccess.TextInput.SelectedAll>
+  <RimWorldAccess.TextInput.SelectedAllLong>已全选，{0} 个字符</RimWorldAccess.TextInput.SelectedAllLong>
+  <RimWorldAccess.TextInput.ClipboardEmpty>剪贴板为空</RimWorldAccess.TextInput.ClipboardEmpty>
+  <RimWorldAccess.TextInput.PastedShort>已粘贴: {0}</RimWorldAccess.TextInput.PastedShort>
+  <RimWorldAccess.TextInput.PastedWords>已粘贴 {0} 个单词</RimWorldAccess.TextInput.PastedWords>
+  <RimWorldAccess.TextInput.PastedLines>已粘贴 {0} 行，{1} 个单词</RimWorldAccess.TextInput.PastedLines>
+
+  <RimWorldAccess.TextInput.RejectedEmpty>不能接受空值</RimWorldAccess.TextInput.RejectedEmpty>
+  <RimWorldAccess.TextInput.RejectedTooLong>无法粘贴，超出 {0} 个字符的上限</RimWorldAccess.TextInput.RejectedTooLong>
+  <RimWorldAccess.TextInput.RejectedTooShort>无法粘贴，至少需要 {0} 个字符</RimWorldAccess.TextInput.RejectedTooShort>
+  <RimWorldAccess.TextInput.RejectedDisallowed>无法粘贴，包含不允许的字符: {0}</RimWorldAccess.TextInput.RejectedDisallowed>
+  <RimWorldAccess.TextInput.RejectedSpecial>无法粘贴，包含禁用的语法字符</RimWorldAccess.TextInput.RejectedSpecial>
+  <RimWorldAccess.TextInput.RejectedFilename>无法粘贴，包含文件名中不允许的字符</RimWorldAccess.TextInput.RejectedFilename>
+  <RimWorldAccess.TextInput.RejectedCustom>无法接受该值: {0}</RimWorldAccess.TextInput.RejectedCustom>
+</LanguageData>

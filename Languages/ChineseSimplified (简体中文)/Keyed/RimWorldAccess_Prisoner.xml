@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Prisoner module strings (src/Prisoner/). Three files contribute:
+      - PrisonerTabPatch.cs    (Harmony patch, no user-facing text)
+      - PrisonerTabHelper.cs   (info/stats formatting, interaction descriptions)
+      - PrisonerTabState.cs    (tab navigation, section announcements, selections)
+
+    Placeholders follow string.Format ({0}, {1}, ...). Many keys embed
+    pawn names, def labels, faction names, or raw numbers/percentages that
+    come from the game's own data - do not attempt to translate the
+    substituted values, only the surrounding wording. Shared vocabulary
+    (e.g. "No pawn selected") is sourced from RimWorldAccess_Common.xml
+    through GuardHelper, so it is not duplicated here.
+  -->
+
+  <!-- Guest-tracker / identity fallbacks. Spoken when a pawn lacks the
+       expected tracker component or does not belong to the expected class.
+       {0} = pawn short label. -->
+  <RimWorldAccess.Prisoner.Guest.NoTracker>{0}: 无宾客追踪器</RimWorldAccess.Prisoner.Guest.NoTracker>
+  <RimWorldAccess.Prisoner.Guest.NotPrisoner>{0}: 不是囚犯</RimWorldAccess.Prisoner.Guest.NotPrisoner>
+  <RimWorldAccess.Prisoner.Guest.NotSlave>{0}: 不是奴隶</RimWorldAccess.Prisoner.Guest.NotSlave>
+  <RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>{0} 不是囚犯或奴隶</RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>
+
+  <!-- Prisoner stats block. Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them. -->
+  <RimWorldAccess.Prisoner.Info.HeaderPrisoner>{0} - 囚犯</RimWorldAccess.Prisoner.Info.HeaderPrisoner>
+  <RimWorldAccess.Prisoner.Info.HeaderSlave>{0} - 奴隶</RimWorldAccess.Prisoner.Info.HeaderSlave>
+  <RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>越狱: 正在越狱！</RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>
+  <RimWorldAccess.Prisoner.Info.PrisonBreakNever>越狱间隔: 永不</RimWorldAccess.Prisoner.Info.PrisonBreakNever>
+  <RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>被基因阻止: {0}</RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>
+  <RimWorldAccess.Prisoner.Info.PrisonBreakDays>越狱间隔: {0} 天</RimWorldAccess.Prisoner.Info.PrisonBreakDays>
+  <RimWorldAccess.Prisoner.Info.Resistance>招募抵抗: {0}</RimWorldAccess.Prisoner.Info.Resistance>
+  <RimWorldAccess.Prisoner.Info.ResistanceInitialRange>初始范围: {0} 至 {1}</RimWorldAccess.Prisoner.Info.ResistanceInitialRange>
+  <RimWorldAccess.Prisoner.Info.NonRecruitable>招募: 不可招募</RimWorldAccess.Prisoner.Info.NonRecruitable>
+  <RimWorldAccess.Prisoner.Info.WillLevel>意志: {0}</RimWorldAccess.Prisoner.Info.WillLevel>
+  <RimWorldAccess.Prisoner.Info.WillInitialRange>初始范围: {0} 至 {1}</RimWorldAccess.Prisoner.Info.WillInitialRange>
+  <RimWorldAccess.Prisoner.Info.SlavePrice>奴隶价格: {0} 白银</RimWorldAccess.Prisoner.Info.SlavePrice>
+  <RimWorldAccess.Prisoner.Info.StudiableYes>可调查: 是</RimWorldAccess.Prisoner.Info.StudiableYes>
+  <RimWorldAccess.Prisoner.Info.ReleaseRelationGains>释放关系收益: {0}</RimWorldAccess.Prisoner.Info.ReleaseRelationGains>
+  <RimWorldAccess.Prisoner.Info.GuiltyUntilInnocent>有罪: {0} 后视为无罪</RimWorldAccess.Prisoner.Info.GuiltyUntilInnocent>
+  <RimWorldAccess.Prisoner.Info.GuiltyNoTimer>有罪: 无计时（处于 {0}）</RimWorldAccess.Prisoner.Info.GuiltyNoTimer>
+  <RimWorldAccess.Prisoner.Info.IdeoConversionTarget>信仰教化目标: {0}</RimWorldAccess.Prisoner.Info.IdeoConversionTarget>
+
+  <!-- Last recruitment attempt breakdown. -->
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>上次招募</RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>抵抗降低: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>招募者: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>心情系数: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>谈判能力: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>
+  <RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>看法系数: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>
+
+  <!-- Slave stats block. -->
+  <RimWorldAccess.Prisoner.Slave.Suppression>压制: {0}</RimWorldAccess.Prisoner.Slave.Suppression>
+  <RimWorldAccess.Prisoner.Slave.SuppressionFallRate>压制下降率: {0} 每天</RimWorldAccess.Prisoner.Slave.SuppressionFallRate>
+  <RimWorldAccess.Prisoner.Slave.Terror>恐惧: {0}</RimWorldAccess.Prisoner.Slave.Terror>
+  <RimWorldAccess.Prisoner.Slave.RebellionAsleep>奴隶叛乱间隔: 睡眠期间不会发生</RimWorldAccess.Prisoner.Slave.RebellionAsleep>
+  <RimWorldAccess.Prisoner.Slave.RebellionNever>奴隶叛乱间隔: 永不</RimWorldAccess.Prisoner.Slave.RebellionNever>
+  <RimWorldAccess.Prisoner.Slave.RebellionPeriod>奴隶叛乱间隔: {0}</RimWorldAccess.Prisoner.Slave.RebellionPeriod>
+
+  <!-- Release relation gain summary (shared between prisoner and slave paths).
+       {0} = faction name, {1} = signed goodwill change (e.g. "+3" / "-7"),
+       {2} = mental state inspect line. -->
+  <RimWorldAccess.Prisoner.Release.None>无</RimWorldAccess.Prisoner.Release.None>
+  <RimWorldAccess.Prisoner.Release.FactionChange>{0} {1}</RimWorldAccess.Prisoner.Release.FactionChange>
+  <RimWorldAccess.Prisoner.Release.NoneUntended>无（未照料的伤口）</RimWorldAccess.Prisoner.Release.NoneUntended>
+  <RimWorldAccess.Prisoner.Release.NoneMentalState>无（{0}）</RimWorldAccess.Prisoner.Release.NoneMentalState>
+
+  <!-- Medical care category labels. Used in the care-level stepper. -->
+  <RimWorldAccess.Prisoner.MedicalCare.NoCare>不予照料</RimWorldAccess.Prisoner.MedicalCare.NoCare>
+  <RimWorldAccess.Prisoner.MedicalCare.NoMeds>不使用药品</RimWorldAccess.Prisoner.MedicalCare.NoMeds>
+  <RimWorldAccess.Prisoner.MedicalCare.HerbalOrWorse>草药及以下</RimWorldAccess.Prisoner.MedicalCare.HerbalOrWorse>
+  <RimWorldAccess.Prisoner.MedicalCare.NormalOrWorse>普通及以下</RimWorldAccess.Prisoner.MedicalCare.NormalOrWorse>
+  <RimWorldAccess.Prisoner.MedicalCare.Best>最佳</RimWorldAccess.Prisoner.MedicalCare.Best>
+  <RimWorldAccess.Prisoner.MedicalCare.Announce>医疗护理: {0}</RimWorldAccess.Prisoner.MedicalCare.Announce>
+  <RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>医疗护理: {0}. 使用上下方向键调整</RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>
+  <!-- Standalone hint appended to a section announcement when entering the medical care row. -->
+  <RimWorldAccess.Prisoner.MedicalCare.AdjustHint>使用上下方向键调整</RimWorldAccess.Prisoner.MedicalCare.AdjustHint>
+
+  <!-- Interaction mode descriptions - warning suffixes appended after the
+       def's own description through AnnouncementBuilder. {0} = ideo name. -->
+  <RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>警告: 没有能够进行奴役的狱卒</RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>
+  <RimWorldAccess.Prisoner.Warning.NoViolenceWarden>警告: 没有能够使用暴力的狱卒</RimWorldAccess.Prisoner.Warning.NoViolenceWarden>
+  <RimWorldAccess.Prisoner.Warning.NoIdeoWarden>警告: 没有 {0} 的狱卒</RimWorldAccess.Prisoner.Warning.NoIdeoWarden>
+  <RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>. 警告: 没有此信仰的狱卒</RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>
+
+  <!-- Slave emancipation outcome suffixes. {0} = slave faction name. -->
+  <RimWorldAccess.Prisoner.Emancipate.BecomeColonist>将成为殖民者</RimWorldAccess.Prisoner.Emancipate.BecomeColonist>
+  <RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>将获得自由，无派系</RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>
+  <RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>将返回 {0}</RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>
+
+  <!-- Tab open / close announcements. -->
+  <RimWorldAccess.Prisoner.Tab.Closed>囚犯选项卡已关闭</RimWorldAccess.Prisoner.Tab.Closed>
+  <RimWorldAccess.Prisoner.Tab.OpenedPrisoner>囚犯选项卡: {0}</RimWorldAccess.Prisoner.Tab.OpenedPrisoner>
+  <RimWorldAccess.Prisoner.Tab.OpenedSlave>奴隶选项卡: {0}</RimWorldAccess.Prisoner.Tab.OpenedSlave>
+  <RimWorldAccess.Prisoner.Tab.CurrentMode>当前模式: {0}</RimWorldAccess.Prisoner.Tab.CurrentMode>
+  <RimWorldAccess.Prisoner.Tab.NavigationHint>
+按左右键切换分区，上下键在分区内移动，回车键选择</RimWorldAccess.Prisoner.Tab.NavigationHint>
+  <!-- Inline variant without leading newline — used when embedded in a larger announcement sentence. -->
+  <RimWorldAccess.Prisoner.Tab.NavigationHintInline>按左右键切换分区，上下键在分区内移动，回车键选择</RimWorldAccess.Prisoner.Tab.NavigationHintInline>
+
+  <!-- Section announcements. {0} = count (or current mode label). -->
+  <RimWorldAccess.Prisoner.Section.Information>信息分区 - 按下键读取数据</RimWorldAccess.Prisoner.Section.Information>
+  <RimWorldAccess.Prisoner.Section.ExclusiveModes>互动模式 - {0} 项可用。当前: {1}</RimWorldAccess.Prisoner.Section.ExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.SlaveModes>奴隶模式 - {0} 项可用。当前: {1}</RimWorldAccess.Prisoner.Section.SlaveModes>
+  <RimWorldAccess.Prisoner.Section.NonExclusiveModes>非独占模式 - {0} 项可用。按空格键切换</RimWorldAccess.Prisoner.Section.NonExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.IdeologySelection>信仰选择 - 选择教化目标</RimWorldAccess.Prisoner.Section.IdeologySelection>
+
+  <!-- Item-level announcements during navigation.
+       Active/Current markers are placed at the start of the item line. -->
+  <RimWorldAccess.Prisoner.Item.MarkerActive>[已激活] </RimWorldAccess.Prisoner.Item.MarkerActive>
+  <RimWorldAccess.Prisoner.Item.MarkerCurrent>[当前] </RimWorldAccess.Prisoner.Item.MarkerCurrent>
+  <RimWorldAccess.Prisoner.Item.StateOn>[开]</RimWorldAccess.Prisoner.Item.StateOn>
+  <RimWorldAccess.Prisoner.Item.StateOff>[关]</RimWorldAccess.Prisoner.Item.StateOff>
+  <RimWorldAccess.Prisoner.Item.ModeWithDescription>{0}{1}. {2}</RimWorldAccess.Prisoner.Item.ModeWithDescription>
+  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0} {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.Ideo>{0}{1}</RimWorldAccess.Prisoner.Item.Ideo>
+
+  <!-- Selection / toggle action feedback. -->
+  <RimWorldAccess.Prisoner.Action.Selected>已选择: {0}. {1}</RimWorldAccess.Prisoner.Action.Selected>
+  <RimWorldAccess.Prisoner.Action.ToggleEnabled>启用</RimWorldAccess.Prisoner.Action.ToggleEnabled>
+  <RimWorldAccess.Prisoner.Action.ToggleDisabled>禁用</RimWorldAccess.Prisoner.Action.ToggleDisabled>
+  <RimWorldAccess.Prisoner.Action.ToggleMode>{0}: {1}</RimWorldAccess.Prisoner.Action.ToggleMode>
+  <RimWorldAccess.Prisoner.Action.ConversionTarget>教化目标: {0}{1}</RimWorldAccess.Prisoner.Action.ConversionTarget>
+  <RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning>警告: 即将处决来自中立派系 {0} 的奴隶。再次选择以确认。</RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning>
+</LanguageData>

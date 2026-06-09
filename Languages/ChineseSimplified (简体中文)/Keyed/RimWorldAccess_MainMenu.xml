@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    MainMenu module strings (src/MainMenu/). Covers the main menu, the
+    full game-setup flow (scenario picker, scenario builder, mod manager,
+    storyteller/difficulty picker, ideology picker, world parameters,
+    starting site selection, faction relations dialog, starting pawn
+    editor, pawn filter), the loading screen, and the quit/save flow.
+
+    Files contributing strings:
+      - MainMenuAccessibilityPatch.cs   (the main menu shell)
+      - LoadingScreenAccessibilityPatch (the load-screen tip + events)
+      - ModListState.cs / ModSettingsDialogPatch.cs
+      - WindowlessScenarioLoadState.cs / WindowlessScenarioSaveState.cs
+      - ScenarioSelectionPatch.cs / ScenarioNavigationState.cs
+      - ScenarioBuilderState.cs / ScenarioBuilderPatch.cs /
+        ScenarioBuilderAddPartState.cs / ScenarioBuilderPartEditState.cs
+      - StorytellerSelectionPatch.cs / StorytellerSelectionState.cs /
+        StorytellerNavigationState.cs / CustomDifficultyEditState.cs
+      - IdeologyNavigationState.cs / IdeologySelectionPatch.cs
+      - WorldParamsPatch.cs / WorldParamsNavigationState.cs
+      - StartingSitePatch.cs / StartingSiteContext.cs
+      - StartingPawnState.cs / StartingPawnHelper.cs
+      - FactionsNavigationState.cs / FactionLandingState.cs
+      - PawnFilterState.cs / PawnFilterPresetLoadState.cs /
+        PawnFilterPresetSaveState.cs
+      - RerollState.cs
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / Stepper            -> Common.xml
+      - "{0}. {1}" position composition (UI.Item.WithPosition) -> UI.xml
+      - "Cancelled"                                    -> UI.Cancelled
+      - vanilla labels: "NewColony", "Save", "LoadGame", "Options",
+        "Mods", "Credits", "QuitToMainMenu", "QuitToOS",
+        "ConfirmQuit", "GameOverMainMenu", "Tutorial",
+        "ChooseAIStoryteller", "Difficulty", "ClearAll",
+        "Randomize", "AnyNonArchite", "Random", "Structure",
+        "RandomStructureTip", "NoneLower", "DifficultyCustomSectionLabel",
+        "BuySoundtrack_*", "FictionPrimer", "LudeonBlog", "Subreddit",
+        "OfficialWiki", "TynansX", "TynansDesignBook", "HelpTranslate",
+        "ReviewScenario", "DevQuickTest", "SaveTranslationReport",
+        "SaveAndQuitToMainMenu", "SaveAndQuitToOS",
+        "LearnToPlay" - all come from vanilla via .Translate().
+
+    Data such as scenario names, faction names/descriptions, mod names,
+    storyteller labels/descriptions, ideology preset labels, biome
+    names, faction relation status text, season/weather/era data, and
+    pawn names continue to come from the game and are NOT translated
+    in this file.
+  -->
+
+  <!-- =================================================================
+       Main menu shell (MainMenuAccessibilityPatch).
+       Tutorial-not-implemented dialog. The "GameOverMainMenu" title
+       announcement comes from the vanilla key.
+       ================================================================= -->
+  <RimWorldAccess.MainMenu.TutorialNotAccessible>教程目前尚不支持无障碍访问，此功能将在不久后加入。</RimWorldAccess.MainMenu.TutorialNotAccessible>
+
+  <!-- =================================================================
+       Loading screen (LoadingScreenAccessibilityPatch).
+       Live announcements as the game loads. "Tip: {0}" wraps the
+       vanilla tip-of-the-day text; the loading message itself and
+       any progress events come straight from the game. AssetsPercent
+       suffixes the vanilla LoadingAssets phrase with a percentage.
+       {0} = the tip text or percent value.
+       ================================================================= -->
+  <RimWorldAccess.Loading.Tip>提示: {0}</RimWorldAccess.Loading.Tip>
+  <RimWorldAccess.Loading.AssetsPercent>{0} {1}%</RimWorldAccess.Loading.AssetsPercent>
+
+  <!-- =================================================================
+       Mod settings dialog (ModSettingsDialogPatch).
+       {0} = the mod's display name (when known).
+       ================================================================= -->
+  <RimWorldAccess.ModSettings.OpenedFor>{0} 的模组设置。按 Escape 关闭。</RimWorldAccess.ModSettings.OpenedFor>
+  <RimWorldAccess.ModSettings.OpenedGeneric>已打开模组设置对话框。按 Escape 关闭。</RimWorldAccess.ModSettings.OpenedGeneric>
+  <RimWorldAccess.ModSettings.Closed>已关闭模组设置</RimWorldAccess.ModSettings.Closed>
+  <RimWorldAccess.ModSettings.UnknownMod>未知模组</RimWorldAccess.ModSettings.UnknownMod>
+
+  <!-- =================================================================
+       Mod list / mod manager (ModListState).
+       Action announcements for the active/inactive mod columns,
+       reorder feedback, save/sort buttons, web-link launch feedback.
+       {0} = mod name, {1} = action verb (enabled/disabled) or
+       new position, {2} = additional context.
+       ================================================================= -->
+  <RimWorldAccess.ModList.OpeningWebsiteFor>正在打开 {0} 的网站</RimWorldAccess.ModList.OpeningWebsiteFor>
+  <RimWorldAccess.ModList.OpeningWorkshopPageFor>正在打开 {0} 的创意工坊页面</RimWorldAccess.ModList.OpeningWorkshopPageFor>
+  <RimWorldAccess.ModList.OpeningFolderFor>正在打开 {0} 的文件夹</RimWorldAccess.ModList.OpeningFolderFor>
+  <RimWorldAccess.ModList.UnsubscribedFrom>已取消订阅 {0}</RimWorldAccess.ModList.UnsubscribedFrom>
+  <RimWorldAccess.ModList.CouldNotEnableMod>无法启用模组。可能已有相同包 ID 的模组处于启用状态。</RimWorldAccess.ModList.CouldNotEnableMod>
+  <RimWorldAccess.ModList.ActionEnabled>已启用</RimWorldAccess.ModList.ActionEnabled>
+  <RimWorldAccess.ModList.ActionDisabled>已禁用</RimWorldAccess.ModList.ActionDisabled>
+  <RimWorldAccess.ModList.ModWithAction>{0} {1}</RimWorldAccess.ModList.ModWithAction>
+  <RimWorldAccess.ModList.ModWithActionAndNext>{0} {1}.{2}</RimWorldAccess.ModList.ModWithActionAndNext>
+  <RimWorldAccess.ModList.CanOnlyReorderActiveMods>只能对已启用的模组重新排序</RimWorldAccess.ModList.CanOnlyReorderActiveMods>
+  <RimWorldAccess.ModList.MovedToPosition>{0} 已移动到第 {1} 位</RimWorldAccess.ModList.MovedToPosition>
+  <RimWorldAccess.ModList.OpenDetailsFirst>按 Enter 先打开模组详情</RimWorldAccess.ModList.OpenDetailsFirst>
+  <RimWorldAccess.ModList.CannotReorder>无法重新排序: {0}</RimWorldAccess.ModList.CannotReorder>
+  <RimWorldAccess.ModList.ChangesSaved>模组更改已保存</RimWorldAccess.ModList.ChangesSaved>
+  <RimWorldAccess.ModList.AutoSorted>模组已自动排序</RimWorldAccess.ModList.AutoSorted>
+  <RimWorldAccess.ModList.FailedToActivateButton>激活按钮失败</RimWorldAccess.ModList.FailedToActivateButton>
+  <RimWorldAccess.ModList.ColumnEmpty>{0} 模组列表，空</RimWorldAccess.ModList.ColumnEmpty>
+  <RimWorldAccess.ModList.ColumnActive>已启用</RimWorldAccess.ModList.ColumnActive>
+  <RimWorldAccess.ModList.ColumnInactive>未启用</RimWorldAccess.ModList.ColumnInactive>
+  <!-- More mod-list composition strings (ModListState).
+       {0} = mod name, {1} = author, {2} = next mod info, {3} = column name. -->
+  <RimWorldAccess.ModList.ContainsErrors>包含错误</RimWorldAccess.ModList.ContainsErrors>
+  <RimWorldAccess.ModList.ByAuthor>作者: {0}</RimWorldAccess.ModList.ByAuthor>
+  <RimWorldAccess.ModList.OpeningAnnouncement>{0}. {1}, {2} 个模组. {3}: Alt+R. {4}: Alt+S.</RimWorldAccess.ModList.OpeningAnnouncement>
+  <RimWorldAccess.ModList.OpeningWithMod>{0} ... {1}</RimWorldAccess.ModList.OpeningWithMod>
+  <RimWorldAccess.ModList.ColumnHeader>{0} 个模组, {1} 个模组. </RimWorldAccess.ModList.ColumnHeader>
+  <RimWorldAccess.ModList.NowOnNext> 当前位于: {0}, {1}</RimWorldAccess.ModList.NowOnNext>
+  <RimWorldAccess.ModList.NowEmpty> 列表现在为空。</RimWorldAccess.ModList.NowEmpty>
+  <RimWorldAccess.ModList.SearchPosition>{0}, 第 {1} 项，共 {2} 项</RimWorldAccess.ModList.SearchPosition>
+
+  <!-- =================================================================
+       Scenario load dialog (WindowlessScenarioLoadState).
+       Type-to-search list of saved scenarios with delete confirmation.
+       {0} = scenario count, {1} = filename.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioLoad.FileWithDate>{0} - {1}</RimWorldAccess.ScenarioLoad.FileWithDate>
+  <RimWorldAccess.ScenarioLoad.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioLoad.WithPositionSuffix>
+  <RimWorldAccess.ScenarioLoad.NoSavedScenarios>未找到已保存的剧本。</RimWorldAccess.ScenarioLoad.NoSavedScenarios>
+  <RimWorldAccess.ScenarioLoad.OpenInstructions>载入剧本。有 {0} 个剧本可用。输入以搜索。</RimWorldAccess.ScenarioLoad.OpenInstructions>
+  <RimWorldAccess.ScenarioLoad.NoScenariosAvailable>没有可用的剧本。</RimWorldAccess.ScenarioLoad.NoScenariosAvailable>
+  <RimWorldAccess.ScenarioLoad.NoScenarioSelected>未选择剧本。</RimWorldAccess.ScenarioLoad.NoScenarioSelected>
+  <RimWorldAccess.ScenarioLoad.FailedToLoad>载入剧本失败: {0}</RimWorldAccess.ScenarioLoad.FailedToLoad>
+  <RimWorldAccess.ScenarioLoad.ErrorLoading>载入剧本出错: {0}</RimWorldAccess.ScenarioLoad.ErrorLoading>
+  <RimWorldAccess.ScenarioLoad.DeleteConfirm>删除 {0}？按 Enter 确认，按 Escape 取消。</RimWorldAccess.ScenarioLoad.DeleteConfirm>
+  <RimWorldAccess.ScenarioLoad.Deleted>已删除 {0}</RimWorldAccess.ScenarioLoad.Deleted>
+  <RimWorldAccess.ScenarioLoad.DeleteCancelled>已取消删除</RimWorldAccess.ScenarioLoad.DeleteCancelled>
+
+  <!-- =================================================================
+       Scenario save dialog (WindowlessScenarioSaveState).
+       Filename text-input plus a list of existing scenarios that
+       can be overwritten. {0} = current filename, {1} = position
+       fragment, {2} = file modified date.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioSave.OpenInstructions>保存剧本。输入文件名，或按 Down 选择要覆盖的现有文件。当前名称: {0}</RimWorldAccess.ScenarioSave.OpenInstructions>
+  <RimWorldAccess.ScenarioSave.SaveAs>另存为: {0} ({1})</RimWorldAccess.ScenarioSave.SaveAs>
+  <RimWorldAccess.ScenarioSave.Overwrite>覆盖: {0} - {1} ({2})</RimWorldAccess.ScenarioSave.Overwrite>
+  <RimWorldAccess.ScenarioSave.InvalidSelection>无效的选择</RimWorldAccess.ScenarioSave.InvalidSelection>
+  <RimWorldAccess.ScenarioSave.FilenameEmpty>文件名不能为空</RimWorldAccess.ScenarioSave.FilenameEmpty>
+  <RimWorldAccess.ScenarioSave.FileExists>文件 {0} 已存在。再次按 Enter 覆盖，或按 Escape 取消。</RimWorldAccess.ScenarioSave.FileExists>
+  <RimWorldAccess.ScenarioSave.SavedAs>已另存为 {0}</RimWorldAccess.ScenarioSave.SavedAs>
+  <RimWorldAccess.ScenarioSave.ErrorSaving>保存出错: {0}</RimWorldAccess.ScenarioSave.ErrorSaving>
+
+  <!-- =================================================================
+       Scenario picker (Page_SelectScenario via ScenarioSelectionPatch
+       and ScenarioNavigationState). Shown when starting a new colony.
+       {0} = page title, {1} = first scenario name,
+       {2} = first scenario summary, {3} = category suffix.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioSelect.OpenInstructions>{0} - {1} - {2}{3}. 按 Tab 查看详情，按 Alt+E 编辑。</RimWorldAccess.ScenarioSelect.OpenInstructions>
+  <RimWorldAccess.ScenarioSelect.EditingScenario>正在编辑剧本: {0}</RimWorldAccess.ScenarioSelect.EditingScenario>
+  <RimWorldAccess.ScenarioSelect.EditingCopyOf>正在编辑副本: {0}</RimWorldAccess.ScenarioSelect.EditingCopyOf>
+  <RimWorldAccess.ScenarioSelect.CategoryBuiltIn> (内置)</RimWorldAccess.ScenarioSelect.CategoryBuiltIn>
+  <RimWorldAccess.ScenarioSelect.CategoryGeneric> ({0})</RimWorldAccess.ScenarioSelect.CategoryGeneric>
+  <RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry>无法编辑剧本构建器条目。按 Enter 创建新剧本。</RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry>
+  <RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry>无法删除剧本构建器条目</RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry>
+  <RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn>无法删除内置剧本</RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn>
+  <RimWorldAccess.ScenarioSelect.NoDetailsForBuilder>剧本构建器没有详情。按 Enter 打开。</RimWorldAccess.ScenarioSelect.NoDetailsForBuilder>
+  <!-- Scenario list and detail tree announcements (ScenarioNavigationState).
+       {0} = scenario name, {1} = scenario summary, {2} = category suffix.
+       Detail headers are also user-facing tree labels. -->
+  <RimWorldAccess.ScenarioSelect.BuilderEntryLabel>剧本构建器 - 从零开始创建自定义剧本</RimWorldAccess.ScenarioSelect.BuilderEntryLabel>
+  <RimWorldAccess.ScenarioSelect.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioSelect.WithPositionSuffix>
+  <RimWorldAccess.ScenarioSelect.NameSummary>{0} - {1}{2}</RimWorldAccess.ScenarioSelect.NameSummary>
+  <RimWorldAccess.ScenarioSelect.WarningSuffix>. 警告: {0}</RimWorldAccess.ScenarioSelect.WarningSuffix>
+  <RimWorldAccess.ScenarioSelect.CategoryCustom> (自定义)</RimWorldAccess.ScenarioSelect.CategoryCustom>
+  <RimWorldAccess.ScenarioSelect.CategoryWorkshop> (创意工坊)</RimWorldAccess.ScenarioSelect.CategoryWorkshop>
+  <RimWorldAccess.ScenarioSelect.NoAdditionalDetails>没有更多详情可用</RimWorldAccess.ScenarioSelect.NoAdditionalDetails>
+  <RimWorldAccess.ScenarioSelect.DetailsLabel>详情</RimWorldAccess.ScenarioSelect.DetailsLabel>
+  <RimWorldAccess.ScenarioSelect.ScenarioListLabel>剧本列表</RimWorldAccess.ScenarioSelect.ScenarioListLabel>
+  <RimWorldAccess.ScenarioSelect.BuilderSearchLabel>剧本构建器</RimWorldAccess.ScenarioSelect.BuilderSearchLabel>
+  <RimWorldAccess.ScenarioSelect.DescriptionLine>描述: {0}</RimWorldAccess.ScenarioSelect.DescriptionLine>
+  <RimWorldAccess.ScenarioSelect.StartWith>开局拥有</RimWorldAccess.ScenarioSelect.StartWith>
+  <RimWorldAccess.ScenarioSelect.MapScatteredWith>地图上散布着</RimWorldAccess.ScenarioSelect.MapScatteredWith>
+  <RimWorldAccess.ScenarioSelect.CreateIncident>创建事件</RimWorldAccess.ScenarioSelect.CreateIncident>
+  <RimWorldAccess.ScenarioSelect.DisableIncident>禁用事件</RimWorldAccess.ScenarioSelect.DisableIncident>
+  <RimWorldAccess.ScenarioSelect.PermanentGameCondition>永久游戏状况</RimWorldAccess.ScenarioSelect.PermanentGameCondition>
+  <RimWorldAccess.ScenarioSelect.Deleted>已删除 {0}</RimWorldAccess.ScenarioSelect.Deleted>
+  <RimWorldAccess.ScenarioSelect.UnsubscribedFrom>已取消订阅 {0}</RimWorldAccess.ScenarioSelect.UnsubscribedFrom>
+  <RimWorldAccess.ScenarioSelect.CannotUnsubscribe>无法取消订阅此剧本</RimWorldAccess.ScenarioSelect.CannotUnsubscribe>
+  <RimWorldAccess.ScenarioSelect.CannotDelete>无法删除此剧本</RimWorldAccess.ScenarioSelect.CannotDelete>
+
+  <!-- =================================================================
+       Scenario builder shell (ScenarioBuilderState + ScenarioBuilderPatch).
+       Two-section editor: Metadata (title/summary/description) +
+       Parts (the list of scenario rules). Many announcements track
+       moves between sections, item edits, parts insert/remove, and
+       global save/load/randomize actions.
+       {0} = scenario title or part name, {1} = field name or
+       neighbor part name, {2} = secondary neighbor name.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.OpenInstructions>剧本构建器: {0}. 元数据区。按 Tab 切换到部件区。Alt+L 载入，Alt+S 保存，Alt+R 随机，Alt+A 添加部件。</RimWorldAccess.ScenarioBuilder.OpenInstructions>
+  <RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt>你对此剧本有未保存的更改。</RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt>
+  <RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle>未保存的更改</RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle>
+  <RimWorldAccess.ScenarioBuilder.UnsavedSave>保存</RimWorldAccess.ScenarioBuilder.UnsavedSave>
+  <RimWorldAccess.ScenarioBuilder.UnsavedDiscard>放弃</RimWorldAccess.ScenarioBuilder.UnsavedDiscard>
+  <RimWorldAccess.ScenarioBuilder.UnsavedCancel>取消</RimWorldAccess.ScenarioBuilder.UnsavedCancel>
+  <RimWorldAccess.ScenarioBuilder.ChangesDiscarded>更改已放弃。</RimWorldAccess.ScenarioBuilder.ChangesDiscarded>
+  <RimWorldAccess.ScenarioBuilder.ContinuingToEdit>继续编辑。</RimWorldAccess.ScenarioBuilder.ContinuingToEdit>
+  <RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry>已添加新的角色类型条目。</RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry>已添加新的异种类型条目。</RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.AddedMutantEntry>已添加新的变种体条目。</RimWorldAccess.ScenarioBuilder.AddedMutantEntry>
+  <RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable>没有可连接的层级标签。</RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable>
+  <RimWorldAccess.ScenarioBuilder.AddedConnectionTo>已添加到 {0} 的连接。</RimWorldAccess.ScenarioBuilder.AddedConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.RemovedItemType>已移除 {0}。</RimWorldAccess.ScenarioBuilder.RemovedItemType>
+  <RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst>请先按 Enter 确认或按 Escape 取消编辑</RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst>
+  <RimWorldAccess.ScenarioBuilder.PartsSection>部件区</RimWorldAccess.ScenarioBuilder.PartsSection>
+  <RimWorldAccess.ScenarioBuilder.MetadataSection>元数据区</RimWorldAccess.ScenarioBuilder.MetadataSection>
+  <RimWorldAccess.ScenarioBuilder.FieldSetTo>{0} 已设为: {1}</RimWorldAccess.ScenarioBuilder.FieldSetTo>
+  <RimWorldAccess.ScenarioBuilder.FieldEmptyValue>空</RimWorldAccess.ScenarioBuilder.FieldEmptyValue>
+  <RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>按 Enter 编辑。</RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>
+  <RimWorldAccess.ScenarioBuilder.FieldEditCancelled>已取消。{0} 未更改。</RimWorldAccess.ScenarioBuilder.FieldEditCancelled>
+  <RimWorldAccess.ScenarioBuilder.NoParts>没有剧本部件。按 Alt+A 添加部件。</RimWorldAccess.ScenarioBuilder.NoParts>
+  <RimWorldAccess.ScenarioBuilder.PartHasNoFields>此部件没有可编辑的字段。按 Delete 移除它。</RimWorldAccess.ScenarioBuilder.PartHasNoFields>
+  <RimWorldAccess.ScenarioBuilder.NoItemSelected>未选择项目。</RimWorldAccess.ScenarioBuilder.NoItemSelected>
+  <RimWorldAccess.ScenarioBuilder.FieldEmpty>字段为空。</RimWorldAccess.ScenarioBuilder.FieldEmpty>
+  <RimWorldAccess.ScenarioBuilder.NotATextField>不是文本字段。</RimWorldAccess.ScenarioBuilder.NotATextField>
+  <RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction>无法删除添加操作。</RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction>
+  <RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved>此部件无法移除。</RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved>
+  <RimWorldAccess.ScenarioBuilder.RemovedLabel>已移除 {0}。</RimWorldAccess.ScenarioBuilder.RemovedLabel>
+  <RimWorldAccess.ScenarioBuilder.CannotMoveUp>无法将 {0} 上移。</RimWorldAccess.ScenarioBuilder.CannotMoveUp>
+  <RimWorldAccess.ScenarioBuilder.MovedToTopAbove>已将 {0} 移到顶部，位于 {1} 上方。</RimWorldAccess.ScenarioBuilder.MovedToTopAbove>
+  <RimWorldAccess.ScenarioBuilder.MovedToTopOfList>已将 {0} 移到列表顶部。</RimWorldAccess.ScenarioBuilder.MovedToTopOfList>
+  <RimWorldAccess.ScenarioBuilder.MovedUpBetween>已将 {0} 上移，现位于 {1} 和 {2} 之间。</RimWorldAccess.ScenarioBuilder.MovedUpBetween>
+  <RimWorldAccess.ScenarioBuilder.MovedUpBelow>已将 {0} 上移，现位于 {1} 下方。</RimWorldAccess.ScenarioBuilder.MovedUpBelow>
+  <RimWorldAccess.ScenarioBuilder.CannotMoveDown>无法将 {0} 下移。</RimWorldAccess.ScenarioBuilder.CannotMoveDown>
+  <RimWorldAccess.ScenarioBuilder.MovedToBottomBelow>已将 {0} 移到底部，位于 {1} 下方。</RimWorldAccess.ScenarioBuilder.MovedToBottomBelow>
+  <RimWorldAccess.ScenarioBuilder.MovedToBottomOfList>已将 {0} 移到列表底部。</RimWorldAccess.ScenarioBuilder.MovedToBottomOfList>
+  <RimWorldAccess.ScenarioBuilder.MovedDownBetween>已将 {0} 下移，现位于 {1} 和 {2} 之间。</RimWorldAccess.ScenarioBuilder.MovedDownBetween>
+  <RimWorldAccess.ScenarioBuilder.MovedDownAbove>已将 {0} 下移，现位于 {1} 上方。</RimWorldAccess.ScenarioBuilder.MovedDownAbove>
+  <RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit>已添加 {0}。按 Enter 编辑。</RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit>
+  <RimWorldAccess.ScenarioBuilder.LoadedScenario>已载入剧本: {0}</RimWorldAccess.ScenarioBuilder.LoadedScenario>
+  <RimWorldAccess.ScenarioBuilder.ScenarioSaved>剧本已保存。</RimWorldAccess.ScenarioBuilder.ScenarioSaved>
+  <RimWorldAccess.ScenarioBuilder.RandomizedNew>已随机生成。新剧本: {0}</RimWorldAccess.ScenarioBuilder.RandomizedNew>
+  <RimWorldAccess.ScenarioBuilder.NewScenarioFallback>新剧本</RimWorldAccess.ScenarioBuilder.NewScenarioFallback>
+
+  <!-- =================================================================
+       Scenario builder add-part picker (ScenarioBuilderAddPartState).
+       Type-to-search list of available scenario part defs.
+       {0} = the count of parts available.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd>没有可添加的部件。</RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd>
+  <RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions>添加部件。有 {0} 个部件可用。输入以搜索。</RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions>
+  <RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable>没有可用的部件。</RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable>
+
+  <!-- =================================================================
+       Scenario builder part-edit overlay (ScenarioBuilderPartEditState).
+       Edits a single field on a scenario part: enum picker, text,
+       integer, float, percent. Limit annotations: "minimum"/"maximum"
+       come from Common.Stepper; "{0} ({1})" wraps the limit-tag text.
+       {0} = label or value, {1} = limit type word.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel>已选择: {0}</RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.SetTo>已设为: {0}</RimWorldAccess.ScenarioBuilder.PartEdit.SetTo>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved>文本已保存</RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal>已有小数点</RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint>0 点</RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint>{0} 点</RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit>{0} ({1})</RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare>{0}%</RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit>{0}% ({1})</RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Cleared>已清除</RimWorldAccess.ScenarioBuilder.PartEdit.Cleared>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum>最小值</RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum>最大值</RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled>{0}: {1}</RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Checked>已勾选</RimWorldAccess.ScenarioBuilder.PartEdit.Checked>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked>未勾选</RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType>不支持的字段类型。</RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint>{0}: {1}. 输入数字，或用 Up/Down 调整，按 Enter 确认。</RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback>数值</RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextHint>{0}: {1}. 输入以编辑，Ctrl+V 粘贴，Insert 读取全部，Shift+Enter 换行，Enter 确认，Escape 取消。</RimWorldAccess.ScenarioBuilder.PartEdit.TextHint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback>文本</RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>空</RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>{0} 行, {1} 个词</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>{0} 个词</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>换行</RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>此字段没有可用的选项。</RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>
+
+  <!-- =================================================================
+       Storyteller picker (StorytellerSelectionPatch + State).
+       Page_SelectStoryteller has three side-by-side panels: storyteller,
+       difficulty, save mode. Tab cycles between them.
+       {0} = page title, {1} = storyteller label, {2} = description,
+       {3} = position suffix.
+       ================================================================= -->
+  <RimWorldAccess.Storyteller.OpenInstructions>{0} - {1} - {2}{3}. 按 Tab 和 Shift+Tab 在故事叙述者、难度和存档模式之间切换。</RimWorldAccess.Storyteller.OpenInstructions>
+  <RimWorldAccess.Storyteller.OpenPositionSuffix> ({0})</RimWorldAccess.Storyteller.OpenPositionSuffix>
+  <RimWorldAccess.Storyteller.ModeIndicator>[{0}]</RimWorldAccess.Storyteller.ModeIndicator>
+  <!-- Per-row announcements (StorytellerNavigationState).
+       The custom-difficulty marker is a parenthetical added to the difficulty
+       label when the def is custom; it then gets the description and position
+       suffix appended. {0} = label, {1} = description, {2} = position. -->
+  <RimWorldAccess.Storyteller.LabelDescription>{0} - {1}</RimWorldAccess.Storyteller.LabelDescription>
+  <RimWorldAccess.Storyteller.WithDescriptionSuffix> - {0}</RimWorldAccess.Storyteller.WithDescriptionSuffix>
+  <RimWorldAccess.Storyteller.WithPositionSuffix> ({0})</RimWorldAccess.Storyteller.WithPositionSuffix>
+  <RimWorldAccess.Storyteller.CustomSettingsSuffix> (自定义设置)</RimWorldAccess.Storyteller.CustomSettingsSuffix>
+  <RimWorldAccess.Storyteller.SaveMode>存档模式</RimWorldAccess.Storyteller.SaveMode>
+  <RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions>自定义难度设置。用 Up 和 Down 浏览分区，按 Enter 编辑设置，按 Escape 返回。</RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions>
+  <RimWorldAccess.Storyteller.NoSettingsInSection>此分区没有可用的设置</RimWorldAccess.Storyteller.NoSettingsInSection>
+  <RimWorldAccess.Storyteller.AllSettingsResetTo>所有设置已重置为 {0}</RimWorldAccess.Storyteller.AllSettingsResetTo>
+  <RimWorldAccess.Storyteller.ResetSelectPreset>将所有设置重置为预设。请选择一个难度预设。</RimWorldAccess.Storyteller.ResetSelectPreset>
+  <RimWorldAccess.Storyteller.Confirmed>已确认故事叙述者和难度。正在关闭选择。</RimWorldAccess.Storyteller.Confirmed>
+  <!-- In-game storyteller picker (StorytellerSelectionState) - separate from
+       the main-menu Page_SelectStoryteller. {0} = label, {1} = description,
+       {2} = customize hint, {3} = section name, {4} = settings count,
+       {5} = items noun (already localized). -->
+  <RimWorldAccess.Storyteller.LabelDot>{0}. {1}</RimWorldAccess.Storyteller.LabelDot>
+  <RimWorldAccess.Storyteller.LabelDotWithHint>{0}. {1}{2}</RimWorldAccess.Storyteller.LabelDotWithHint>
+  <RimWorldAccess.Storyteller.CustomizeHintSuffix> 按 Enter 自定义设置。</RimWorldAccess.Storyteller.CustomizeHintSuffix>
+  <RimWorldAccess.Storyteller.SectionWithCount>{0}. {1} {2}</RimWorldAccess.Storyteller.SectionWithCount>
+  <RimWorldAccess.Storyteller.SwitchToDifficultyHint> 按 Tab 切换到难度选择。</RimWorldAccess.Storyteller.SwitchToDifficultyHint>
+  <RimWorldAccess.Storyteller.SwitchToStorytellerHint> 按 Tab 切换到故事叙述者选择。按 Enter 确认。</RimWorldAccess.Storyteller.SwitchToStorytellerHint>
+  <RimWorldAccess.Storyteller.PositionSpacePrefix> {0}</RimWorldAccess.Storyteller.PositionSpacePrefix>
+
+  <!-- =================================================================
+       Custom difficulty editor (CustomDifficultyEditState).
+       Section list with per-section setting list. {0} = section name,
+       {1} = setting count, {2} = items label (already the section's
+       own translated noun: e.g. "settings", "options").
+       ================================================================= -->
+  <RimWorldAccess.CustomDifficulty.SectionList>分区列表</RimWorldAccess.CustomDifficulty.SectionList>
+  <RimWorldAccess.CustomDifficulty.SectionWithCount>{0}. {1} {2}</RimWorldAccess.CustomDifficulty.SectionWithCount>
+  <RimWorldAccess.CustomDifficulty.AllSettingsSetTo>所有设置已设为 {0}</RimWorldAccess.CustomDifficulty.AllSettingsSetTo>
+  <RimWorldAccess.CustomDifficulty.NoSettingSelected>未选择设置</RimWorldAccess.CustomDifficulty.NoSettingSelected>
+
+  <!-- =================================================================
+       Ideology picker (IdeologyNavigationState).
+       Two-tab dialog (Options / Presets) plus structure and style
+       submenus. Most labels come from vanilla; only the join phrasings
+       and the Random + tip prefix sentence live here.
+       ================================================================= -->
+  <RimWorldAccess.Ideology.OptionsTab>选项</RimWorldAccess.Ideology.OptionsTab>
+  <RimWorldAccess.Ideology.PresetsTab>预设</RimWorldAccess.Ideology.PresetsTab>
+  <RimWorldAccess.Ideology.TabPrefix>{0}. {1}</RimWorldAccess.Ideology.TabPrefix>
+  <RimWorldAccess.Ideology.TabNoneSuffix>{0}. {1}.</RimWorldAccess.Ideology.TabNoneSuffix>
+  <RimWorldAccess.Ideology.PresetsHint>. Alt+S 设置结构，Alt+Y 为所选预设设置风格</RimWorldAccess.Ideology.PresetsHint>
+  <RimWorldAccess.Ideology.PresetSiblingPosition>. 第 {0} 项，共 {1} 项</RimWorldAccess.Ideology.PresetSiblingPosition>
+  <RimWorldAccess.Ideology.OptionWithDescription>{0}. {1}</RimWorldAccess.Ideology.OptionWithDescription>
+  <RimWorldAccess.Ideology.OptionDotPosition>{0}. {1}</RimWorldAccess.Ideology.OptionDotPosition>
+  <RimWorldAccess.Ideology.StructureColon>{0}: {1}</RimWorldAccess.Ideology.StructureColon>
+  <RimWorldAccess.Ideology.StructureRandomTip>{0}: {1}. {2}</RimWorldAccess.Ideology.StructureRandomTip>
+  <RimWorldAccess.Ideology.StructureMemeOption>{0}. {1}</RimWorldAccess.Ideology.StructureMemeOption>
+  <RimWorldAccess.Ideology.CategoryWithDescription>{0}: {1}</RimWorldAccess.Ideology.CategoryWithDescription>
+  <RimWorldAccess.Ideology.StyleSlot>{0} {1}: {2}</RimWorldAccess.Ideology.StyleSlot>
+  <RimWorldAccess.Ideology.StylesAnnouncement>{0}: {1}</RimWorldAccess.Ideology.StylesAnnouncement>
+  <RimWorldAccess.Ideology.StateChangeAnnouncement>{0}. {1}</RimWorldAccess.Ideology.StateChangeAnnouncement>
+  <RimWorldAccess.Ideology.OpeningAnnouncement>{0}. {1}. {2}</RimWorldAccess.Ideology.OpeningAnnouncement>
+
+  <!-- =================================================================
+       World parameters (WorldParamsPatch + WorldParamsNavigationState).
+       Page_CreateWorldParams has fields like Seed, Coverage, Rainfall,
+       Temperature, Population. Seed input is a text dialog with
+       custom announcements; other fields announce via FieldColonValue.
+       {0} = page-level help/title, {1} = field name, {2} = value,
+       {3} = warning suffix.
+       ================================================================= -->
+  <RimWorldAccess.WorldParams.OpenInstructions>创建世界。{0}</RimWorldAccess.WorldParams.OpenInstructions>
+  <RimWorldAccess.WorldParams.OpenHelp>按 Enter 用默认设置生成世界，或用 Up/Down 浏览字段，用 Left/Right 更改数值。按 Tab 切换到派系。</RimWorldAccess.WorldParams.OpenHelp>
+  <RimWorldAccess.WorldParams.SeedTypingIndicator>[正在输入种子: {0}] (Enter=确认, Esc=取消)</RimWorldAccess.WorldParams.SeedTypingIndicator>
+  <RimWorldAccess.WorldParams.FieldIndicator>[字段: {0}] (方向键导航)</RimWorldAccess.WorldParams.FieldIndicator>
+  <RimWorldAccess.WorldParams.Title>世界参数</RimWorldAccess.WorldParams.Title>
+  <RimWorldAccess.WorldParams.SeedInstructions>按 Enter 输入自定义种子，或按 R 随机</RimWorldAccess.WorldParams.SeedInstructions>
+  <RimWorldAccess.WorldParams.SeedConfirmed>世界种子: {0} (已确认)</RimWorldAccess.WorldParams.SeedConfirmed>
+  <RimWorldAccess.WorldParams.SeedEmptyCancelled>种子输入已取消 (为空)</RimWorldAccess.WorldParams.SeedEmptyCancelled>
+  <RimWorldAccess.WorldParams.SeedEditCancelled>种子编辑已取消</RimWorldAccess.WorldParams.SeedEditCancelled>
+  <RimWorldAccess.WorldParams.SeedRandomized>世界种子: {0} (已随机)</RimWorldAccess.WorldParams.SeedRandomized>
+  <RimWorldAccess.WorldParams.FieldColonValue>{0}: {1}{2}</RimWorldAccess.WorldParams.FieldColonValue>
+  <RimWorldAccess.WorldParams.FieldColonValueNoWarning>{0}: {1}</RimWorldAccess.WorldParams.FieldColonValueNoWarning>
+  <RimWorldAccess.WorldParams.WarningPrefix>. {0}</RimWorldAccess.WorldParams.WarningPrefix>
+
+  <!-- Rainfall/Temperature/Population/Landmark density labels for the
+       world-params editor. The game's enum lacks vanilla translation
+       keys for these adjectives, so we ship our own. -->
+  <RimWorldAccess.WorldParams.Rainfall.AlmostNone>几乎没有</RimWorldAccess.WorldParams.Rainfall.AlmostNone>
+  <RimWorldAccess.WorldParams.Rainfall.Little>少</RimWorldAccess.WorldParams.Rainfall.Little>
+  <RimWorldAccess.WorldParams.Rainfall.LittleLess>略少</RimWorldAccess.WorldParams.Rainfall.LittleLess>
+  <RimWorldAccess.WorldParams.Rainfall.Normal>普通</RimWorldAccess.WorldParams.Rainfall.Normal>
+  <RimWorldAccess.WorldParams.Rainfall.LittleMore>略多</RimWorldAccess.WorldParams.Rainfall.LittleMore>
+  <RimWorldAccess.WorldParams.Rainfall.High>高</RimWorldAccess.WorldParams.Rainfall.High>
+  <RimWorldAccess.WorldParams.Rainfall.VeryHigh>很高</RimWorldAccess.WorldParams.Rainfall.VeryHigh>
+  <RimWorldAccess.WorldParams.Temperature.VeryCold>很冷</RimWorldAccess.WorldParams.Temperature.VeryCold>
+  <RimWorldAccess.WorldParams.Temperature.Cold>冷</RimWorldAccess.WorldParams.Temperature.Cold>
+  <RimWorldAccess.WorldParams.Temperature.LittleColder>略冷</RimWorldAccess.WorldParams.Temperature.LittleColder>
+  <RimWorldAccess.WorldParams.Temperature.Normal>普通</RimWorldAccess.WorldParams.Temperature.Normal>
+  <RimWorldAccess.WorldParams.Temperature.LittleWarmer>略暖</RimWorldAccess.WorldParams.Temperature.LittleWarmer>
+  <RimWorldAccess.WorldParams.Temperature.Hot>热</RimWorldAccess.WorldParams.Temperature.Hot>
+  <RimWorldAccess.WorldParams.Temperature.VeryHot>很热</RimWorldAccess.WorldParams.Temperature.VeryHot>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Sparse>稀少</RimWorldAccess.WorldParams.LandmarkDensity.Sparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>略微更稀少</RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>略微稀少</RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Normal>中等</RimWorldAccess.WorldParams.LandmarkDensity.Normal>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>略微密集</RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>略微更密集</RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Crowded>密集</RimWorldAccess.WorldParams.LandmarkDensity.Crowded>
+
+  <!-- =================================================================
+       Starting site selection (StartingSitePatch + StartingSiteContext).
+       The world tile picker before colony start. The "I" menu surfaces
+       per-tile read-outs (terrain, biome, stone, faction relations).
+       {0} = page title, {1} = error/info text, {2} = item count.
+       ================================================================= -->
+  <RimWorldAccess.StartingSite.OpenInstructions>{0} - 方向键导航，Control+方向键按生物群系跳转，Page Up/Down 扫描，Z 搜索，1-5 查看地块信息，I 详细信息菜单，F 派系，Enter 确认选择</RimWorldAccess.StartingSite.OpenInstructions>
+  <RimWorldAccess.StartingSite.CannotSettleHere>无法在此定居: {0}</RimWorldAccess.StartingSite.CannotSettleHere>
+
+  <!-- Visual help/menu overlays drawn by StartingSitePatch's Postfix.
+       Visible to sighted users only. Each line has its own key so the
+       caller can join them with Environment.NewLine; this avoids
+       embedding literal newlines in XML and keeps each line independently
+       localizable. {0} = selected item, {1} = position, {2} = total. -->
+  <RimWorldAccess.StartingSite.MenuOverlayTitle>附加信息菜单</RimWorldAccess.StartingSite.MenuOverlayTitle>
+  <RimWorldAccess.StartingSite.MenuOverlaySelected>已选择: {0}</RimWorldAccess.StartingSite.MenuOverlaySelected>
+  <RimWorldAccess.StartingSite.MenuOverlayItemPosition>第 {0} 项，共 {1} 项</RimWorldAccess.StartingSite.MenuOverlayItemPosition>
+  <RimWorldAccess.StartingSite.MenuOverlayControls>操作:</RimWorldAccess.StartingSite.MenuOverlayControls>
+  <RimWorldAccess.StartingSite.MenuOverlayControlNavigate>  Up/Down 方向键: 浏览菜单项</RimWorldAccess.StartingSite.MenuOverlayControlNavigate>
+  <RimWorldAccess.StartingSite.MenuOverlayControlEnter>  Enter: 读取详细信息</RimWorldAccess.StartingSite.MenuOverlayControlEnter>
+  <RimWorldAccess.StartingSite.MenuOverlayControlEscape>  Escape: 关闭菜单</RimWorldAccess.StartingSite.MenuOverlayControlEscape>
+  <RimWorldAccess.StartingSite.HelpOverlayTitle>开局地点选择:</RimWorldAccess.StartingSite.HelpOverlayTitle>
+  <RimWorldAccess.StartingSite.HelpOverlayLine1>方向键: 导航  |  Ctrl+方向键: 按生物群系跳转  |  PgUp/PgDn: 扫描</RimWorldAccess.StartingSite.HelpOverlayLine1>
+  <RimWorldAccess.StartingSite.HelpOverlayLine2>1-5: 地块信息  |  Z: 搜索  |  I: 信息菜单  |  F: 派系  |  R: 随机  |  Enter: 确认</RimWorldAccess.StartingSite.HelpOverlayLine2>
+  <RimWorldAccess.StartingSite.NoTileSelected>未选择地块。请先用方向键导航到一个地块。</RimWorldAccess.StartingSite.NoTileSelected>
+  <RimWorldAccess.StartingSite.Selected>已选择开局地点。</RimWorldAccess.StartingSite.Selected>
+  <RimWorldAccess.StartingSite.MenuOpened>{0}. 已选择: {1}. 用方向键导航，按 Enter 读取详情，按 Escape 关闭。</RimWorldAccess.StartingSite.MenuOpened>
+  <RimWorldAccess.StartingSite.MenuTitle>附加信息菜单 - 有 {0} 个类别可用</RimWorldAccess.StartingSite.MenuTitle>
+  <RimWorldAccess.StartingSite.MenuItemPosition>{0} (第 {1} 项，共 {2} 项)</RimWorldAccess.StartingSite.MenuItemPosition>
+
+  <!-- Per-category labels for the I-menu (StartingSiteContext.GetMenuItemName).
+       These appear both in the menu list and as headers in the detail readouts. -->
+  <RimWorldAccess.StartingSite.Category.RoadsAndRivers>道路、河流与海岸线</RimWorldAccess.StartingSite.Category.RoadsAndRivers>
+  <RimWorldAccess.StartingSite.Category.StoneTypes>石材类型</RimWorldAccess.StartingSite.Category.StoneTypes>
+  <RimWorldAccess.StartingSite.Category.GrowingInfo>种植与采集</RimWorldAccess.StartingSite.Category.GrowingInfo>
+  <RimWorldAccess.StartingSite.Category.HealthInfo>疾病频率</RimWorldAccess.StartingSite.Category.HealthInfo>
+  <RimWorldAccess.StartingSite.Category.MovementAndLocation>移动与时区</RimWorldAccess.StartingSite.Category.MovementAndLocation>
+  <RimWorldAccess.StartingSite.Category.DLCFeatures>DLC 功能</RimWorldAccess.StartingSite.Category.DLCFeatures>
+  <RimWorldAccess.StartingSite.Category.Coordinates>坐标</RimWorldAccess.StartingSite.Category.Coordinates>
+  <RimWorldAccess.StartingSite.Category.Unknown>未知</RimWorldAccess.StartingSite.Category.Unknown>
+
+  <!-- Roads/Rivers/Coastline detail readout (sentences joined into a single
+       readout string). -->
+  <RimWorldAccess.StartingSite.RoadsRivers.Header>道路、河流与海岸线:</RimWorldAccess.StartingSite.RoadsRivers.Header>
+  <RimWorldAccess.StartingSite.RoadsRivers.RoadsList>道路: {0}</RimWorldAccess.StartingSite.RoadsRivers.RoadsList>
+  <RimWorldAccess.StartingSite.RoadsRivers.RoadsNone>道路: 无</RimWorldAccess.StartingSite.RoadsRivers.RoadsNone>
+  <RimWorldAccess.StartingSite.RoadsRivers.River>河流: {0}</RimWorldAccess.StartingSite.RoadsRivers.River>
+  <RimWorldAccess.StartingSite.RoadsRivers.RiverNone>河流: 无</RimWorldAccess.StartingSite.RoadsRivers.RiverNone>
+  <RimWorldAccess.StartingSite.RoadsRivers.CoastalYes>沿海: 是 (水域在{0})</RimWorldAccess.StartingSite.RoadsRivers.CoastalYes>
+  <RimWorldAccess.StartingSite.RoadsRivers.CoastalNo>沿海: 否</RimWorldAccess.StartingSite.RoadsRivers.CoastalNo>
+
+  <!-- Stone types detail readout. -->
+  <RimWorldAccess.StartingSite.Stone.Header>石材类型:</RimWorldAccess.StartingSite.Stone.Header>
+
+  <!-- DLC features detail readout. -->
+  <RimWorldAccess.StartingSite.Dlc.Header>DLC 功能:</RimWorldAccess.StartingSite.Dlc.Header>
+  <RimWorldAccess.StartingSite.Dlc.Pollution>污染: {0}</RimWorldAccess.StartingSite.Dlc.Pollution>
+  <RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery>毒雾: 平均每 {0} 天一次</RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery>
+  <RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone>毒雾: 不发生</RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone>
+  <RimWorldAccess.StartingSite.Dlc.Landmark>地标: {0}</RimWorldAccess.StartingSite.Dlc.Landmark>
+  <RimWorldAccess.StartingSite.Dlc.TileMutators>地块变异: {0}</RimWorldAccess.StartingSite.Dlc.TileMutators>
+  <RimWorldAccess.StartingSite.Dlc.MutatorBullet>  - {0}</RimWorldAccess.StartingSite.Dlc.MutatorBullet>
+
+  <!-- Faction proximity warning, used by both the random-tile announcement
+       and the live tile read-out. {0} = warning prefix (vanilla Warning),
+       {1} = count. -->
+  <RimWorldAccess.StartingSite.SettlingAffectsFactionsOne>{0}: 在此定居会影响 {1} 个派系</RimWorldAccess.StartingSite.SettlingAffectsFactionsOne>
+  <RimWorldAccess.StartingSite.SettlingAffectsFactionsMany>{0}: 在此定居会影响 {1} 个派系</RimWorldAccess.StartingSite.SettlingAffectsFactionsMany>
+  <RimWorldAccess.StartingSite.NoAdditionalInfo>此地块没有可用的附加信息。</RimWorldAccess.StartingSite.NoAdditionalInfo>
+  <RimWorldAccess.StartingSite.MenuClosed>菜单已关闭。</RimWorldAccess.StartingSite.MenuClosed>
+  <RimWorldAccess.StartingSite.RandomSiteFailed>未能找到有效的随机开局地点。</RimWorldAccess.StartingSite.RandomSiteFailed>
+  <RimWorldAccess.StartingSite.RandomSiteSelected>已选择随机地点: {0}</RimWorldAccess.StartingSite.RandomSiteSelected>
+  <RimWorldAccess.StartingSite.CannotDetermineBiome>无法确定当前位置的生物群系</RimWorldAccess.StartingSite.CannotDetermineBiome>
+  <RimWorldAccess.StartingSite.NoDifferentBiomeFound>未找到不同的生物群系 (已搜索 {0} 格)</RimWorldAccess.StartingSite.NoDifferentBiomeFound>
+  <RimWorldAccess.StartingSite.NoInfoAvailable>没有可用的信息。</RimWorldAccess.StartingSite.NoInfoAvailable>
+  <RimWorldAccess.StartingSite.NoStoneInfo>没有可用的石材信息。</RimWorldAccess.StartingSite.NoStoneInfo>
+  <RimWorldAccess.StartingSite.NoDlcFeatures>此地块没有 DLC 功能。</RimWorldAccess.StartingSite.NoDlcFeatures>
+
+  <!-- =================================================================
+       Starting pawn editor (StartingPawnState + StartingPawnHelper +
+       RerollState). Tree of pawns with Bio/Traits/Skills/Health/etc.
+       Reroll runs in batches; the periodic announcement shows
+       attempt count. {0} = attempts.
+       ================================================================= -->
+  <RimWorldAccess.StartingPawn.GoBackConfirm>返回将放弃当前的开局殖民者。是否继续？</RimWorldAccess.StartingPawn.GoBackConfirm>
+  <RimWorldAccess.StartingPawn.GoBackContinue>继续</RimWorldAccess.StartingPawn.GoBackContinue>
+  <RimWorldAccess.StartingPawn.GoBackCancel>取消</RimWorldAccess.StartingPawn.GoBackCancel>
+  <RimWorldAccess.StartingPawn.WandererTitle>{0}. Alt+A 添加，Delete 移除。</RimWorldAccess.StartingPawn.WandererTitle>
+  <RimWorldAccess.StartingPawn.RandomizeWithMatch>{0}. 在 {1} 次尝试中找到匹配。</RimWorldAccess.StartingPawn.RandomizeWithMatch>
+  <RimWorldAccess.StartingPawn.RandomizeNoMatch>{0}. {1} 次尝试后仍无匹配，保留上次结果。</RimWorldAccess.StartingPawn.RandomizeNoMatch>
+  <RimWorldAccess.StartingPawn.RandomizeWithSummary>{0}. {1}</RimWorldAccess.StartingPawn.RandomizeWithSummary>
+  <RimWorldAccess.StartingPawn.RerollStopped>在 {0} 次尝试后停止。</RimWorldAccess.StartingPawn.RerollStopped>
+  <RimWorldAccess.StartingPawn.RerollFound>在 {0} 次尝试中找到匹配。</RimWorldAccess.StartingPawn.RerollFound>
+  <RimWorldAccess.StartingPawn.RerollNoMatch>{0} 次尝试后仍无匹配，保留上次结果。</RimWorldAccess.StartingPawn.RerollNoMatch>
+  <RimWorldAccess.StartingPawn.NeighborBetween>位于 {0} 和 {1} 之间</RimWorldAccess.StartingPawn.NeighborBetween>
+  <RimWorldAccess.StartingPawn.NeighborAfter>位于 {0} 之后</RimWorldAccess.StartingPawn.NeighborAfter>
+  <RimWorldAccess.StartingPawn.NeighborBefore>位于 {0} 之前</RimWorldAccess.StartingPawn.NeighborBefore>
+  <RimWorldAccess.StartingPawn.NoPawnSelected>未选择角色</RimWorldAccess.StartingPawn.NoPawnSelected>
+  <RimWorldAccess.StartingPawn.StartGameConfirm>用 {0} 开始游戏？</RimWorldAccess.StartingPawn.StartGameConfirm>
+  <RimWorldAccess.StartingPawn.WandererConfirm>{0}: {1}？</RimWorldAccess.StartingPawn.WandererConfirm>
+  <RimWorldAccess.StartingPawn.MaximumPawns>最多 {0}</RimWorldAccess.StartingPawn.MaximumPawns>
+  <RimWorldAccess.StartingPawn.MinimumPawns>最少 {0}</RimWorldAccess.StartingPawn.MinimumPawns>
+  <RimWorldAccess.StartingPawn.PawnAdded>已添加角色</RimWorldAccess.StartingPawn.PawnAdded>
+  <RimWorldAccess.StartingPawn.PawnRemoved>已移除 {0}</RimWorldAccess.StartingPawn.PawnRemoved>
+  <RimWorldAccess.StartingPawn.LabelRandomize>{0}, {1}</RimWorldAccess.StartingPawn.LabelRandomize>
+
+  <!-- Tree-item composition for the starting pawn editor (FormatItemAnnouncement).
+       Splits into per-shape keys so the order of {label}/{state}/{position} can
+       differ per language. {0} = label, {1} = state word (expanded/collapsed),
+       {2} = summary text or position fragment. The bare " ({0})" position
+       suffix is reused by all branches. The " Inspectable." suffix lives
+       in Common.xml as RimWorldAccess.InfoCard.Inspectable. -->
+  <RimWorldAccess.StartingPawn.PawnLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.PawnLabelWithState>
+  <RimWorldAccess.StartingPawn.CategoryLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.CategoryLabelWithState>
+  <RimWorldAccess.StartingPawn.CategoryWithSummary>{0}: {1}, {2}</RimWorldAccess.StartingPawn.CategoryWithSummary>
+  <RimWorldAccess.StartingPawn.PositionParenSuffix> ({0})</RimWorldAccess.StartingPawn.PositionParenSuffix>
+  <RimWorldAccess.StartingPawn.SectionPrefix>{0}. {1}</RimWorldAccess.StartingPawn.SectionPrefix>
+  <RimWorldAccess.Reroll.SearchingAttempts>正在搜索，已尝试 {0} 次...</RimWorldAccess.Reroll.SearchingAttempts>
+
+  <!-- =================================================================
+       Factions navigation (FactionsNavigationState + FactionLandingState).
+       The starting-faction dialog allows adding/removing factions.
+       Locked-by-scenario / tutorial-mode are user-facing block reasons.
+       {0} = faction label, {1} = remaining count or disabled reason.
+       ================================================================= -->
+  <RimWorldAccess.Factions.Title>派系</RimWorldAccess.Factions.Title>
+  <RimWorldAccess.Factions.PressAddHint>按 Alt+A 添加派系。</RimWorldAccess.Factions.PressAddHint>
+  <RimWorldAccess.Factions.NoFactionsInList>派系。列表中没有派系。按 Alt+A 添加派系。</RimWorldAccess.Factions.NoFactionsInList>
+  <RimWorldAccess.Factions.NoFactionSelected>未选择派系</RimWorldAccess.Factions.NoFactionSelected>
+  <RimWorldAccess.Factions.CannotRemoveLocked>无法移除 {0}: 已被剧本锁定</RimWorldAccess.Factions.CannotRemoveLocked>
+  <RimWorldAccess.Factions.CannotModifyTutorial>教程模式下无法修改派系</RimWorldAccess.Factions.CannotModifyTutorial>
+  <RimWorldAccess.Factions.RemovedRemaining>已移除 {0}。剩余 {1} 个派系。</RimWorldAccess.Factions.RemovedRemaining>
+  <RimWorldAccess.Factions.NoneRemaining>没有剩余的派系。按 Alt+A 添加派系。</RimWorldAccess.Factions.NoneRemaining>
+  <RimWorldAccess.Factions.NoneAvailableToAdd>没有可添加的派系</RimWorldAccess.Factions.NoneAvailableToAdd>
+  <RimWorldAccess.Factions.AddMenuOpened>已打开添加派系菜单</RimWorldAccess.Factions.AddMenuOpened>
+  <RimWorldAccess.Factions.AddMenuClosed>添加菜单已关闭</RimWorldAccess.Factions.AddMenuClosed>
+  <RimWorldAccess.Factions.CannotAddReason>无法添加 {0}: {1}</RimWorldAccess.Factions.CannotAddReason>
+  <RimWorldAccess.Factions.AddedNowInList>已添加 {0}。列表中现有 {1} 个。</RimWorldAccess.Factions.AddedNowInList>
+  <RimWorldAccess.Factions.LandingClosed>派系关系已关闭。</RimWorldAccess.Factions.LandingClosed>
+  <!-- AddFactionMenu and faction list announcements. {0} = label,
+       {1} = description, {2} = position, {3} = disabled reason or count. -->
+  <RimWorldAccess.Factions.MaxAllowed>最多允许 {0} 个派系</RimWorldAccess.Factions.MaxAllowed>
+  <RimWorldAccess.Factions.MaxOfType>此派系类型最多 {0} 个</RimWorldAccess.Factions.MaxOfType>
+  <RimWorldAccess.Factions.WarningNoFactions>警告: 没有派系，袭击、交易和任务将无法正常出现。</RimWorldAccess.Factions.WarningNoFactions>
+  <RimWorldAccess.Factions.WarningMissingEmpire>警告: 缺少帝国派系可能减少皇权 DLC 的任务内容。</RimWorldAccess.Factions.WarningMissingEmpire>
+  <RimWorldAccess.Factions.WarningMissingMechanoid>警告: 缺少机械体可能减少任务多样性。</RimWorldAccess.Factions.WarningMissingMechanoid>
+  <RimWorldAccess.Factions.WarningMissingInsect>警告: 缺少虫族可能减少任务多样性。</RimWorldAccess.Factions.WarningMissingInsect>
+  <RimWorldAccess.Factions.LabelWithReason>{0} ({1})</RimWorldAccess.Factions.LabelWithReason>
+  <RimWorldAccess.Factions.LabelWithCount>{0} ({1})</RimWorldAccess.Factions.LabelWithCount>
+  <RimWorldAccess.Factions.WithDescriptionSuffix>. {0}</RimWorldAccess.Factions.WithDescriptionSuffix>
+  <RimWorldAccess.Factions.PositionSpaceSuffix> {0}</RimWorldAccess.Factions.PositionSpaceSuffix>
+  <RimWorldAccess.Factions.LockedSuffix> (已被剧本锁定)</RimWorldAccess.Factions.LockedSuffix>
+  <RimWorldAccess.Factions.DisabledSuffix> (已禁用)</RimWorldAccess.Factions.DisabledSuffix>
+
+  <!-- =================================================================
+       Pawn filter editor (PawnFilterState + Helper). Configure
+       what kinds of pawns the reroll system will accept.
+       {0} = mode label / type, {1} = trait label, {2} = filter count.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.Editor>角色筛选器编辑器。{0}</RimWorldAccess.PawnFilter.Editor>
+  <RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix> {0} 个生效的筛选条件。</RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix>
+  <RimWorldAccess.PawnFilter.FilterSaved>筛选器已保存。{0} 个生效的筛选条件。</RimWorldAccess.PawnFilter.FilterSaved>
+  <RimWorldAccess.PawnFilter.EditorClosedDiscarded>筛选器编辑器已关闭。更改已放弃。</RimWorldAccess.PawnFilter.EditorClosedDiscarded>
+  <RimWorldAccess.PawnFilter.PresetLoaded>预设已载入。{0} 个生效的筛选条件。</RimWorldAccess.PawnFilter.PresetLoaded>
+  <RimWorldAccess.PawnFilter.TraitAdded>{0}: 已添加 {1}</RimWorldAccess.PawnFilter.TraitAdded>
+  <RimWorldAccess.PawnFilter.NoAvailableTraits>没有可用的特性</RimWorldAccess.PawnFilter.NoAvailableTraits>
+  <RimWorldAccess.PawnFilter.TraitRemoved>{0}: 已移除 {1}</RimWorldAccess.PawnFilter.TraitRemoved>
+  <RimWorldAccess.PawnFilter.AddRequiredTrait>添加必需特性...</RimWorldAccess.PawnFilter.AddRequiredTrait>
+  <RimWorldAccess.PawnFilter.AddExcludedTrait>添加排除特性...</RimWorldAccess.PawnFilter.AddExcludedTrait>
+  <RimWorldAccess.PawnFilter.AddOptionalTrait>添加可选特性...</RimWorldAccess.PawnFilter.AddOptionalTrait>
+  <RimWorldAccess.PawnFilter.SavePreset>保存预设...</RimWorldAccess.PawnFilter.SavePreset>
+  <RimWorldAccess.PawnFilter.LoadPreset>载入预设...</RimWorldAccess.PawnFilter.LoadPreset>
+  <RimWorldAccess.PawnFilter.SectionDemographics>人口统计</RimWorldAccess.PawnFilter.SectionDemographics>
+  <RimWorldAccess.PawnFilter.SectionConditions>状况</RimWorldAccess.PawnFilter.SectionConditions>
+  <RimWorldAccess.PawnFilter.SectionActions>操作</RimWorldAccess.PawnFilter.SectionActions>
+  <RimWorldAccess.PawnFilter.TraitEntryFormat>{0}: {1} {2}</RimWorldAccess.PawnFilter.TraitEntryFormat>
+  <RimWorldAccess.PawnFilter.WorkAllowNone>不允许任何</RimWorldAccess.PawnFilter.WorkAllowNone>
+
+  <!-- =================================================================
+       Pawn filter preset save (PawnFilterPresetSaveState).
+       Same shape as the scenario save dialog.
+       {0} = current name buffer, {1} = position fragment,
+       {2} = preset name to overwrite.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.PresetSave.OpenInstructions>保存筛选器预设。输入名称，或按 Down 选择要覆盖的现有预设。当前名称: {0}</RimWorldAccess.PawnFilter.PresetSave.OpenInstructions>
+  <RimWorldAccess.PawnFilter.PresetSave.SaveAs>另存为: {0} ({1})</RimWorldAccess.PawnFilter.PresetSave.SaveAs>
+  <RimWorldAccess.PawnFilter.PresetSave.Overwrite>覆盖: {0} ({1})</RimWorldAccess.PawnFilter.PresetSave.Overwrite>
+  <RimWorldAccess.PawnFilter.PresetSave.NameEmpty>名称不能为空</RimWorldAccess.PawnFilter.PresetSave.NameEmpty>
+  <RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten>预设 {0} 已覆盖</RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten>
+  <RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs>预设已另存为 {0}</RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs>
+  <RimWorldAccess.PawnFilter.PresetSave.ErrorSaving>保存出错: {0}</RimWorldAccess.PawnFilter.PresetSave.ErrorSaving>
+  <RimWorldAccess.PawnFilter.PresetSave.InvalidSelection>无效的选择</RimWorldAccess.PawnFilter.PresetSave.InvalidSelection>
+
+  <!-- =================================================================
+       Pawn filter preset load (PawnFilterPresetLoadState).
+       Same shape as the scenario load dialog.
+       {0} = preset count, {1} = preset name, {2} = error message.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets>未找到已保存的预设。</RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets>
+  <RimWorldAccess.PawnFilter.PresetLoad.UnnamedFallback>(未命名)</RimWorldAccess.PawnFilter.PresetLoad.UnnamedFallback>
+  <RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix> ({0})</RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix>
+  <RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions>载入筛选器预设。有 {0} 个预设可用。输入以搜索。</RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable>没有可用的预设。</RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected>未选择预设。</RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected>
+  <RimWorldAccess.PawnFilter.PresetLoad.Loaded>已载入 {0}</RimWorldAccess.PawnFilter.PresetLoad.Loaded>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading>载入预设出错</RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail>载入预设出错: {0}</RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail>
+  <RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm>删除 {0}？按 Enter 确认，按 Escape 取消。</RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining>没有剩余的预设。</RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining>
+  <RimWorldAccess.PawnFilter.PresetLoad.Deleted>已删除 {0}</RimWorldAccess.PawnFilter.PresetLoad.Deleted>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting>删除预设出错: {0}</RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting>
+  <RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled>已取消删除</RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled>
+
+  <!-- Note: the bare "Cancelled" word reuses RimWorldAccess.UI.Cancelled
+       from the UI module (already used by quantity/save dialogs). The
+       longer Delete-cancelled phrasings live in this file's
+       ScenarioLoad.DeleteCancelled and PawnFilter.PresetLoad.DeleteCancelled
+       since they share the "Delete cancelled" wording across both load
+       dialogs. -->
+
+  <!-- Add part announcement composition (ScenarioBuilderAddPartState).
+       LabelDescription joins a part's label and description with a colon.
+       PartWithPosition appends a position suffix in parentheses for
+       the navigation announcement.
+       {0} = label, {1} = description or position. -->
+  <RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>{0}: {1}</RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>
+  <RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix>
+  <RimWorldAccess.ScenarioBuilder.Field.Faction>派系</RimWorldAccess.ScenarioBuilder.Field.Faction>
+  <RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>星球层级</RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerTag>层级标签</RimWorldAccess.ScenarioBuilder.Field.LayerTag>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerSettings>层级设置</RimWorldAccess.ScenarioBuilder.Field.LayerSettings>
+  <RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>抵达方式</RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.Item>物品</RimWorldAccess.ScenarioBuilder.Field.Item>
+  <RimWorldAccess.ScenarioBuilder.Field.Material>材料</RimWorldAccess.ScenarioBuilder.Field.Material>
+  <RimWorldAccess.ScenarioBuilder.Field.Quality>品质</RimWorldAccess.ScenarioBuilder.Field.Quality>
+  <RimWorldAccess.ScenarioBuilder.Field.Count>数量</RimWorldAccess.ScenarioBuilder.Field.Count>
+  <RimWorldAccess.ScenarioBuilder.Field.Chance>几率</RimWorldAccess.ScenarioBuilder.Field.Chance>
+  <RimWorldAccess.ScenarioBuilder.Field.Condition>状况</RimWorldAccess.ScenarioBuilder.Field.Condition>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>最小严重度</RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>最大严重度</RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.Affects>影响</RimWorldAccess.ScenarioBuilder.Field.Affects>
+  <RimWorldAccess.ScenarioBuilder.Field.AnimalType>动物类型</RimWorldAccess.ScenarioBuilder.Field.AnimalType>
+  <RimWorldAccess.ScenarioBuilder.Field.Trait>特性</RimWorldAccess.ScenarioBuilder.Field.Trait>
+  <RimWorldAccess.ScenarioBuilder.Field.Incident>事件</RimWorldAccess.ScenarioBuilder.Field.Incident>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumDays>最少天数</RimWorldAccess.ScenarioBuilder.Field.MinimumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumDays>最多天数</RimWorldAccess.ScenarioBuilder.Field.MaximumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.Repeat>重复</RimWorldAccess.ScenarioBuilder.Field.Repeat>
+  <RimWorldAccess.ScenarioBuilder.Field.Research>研究</RimWorldAccess.ScenarioBuilder.Field.Research>
+  <RimWorldAccess.ScenarioBuilder.Field.StartingPawns>开局角色</RimWorldAccess.ScenarioBuilder.Field.StartingPawns>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>角色选择池</RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowBabies>允许婴儿</RimWorldAccess.ScenarioBuilder.Field.AllowBabies>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowChildren>允许儿童</RimWorldAccess.ScenarioBuilder.Field.AllowChildren>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowAdults>允许成人</RimWorldAccess.ScenarioBuilder.Field.AllowAdults>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumAge>最小年龄</RimWorldAccess.ScenarioBuilder.Field.MinimumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumAge>最大年龄</RimWorldAccess.ScenarioBuilder.Field.MaximumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MechType>机械体类型</RimWorldAccess.ScenarioBuilder.Field.MechType>
+  <RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>机械师监管几率</RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>
+  <RimWorldAccess.ScenarioBuilder.Field.DialogText>对话文本</RimWorldAccess.ScenarioBuilder.Field.DialogText>
+  <RimWorldAccess.ScenarioBuilder.Field.Stat>属性</RimWorldAccess.ScenarioBuilder.Field.Stat>
+  <RimWorldAccess.ScenarioBuilder.Field.Factor>系数</RimWorldAccess.ScenarioBuilder.Field.Factor>
+  <RimWorldAccess.ScenarioBuilder.Field.Building>建筑</RimWorldAccess.ScenarioBuilder.Field.Building>
+  <RimWorldAccess.ScenarioBuilder.Field.Need>需求</RimWorldAccess.ScenarioBuilder.Field.Need>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>最低等级</RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>最高等级</RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.DurationDays>持续时间 (天)</RimWorldAccess.ScenarioBuilder.Field.DurationDays>
+  <RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>爆炸半径</RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>
+  <RimWorldAccess.ScenarioBuilder.Field.DamageType>伤害类型</RimWorldAccess.ScenarioBuilder.Field.DamageType>
+  <RimWorldAccess.ScenarioBuilder.Field.Quest>任务</RimWorldAccess.ScenarioBuilder.Field.Quest>
+  <RimWorldAccess.ScenarioBuilder.Field.MapGenerator>地图生成器</RimWorldAccess.ScenarioBuilder.Field.MapGenerator>
+  <RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>生成方式</RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>激活延迟 (天)</RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnKind>角色类型</RimWorldAccess.ScenarioBuilder.Field.PawnKind>
+  <RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>开局必需</RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>
+  <RimWorldAccess.ScenarioBuilder.Field.Xenotype>异种类型</RimWorldAccess.ScenarioBuilder.Field.Xenotype>
+  <RimWorldAccess.ScenarioBuilder.Field.MutantType>变种体类型</RimWorldAccess.ScenarioBuilder.Field.MutantType>
+  <RimWorldAccess.ScenarioBuilder.Field.TargetLayer>目标层级</RimWorldAccess.ScenarioBuilder.Field.TargetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.ZoomMode>缩放模式</RimWorldAccess.ScenarioBuilder.Field.ZoomMode>
+  <RimWorldAccess.ScenarioBuilder.Field.FuelCost>燃料消耗</RimWorldAccess.ScenarioBuilder.Field.FuelCost>
+  <RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>添加新物品。按 Enter 添加。</RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>
+  <RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>{0}, 复选框, {1}. 按 Enter 或 Space 切换。</RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>
+  <RimWorldAccess.ScenarioBuilder.Announce.EditableField>{0}: {1}. {2}. 按 Enter 编辑。</RimWorldAccess.ScenarioBuilder.Announce.EditableField>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>1 个字段</RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>{0} 个字段</RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>1 个物品</RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>{0} 个物品</RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>{0} ({1})</RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>{0}, {1}, {2}. 按 Delete 移除。</RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>{0}. 按 Delete 移除。</RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>{0}, {1}, {2}</RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>{0}, 只读</RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>
+  <RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix> 按 Insert 读取全文。</RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>下拉菜单</RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>数量</RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>复选框</RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>文本</RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>
+  <RimWorldAccess.ScenarioBuilder.AddNewItemLabel>添加新物品</RimWorldAccess.ScenarioBuilder.AddNewItemLabel>
+  <RimWorldAccess.ScenarioBuilder.ConnectionTo>到 {0} 的连接</RimWorldAccess.ScenarioBuilder.ConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>到 {0} 的连接 ({1})</RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>
+  <RimWorldAccess.ScenarioBuilder.ListItemCount>{0}x {1}</RimWorldAccess.ScenarioBuilder.ListItemCount>
+  <RimWorldAccess.ScenarioBuilder.RequiredSuffix> (必需)</RimWorldAccess.ScenarioBuilder.RequiredSuffix>
+  <RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>{0} - {1}</RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.ZoomIn>放大</RimWorldAccess.ScenarioBuilder.ZoomIn>
+  <RimWorldAccess.ScenarioBuilder.ZoomOut>缩小</RimWorldAccess.ScenarioBuilder.ZoomOut>
+  <RimWorldAccess.ScenarioBuilder.Value.Empty>(空)</RimWorldAccess.ScenarioBuilder.Value.Empty>
+  <RimWorldAccess.ScenarioBuilder.Value.RandomPet>随机宠物</RimWorldAccess.ScenarioBuilder.Value.RandomPet>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Item>物品</RimWorldAccess.ScenarioBuilder.ItemType.Item>
+  <RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>角色类型条目</RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>异种类型条目</RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>变种体条目</RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Connection>连接</RimWorldAccess.ScenarioBuilder.ItemType.Connection>
+
+
+  <!-- Mod-list detail nav + requirement status (src/MainMenu/ModListState.cs). -->
+  <RimWorldAccess.ModList.EndOfDetails>模组详情结尾</RimWorldAccess.ModList.EndOfDetails>
+  <RimWorldAccess.ModList.StartOfDetails>模组详情开头</RimWorldAccess.ModList.StartOfDetails>
+  <RimWorldAccess.ModList.ReqSatisfied>已满足</RimWorldAccess.ModList.ReqSatisfied>
+  <RimWorldAccess.ModList.ReqNotSatisfied>未满足</RimWorldAccess.ModList.ReqNotSatisfied>
+  <!-- Difficulty reset preset tooltip fallback (src/MainMenu/DifficultySettingsHelper.cs). -->
+  <RimWorldAccess.CustomDifficulty.ResetTooltip>将所有自定义难度设置重置为此预设</RimWorldAccess.CustomDifficulty.ResetTooltip>
+
+  <!-- =================================================================
+       Anomaly settings dialog (AnomalySettingsDialogState +
+       AnomalySettingsDialogPatch + StorytellerSelectionPatch).
+       Dialog_AnomalySettings opened from the Storyteller page.
+       {0} = the translated "AnomalySettings" label (vanilla key).
+       ================================================================= -->
+  <RimWorldAccess.AnomalySettings.Saved>{0} 已保存。</RimWorldAccess.AnomalySettings.Saved>
+  <RimWorldAccess.AnomalySettings.Closed>{0} 已关闭。</RimWorldAccess.AnomalySettings.Closed>
+  <RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>{0}. 按 Enter 打开。</RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>
+  <RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>无法接受: 难度未载入。</RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>
+
+  <!-- Storyteller page tab-cycle hint (StorytellerSelectionPatch line 61).
+       Two variants: with and without the Anomaly Settings tab stop. -->
+  <RimWorldAccess.Storyteller.TabHint>按 Tab 和 Shift+Tab 在故事叙述者、难度和存档模式之间切换。</RimWorldAccess.Storyteller.TabHint>
+  <RimWorldAccess.Storyteller.TabHintWithAnomaly>按 Tab 和 Shift+Tab 在故事叙述者、难度、存档模式和异象设置之间切换。</RimWorldAccess.Storyteller.TabHintWithAnomaly>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.PawnFilter.Any>任意</RimWorldAccess.PawnFilter.Any>
+  <RimWorldAccess.PawnFilter.SkillLabelAny>{0}: 任意</RimWorldAccess.PawnFilter.SkillLabelAny>
+  <RimWorldAccess.PawnFilter.SkillLabelWithRequirements>{0}: {1}</RimWorldAccess.PawnFilter.SkillLabelWithRequirements>
+  <RimWorldAccess.PawnFilter.TotalPassionsWithValue>总兴趣度 {0}: {1}</RimWorldAccess.PawnFilter.TotalPassionsWithValue>
+  <RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>总技能点 {0}: {1}</RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>
+  <RimWorldAccess.PawnFilter.CountOnlyHighestAttack>只计算最高攻击技能: {0}. 计算总技能点时，射击与近战只取较高者，不同时计算</RimWorldAccess.PawnFilter.CountOnlyHighestAttack>
+  <RimWorldAccess.PawnFilter.CountOnlyPassionSkills>只计算有兴趣度的技能: {0}. 计算总技能点时，只计算有兴趣度的技能</RimWorldAccess.PawnFilter.CountOnlyPassionSkills>
+  <RimWorldAccess.PawnFilter.RequiredTraitsInPool>池中的必需特性: {0}</RimWorldAccess.PawnFilter.RequiredTraitsInPool>
+  <RimWorldAccess.PawnFilter.AgeWithValue>年龄 {0}: {1}</RimWorldAccess.PawnFilter.AgeWithValue>
+  <RimWorldAccess.PawnFilter.HealthOnlyStartConditions>只看开局状况</RimWorldAccess.PawnFilter.HealthOnlyStartConditions>
+  <RimWorldAccess.PawnFilter.HealthNoPain>无疼痛</RimWorldAccess.PawnFilter.HealthNoPain>
+  <RimWorldAccess.PawnFilter.HealthNoAddictions>无成瘾</RimWorldAccess.PawnFilter.HealthNoAddictions>
+  <RimWorldAccess.PawnFilter.HealthNoConditions>无健康状况</RimWorldAccess.PawnFilter.HealthNoConditions>
+  <RimWorldAccess.PawnFilter.WorkNoDumbLabor>无粗活</RimWorldAccess.PawnFilter.WorkNoDumbLabor>
+  <RimWorldAccess.PawnFilter.RerollLimit>重抽上限: {0}</RimWorldAccess.PawnFilter.RerollLimit>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>玩法风格</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>设置</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
+  <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>选择一种异象玩法风格</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
+</LanguageData>
