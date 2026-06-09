@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Shared vocabulary used by RimWorld Access helper classes. Every phrase in
+    this file is emitted by a helper in src/UI, src/Map, or src/Inspection and
+    represents the canonical English wording that Phase A consolidated. Each
+    key is spoken many times across the mod - localizing here localizes the
+    corresponding announcement everywhere it appears.
+
+    Placeholders follow string.Format ({0}, {1}, ...). When a key has One/Many
+    variants, the caller picks the form based on a count value; languages with
+    additional plural classes can either keep both keys identical or split
+    further using RimWorld's LanguageWorker.
+  -->
+
+  <!-- Guard preconditions (src/UI/GuardHelper.cs).
+       Spoken when a state class cannot proceed because of missing game state. -->
+  <RimWorldAccess.Guard.NotInGame>未在游戏中</RimWorldAccess.Guard.NotInGame>
+  <RimWorldAccess.Guard.NoMapLoaded>未加载地图</RimWorldAccess.Guard.NoMapLoaded>
+  <RimWorldAccess.Guard.NoPawnSelected>未选择角色</RimWorldAccess.Guard.NoPawnSelected>
+  <RimWorldAccess.Guard.NoItemSelected>未选择物品</RimWorldAccess.Guard.NoItemSelected>
+  <RimWorldAccess.Guard.NoBuildingToConfigure>没有可配置的建筑</RimWorldAccess.Guard.NoBuildingToConfigure>
+  <RimWorldAccess.Guard.WorldNavigationNotActive>世界导航未激活</RimWorldAccess.Guard.WorldNavigationNotActive>
+  <RimWorldAccess.Guard.NoValidTileSelected>未选择有效地块</RimWorldAccess.Guard.NoValidTileSelected>
+  <RimWorldAccess.Guard.InvalidCursorPosition>光标位置无效</RimWorldAccess.Guard.InvalidCursorPosition>
+
+  <!-- Typeahead search (src/UI/TypeaheadSearchHelper.cs).
+       Used across every menu that has type-to-find search.
+       {0} = the user's search text (NoMatches).
+       {0} = current 1-based match position, {1} = total matches,
+       {2} = search buffer (ContextSuffix). -->
+  <RimWorldAccess.Search.Cleared>已清除搜索</RimWorldAccess.Search.Cleared>
+  <RimWorldAccess.Search.NoMatches>没有匹配“{0}”的结果</RimWorldAccess.Search.NoMatches>
+  <RimWorldAccess.Search.ContextSuffix>, 第 {0} 项，共 {1} 个匹配“{2}”</RimWorldAccess.Search.ContextSuffix>
+
+  <!-- Info card (src/Inspection/InfoCardState.cs).
+       Spoken when an 'i'-style info-card action has no eligible target.
+       Inspectable: suffix appended to a tree item's announcement when
+       pressing Alt+I would open an info card; the leading space is part
+       of the key so it joins onto whatever label precedes it.
+       ChooseItemToInspect: float-menu prompt when the current item has
+       multiple Defs that could be inspected. -->
+  <RimWorldAccess.InfoCard.Unavailable>无可用信息卡</RimWorldAccess.InfoCard.Unavailable>
+  <RimWorldAccess.InfoCard.Inspectable> 可查看。</RimWorldAccess.InfoCard.Inspectable>
+  <RimWorldAccess.InfoCard.ChooseItemToInspect>选择要查看的物品</RimWorldAccess.InfoCard.ChooseItemToInspect>
+
+  <!-- Tree expansion state (src/UI/TreeNavigationHelper.cs).
+       StateExpanded/StateCollapsed are the bare words, composed into the
+       suffix keys. SuffixWithCountOne/Many are used when a child count is
+       included; {0} = state word, {1} = child count.
+       ExpandedCountOne/Many are spoken after ExpandAllSiblings collapses or
+       expands several siblings in one action. -->
+  <RimWorldAccess.Tree.StateExpanded>已展开</RimWorldAccess.Tree.StateExpanded>
+  <RimWorldAccess.Tree.StateCollapsed>已折叠</RimWorldAccess.Tree.StateCollapsed>
+  <RimWorldAccess.Tree.ExpansionSuffix>, {0}</RimWorldAccess.Tree.ExpansionSuffix>
+  <RimWorldAccess.Tree.ExpansionSuffixWithCountOne>, {0}, {1} 项</RimWorldAccess.Tree.ExpansionSuffixWithCountOne>
+  <RimWorldAccess.Tree.ExpansionSuffixWithCountMany>, {0}, {1} 项</RimWorldAccess.Tree.ExpansionSuffixWithCountMany>
+  <RimWorldAccess.Tree.ExpansionSpaceSuffix> {0}</RimWorldAccess.Tree.ExpansionSpaceSuffix>
+  <RimWorldAccess.Tree.ExpandedCountOne>已展开 {0} 项</RimWorldAccess.Tree.ExpandedCountOne>
+  <RimWorldAccess.Tree.ExpandedCountMany>已展开 {0} 项</RimWorldAccess.Tree.ExpandedCountMany>
+
+  <!-- Two-level menu (src/UI/TwoLevelMenuHelper.cs).
+       Used by quest, history, notification, and mod-list menus.
+       ButtonAnnouncement/Disabled: {0} = button label, {1} = position suffix.
+       ButtonDisabled/Reason: {0} = button label, {1} = reason. -->
+  <RimWorldAccess.TwoLevel.BackToList>返回列表</RimWorldAccess.TwoLevel.BackToList>
+  <RimWorldAccess.TwoLevel.BackToListWithSuffix>返回列表. {0}</RimWorldAccess.TwoLevel.BackToListWithSuffix>
+  <RimWorldAccess.TwoLevel.ButtonAnnouncement>{0}. 按钮. {1}</RimWorldAccess.TwoLevel.ButtonAnnouncement>
+  <RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled>{0}（已禁用）. 按钮. {1}</RimWorldAccess.TwoLevel.ButtonAnnouncementDisabled>
+  <RimWorldAccess.TwoLevel.ButtonDisabled>{0} 已禁用</RimWorldAccess.TwoLevel.ButtonDisabled>
+  <RimWorldAccess.TwoLevel.ButtonDisabledReason>{0} 已禁用: {1}</RimWorldAccess.TwoLevel.ButtonDisabledReason>
+
+  <!-- Menu formatting (src/UI/MenuHelper.cs).
+       Position: {0} = 1-based index, {1} = total.
+       LevelSuffix: {0} = indent level (1-based), appended to item announcements.
+       CannotPaintColumn: tabular menus when a column cannot be paint-copied. -->
+  <RimWorldAccess.Menu.Position>第 {0} 项，共 {1} 项</RimWorldAccess.Menu.Position>
+  <RimWorldAccess.Menu.LevelSuffix> 层级 {0}</RimWorldAccess.Menu.LevelSuffix>
+  <RimWorldAccess.Menu.CannotPaintColumn>无法复制此列</RimWorldAccess.Menu.CannotPaintColumn>
+
+  <!-- Edge announcements (src/UI/MenuHelper.cs, MenuHelper.EdgeDirection).
+       Spoken when navigation has reached a boundary and cannot continue. -->
+  <RimWorldAccess.Edge.Top>已到顶部</RimWorldAccess.Edge.Top>
+  <RimWorldAccess.Edge.Bottom>已到底部</RimWorldAccess.Edge.Bottom>
+  <RimWorldAccess.Edge.First>已到第一项</RimWorldAccess.Edge.First>
+  <RimWorldAccess.Edge.Last>已到最后一项</RimWorldAccess.Edge.Last>
+  <RimWorldAccess.Edge.Minimum>已到最小值</RimWorldAccess.Edge.Minimum>
+  <RimWorldAccess.Edge.Maximum>已到最大值</RimWorldAccess.Edge.Maximum>
+  <RimWorldAccess.Edge.TopLevel>已到顶层</RimWorldAccess.Edge.TopLevel>
+  <RimWorldAccess.Edge.Zero>已到零</RimWorldAccess.Edge.Zero>
+  <RimWorldAccess.Edge.Generic>已到边缘</RimWorldAccess.Edge.Generic>
+
+  <!-- Map navigation (src/Map/MapNavigationState.cs).
+       JumpedTo: {0} = the target label (scanner item, menu row, etc.).
+       JumpedToTarget: fallback when no label is available.
+       SelectedCell: {0} = cell x, {1} = cell z. -->
+  <RimWorldAccess.Map.JumpedTo>已跳转到 {0}</RimWorldAccess.Map.JumpedTo>
+  <RimWorldAccess.Map.JumpedToTarget>已跳转到目标</RimWorldAccess.Map.JumpedToTarget>
+  <RimWorldAccess.Map.SelectedCell>已选择, {0}, {1}</RimWorldAccess.Map.SelectedCell>
+
+  <!-- Numeric stepper (src/UI/NumericStepperHelper.cs).
+       Minimum/Maximum are boundary hits (value did not change).
+       ValueAtMinimum/Maximum are transitions INTO the boundary; {0} = the
+       formatted value label. -->
+  <RimWorldAccess.Stepper.Minimum>最小值</RimWorldAccess.Stepper.Minimum>
+  <RimWorldAccess.Stepper.Maximum>最大值</RimWorldAccess.Stepper.Maximum>
+  <RimWorldAccess.Stepper.ValueAtMinimum>{0}, 最小值</RimWorldAccess.Stepper.ValueAtMinimum>
+  <RimWorldAccess.Stepper.ValueAtMaximum>{0}, 最大值</RimWorldAccess.Stepper.ValueAtMaximum>
+</LanguageData>
