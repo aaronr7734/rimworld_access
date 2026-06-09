@@ -140,6 +140,26 @@
       DestinationFiles="@(LanguageFiles->'$(ReleaseFolderPath)Languages\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
+    <!-- Bundle each language into a .tar, the way RimWorld ships its own
+         languages: fewer files means faster mod scanning and smoother
+         distribution. RimWorld's AbstractFilesystem reads "<Lang>.tar" as if it
+         were the "<Lang>" directory. The mod ships only Keyed/, so we archive
+         that explicitly to reproduce the game's exact tar layout (Keyed/... at
+         the archive root, no "./" prefix, no macOS xattr/AppleDouble junk).
+         Release-only: the Debug deploy keeps loose files for fast iteration. -->
+    <ItemGroup>
+      <_ReleaseLangDir Include="$([System.IO.Directory]::GetDirectories('$(ReleaseFolderPath)Languages'))" />
+    </ItemGroup>
+    <Exec
+      Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="COPYFILE_DISABLE=1 tar --no-xattrs -cf &quot;%(_ReleaseLangDir.Identity).tar&quot; -C &quot;%(_ReleaseLangDir.Identity)&quot; Keyed"
+    />
+    <Exec
+      Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="tar -cf &quot;%(_ReleaseLangDir.Identity).tar&quot; -C &quot;%(_ReleaseLangDir.Identity)&quot; Keyed"
+    />
+    <RemoveDir Directories="@(_ReleaseLangDir)" />
+
     <!-- Copy native Prism libraries to mod root -->
     <Copy
       SourceFiles="$(NativeDir)\prism.dll"
