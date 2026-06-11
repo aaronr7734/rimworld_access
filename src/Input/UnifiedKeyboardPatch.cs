@@ -64,21 +64,6 @@ namespace RimWorldAccess
 
             KeyCode key = Event.current.keyCode;
 
-#if DEBUG
-            // ===== DEV: Hot-reload the mod assembly (Alt+F5) =====
-            // Debug-only shortcut that unloads the current mod assembly, loads the
-            // freshly-built DLL from disk, and re-applies Harmony patches without
-            // restarting RimWorld. Entire block is stripped from Release builds.
-            if (key == KeyCode.F5
-                && KeyboardHelper.IsAltHeld
-                && !Event.current.control
-                && !Event.current.shift)
-            {
-                Event.current.Use();
-                ReloadHelper.Reload();
-                return;
-            }
-#endif
             // ===== EXCLUSIVE: Archonexus relocation dialogs own all input =====
             // The selection screen and the reform-ideoligion dialog handle their own
             // keys via their DoWindowContents prefix (which runs LATER in the frame

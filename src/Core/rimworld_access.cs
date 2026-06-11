@@ -1,4 +1,3 @@
-using System.IO;
 using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
@@ -13,40 +12,13 @@ namespace RimWorldAccess
 
         public static Harmony HarmonyInstance { get; private set; }
 
-        // Path to the mod DLL on disk. Captured during Initialize so that hot-reload
-        // (which byte-loads the assembly, leaving Assembly.Location empty) can still
-        // find the DLL on subsequent reload passes.
-        public static string DllPath { get; private set; }
-
         static RimWorldAccessMod()
-        {
-            // Skip initialization when the assembly was byte-loaded (hot-reload path).
-            // In that case, Assembly.Location is empty and the reload caller will
-            // invoke Initialize(dllPath) explicitly with the correct path.
-            if (string.IsNullOrEmpty(Assembly.GetExecutingAssembly().Location))
-            {
-                Log.Message("[RimWorld Access] Assembly byte-loaded; awaiting explicit Initialize call.");
-                return;
-            }
-            Initialize();
-        }
-
-        public static void Initialize(string dllPathOverride = null)
         {
             Log.Message("[RimWorld Access] Initializing accessibility features...");
 
-            string dllPath = string.IsNullOrEmpty(dllPathOverride)
-                ? Assembly.GetExecutingAssembly().Location
-                : dllPathOverride;
-            DllPath = dllPath;
-
-            string modRoot = string.IsNullOrEmpty(dllPath)
-                ? null
-                : Path.GetFullPath(Path.Combine(Path.GetDirectoryName(dllPath), ".."));
-
             try
             {
-                TolkHelper.Initialize(modRoot);
+                TolkHelper.Initialize();
             }
             catch (System.Exception ex)
             {
@@ -88,21 +60,6 @@ namespace RimWorldAccess
             Log.Message("[RimWorld Access] Use Arrow keys to navigate, Enter to select.");
 
             Application.quitting += OnApplicationQuit;
-        }
-
-        public static void Teardown()
-        {
-            Log.Message("[RimWorld Access] Tearing down for reload...");
-
-            Application.quitting -= OnApplicationQuit;
-
-            if (HarmonyInstance != null)
-            {
-                HarmonyInstance.UnpatchAll(HarmonyId);
-                HarmonyInstance = null;
-            }
-
-            TolkHelper.Shutdown();
         }
 
         private static void ApplyLordJobStartPatches(Harmony harmony)
