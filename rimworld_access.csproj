@@ -84,10 +84,37 @@
       DestinationFolder="$(ModOutputDir)\Assemblies\"
     />
 
-    <!-- Copy Languages folder, preserving subdirectory structure -->
+    <!-- Bundle each language into a .tar exactly as the Release package does, so the
+         deployed mod is byte-for-byte what ships and there is a SINGLE language
+         artifact per language. RimWorld loads "<Lang>.tar" in preference to a loose
+         "<Lang>/" dir, so shipping both lets a stale .tar silently shadow fresh loose
+         XML (only newly added keys go missing — a maddening, near-invisible failure).
+         The Mods folder is a build output, never hand-edited, so loose files buy
+         nothing. Wipe Languages first to clear any stale .tar or loose dir, stage the
+         XML, archive Keyed/, then drop the loose staging so only the .tar remains. -->
+    <RemoveDir Directories="$(ModOutputDir)\Languages" />
     <Copy
       SourceFiles="@(LanguageFiles)"
       DestinationFiles="@(LanguageFiles->'$(ModOutputDir)\Languages\%(RecursiveDir)%(Filename)%(Extension)')"
+    />
+    <ItemGroup>
+      <_DeployLangDir Include="$([System.IO.Directory]::GetDirectories('$(ModOutputDir)\Languages'))" />
+    </ItemGroup>
+    <Exec
+      Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="COPYFILE_DISABLE=1 tar --no-xattrs -cf &quot;%(_DeployLangDir.Identity).tar&quot; -C &quot;%(_DeployLangDir.Identity)&quot; Keyed"
+    />
+    <Exec
+      Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="tar -cf &quot;%(_DeployLangDir.Identity).tar&quot; -C &quot;%(_DeployLangDir.Identity)&quot; Keyed"
+    />
+    <RemoveDir Directories="@(_DeployLangDir)" />
+    <!-- Guard the silent-fallback gotcha: a mis-rooted archive (entries not at Keyed/)
+         makes RimWorld quietly fall back to English, which is invisible while testing
+         in English. Fail the build instead if any .tar is not rooted at Keyed/. -->
+    <Exec
+      Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="tar -tf &quot;%(_DeployLangDir.Identity).tar&quot; | grep -q '^Keyed/'"
     />
 
     <!-- Copy native Prism libraries to mod root (for runtime loading) -->
