@@ -176,7 +176,7 @@ namespace RimWorldAccess
 
             // Synthetic categories (not real tabs)
             { "Overview", TabHandlerType.RichNavigation },
-            { "Work Priorities", TabHandlerType.BasicInspectString },
+            { "Work Priorities", TabHandlerType.RichNavigation },
             { "Plant Info", TabHandlerType.RichNavigation },
         };
 

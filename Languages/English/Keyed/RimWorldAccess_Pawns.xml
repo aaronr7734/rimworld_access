@@ -634,6 +634,7 @@
   <RimWorldAccess.Pawns.WorkInfo.Header>{0} Work</RimWorldAccess.Pawns.WorkInfo.Header>
   <RimWorldAccess.Pawns.WorkInfo.LinePriority>{0} (Priority {1})</RimWorldAccess.Pawns.WorkInfo.LinePriority>
   <RimWorldAccess.Pawns.WorkInfo.LineEnabled>{0} (Enabled)</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
+  <RimWorldAccess.Pawns.WorkInfo.LineUnassigned>{0} (Not assigned)</RimWorldAccess.Pawns.WorkInfo.LineUnassigned>
   <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} enabled</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} disabled</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.NoWork>No work types enabled</RimWorldAccess.Pawns.WorkInfo.NoWork>

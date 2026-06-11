@@ -634,6 +634,7 @@
   <RimWorldAccess.Pawns.WorkInfo.Header>Праця {0}</RimWorldAccess.Pawns.WorkInfo.Header>
   <RimWorldAccess.Pawns.WorkInfo.LinePriority>{0} (пріоритет {1})</RimWorldAccess.Pawns.WorkInfo.LinePriority>
   <RimWorldAccess.Pawns.WorkInfo.LineEnabled>{0} (активовано)</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
+  <RimWorldAccess.Pawns.WorkInfo.LineUnassigned>{0} (не призначено)</RimWorldAccess.Pawns.WorkInfo.LineUnassigned>
   <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} активовано</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} деактивовано</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.NoWork>Немає активованих типів праці</RimWorldAccess.Pawns.WorkInfo.NoWork>

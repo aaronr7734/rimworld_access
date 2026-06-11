@@ -511,6 +511,7 @@ namespace RimWorldAccess
                 category == "Social" ||
                 category == "Training" ||
                 category == "Character" ||
+                category == "Work Priorities" ||
                 category == "Log" ||
                 category == "Job Queue" ||
                 category == "Feeding" ||
@@ -843,6 +844,10 @@ namespace RimWorldAccess
             else if (category == "Training")
             {
                 BuildTrainingChildren(categoryItem, pawn, mode);
+            }
+            else if (category == "Work Priorities")
+            {
+                BuildWorkPrioritiesChildren(categoryItem, pawn);
             }
             else if (category == "Character")
             {
@@ -1620,6 +1625,56 @@ namespace RimWorldAccess
 
                 AddChild(parentItem, skillItem);
             }
+        }
+
+        /// <summary>
+        /// Builds read-only children for the synthetic "Work Priorities" category: one leaf row per
+        /// visible work type the pawn is capable of, assigned types (with priority) first, then
+        /// capable-but-unassigned types. Editing happens in the dedicated Work screen, not here.
+        /// </summary>
+        private static void BuildWorkPrioritiesChildren(InspectionTreeItem parentItem, Pawn pawn)
+        {
+            if (pawn?.workSettings == null)
+                return;
+
+            void AddRow(string label, WorkTypeDef def)
+            {
+                AddChild(parentItem, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = label,
+                    Data = def,
+                    IndentLevel = parentItem.IndentLevel + 1,
+                    IsExpandable = false
+                });
+            }
+
+            var workTypes = DefDatabase<WorkTypeDef>.AllDefsListForReading;
+
+            // Assigned work types first, carrying their priority.
+            foreach (var workType in workTypes)
+            {
+                if (!workType.visible || !pawn.workSettings.WorkIsActive(workType))
+                    continue;
+
+                int priority = pawn.workSettings.GetPriority(workType);
+                string label = priority > 0
+                    ? "RimWorldAccess.Pawns.WorkInfo.LinePriority".Translate(workType.labelShort, priority).ToString()
+                    : "RimWorldAccess.Pawns.WorkInfo.LineEnabled".Translate(workType.labelShort).ToString();
+                AddRow(label, workType);
+            }
+
+            // Then types the pawn could do but currently has switched off.
+            foreach (var workType in workTypes)
+            {
+                if (!workType.visible || pawn.workSettings.WorkIsActive(workType) || pawn.WorkTypeIsDisabled(workType))
+                    continue;
+
+                AddRow("RimWorldAccess.Pawns.WorkInfo.LineUnassigned".Translate(workType.labelShort).ToString(), workType);
+            }
+
+            if (parentItem.Children.Count == 0)
+                AddRow("RimWorldAccess.Pawns.WorkInfo.NoWork".Translate().ToString(), null);
         }
 
         /// <summary>

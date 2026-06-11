@@ -634,6 +634,7 @@
   <RimWorldAccess.Pawns.WorkInfo.Header>{0} 的工作</RimWorldAccess.Pawns.WorkInfo.Header>
   <RimWorldAccess.Pawns.WorkInfo.LinePriority>{0}（优先级 {1}）</RimWorldAccess.Pawns.WorkInfo.LinePriority>
   <RimWorldAccess.Pawns.WorkInfo.LineEnabled>{0}（已启用）</RimWorldAccess.Pawns.WorkInfo.LineEnabled>
+  <RimWorldAccess.Pawns.WorkInfo.LineUnassigned>{0}（未分配）</RimWorldAccess.Pawns.WorkInfo.LineUnassigned>
   <RimWorldAccess.Pawns.WorkInfo.EnabledHeader>{0} 已启用</RimWorldAccess.Pawns.WorkInfo.EnabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.DisabledHeader>{0} 已禁用</RimWorldAccess.Pawns.WorkInfo.DisabledHeader>
   <RimWorldAccess.Pawns.WorkInfo.NoWork>未启用任何工作类型</RimWorldAccess.Pawns.WorkInfo.NoWork>
