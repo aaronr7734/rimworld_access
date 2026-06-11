@@ -102,6 +102,7 @@
   <!-- Section announcements. {0} = count (or current mode label). -->
   <RimWorldAccess.Prisoner.Section.Information>信息分区 - 按下键读取数据</RimWorldAccess.Prisoner.Section.Information>
   <RimWorldAccess.Prisoner.Section.ExclusiveModes>互动模式 - {0} 项可用。当前: {1}</RimWorldAccess.Prisoner.Section.ExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.MedicalCare>{0} - {1} 项可用</RimWorldAccess.Prisoner.Section.MedicalCare>
   <RimWorldAccess.Prisoner.Section.SlaveModes>奴隶模式 - {0} 项可用。当前: {1}</RimWorldAccess.Prisoner.Section.SlaveModes>
   <RimWorldAccess.Prisoner.Section.NonExclusiveModes>非独占模式 - {0} 项可用。按空格键切换</RimWorldAccess.Prisoner.Section.NonExclusiveModes>
   <RimWorldAccess.Prisoner.Section.IdeologySelection>信仰选择 - 选择教化目标</RimWorldAccess.Prisoner.Section.IdeologySelection>
@@ -113,7 +114,8 @@
   <RimWorldAccess.Prisoner.Item.StateOn>[开]</RimWorldAccess.Prisoner.Item.StateOn>
   <RimWorldAccess.Prisoner.Item.StateOff>[关]</RimWorldAccess.Prisoner.Item.StateOff>
   <RimWorldAccess.Prisoner.Item.ModeWithDescription>{0}{1}. {2}</RimWorldAccess.Prisoner.Item.ModeWithDescription>
-  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0} {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0}: {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.SelectedSuffix>, 已选中</RimWorldAccess.Prisoner.Item.SelectedSuffix>
   <RimWorldAccess.Prisoner.Item.Ideo>{0}{1}</RimWorldAccess.Prisoner.Item.Ideo>
 
   <!-- Selection / toggle action feedback. -->

@@ -91,9 +91,8 @@ namespace RimWorldAccess
 
             if (currentPawn.IsPrisonerOfColony)
             {
-                // Build info lines
-                string prisonerInfo = PrisonerTabHelper.GetPrisonerInfo(currentPawn);
-                infoLines.AddRange(prisonerInfo.Split('\n'));
+                // Build info lines (one navigable stat per row)
+                infoLines.AddRange(PrisonerTabHelper.GetPrisonerInfoRows(currentPawn));
 
                 // Load interaction modes
                 exclusiveModes = PrisonerTabHelper.GetAvailableExclusiveInteractionModes(currentPawn);
@@ -104,9 +103,8 @@ namespace RimWorldAccess
             }
             else if (currentPawn.IsSlaveOfColony)
             {
-                // Build info lines
-                string slaveInfo = PrisonerTabHelper.GetSlaveInfo(currentPawn);
-                infoLines.AddRange(slaveInfo.Split('\n'));
+                // Build info lines (one navigable stat per row)
+                infoLines.AddRange(PrisonerTabHelper.GetSlaveInfoRows(currentPawn));
 
                 // Load slave modes
                 slaveModes = PrisonerTabHelper.GetAvailableSlaveInteractionModes();
@@ -136,7 +134,7 @@ namespace RimWorldAccess
             }
             while (!IsSectionAvailable(currentSection));
 
-            selectedIndex = 0;
+            selectedIndex = currentSection == TabSection.MedicalCare ? CurrentMedicalCareIndex() : 0;
             AnnounceCurrentSection();
         }
 
@@ -161,7 +159,7 @@ namespace RimWorldAccess
             }
             while (!IsSectionAvailable(currentSection));
 
-            selectedIndex = 0;
+            selectedIndex = currentSection == TabSection.MedicalCare ? CurrentMedicalCareIndex() : 0;
             AnnounceCurrentSection();
         }
 
@@ -178,13 +176,6 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
             {
                 MoveToFlatMatch(typeahead.GetNextMatch(CurrentFlatIndex()));
-                return;
-            }
-
-            // Special handling for medical care - use up/down to adjust level
-            if (currentSection == TabSection.MedicalCare)
-            {
-                AdjustMedicalCare(1);
                 return;
             }
 
@@ -209,13 +200,6 @@ namespace RimWorldAccess
             if (typeahead.HasActiveSearch && !typeahead.HasNoMatches)
             {
                 MoveToFlatMatch(typeahead.GetPreviousMatch(CurrentFlatIndex()));
-                return;
-            }
-
-            // Special handling for medical care - use up/down to adjust level
-            if (currentSection == TabSection.MedicalCare)
-            {
-                AdjustMedicalCare(-1);
                 return;
             }
 
@@ -244,9 +228,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (currentSection == TabSection.MedicalCare)
-                return;
-
             int maxIndex = GetMaxIndexForCurrentSection();
             if (maxIndex < 0)
                 return;
@@ -270,9 +251,6 @@ namespace RimWorldAccess
                 MoveToFlatMatch(typeahead.GetLastMatch());
                 return;
             }
-
-            if (currentSection == TabSection.MedicalCare)
-                return;
 
             int maxIndex = GetMaxIndexForCurrentSection();
             if (maxIndex < 0)
@@ -301,8 +279,7 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.MedicalCare:
-                    // Already adjusted with arrow keys, just re-announce
-                    AnnounceCurrentSelection();
+                    ApplySelectedMedicalCare();
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -367,19 +344,33 @@ namespace RimWorldAccess
 
         #region Action Handlers
 
-        private static void AdjustMedicalCare(int direction)
+        // The medical care levels, in enum order, navigated as a list (preview on Up/Down,
+        // commit on Enter) so browsing the options no longer changes the setting underfoot.
+        private static MedicalCareCategory[] MedicalCareCategories()
+        {
+            return (MedicalCareCategory[])System.Enum.GetValues(typeof(MedicalCareCategory));
+        }
+
+        private static int CurrentMedicalCareIndex()
+        {
+            if (currentPawn?.playerSettings == null)
+                return 0;
+            int idx = System.Array.IndexOf(MedicalCareCategories(), currentPawn.playerSettings.medCare);
+            return idx >= 0 ? idx : 0;
+        }
+
+        private static void ApplySelectedMedicalCare()
         {
             if (currentPawn.playerSettings == null)
                 return;
 
-            MedicalCareCategory current = currentPawn.playerSettings.medCare;
-            MedicalCareCategory newCare = direction > 0
-                ? PrisonerTabHelper.GetNextMedicalCare(current)
-                : PrisonerTabHelper.GetPreviousMedicalCare(current);
+            var cats = MedicalCareCategories();
+            if (selectedIndex < 0 || selectedIndex >= cats.Length)
+                return;
 
-            currentPawn.playerSettings.medCare = newCare;
+            currentPawn.playerSettings.medCare = cats[selectedIndex];
 
-            string label = PrisonerTabHelper.GetMedicalCareLabel(newCare);
+            string label = PrisonerTabHelper.GetMedicalCareLabel(cats[selectedIndex]);
             TolkHelper.SpeakData($"{(string)"AllowMedicine".Translate()}: {label}");
         }
 
@@ -595,8 +586,7 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.MedicalCare:
-                    string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.SpeakData($"{(string)"AllowMedicine".Translate()}: {careLevel}. {(string)"RimWorldAccess.Prisoner.MedicalCare.AdjustHint".Translate()}");
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.MedicalCare".Loc("AllowMedicine".Translate(), MedicalCareCategories().Length));
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -619,11 +609,9 @@ namespace RimWorldAccess
                     break;
             }
 
-            // Announce first item
-            if (selectedIndex == 0)
-            {
-                AnnounceCurrentSelection();
-            }
+            // Announce the landed-on item (index 0 for most sections; the current level for
+            // Medical Care, the Convert mode when returning from the ideology picker, etc.)
+            AnnounceCurrentSelection();
         }
 
         private static void AnnounceCurrentSelection()
@@ -641,8 +629,16 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.MedicalCare:
-                    string careLevel = PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare);
-                    TolkHelper.SpeakData($"{(string)"AllowMedicine".Translate()}: {careLevel}");
+                    var careCats = MedicalCareCategories();
+                    if (selectedIndex >= 0 && selectedIndex < careCats.Length)
+                    {
+                        MedicalCareCategory careCat = careCats[selectedIndex];
+                        string careLabel = PrisonerTabHelper.GetMedicalCareLabel(careCat);
+                        string careSuffix = currentPawn.playerSettings.medCare == careCat
+                            ? "RimWorldAccess.Prisoner.Item.SelectedSuffix".Translate().ToString()
+                            : "";
+                        TolkHelper.SpeakData($"{careLabel}{careSuffix}");
+                    }
                     break;
 
                 case TabSection.ExclusiveModes:
@@ -650,7 +646,7 @@ namespace RimWorldAccess
                     {
                         PrisonerInteractionModeDef mode = exclusiveModes[selectedIndex];
                         bool isSelected = currentPawn.guest.ExclusiveInteractionMode == mode;
-                        string selectedSuffix = isSelected ? ", selected" : "";
+                        string selectedSuffix = isSelected ? "RimWorldAccess.Prisoner.Item.SelectedSuffix".Translate().ToString() : "";
                         string description = PrisonerTabHelper.GetInteractionModeDescription(currentPawn, mode);
                         string extra = "";
                         if (mode == PrisonerInteractionModeDefOf.Convert && isSelected && currentPawn.guest.ideoForConversion != null)
@@ -663,7 +659,7 @@ namespace RimWorldAccess
                     {
                         SlaveInteractionModeDef mode = slaveModes[selectedIndex];
                         bool isSelected = currentPawn.guest.slaveInteractionMode == mode;
-                        string selectedSuffix = isSelected ? ", selected" : "";
+                        string selectedSuffix = isSelected ? "RimWorldAccess.Prisoner.Item.SelectedSuffix".Translate().ToString() : "";
                         string description = PrisonerTabHelper.GetSlaveInteractionModeDescription(currentPawn, mode);
                         TolkHelper.SpeakData($"{mode.LabelCap}{selectedSuffix}. {description}");
                     }
@@ -677,7 +673,7 @@ namespace RimWorldAccess
                         string state = isEnabled
                             ? "RimWorldAccess.Prisoner.Item.StateOn".Translate().ToString()
                             : "RimWorldAccess.Prisoner.Item.StateOff".Translate().ToString();
-                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.NonExclusiveMode".Loc(state, mode.LabelCap, mode.description));
+                        TolkHelper.Speak("RimWorldAccess.Prisoner.Item.NonExclusiveMode".Loc(mode.LabelCap, state, mode.description));
                     }
                     break;
 
@@ -687,7 +683,7 @@ namespace RimWorldAccess
                     {
                         Ideo ideo = ideologies[selectedIndex];
                         bool isCurrent = currentPawn.guest.ideoForConversion == ideo;
-                        string selectedSuffix = isCurrent ? ", selected" : "";
+                        string selectedSuffix = isCurrent ? "RimWorldAccess.Prisoner.Item.SelectedSuffix".Translate().ToString() : "";
                         TolkHelper.SpeakData($"{ideo.name}{selectedSuffix}");
                     }
                     break;
@@ -751,7 +747,7 @@ namespace RimWorldAccess
                     return infoLines.Count - 1;
 
                 case TabSection.MedicalCare:
-                    return 0; // Single item, use arrows to adjust
+                    return MedicalCareCategories().Length - 1;
 
                 case TabSection.ExclusiveModes:
                     if (currentPawn.IsPrisonerOfColony)
@@ -783,7 +779,10 @@ namespace RimWorldAccess
                     return (index >= 0 && index < infoLines.Count) ? infoLines[index] : "";
 
                 case TabSection.MedicalCare:
-                    return $"{"AllowMedicine".Translate()}: {PrisonerTabHelper.GetMedicalCareLabel(currentPawn.playerSettings.medCare)}";
+                    var careCats = MedicalCareCategories();
+                    return (index >= 0 && index < careCats.Length)
+                        ? PrisonerTabHelper.GetMedicalCareLabel(careCats[index])
+                        : "";
 
                 case TabSection.ExclusiveModes:
                     if (currentPawn.IsPrisonerOfColony && index >= 0 && index < exclusiveModes.Count)

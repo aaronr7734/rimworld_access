@@ -100,8 +100,9 @@ Press Left/Right to navigate sections, Up/Down within sections, Enter to select<
   <RimWorldAccess.Prisoner.Tab.NavigationHintInline>Press Left/Right to navigate sections, Up/Down within sections, Enter to select</RimWorldAccess.Prisoner.Tab.NavigationHintInline>
 
   <!-- Section announcements. {0} = count (or current mode label). -->
-  <RimWorldAccess.Prisoner.Section.Information>Information Section - Press Down to read stats</RimWorldAccess.Prisoner.Section.Information>
+  <RimWorldAccess.Prisoner.Section.Information>Information Section</RimWorldAccess.Prisoner.Section.Information>
   <RimWorldAccess.Prisoner.Section.ExclusiveModes>Interaction Modes - {0} available. Currently: {1}</RimWorldAccess.Prisoner.Section.ExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.MedicalCare>{0} - {1} available</RimWorldAccess.Prisoner.Section.MedicalCare>
   <RimWorldAccess.Prisoner.Section.SlaveModes>Slave Modes - {0} available. Currently: {1}</RimWorldAccess.Prisoner.Section.SlaveModes>
   <RimWorldAccess.Prisoner.Section.NonExclusiveModes>Non-Exclusive Modes - {0} available. Press Space to toggle</RimWorldAccess.Prisoner.Section.NonExclusiveModes>
   <RimWorldAccess.Prisoner.Section.IdeologySelection>Ideology Selection - Choose conversion target</RimWorldAccess.Prisoner.Section.IdeologySelection>
@@ -113,7 +114,8 @@ Press Left/Right to navigate sections, Up/Down within sections, Enter to select<
   <RimWorldAccess.Prisoner.Item.StateOn>[ON]</RimWorldAccess.Prisoner.Item.StateOn>
   <RimWorldAccess.Prisoner.Item.StateOff>[OFF]</RimWorldAccess.Prisoner.Item.StateOff>
   <RimWorldAccess.Prisoner.Item.ModeWithDescription>{0}{1}. {2}</RimWorldAccess.Prisoner.Item.ModeWithDescription>
-  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0} {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0}: {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.SelectedSuffix>, selected</RimWorldAccess.Prisoner.Item.SelectedSuffix>
   <RimWorldAccess.Prisoner.Item.Ideo>{0}{1}</RimWorldAccess.Prisoner.Item.Ideo>
 
   <!-- Selection / toggle action feedback. -->

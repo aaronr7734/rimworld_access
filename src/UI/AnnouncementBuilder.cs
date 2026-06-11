@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Text;
 
 namespace RimWorldAccess
@@ -22,6 +23,10 @@ namespace RimWorldAccess
     public class AnnouncementBuilder
     {
         private readonly StringBuilder sb = new StringBuilder();
+        // Each fragment added via Add/Label, retained as a discrete row so callers
+        // that need a navigable list (one stat per row) can get the same content
+        // Build() flattens into a single period-joined announcement.
+        private readonly List<string> rows = new List<string>();
         private Separator defaultSep = Separator.Period;
         private bool hasContent = false;
 
@@ -49,6 +54,7 @@ namespace RimWorldAccess
                 AppendSeparator(sep);
 
             sb.Append(trimmed);
+            rows.Add(trimmed);
             hasContent = true;
             return this;
         }
@@ -76,10 +82,9 @@ namespace RimWorldAccess
             if (hasContent)
                 AppendSeparator(defaultSep);
 
-            if (trimmedLabel.Length > 0)
-                sb.Append(trimmedLabel).Append(": ");
-
-            sb.Append(trimmedValue);
+            string row = trimmedLabel.Length > 0 ? $"{trimmedLabel}: {trimmedValue}" : trimmedValue;
+            sb.Append(row);
+            rows.Add(row);
             hasContent = true;
             return this;
         }
@@ -112,6 +117,16 @@ namespace RimWorldAccess
                 sb.Append('.');
 
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// Returns each added fragment as a discrete row, in insertion order. Use when the
+        /// announcement should be navigated one item at a time (e.g. an arrow-key stat list)
+        /// rather than spoken as a single flattened string via <see cref="Build"/>.
+        /// </summary>
+        public List<string> BuildLines()
+        {
+            return new List<string>(rows);
         }
     }
 }

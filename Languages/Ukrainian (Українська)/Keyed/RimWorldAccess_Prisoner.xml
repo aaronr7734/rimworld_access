@@ -102,6 +102,7 @@
   <!-- Section announcements. {0} = count (or current mode label). -->
   <RimWorldAccess.Prisoner.Section.Information>Секція інформації — натисніть вниз, щоб прочитати показники</RimWorldAccess.Prisoner.Section.Information>
   <RimWorldAccess.Prisoner.Section.ExclusiveModes>Режими взаємодії — доступно {0}. Зараз: {1}</RimWorldAccess.Prisoner.Section.ExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.MedicalCare>{0} — доступно {1}</RimWorldAccess.Prisoner.Section.MedicalCare>
   <RimWorldAccess.Prisoner.Section.SlaveModes>Режими раба — доступно {0}. Зараз: {1}</RimWorldAccess.Prisoner.Section.SlaveModes>
   <RimWorldAccess.Prisoner.Section.NonExclusiveModes>Неексклюзивні режими — доступно {0}. Натисніть Пробіл для перемикання</RimWorldAccess.Prisoner.Section.NonExclusiveModes>
   <RimWorldAccess.Prisoner.Section.IdeologySelection>Вибір віри — оберіть ціль навернення</RimWorldAccess.Prisoner.Section.IdeologySelection>
@@ -113,7 +114,8 @@
   <RimWorldAccess.Prisoner.Item.StateOn>[УВІМКНЕНО]</RimWorldAccess.Prisoner.Item.StateOn>
   <RimWorldAccess.Prisoner.Item.StateOff>[ВИМКНЕНО]</RimWorldAccess.Prisoner.Item.StateOff>
   <RimWorldAccess.Prisoner.Item.ModeWithDescription>{0}{1}. {2}</RimWorldAccess.Prisoner.Item.ModeWithDescription>
-  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0} {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0}: {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.SelectedSuffix>, вибрано</RimWorldAccess.Prisoner.Item.SelectedSuffix>
   <RimWorldAccess.Prisoner.Item.Ideo>{0}{1}</RimWorldAccess.Prisoner.Item.Ideo>
 
   <!-- Selection / toggle action feedback. -->

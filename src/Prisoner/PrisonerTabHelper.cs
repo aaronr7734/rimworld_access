@@ -19,32 +19,47 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetPrisonerInfo(Pawn pawn)
         {
+            return BuildPrisonerInfo(pawn).Build();
+        }
+
+        /// <summary>
+        /// Same content as <see cref="GetPrisonerInfo"/>, but as a list of discrete rows
+        /// (one stat per entry) for arrow-key navigation in the prisoner tab.
+        /// </summary>
+        public static List<string> GetPrisonerInfoRows(Pawn pawn)
+        {
+            return BuildPrisonerInfo(pawn).BuildLines();
+        }
+
+        private static AnnouncementBuilder BuildPrisonerInfo(Pawn pawn)
+        {
             if (pawn == null)
-                return "RimWorldAccess.Guard.NoPawnSelected".Translate();
+                return new AnnouncementBuilder().Add("RimWorldAccess.Guard.NoPawnSelected".Translate());
 
             if (pawn.guest == null)
-                return "RimWorldAccess.Prisoner.Guest.NoTracker".Translate(pawn.LabelShort);
+                return new AnnouncementBuilder().Add("RimWorldAccess.Prisoner.Guest.NoTracker".Translate(pawn.LabelShort));
 
             if (!pawn.IsPrisonerOfColony)
-                return "RimWorldAccess.Prisoner.Guest.NotPrisoner".Translate(pawn.LabelShort);
+                return new AnnouncementBuilder().Add("RimWorldAccess.Prisoner.Guest.NotPrisoner".Translate(pawn.LabelShort));
 
             var ab = new AnnouncementBuilder()
                 .Add("RimWorldAccess.Prisoner.Info.HeaderPrisoner".Translate(pawn.LabelShort));
 
             bool wildMan = pawn.IsWildMan();
 
-            // Prison Break MTB (vanilla uses "PrisonBreakMTBDays" key)
+            // Prison Break MTB (vanilla "PrisonBreakMTBDays", tooltip "PrisonBreakMTBDaysDescription")
             string prisonBreakLabel = "PrisonBreakMTBDays".Translate();
+            string prisonBreakTooltip = "PrisonBreakMTBDaysDescription".Translate();
             if (PrisonBreakUtility.IsPrisonBreaking(pawn))
             {
-                ab.Add($"{prisonBreakLabel}: {"CurrentlyPrisonBreaking".Translate()}");
+                ab.Add(WithTooltip($"{prisonBreakLabel}: {"CurrentlyPrisonBreaking".Translate()}", prisonBreakTooltip));
             }
             else
             {
                 int prisonBreakMtb = (int)PrisonBreakUtility.InitiatePrisonBreakMtbDays(pawn, null, ignoreAsleep: true);
                 if (prisonBreakMtb < 0)
                 {
-                    ab.Add($"{prisonBreakLabel}: {"Never".Translate()}");
+                    ab.Add(WithTooltip($"{prisonBreakLabel}: {"Never".Translate()}", prisonBreakTooltip));
                     if (PrisonBreakUtility.GenePreventsPrisonBreaking(pawn, out var gene))
                     {
                         ab.Add("PrisonBreakingDisabledDueToGene".Translate(gene.def.Named("GENE")).ToString().StripTags());
@@ -52,7 +67,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    ab.Add($"{prisonBreakLabel}: {"PeriodDays".Translate(prisonBreakMtb)}");
+                    ab.Add(WithTooltip($"{prisonBreakLabel}: {"PeriodDays".Translate(prisonBreakMtb)}", prisonBreakTooltip));
                 }
             }
 
@@ -62,7 +77,7 @@ namespace RimWorldAccess
                 if (pawn.guest.Recruitable)
                 {
                     float resistance = (pawn.guest.resistance > 0f) ? System.Math.Max(0.1f, pawn.guest.resistance) : 0f;
-                    ab.Add($"{resistanceLabel}: {resistance:F1}");
+                    ab.Add(WithTooltip($"{resistanceLabel}: {resistance:F1}", "RecruitmentResistanceDesc".Translate()));
 
                     var resistanceRange = pawn.kindDef.initialResistanceRange;
                     if (resistanceRange != null)
@@ -83,12 +98,12 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    ab.Add($"{resistanceLabel}: {"NonRecruitable".Translate()}");
+                    ab.Add(WithTooltip($"{resistanceLabel}: {"NonRecruitable".Translate()}", "NonRecruitableTip".Translate()));
                 }
 
                 if (ModsConfig.IdeologyActive)
                 {
-                    ab.Add($"{"WillLevel".Translate()}: {pawn.guest.will:F1}");
+                    ab.Add(WithTooltip($"{"WillLevel".Translate()}: {pawn.guest.will:F1}", "WillLevelDesc".Translate(2.5f)));
                     if (!pawn.guest.EverEnslaved)
                     {
                         var willRange = pawn.kindDef.initialWillRange;
@@ -100,9 +115,9 @@ namespace RimWorldAccess
                 }
             }
 
-            // Slave Price (vanilla DoSlavePriceListing)
+            // Slave Price (vanilla DoSlavePriceListing, tooltip "SlavePriceDescription")
             float marketValue = pawn.GetStatValue(StatDefOf.MarketValue);
-            ab.Add($"{"SlavePrice".Translate()}: {marketValue.ToStringMoney()}");
+            ab.Add(WithTooltip($"{"SlavePrice".Translate()}: {marketValue.ToStringMoney()}", "SlavePriceDescription".Translate()));
 
             // Study info (Anomaly DLC) — vanilla calls ITab_Entity.DoStudyPeriodListing / DoKnowledgeGainListing
             if (IsStudiable(pawn))
@@ -114,8 +129,8 @@ namespace RimWorldAccess
                 }
             }
 
-            // Release Potential Relations (vanilla "PrisonerReleasePotentialRelationGains")
-            ab.Add($"{"PrisonerReleasePotentialRelationGains".Translate()}: {GetReleaseRelationGainsText(pawn)}");
+            // Release Potential Relations (vanilla "PrisonerReleasePotentialRelationGains", tooltip "PrisonerReleaseRelationGainsDesc")
+            ab.Add(WithTooltip($"{"PrisonerReleasePotentialRelationGains".Translate()}: {GetReleaseRelationGainsText(pawn)}", "PrisonerReleaseRelationGainsDesc".Translate()));
 
             // Guilty Status (vanilla "ConsideredGuilty" / "ConsideredGuiltyNoTimer")
             if (pawn.guilt.IsGuilty)
@@ -131,24 +146,24 @@ namespace RimWorldAccess
                 }
             }
 
-            // Ideology Conversion Target (vanilla "IdeoConversionTarget")
+            // Ideology Conversion Target (vanilla "IdeoConversionTarget", tooltip "IdeoConversionTargetDesc")
             if (ModsConfig.IdeologyActive && pawn.guest.IsInteractionEnabled(PrisonerInteractionModeDefOf.Convert) && pawn.guest.ideoForConversion != null)
             {
-                ab.Add($"{"IdeoConversionTarget".Translate()}: {pawn.guest.ideoForConversion.name}");
+                ab.Add(WithTooltip($"{"IdeoConversionTarget".Translate()}: {pawn.guest.ideoForConversion.name}", "IdeoConversionTargetDesc".Translate()));
             }
 
             // Last Recruitment Stats (vanilla "LastRecruitment", "Mood", "RecruiterNegotiationAbility", "OpinionOfRecruiter")
             if (pawn.guest.finalResistanceInteractionData != null)
             {
                 var data = pawn.guest.finalResistanceInteractionData;
-                ab.Add($"{"LastRecruitment".Translate()}: {data.resistanceReduction.ToStringByStyle(ToStringStyle.FloatTwo)}");
+                ab.Add(WithTooltip($"{"LastRecruitment".Translate()}: {data.resistanceReduction.ToStringByStyle(ToStringStyle.FloatTwo)}", "LastRecruitmentDescription".Translate(pawn, data.initiatorName)));
                 ab.Add(data.initiatorName);
                 ab.Add($"{"Mood".Translate()}: x{data.recruiteeMoodFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
                 ab.Add($"{"RecruiterNegotiationAbility".Translate()}: x{data.initiatorNegotiationAbilityFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
                 ab.Add($"{"OpinionOfRecruiter".Translate()}: x{data.recruiterOpinionFactor.ToStringByStyle(ToStringStyle.FloatTwo)}");
             }
 
-            return ab.Build();
+            return ab;
         }
 
         /// <summary>
@@ -159,14 +174,28 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetSlaveInfo(Pawn pawn)
         {
+            return BuildSlaveInfo(pawn).Build();
+        }
+
+        /// <summary>
+        /// Same content as <see cref="GetSlaveInfo"/>, but as a list of discrete rows
+        /// (one stat per entry) for arrow-key navigation in the slave tab.
+        /// </summary>
+        public static List<string> GetSlaveInfoRows(Pawn pawn)
+        {
+            return BuildSlaveInfo(pawn).BuildLines();
+        }
+
+        private static AnnouncementBuilder BuildSlaveInfo(Pawn pawn)
+        {
             if (pawn == null)
-                return "RimWorldAccess.Guard.NoPawnSelected".Translate();
+                return new AnnouncementBuilder().Add("RimWorldAccess.Guard.NoPawnSelected".Translate());
 
             if (pawn.guest == null)
-                return "RimWorldAccess.Prisoner.Guest.NoTracker".Translate(pawn.LabelShort);
+                return new AnnouncementBuilder().Add("RimWorldAccess.Prisoner.Guest.NoTracker".Translate(pawn.LabelShort));
 
             if (!pawn.IsSlaveOfColony)
-                return "RimWorldAccess.Prisoner.Guest.NotSlave".Translate(pawn.LabelShort);
+                return new AnnouncementBuilder().Add("RimWorldAccess.Prisoner.Guest.NotSlave".Translate(pawn.LabelShort));
 
             var ab = new AnnouncementBuilder()
                 .Add("RimWorldAccess.Prisoner.Info.HeaderSlave".Translate(pawn.LabelShort));
@@ -246,7 +275,7 @@ namespace RimWorldAccess
                 releaseRow += $". {releaseTooltip}";
             ab.Add(releaseRow);
 
-            return ab.Build();
+            return ab;
         }
 
         /// <summary>
@@ -260,6 +289,16 @@ namespace RimWorldAccess
                 return "";
 
             return tooltip.StripTags().Replace("\r", " ").Replace("\n", ". ").Trim();
+        }
+
+        /// <summary>
+        /// Appends a flattened hover tooltip to a stat row so screen reader users hear the same
+        /// explanation a sighted player sees on mouseover. No-op when the tooltip is empty.
+        /// </summary>
+        private static string WithTooltip(string row, string tooltip)
+        {
+            string flat = FlattenTooltip(tooltip);
+            return string.IsNullOrEmpty(flat) ? row : $"{row}. {flat}";
         }
 
         /// <summary>
@@ -303,50 +342,6 @@ namespace RimWorldAccess
         public static string GetMedicalCareLabel(MedicalCareCategory category)
         {
             return category.GetLabel();
-        }
-
-        /// <summary>
-        /// Gets the next medical care level (cycles through all levels).
-        /// </summary>
-        public static MedicalCareCategory GetNextMedicalCare(MedicalCareCategory current)
-        {
-            switch (current)
-            {
-                case MedicalCareCategory.NoCare:
-                    return MedicalCareCategory.NoMeds;
-                case MedicalCareCategory.NoMeds:
-                    return MedicalCareCategory.HerbalOrWorse;
-                case MedicalCareCategory.HerbalOrWorse:
-                    return MedicalCareCategory.NormalOrWorse;
-                case MedicalCareCategory.NormalOrWorse:
-                    return MedicalCareCategory.Best;
-                case MedicalCareCategory.Best:
-                    return MedicalCareCategory.NoCare;
-                default:
-                    return MedicalCareCategory.Best;
-            }
-        }
-
-        /// <summary>
-        /// Gets the previous medical care level (cycles through all levels).
-        /// </summary>
-        public static MedicalCareCategory GetPreviousMedicalCare(MedicalCareCategory current)
-        {
-            switch (current)
-            {
-                case MedicalCareCategory.NoCare:
-                    return MedicalCareCategory.Best;
-                case MedicalCareCategory.NoMeds:
-                    return MedicalCareCategory.NoCare;
-                case MedicalCareCategory.HerbalOrWorse:
-                    return MedicalCareCategory.NoMeds;
-                case MedicalCareCategory.NormalOrWorse:
-                    return MedicalCareCategory.HerbalOrWorse;
-                case MedicalCareCategory.Best:
-                    return MedicalCareCategory.NormalOrWorse;
-                default:
-                    return MedicalCareCategory.NoCare;
-            }
         }
 
         /// <summary>
