@@ -19,6 +19,18 @@ namespace RimWorldAccess
         {
             MultiSelectState.Reset();
 
+            // Loading a save from in-game never passes through the main menu or a
+            // CurrentMap == null frame, so no other reset path fires. The old session's
+            // Things are never despawned (ClearAllMapsAndWorld just drops them) and still
+            // report Spawned == true, and the reloaded map keeps its saved uniqueID — so
+            // stale caches pass every liveness and map-identity check, and the scanner's
+            // thing-state hash (a bare spawn/despawn counter) can collide between two
+            // saves of the same colony. Reset all ambient map-session state here;
+            // FinalizeInit fires on both new games and saves loaded from anywhere.
+            MapNavigationState.Reset(); // also invalidates ScannerState + ScannerHelper caches
+            PawnSelectionState.Reset();
+            WorldScannerState.Reset();
+
             LongEventHandler.ExecuteWhenFinished(() =>
             {
                 if (Find.CurrentMap != null)

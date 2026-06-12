@@ -3,6 +3,12 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- Fixed the scanner sometimes showing items and pawns from a previous session
+  after loading a save without restarting the game, such as reporting a pawn
+  as downed when they are fine in the loaded save. The scanner, map cursor,
+  pawn cycling, and world scanner now fully reset every time a save is loaded.
+  Previously the only fix was closing and reopening the game. Thanks to
+  MasterJake and quanin for the reports that cracked this one.
 - Big localization repair for non-English players (thank you for the detailed
   reports!). Announcements that spoke English or raw key names are now
   properly translated: work menu priorities, skills, and "Includes" details;
