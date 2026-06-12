@@ -57,4 +57,9 @@
          and pawn count.
        SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
   <RimWorldAccess.Archonexus.Convert.OpenInstructions>空格或回车键教化，完成后按 Escape。</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+
+  <!-- Convert-colonists checkbox toggle announcements. {0} = ideoligion name. -->
+  <RimWorldAccess.Archonexus.Convert.Selected>已选择</RimWorldAccess.Archonexus.Convert.Selected>
+  <RimWorldAccess.Archonexus.Convert.NotSelected>未选择</RimWorldAccess.Archonexus.Convert.NotSelected>
+  <RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>未选择。当前为 {0}</RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>
 </LanguageData>

@@ -57,4 +57,7 @@
          and pawn count.
        SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
   <RimWorldAccess.Archonexus.Convert.OpenInstructions>Пробіл або Enter, щоб конвертувати; Escape, коли завершите.</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+  <RimWorldAccess.Archonexus.Convert.Selected>Вибрано</RimWorldAccess.Archonexus.Convert.Selected>
+  <RimWorldAccess.Archonexus.Convert.NotSelected>Не вибрано</RimWorldAccess.Archonexus.Convert.NotSelected>
+  <RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>Не вибрано. Зараз {0}</RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>
 </LanguageData>

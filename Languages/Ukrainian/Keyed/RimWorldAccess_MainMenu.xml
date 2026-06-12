@@ -747,4 +747,15 @@
   <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>стилів гри</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
   <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>налаштувань</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
   <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>Виберіть стиль гри аномалії</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
+
+  <!-- Pawn filter editor: range-bound words and labels that previously
+       pointed at nonexistent keys. -->
+  <RimWorldAccess.PawnFilter.Minimum>мінімум</RimWorldAccess.PawnFilter.Minimum>
+  <RimWorldAccess.PawnFilter.Maximum>максимум</RimWorldAccess.PawnFilter.Maximum>
+  <RimWorldAccess.PawnFilter.SectionSettings>Налаштування</RimWorldAccess.PawnFilter.SectionSettings>
+  <RimWorldAccess.PawnFilter.TraitExcluded>Виключено</RimWorldAccess.PawnFilter.TraitExcluded>
+  <!-- Starting pawn editor context menu entries. -->
+  <RimWorldAccess.StartingPawn.EditPawnFilter>Редагувати фільтр персонажів...</RimWorldAccess.StartingPawn.EditPawnFilter>
+  <RimWorldAccess.StartingPawn.AddPawn>Додати персонажа</RimWorldAccess.StartingPawn.AddPawn>
+  <RimWorldAccess.StartingPawn.RemovePawn>Видалити персонажа</RimWorldAccess.StartingPawn.RemovePawn>
 </LanguageData>

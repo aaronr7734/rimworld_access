@@ -1001,4 +1001,7 @@
   <RimWorldAccess.Building.Zone.WillCreateNew>створить нову зону.</RimWorldAccess.Building.Zone.WillCreateNew>
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.Building.Meditation.SkippedProtected>{0} пропущено, захищено {1}</RimWorldAccess.Building.Meditation.SkippedProtected>
+  <RimWorldAccess.Building.Architect.MoreOptionsHint>(права квадратна дужка для додаткових параметрів)</RimWorldAccess.Building.Architect.MoreOptionsHint>
+  <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} доступно)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
+  <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(немає в наявності)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
 </LanguageData>

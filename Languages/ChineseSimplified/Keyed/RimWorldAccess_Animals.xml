@@ -32,6 +32,8 @@
   <RimWorldAccess.Animals.Value.Unknown>未知</RimWorldAccess.Animals.Value.Unknown>
   <RimWorldAccess.Animals.Value.NotApplicable>不适用</RimWorldAccess.Animals.Value.NotApplicable>
   <RimWorldAccess.Animals.Value.Normal>正常</RimWorldAccess.Animals.Value.Normal>
+  <RimWorldAccess.Animals.Value.BondBroken>牵绊已断裂</RimWorldAccess.Animals.Value.BondBroken>
+  <RimWorldAccess.Animals.Value.Scheduled>已排程</RimWorldAccess.Animals.Value.Scheduled>
 
   <!-- Paint value labels. AnimalsMenuHelper.GetPaintValueLabel and
        WildlifeMenuHelper.GetPaintValueLabel return these for checkbox
@@ -47,6 +49,12 @@
        ================================================================= -->
   <RimWorldAccess.Animals.Column.Name>名称</RimWorldAccess.Animals.Column.Name>
   <RimWorldAccess.Animals.Column.Age>年龄</RimWorldAccess.Animals.Column.Age>
+  <RimWorldAccess.Animals.Column.LifeStage>生命阶段</RimWorldAccess.Animals.Column.LifeStage>
+  <RimWorldAccess.Animals.Column.SpecialTraining>特殊训练</RimWorldAccess.Animals.Column.SpecialTraining>
+  <RimWorldAccess.Animals.Column.MentalState>精神状态</RimWorldAccess.Animals.Column.MentalState>
+  <RimWorldAccess.Animals.Column.BondInfo>牵绊</RimWorldAccess.Animals.Column.BondInfo>
+  <RimWorldAccess.Animals.Column.Sterile>绝育</RimWorldAccess.Animals.Column.Sterile>
+  <RimWorldAccess.Animals.Column.MedicalCare>医疗照顾</RimWorldAccess.Animals.Column.MedicalCare>
 
   <!-- =================================================================
        Training status (AnimalsMenuHelper.GetTrainingStatus and
@@ -212,4 +220,10 @@
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>空</RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>无效数字。使用负 1 表示无限制</RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>已取消</RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>
+
+  <!-- Auto-slaughter partial cell shapes (single-axis announcements).
+       NameWithoutColumn: {0} = animal, {1} = value, {2} = position.
+       ValueOnly: {0} = value, {1} = position. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>{0}: {1}. {2}</RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>{0}. {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>
 </LanguageData>

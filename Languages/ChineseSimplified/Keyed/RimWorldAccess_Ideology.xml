@@ -89,4 +89,9 @@
   <RimWorldAccess.Ideology.Builder.Status.Removed>已移除</RimWorldAccess.Ideology.Builder.Status.Removed>
   <RimWorldAccess.Ideology.Builder.Status.Reformed>已重塑</RimWorldAccess.Ideology.Builder.Status.Reformed>
   <RimWorldAccess.Ideology.Builder.Status.Yours>你的</RimWorldAccess.Ideology.Builder.Status.Yours>
+
+  <!-- Discard confirmation when backing out of the ideoligion builder. -->
+  <RimWorldAccess.Ideology.Builder.DiscardConfirm>返回将放弃此自定义文化形态。是否继续？</RimWorldAccess.Ideology.Builder.DiscardConfirm>
+  <RimWorldAccess.Ideology.Builder.DiscardContinue>继续</RimWorldAccess.Ideology.Builder.DiscardContinue>
+  <RimWorldAccess.Ideology.Builder.DiscardCancel>取消</RimWorldAccess.Ideology.Builder.DiscardCancel>
 </LanguageData>

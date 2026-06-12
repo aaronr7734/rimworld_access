@@ -391,6 +391,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Orders>命令</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>区域</RimWorldAccess.Map.Scanner.CatName.Zones>
   <RimWorldAccess.Map.Scanner.CatName.Rooms>房间</RimWorldAccess.Map.Scanner.CatName.Rooms>
+  <RimWorldAccess.Map.Scanner.CatName.Unexplored>未探索</RimWorldAccess.Map.Scanner.CatName.Unexplored>
   <RimWorldAccess.Map.Scanner.CatName.Uncategorized>未分类</RimWorldAccess.Map.Scanner.CatName.Uncategorized>
 
   <!-- Localized scanner subcategory display.
@@ -650,4 +651,11 @@
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Map.Scanner.Region.SizeTiles>{0} 格</RimWorldAccess.Map.Scanner.Region.SizeTiles>
   <RimWorldAccess.Map.Scanner.UnexploredArea>未探索区域</RimWorldAccess.Map.Scanner.UnexploredArea>
+
+  <!-- Scanner patch-position cues. PressHomeForCenter teaches the second
+       Home press; JumpedTilesToCenter: {0} = tile count, {1} = compass
+       direction (already localized). -->
+  <RimWorldAccess.Map.Scanner.PressHomeForCenter>按 Home 键定位到中心</RimWorldAccess.Map.Scanner.PressHomeForCenter>
+  <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>向中心{1}跳转了 {0} 格</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
+  <RimWorldAccess.Map.Scanner.JumpedToCenter>已跳转到中心</RimWorldAccess.Map.Scanner.JumpedToCenter>
 </LanguageData>

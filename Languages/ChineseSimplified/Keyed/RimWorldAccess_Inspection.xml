@@ -573,6 +573,10 @@
   <RimWorldAccess.Inspection.Gizmo.LimiterStateOn>开</RimWorldAccess.Inspection.Gizmo.LimiterStateOn>
   <RimWorldAccess.Inspection.Gizmo.LimiterStateOff>关</RimWorldAccess.Inspection.Gizmo.LimiterStateOff>
 
+  <!-- ActivityGizmo (Anomaly) auto-suppression toggle. {0} = state phrase
+       (LimiterStateOn/Off). -->
+  <RimWorldAccess.Inspection.Gizmo.AutoSuppression>自动抑制: {0}</RimWorldAccess.Inspection.Gizmo.AutoSuppression>
+
   <!-- Targeting prompts when activating a gizmo that needs a target.
        {0} = gizmo / weapon label. AnimalTargetingWithRange: {0} =
        gizmo label, {1} = range in tiles. UseMapNavigationToTarget is
@@ -601,6 +605,8 @@
   <RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>无法调整该控件</RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>
   <!-- Hemogen toggle failure (GeneGizmo_ResourceHemogen). -->
   <RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>无法切换血红素包设置</RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>
+  <!-- Activity suppression toggle failure (ActivityGizmo). -->
+  <RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>无法切换自动抑制</RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>
   <!-- Shift+key with no matching command. {0} = key name. -->
   <RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>没有对应 Shift 加 {0} 的命令</RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>
 
@@ -612,6 +618,8 @@
   <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>。按回车键调整</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>。按回车键切换限制器，右方括号键设置精神力目标</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
   <RimWorldAccess.Inspection.Gizmo.HintHemogen>。按回车键切换是否允许血红素包，右方括号键设置目标</RimWorldAccess.Inspection.Gizmo.HintHemogen>
+  <!-- ActivityGizmo (Anomaly) mirrors PsychicEntropy: Enter toggles auto-suppression, ] sets the suppression threshold. -->
+  <RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>。按回车键切换自动抑制，右方括号键设置抑制阈值</RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>
 
   <!-- =================================================================
        Gizmo type labels (GetNonCommandGizmoLabel and helpers). These
@@ -1464,4 +1472,22 @@
   <RimWorldAccess.Inspection.CategoryName.JobQueueLabel>{0}（{1} 个排队）</RimWorldAccess.Inspection.CategoryName.JobQueueLabel>
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.Inspection.Inventory.CarriedByColonists>{0} x{1}（{2} 件由殖民者携带）</RimWorldAccess.Inspection.Inventory.CarriedByColonists>
+
+  <!-- Pregnancy approach options: marker for the active approach. {0} = approach description. -->
+  <RimWorldAccess.Inspection.CurrentMarker>当前: {0}</RimWorldAccess.Inspection.CurrentMarker>
+  <!-- Mood thought expiry suffixes. {0}/{1} = localized time periods. -->
+  <RimWorldAccess.Inspection.Thought.ExpiresIn>(将在 {0} 后失效)</RimWorldAccess.Inspection.Thought.ExpiresIn>
+  <RimWorldAccess.Inspection.Thought.ExpiresInRange>(将在 {0} 至 {1} 后失效)</RimWorldAccess.Inspection.Thought.ExpiresInRange>
+
+  <!-- Hemogen-pack auto-ingest gizmo toggle. {0} = localized on/off state. -->
+  <RimWorldAccess.Inspection.Gizmo.HemogenPacks>允许血红素包: {0}</RimWorldAccess.Inspection.Gizmo.HemogenPacks>
+
+  <!-- Royal permit statuses in the Info Card permits section.
+       AvailableWithPoints: {0} = permit point cost.
+       LockedWithReason: {0} = localized prerequisite/title requirement. -->
+  <RimWorldAccess.Inspection.Permit.Granted>已授予</RimWorldAccess.Inspection.Permit.Granted>
+  <RimWorldAccess.Inspection.Permit.GrantedOnCooldown>已授予 (冷却中)</RimWorldAccess.Inspection.Permit.GrantedOnCooldown>
+  <RimWorldAccess.Inspection.Permit.AvailableWithPoints>可用 ({0} 点)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
+  <RimWorldAccess.Inspection.Permit.LockedWithReason>已锁定 ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
+  <RimWorldAccess.Inspection.Permit.Locked>已锁定</RimWorldAccess.Inspection.Permit.Locked>
 </LanguageData>

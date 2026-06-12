@@ -130,4 +130,7 @@
   <RimWorldAccess.Mechs.Paint.Bulk.CellApplied>Застосовано {0}: {1} для {2}</RimWorldAccess.Mechs.Paint.Bulk.CellApplied>
   <RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>Усім вже {1}</RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>
 
+  <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
+  <RimWorldAccess.Mechs.PercentRange>{0} — {1}</RimWorldAccess.Mechs.PercentRange>
+
 </LanguageData>

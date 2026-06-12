@@ -391,6 +391,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Orders>Накази</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>Зони</RimWorldAccess.Map.Scanner.CatName.Zones>
   <RimWorldAccess.Map.Scanner.CatName.Rooms>Кімнати</RimWorldAccess.Map.Scanner.CatName.Rooms>
+  <RimWorldAccess.Map.Scanner.CatName.Unexplored>Недосліджено</RimWorldAccess.Map.Scanner.CatName.Unexplored>
   <RimWorldAccess.Map.Scanner.CatName.Uncategorized>Без категорії</RimWorldAccess.Map.Scanner.CatName.Uncategorized>
 
   <!-- Localized scanner subcategory display.
@@ -650,4 +651,7 @@
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Map.Scanner.Region.SizeTiles>{0} клітинок</RimWorldAccess.Map.Scanner.Region.SizeTiles>
   <RimWorldAccess.Map.Scanner.UnexploredArea>недосліджена область</RimWorldAccess.Map.Scanner.UnexploredArea>
+  <RimWorldAccess.Map.Scanner.PressHomeForCenter>Натисніть Home для центру</RimWorldAccess.Map.Scanner.PressHomeForCenter>
+  <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>Перейдено на {0} клітинок {1} до центру</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
+  <RimWorldAccess.Map.Scanner.JumpedToCenter>Перейдено до центру</RimWorldAccess.Map.Scanner.JumpedToCenter>
 </LanguageData>

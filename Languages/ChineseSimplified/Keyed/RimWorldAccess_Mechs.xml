@@ -130,4 +130,6 @@
   <RimWorldAccess.Mechs.Paint.Bulk.CellApplied>已为 {2} 涂刷 {0} {1}</RimWorldAccess.Mechs.Paint.Bulk.CellApplied>
   <RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>全部已是 {1}</RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>
 
+  <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
+  <RimWorldAccess.Mechs.PercentRange>{0} 至 {1}</RimWorldAccess.Mechs.PercentRange>
 </LanguageData>

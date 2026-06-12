@@ -79,4 +79,5 @@
        label spoken when the user navigates onto a disconnected cluster. -->
   <RimWorldAccess.Gravships.Substructure.CategoryLabel>Від'єднана субструктура</RimWorldAccess.Gravships.Substructure.CategoryLabel>
   <RimWorldAccess.Gravships.Substructure.ItemLabel>Від'єднана субструктура</RimWorldAccess.Gravships.Substructure.ItemLabel>
+  <RimWorldAccess.Gravships.Engine.RenameDesc>Перейменувати цей гравкорабель.</RimWorldAccess.Gravships.Engine.RenameDesc>
 </LanguageData>

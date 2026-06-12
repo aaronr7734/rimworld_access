@@ -572,6 +572,7 @@
   <RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>Обмежувач нейронного перегріву: {0}</RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>
   <RimWorldAccess.Inspection.Gizmo.LimiterStateOn>увімкнено</RimWorldAccess.Inspection.Gizmo.LimiterStateOn>
   <RimWorldAccess.Inspection.Gizmo.LimiterStateOff>вимкнено</RimWorldAccess.Inspection.Gizmo.LimiterStateOff>
+  <RimWorldAccess.Inspection.Gizmo.AutoSuppression>Автопридушення: {0}</RimWorldAccess.Inspection.Gizmo.AutoSuppression>
 
   <!-- Targeting prompts when activating a gizmo that needs a target.
        {0} = gizmo / weapon label. AnimalTargetingWithRange: {0} =
@@ -601,6 +602,8 @@
   <RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>Не вдалося відрегулювати цей елемент керування</RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>
   <!-- Hemogen toggle failure (GeneGizmo_ResourceHemogen). -->
   <RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>Не вдалося перемкнути налаштування пакетів гемогену</RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>
+  <!-- Activity suppression toggle failure (ActivityGizmo). -->
+  <RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>Не вдалося перемкнути автопридушення</RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>
   <!-- Shift+key with no matching command. {0} = key name. -->
   <RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>Немає команди для Shift плюс {0}</RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>
 
@@ -612,6 +615,7 @@
   <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>. Натисніть Enter, щоб відрегулювати</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Натисніть Enter, щоб перемкнути обмежувач, праву квадратну дужку, щоб задати ціль пси-фокусу</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
   <RimWorldAccess.Inspection.Gizmo.HintHemogen>. Натисніть Enter, щоб перемкнути дозвіл на пакети гемогену, праву квадратну дужку, щоб задати ціль</RimWorldAccess.Inspection.Gizmo.HintHemogen>
+  <RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>. Натисніть Enter, щоб перемкнути автопридушення, праву квадратну дужку, щоб задати поріг придушення</RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>
 
   <!-- =================================================================
        Gizmo type labels (GetNonCommandGizmoLabel and helpers). These
@@ -1464,4 +1468,22 @@
   <RimWorldAccess.Inspection.CategoryName.JobQueueLabel>{0} ({1} у черзі)</RimWorldAccess.Inspection.CategoryName.JobQueueLabel>
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.Inspection.Inventory.CarriedByColonists>{0} x{1} ({2} несуть колоністи)</RimWorldAccess.Inspection.Inventory.CarriedByColonists>
+
+  <!-- Pregnancy approach options: marker for the active approach. {0} = approach description. -->
+  <RimWorldAccess.Inspection.CurrentMarker>Поточний: {0}</RimWorldAccess.Inspection.CurrentMarker>
+  <!-- Mood thought expiry suffixes. {0}/{1} = localized time periods. -->
+  <RimWorldAccess.Inspection.Thought.ExpiresIn>(спливає через {0})</RimWorldAccess.Inspection.Thought.ExpiresIn>
+  <RimWorldAccess.Inspection.Thought.ExpiresInRange>(спливає через {0} — {1})</RimWorldAccess.Inspection.Thought.ExpiresInRange>
+
+  <!-- Hemogen-pack auto-ingest gizmo toggle. {0} = localized on/off state. -->
+  <RimWorldAccess.Inspection.Gizmo.HemogenPacks>Дозволено пакети гемогену: {0}</RimWorldAccess.Inspection.Gizmo.HemogenPacks>
+
+  <!-- Royal permit statuses in the Info Card permits section.
+       AvailableWithPoints: {0} = permit point cost.
+       LockedWithReason: {0} = localized prerequisite/title requirement. -->
+  <RimWorldAccess.Inspection.Permit.Granted>Надано</RimWorldAccess.Inspection.Permit.Granted>
+  <RimWorldAccess.Inspection.Permit.GrantedOnCooldown>Надано (на відновленні)</RimWorldAccess.Inspection.Permit.GrantedOnCooldown>
+  <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Доступно ({0} балів)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
+  <RimWorldAccess.Inspection.Permit.LockedWithReason>Заблоковано ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
+  <RimWorldAccess.Inspection.Permit.Locked>Заблоковано</RimWorldAccess.Inspection.Permit.Locked>
 </LanguageData>

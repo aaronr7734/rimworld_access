@@ -684,6 +684,14 @@
   <RimWorldAccess.WorldScanner.Cat.Landmarks>Орієнтири</RimWorldAccess.WorldScanner.Cat.Landmarks>
   <RimWorldAccess.WorldScanner.Sub.Waypoints>Точки маршруту</RimWorldAccess.WorldScanner.Sub.Waypoints>
   <RimWorldAccess.WorldScanner.Sub.All>Усі</RimWorldAccess.WorldScanner.Sub.All>
+  <RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>Дороги та ріки</RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>
+  <RimWorldAccess.WorldScanner.Sub.Roads>Дороги</RimWorldAccess.WorldScanner.Sub.Roads>
+  <RimWorldAccess.WorldScanner.Sub.Rivers>Ріки</RimWorldAccess.WorldScanner.Sub.Rivers>
+  <RimWorldAccess.WorldScanner.RegionPosition>Область {0} з {1}</RimWorldAccess.WorldScanner.RegionPosition>
+  <RimWorldAccess.WorldScanner.DirectionDistanceTiles>{0}, {1} плиток</RimWorldAccess.WorldScanner.DirectionDistanceTiles>
+  <RimWorldAccess.WorldScanner.DirectionOverTiles>{0}, понад {1} плиток</RimWorldAccess.WorldScanner.DirectionOverTiles>
+  <RimWorldAccess.WorldScanner.JumpedTilesToCenter>Перейдено на {0} плиток {1} до центру</RimWorldAccess.WorldScanner.JumpedTilesToCenter>
+  <RimWorldAccess.WorldScanner.JumpedToCenter>Перейдено до центру</RimWorldAccess.WorldScanner.JumpedToCenter>
   <RimWorldAccess.WorldScanner.Sub.Player>Гравець</RimWorldAccess.WorldScanner.Sub.Player>
   <RimWorldAccess.WorldScanner.Sub.Allied>Союзні</RimWorldAccess.WorldScanner.Sub.Allied>
   <RimWorldAccess.WorldScanner.Sub.Neutral>Нейтральні</RimWorldAccess.WorldScanner.Sub.Neutral>

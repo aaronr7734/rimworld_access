@@ -684,6 +684,17 @@
   <RimWorldAccess.WorldScanner.Cat.Landmarks>地标</RimWorldAccess.WorldScanner.Cat.Landmarks>
   <RimWorldAccess.WorldScanner.Sub.Waypoints>路径点</RimWorldAccess.WorldScanner.Sub.Waypoints>
   <RimWorldAccess.WorldScanner.Sub.All>全部</RimWorldAccess.WorldScanner.Sub.All>
+  <RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>道路与河流</RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>
+  <RimWorldAccess.WorldScanner.Sub.Roads>道路</RimWorldAccess.WorldScanner.Sub.Roads>
+  <RimWorldAccess.WorldScanner.Sub.Rivers>河流</RimWorldAccess.WorldScanner.Sub.Rivers>
+  <!-- RegionPosition: live proximity rank of the current patch. {0} = rank, {1} = total. -->
+  <RimWorldAccess.WorldScanner.RegionPosition>第 {0} 个区域，共 {1} 个</RimWorldAccess.WorldScanner.RegionPosition>
+  <!-- Direction-and-distance suffixes: {0} = compass direction, {1} = tile count. -->
+  <RimWorldAccess.WorldScanner.DirectionDistanceTiles>{0}，{1} 格</RimWorldAccess.WorldScanner.DirectionDistanceTiles>
+  <RimWorldAccess.WorldScanner.DirectionOverTiles>{0}，超过 {1} 格</RimWorldAccess.WorldScanner.DirectionOverTiles>
+  <!-- Center-jump cue: {0} = tile count, {1} = compass direction. -->
+  <RimWorldAccess.WorldScanner.JumpedTilesToCenter>向中心{1}跳转了 {0} 格</RimWorldAccess.WorldScanner.JumpedTilesToCenter>
+  <RimWorldAccess.WorldScanner.JumpedToCenter>已跳转到中心</RimWorldAccess.WorldScanner.JumpedToCenter>
   <RimWorldAccess.WorldScanner.Sub.Player>玩家</RimWorldAccess.WorldScanner.Sub.Player>
   <RimWorldAccess.WorldScanner.Sub.Allied>盟友</RimWorldAccess.WorldScanner.Sub.Allied>
   <RimWorldAccess.WorldScanner.Sub.Neutral>中立</RimWorldAccess.WorldScanner.Sub.Neutral>

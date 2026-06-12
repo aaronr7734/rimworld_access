@@ -747,4 +747,15 @@
   <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>玩法风格</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
   <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>设置</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
   <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>选择一种异象玩法风格</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
+
+  <!-- Pawn filter editor: range-bound words and labels that previously
+       pointed at nonexistent keys. -->
+  <RimWorldAccess.PawnFilter.Minimum>最小值</RimWorldAccess.PawnFilter.Minimum>
+  <RimWorldAccess.PawnFilter.Maximum>最大值</RimWorldAccess.PawnFilter.Maximum>
+  <RimWorldAccess.PawnFilter.SectionSettings>设置</RimWorldAccess.PawnFilter.SectionSettings>
+  <RimWorldAccess.PawnFilter.TraitExcluded>排除</RimWorldAccess.PawnFilter.TraitExcluded>
+  <!-- Starting pawn editor context menu entries. -->
+  <RimWorldAccess.StartingPawn.EditPawnFilter>编辑角色筛选器...</RimWorldAccess.StartingPawn.EditPawnFilter>
+  <RimWorldAccess.StartingPawn.AddPawn>添加角色</RimWorldAccess.StartingPawn.AddPawn>
+  <RimWorldAccess.StartingPawn.RemovePawn>移除角色</RimWorldAccess.StartingPawn.RemovePawn>
 </LanguageData>

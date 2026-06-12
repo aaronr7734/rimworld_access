@@ -79,4 +79,7 @@
        label spoken when the user navigates onto a disconnected cluster. -->
   <RimWorldAccess.Gravships.Substructure.CategoryLabel>断开连接的基架</RimWorldAccess.Gravships.Substructure.CategoryLabel>
   <RimWorldAccess.Gravships.Substructure.ItemLabel>断开连接的基架</RimWorldAccess.Gravships.Substructure.ItemLabel>
+
+  <!-- Gravship rename gizmo description (vanilla has none). -->
+  <RimWorldAccess.Gravships.Engine.RenameDesc>重命名这艘逆重飞船。</RimWorldAccess.Gravships.Engine.RenameDesc>
 </LanguageData>

@@ -426,6 +426,11 @@
   <RimWorldAccess.Pawns.Schedule.NoSchedule>{0}: немає розкладу</RimWorldAccess.Pawns.Schedule.NoSchedule>
   <RimWorldAccess.Pawns.Schedule.Cell>{0}, година {1}: {2}</RimWorldAccess.Pawns.Schedule.Cell>
   <RimWorldAccess.Pawns.Schedule.CellWithPositions>{0}, година {1}: {2}. Персонаж {3}, година {4}.</RimWorldAccess.Pawns.Schedule.CellWithPositions>
+  <RimWorldAccess.Pawns.Schedule.CellPawnOnly>{0}: {1}</RimWorldAccess.Pawns.Schedule.CellPawnOnly>
+  <RimWorldAccess.Pawns.Schedule.CellHourOnly>Година {0}: {1}</RimWorldAccess.Pawns.Schedule.CellHourOnly>
+  <RimWorldAccess.Pawns.Schedule.PositionPawn>Персонаж {0}</RimWorldAccess.Pawns.Schedule.PositionPawn>
+  <RimWorldAccess.Pawns.Schedule.PositionHour>Година {0}</RimWorldAccess.Pawns.Schedule.PositionHour>
+  <RimWorldAccess.Pawns.Schedule.CellWithSuffix>{0}. {1}.</RimWorldAccess.Pawns.Schedule.CellWithSuffix>
   <RimWorldAccess.Pawns.Schedule.PaintApplied>{0}, година {1} задано на {2}</RimWorldAccess.Pawns.Schedule.PaintApplied>
   <RimWorldAccess.Pawns.Schedule.AlreadyAtHour>Година {0}: вже задано на {1}</RimWorldAccess.Pawns.Schedule.AlreadyAtHour>
   <RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>{0}, година {1}: вже задано на {2}</RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>

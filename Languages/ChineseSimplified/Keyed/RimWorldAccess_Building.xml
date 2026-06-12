@@ -1001,4 +1001,10 @@
   <RimWorldAccess.Building.Zone.WillCreateNew>将创建新区域。</RimWorldAccess.Building.Zone.WillCreateNew>
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.Building.Meditation.SkippedProtected>{0} 已跳过，受 {1} 保护</RimWorldAccess.Building.Meditation.SkippedProtected>
+
+  <!-- Architect tree: right-click options hint and material availability
+       suffixes (composed after the designator / material label). -->
+  <RimWorldAccess.Building.Architect.MoreOptionsHint>(按右方括号查看更多选项)</RimWorldAccess.Building.Architect.MoreOptionsHint>
+  <RimWorldAccess.Building.Architect.MaterialAvailableCount>(可用 {0})</RimWorldAccess.Building.Architect.MaterialAvailableCount>
+  <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(无可用)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
 </LanguageData>

@@ -270,4 +270,14 @@
   <RimWorldAccess.Work.Overlay.BasicInstructions1>Ліворуч/Праворуч: навігація завданнями | Пробіл: перемкнути</RimWorldAccess.Work.Overlay.BasicInstructions1>
   <RimWorldAccess.Work.Overlay.BasicInstructions2>Tab/Shift+Tab: змінити персонажа</RimWorldAccess.Work.Overlay.BasicInstructions2>
   <RimWorldAccess.Work.Overlay.BasicInstructions3>Enter/Escape: зберегти та закрити | Alt+M: перейти в ручний режим</RimWorldAccess.Work.Overlay.BasicInstructions3>
+
+  <!-- Task detail composition pieces restored/added after the merge.
+       IncludesPrefix leads the comma-joined work-giver list; leading
+       ". " is part of the value, matching Task.UnskilledLabor.
+       IncapableWithReasons: {0} = comma-joined disabled reasons. -->
+  <RimWorldAccess.Work.Task.IncludesPrefix>. Включає: </RimWorldAccess.Work.Task.IncludesPrefix>
+  <RimWorldAccess.Work.Task.IdeologyOpposes>. Ідеологія проти цієї роботи</RimWorldAccess.Work.Task.IdeologyOpposes>
+  <RimWorldAccess.Work.Column.Name>Ім'я</RimWorldAccess.Work.Column.Name>
+  <RimWorldAccess.Work.Table.Incapable>нездатний</RimWorldAccess.Work.Table.Incapable>
+  <RimWorldAccess.Work.Table.IncapableWithReasons>нездатний, {0}</RimWorldAccess.Work.Table.IncapableWithReasons>
 </LanguageData>

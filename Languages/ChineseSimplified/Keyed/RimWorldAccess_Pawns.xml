@@ -426,6 +426,17 @@
   <RimWorldAccess.Pawns.Schedule.NoSchedule>{0}: 无时间表</RimWorldAccess.Pawns.Schedule.NoSchedule>
   <RimWorldAccess.Pawns.Schedule.Cell>{0}, {1} 时: {2}</RimWorldAccess.Pawns.Schedule.Cell>
   <RimWorldAccess.Pawns.Schedule.CellWithPositions>{0}, {1} 时: {2}. 角色 {3}, {4} 时.</RimWorldAccess.Pawns.Schedule.CellWithPositions>
+  <!-- Partial cell shapes for single-axis announcements (pawn-only /
+       hour-only) plus the position-fragment join used with them.
+       CellPawnOnly: {0} = pawn label, {1} = assignment.
+       CellHourOnly: {0} = hour, {1} = assignment.
+       PositionPawn/PositionHour: {0} = "x of y" position phrase.
+       CellWithSuffix: {0} = value line, {1} = position fragment. -->
+  <RimWorldAccess.Pawns.Schedule.CellPawnOnly>{0}: {1}</RimWorldAccess.Pawns.Schedule.CellPawnOnly>
+  <RimWorldAccess.Pawns.Schedule.CellHourOnly>{0} 时: {1}</RimWorldAccess.Pawns.Schedule.CellHourOnly>
+  <RimWorldAccess.Pawns.Schedule.PositionPawn>角色 {0}</RimWorldAccess.Pawns.Schedule.PositionPawn>
+  <RimWorldAccess.Pawns.Schedule.PositionHour>{0} 时</RimWorldAccess.Pawns.Schedule.PositionHour>
+  <RimWorldAccess.Pawns.Schedule.CellWithSuffix>{0}. {1}.</RimWorldAccess.Pawns.Schedule.CellWithSuffix>
   <RimWorldAccess.Pawns.Schedule.PaintApplied>{0}, {1} 时已设为 {2}</RimWorldAccess.Pawns.Schedule.PaintApplied>
   <RimWorldAccess.Pawns.Schedule.AlreadyAtHour>{0} 时: 已设为 {1}</RimWorldAccess.Pawns.Schedule.AlreadyAtHour>
   <RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>{0}, {1} 时: 已设为 {2}</RimWorldAccess.Pawns.Schedule.AlreadyAtPawnHour>

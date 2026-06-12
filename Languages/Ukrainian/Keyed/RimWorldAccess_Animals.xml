@@ -32,6 +32,8 @@
   <RimWorldAccess.Animals.Value.Unknown>Невідомо</RimWorldAccess.Animals.Value.Unknown>
   <RimWorldAccess.Animals.Value.NotApplicable>Н/Д</RimWorldAccess.Animals.Value.NotApplicable>
   <RimWorldAccess.Animals.Value.Normal>Нормальний</RimWorldAccess.Animals.Value.Normal>
+  <RimWorldAccess.Animals.Value.BondBroken>зв'язок розірвано</RimWorldAccess.Animals.Value.BondBroken>
+  <RimWorldAccess.Animals.Value.Scheduled>За розкладом</RimWorldAccess.Animals.Value.Scheduled>
 
   <!-- Paint value labels. AnimalsMenuHelper.GetPaintValueLabel and
        WildlifeMenuHelper.GetPaintValueLabel return these for checkbox
@@ -47,6 +49,12 @@
        ================================================================= -->
   <RimWorldAccess.Animals.Column.Name>Ім'я</RimWorldAccess.Animals.Column.Name>
   <RimWorldAccess.Animals.Column.Age>Вік</RimWorldAccess.Animals.Column.Age>
+  <RimWorldAccess.Animals.Column.LifeStage>Етап життя</RimWorldAccess.Animals.Column.LifeStage>
+  <RimWorldAccess.Animals.Column.SpecialTraining>Спеціальне навчання</RimWorldAccess.Animals.Column.SpecialTraining>
+  <RimWorldAccess.Animals.Column.MentalState>Психічний стан</RimWorldAccess.Animals.Column.MentalState>
+  <RimWorldAccess.Animals.Column.BondInfo>Прив'язаність</RimWorldAccess.Animals.Column.BondInfo>
+  <RimWorldAccess.Animals.Column.Sterile>Стерильність</RimWorldAccess.Animals.Column.Sterile>
+  <RimWorldAccess.Animals.Column.MedicalCare>Медична допомога</RimWorldAccess.Animals.Column.MedicalCare>
 
   <!-- =================================================================
        Training status (AnimalsMenuHelper.GetTrainingStatus and
@@ -203,6 +211,8 @@
        WithoutName: {0} = column name, {1} = value. -->
   <RimWorldAccess.Animals.AutoSlaughter.Cell.WithName>{0}, {1}: {2}. {3}</RimWorldAccess.Animals.AutoSlaughter.Cell.WithName>
   <RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName>{0}: {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName>
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>{0}: {1}. {2}</RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>{0}. {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>
 
   <!-- Numeric input mode. "minus" is spoken after the user presses the
        minus key so they hear confirmation of what's in the buffer;
