@@ -227,6 +227,12 @@ namespace RimWorldAccess
                 return JumpTargetingState.GetJumpValidityPrefix(position) + tileInfo;
             }
 
+            // Seed planting mode - announce per-tile plantability (Gauranlen seeds, etc.)
+            if (PlantTargetingState.IsActive)
+            {
+                return PlantTargetingState.GetPlantValidityPrefix(position) + tileInfo;
+            }
+
             // Zone creation mode - single tile selection
             if (ZoneCreationState.IsInCreationMode &&
                 ZoneCreationState.SelectionMode == ZoneSelectionMode.SingleTile &&

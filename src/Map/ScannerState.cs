@@ -145,14 +145,25 @@ namespace RimWorldAccess
         // the next Page Down re-sorts in the new category context.
         public static void CreateTemporaryCategory(string name, List<ScannerItem> items)
         {
+            var subcategory = new ScannerSubcategory($"{name}-All");
+            subcategory.Items.AddRange(items);
+            CreateTemporaryCategory(name, new List<ScannerSubcategory> { subcategory });
+        }
+
+        /// <summary>
+        /// Creates a temporary category from pre-built subcategories (navigated with
+        /// Shift+Page Up/Down) and selects it. By scanner convention, subcategories[0] must
+        /// represent the whole category — TotalItemCount and the "All" slot are positional.
+        /// Subcategory names are announced verbatim (ScannerNameLocalizer passes non-schema
+        /// names through), so pass localized display strings.
+        /// </summary>
+        public static void CreateTemporaryCategory(string name, List<ScannerSubcategory> subcategories)
+        {
             // Remove any existing temporary category first
             RemoveTemporaryCategory();
 
-            // Create the new temporary category with a single subcategory
             temporaryCategory = new ScannerCategory(name);
-            var subcategory = new ScannerSubcategory($"{name}-All");
-            subcategory.Items.AddRange(items);
-            temporaryCategory.Subcategories.Add(subcategory);
+            temporaryCategory.Subcategories.AddRange(subcategories);
 
             // Add to the categories list
             categories.Add(temporaryCategory);
@@ -394,13 +405,13 @@ namespace RimWorldAccess
                 // Live proximity rank, not the static list slot — the nearest patch reads as
                 // "area 1 of N" no matter where it sits in the stable build-time list.
                 int regionPosition = ComputeRegionRank(item, regionIndex, cursorPos);
-                announcement += $", area {regionPosition} of {item.RegionCount}";
+                announcement += "RimWorldAccess.Map.Scanner.Region.AreaSuffix".Translate(regionPosition, item.RegionCount);
             }
 
             // When the cursor is standing on this patch and the patch has a distinct center,
             // teach the second Home press that jumps there.
             if (ClumpNav.OffersCenter(region.AllPositions, region.CenterPosition, cursorPos))
-                announcement += ". Press Home for center";
+                announcement += ". " + "RimWorldAccess.Map.Scanner.PressHomeForCenter".Translate();
 
             return announcement;
         }
@@ -595,6 +606,16 @@ namespace RimWorldAccess
 
             var cursorPos = MapNavigationState.CurrentCursorPosition;
 
+            // Capture whether the user is currently navigating the temporary category (planting
+            // sites, search results) BEFORE any list below is rebuilt. A rebuild re-adds the temp
+            // category at the END of the list but does not move the selection with it; without
+            // this the user silently drops into the rebuilt real categories on the next
+            // navigation. Rebuilds are frequent — pawn movement changes the thing-state hash every
+            // step. (The active-search path below does its own equivalent re-pointing.)
+            bool wasInTemporaryCategory = IsInTemporaryCategory();
+            int temporarySubcategoryIndexBeforeRefresh = currentSubcategoryIndex;
+            int temporaryItemIndexBeforeRefresh = currentItemIndex;
+
             // Check if cached collection is still valid to avoid expensive re-collection
             int currentThingHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.Everything);
             int currentDesignationCount = map.designationManager.AllDesignations.Count;
@@ -624,6 +645,9 @@ namespace RimWorldAccess
                 {
                     if (!categories.Contains(temporaryCategory))
                         categories.Add(temporaryCategory);
+
+                    if (wasInTemporaryCategory)
+                        FocusTemporaryCategory(temporarySubcategoryIndexBeforeRefresh, temporaryItemIndexBeforeRefresh);
                 }
 
                 // On cache hit, the items may have been sorted at a previous cursor position.
@@ -721,6 +745,11 @@ namespace RimWorldAccess
             {
                 temporaryCategory = savedTemporaryCategory;
                 categories.Add(temporaryCategory);
+
+                // Keep the selection on the temporary category (now at the end) if the user was
+                // navigating it before this rebuild.
+                if (wasInTemporaryCategory)
+                    FocusTemporaryCategory(temporarySubcategoryIndexBeforeRefresh, temporaryItemIndexBeforeRefresh);
             }
 
             if (categories.Count == 0)
@@ -1183,7 +1212,9 @@ namespace RimWorldAccess
             {
                 string dir = ScannerDirectionHelper.GetCompassDirection(cursorBeforeJump, targetPosition);
                 float dist = (targetPosition - cursorBeforeJump).LengthHorizontal;
-                prefix = dir != null ? $"Jumped {dist:F0} tiles {dir} to center" : "Jumped to center";
+                prefix = dir != null
+                    ? "RimWorldAccess.Map.Scanner.JumpedTilesToCenter".Translate(dist.ToString("F0"), dir).ToString()
+                    : "RimWorldAccess.Map.Scanner.JumpedToCenter".Translate().ToString();
             }
             MapArrowKeyHandler.AnnouncePosition(targetPosition, Find.CurrentMap, prefix);
         }
@@ -1208,6 +1239,31 @@ namespace RimWorldAccess
         public static bool IsInTemporaryCategory()
         {
             return temporaryCategory != null && GetCurrentCategory() == temporaryCategory;
+        }
+
+        /// <summary>
+        /// Re-points the navigation indices onto the temporary category, which always lives at the
+        /// end of the categories list after a rebuild. Clamps the subcategory index (the temp
+        /// category may have several, e.g. planting sites split by building proximity) and then
+        /// the item index within it, so the selection stays valid.
+        /// </summary>
+        private static void FocusTemporaryCategory(int desiredSubcategoryIndex, int desiredItemIndex)
+        {
+            if (temporaryCategory == null || categories.Count == 0)
+                return;
+
+            currentCategoryIndex = categories.Count - 1;
+            int subCount = temporaryCategory.Subcategories?.Count ?? 0;
+            currentSubcategoryIndex = subCount > 0
+                ? Math.Min(Math.Max(desiredSubcategoryIndex, 0), subCount - 1)
+                : 0;
+            int count = subCount > 0
+                ? temporaryCategory.Subcategories[currentSubcategoryIndex].Items?.Count ?? 0
+                : 0;
+            currentItemIndex = count > 0
+                ? Math.Min(Math.Max(desiredItemIndex, 0), count - 1)
+                : 0;
+            currentBulkIndex = 0;
         }
 
         public static void ReadDistanceAndDirection()

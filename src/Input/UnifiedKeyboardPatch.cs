@@ -51,6 +51,10 @@ namespace RimWorldAccess
             // Process per-frame sound queue for bulk painting operations
             BulkSoundQueue.Update();
 
+            // Re-open seed-planting placement if a building-proximity confirmation dialog was
+            // cancelled (must run every frame, not just on key events, to detect the close).
+            PlantTargetingState.WatchConfirmationDialog();
+
             // Only process keyboard events
             if (Event.current.type != EventType.KeyDown)
                 return;

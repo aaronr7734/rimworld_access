@@ -168,6 +168,12 @@ namespace RimWorldAccess
         /// </summary>
         private static void OpenCallbackTargetingState(TargetingParameters targetParams)
         {
+            // Seed planting (CompPlantable) opens PlantTargetingState from its own BeginTargeting
+            // prefix, which runs before this generic callback postfix. When it's active, defer to
+            // it instead of opening the generic ItemTargetingState — otherwise both would announce.
+            if (PlantTargetingState.IsActive)
+                return;
+
             string label = PendingTargetingContext.ConsumeLabel();
 
             if (ItemTargetingState.IsActive)
@@ -220,6 +226,8 @@ namespace RimWorldAccess
                 ItemTargetingState.Close();
             if (GenericTargetingState.IsActive)
                 GenericTargetingState.Close();
+            if (PlantTargetingState.IsActive)
+                PlantTargetingState.Close();
             TargetingPatch.ClearTargetingContext();
         }
 

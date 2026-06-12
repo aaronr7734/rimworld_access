@@ -4,8 +4,8 @@
 Screen reader accessibility for psycast and ability targeting, providing range information, affected target previews, world map targeting support for abilities like Farskip, and equipment-based jump targeting (Jump Pack, Locust Armor).
 
 ## Files
-**Patches:** AbilityTargetingPatch.cs
-**States:** AbilityTargetingState.cs, WorldAbilityTargetingState.cs, ItemTargetingState.cs, JumpTargetingState.cs
+**Patches:** AbilityTargetingPatch.cs, PlantTargetingPatch.cs
+**States:** AbilityTargetingState.cs, WorldAbilityTargetingState.cs, ItemTargetingState.cs, JumpTargetingState.cs, PlantTargetingState.cs
 **Helpers:** AbilityTargetingHelper.cs
 
 ## Key Shortcuts
@@ -51,6 +51,17 @@ Screen reader accessibility for psycast and ability targeting, providing range i
 - Opens when abilities with `targetWorldCell = true` are activated
 - Integrates with WorldNavigationState for tile navigation
 - Uses ability.ValidateGlobalTarget() for destination validation
+
+**PlantTargetingState** - Manages CompPlantable seed planting (Gauranlen seeds and modded plantables)
+- Opened by a prefix on `CompPlantable.BeginTargeting` (PlantTargetingPatch); because that prefix runs before the inner `Find.Targeter.BeginTargeting`, `OpenCallbackTargetingState` sees `PlantTargetingState.IsActive` and skips the generic ItemTargetingState (no duplicate announcement)
+- `GetPlantValidityPrefix()` adds a terse "Can plant"/"Can plant, near buildings"/"Blocked" prefix during arrow navigation (wired in `MapArrowKeyHandler.AddContextPrefix`). The near-buildings variant invokes CompPlantable's private `ConnectionStrengthReducedByNearbyBuilding` via reflection — single-cell queries match vanilla's hover usage of the game's per-cell cache
+- The Enter confirm (via `TargetingPatch`) already reports the game's own localized reason a cell can't be planted, so there is no separate reason key — `PlantTargetingState` has no key handlers
+- On open, builds a **temporary scanner category** (`ScannerState.CreateTemporaryCategory`) of every plantable cell, adjacency-grouped into areas via `ScannerHelper.GroupTerrainByAdjacency` and sorted nearest-first — the user steps through it with the normal scanner keys (Page Down, Home to jump). The start announcement reports the area count. Torn down on close via `RemoveTemporaryCategory` + `RestoreFocus`
+- For plants with `CompProperties_TreeConnection` (Gauranlen), the category gets a second **"Clear of buildings" subcategory** (Shift+Page Down) listing only spots that won't raise the connection-strength warning; the start announcement reports its area count, or warns when no clear spot exists. Omitted when redundant (no spot near buildings). **GOTCHA**: the map-wide sweep must NOT call the game's `ConnectionStrengthReducedByNearbyBuilding`/`GetForCell` per cell — `ListerArtificialBuildingsForMeditation` permanently caches a list per queried cell, so a sweep would bloat it with thousands of entries. `FilterCellsClearOfArtificialBuildings` instead collects buildings once with the lister's own predicate (`MeditationUtility.CountsAsArtificialBuilding`) and stamps `radiusToBuildingForConnectionStrengthLoss` around each occupied cell. `ScannerState.FocusTemporaryCategory` preserves the **subcategory** index across rebuilds too, so pawn movement doesn't yank the user back to "All"
+- NOTE: `ScannerState.RefreshItems` re-points the selection onto the temporary category after every rebuild (`FocusTemporaryCategory`, gated by `wasInTemporaryCategory`) — without it, a rebuild (triggered every time the thing-state hash changes, i.e. pawns moving) silently drops the user out of the temp category
+- Closed by `Targeter.StopTargeting` (added to `StopTargeting_Postfix`)
+- NOTE: the Enter confirm itself flows through `TargetingPatch`'s **action-based** branch (CompPlantable uses a callback, not an ITargetingSource). That branch now detects when the callback re-opens targeting (invalid cell → vanilla resets `needsStopTargetingCall`) and skips `StopTargeting`, keeping the player in placement mode to retry instead of dumping them out
+- **Confirmation-dialog cancel reopens placement**: confirming a cell near artificial buildings opens a Gauranlen "reduced connection strength" `Dialog_MessageBox`; vanilla then ends targeting for good, so cancelling the dialog would strand the user. `TargetingPatch` calls `NotifyConfirmationDialogOpened()` before `StopTargeting`, and `WatchConfirmationDialog()` (polled every frame from `UnifiedKeyboardPatch`) re-invokes `BeginTargeting` if the dialog closed without a new plant cell. **GOTCHA**: `DialogInterceptionPatch` swallows `WindowStack.Add` for every `Dialog_MessageBox` and presents it via `WindowlessDialogState` instead — so the dialog must be detected via `WindowlessDialogState.IsActive`/`CurrentDialog`, never via window-stack count or `WindowOfType` (both see nothing). Pending state is cleared by `PlantTargetingState.Reset()` on game load (GameStartPatch)
 
 **ItemTargetingState** - Manages CompTargetable/CompUsable item targeting (sentience catalyst, mech serums, etc.)
 - Lightweight: no custom key handlers (no R/T key support needed)

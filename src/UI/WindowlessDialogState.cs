@@ -41,6 +41,13 @@ namespace RimWorldAccess
         public static string CurrentDialogTypeName => currentDialog?.GetType().Name ?? "null";
 
         /// <summary>
+        /// The dialog window currently presented windowlessly, or null. Intercepted dialogs never
+        /// enter the WindowStack, so states that need to track a specific dialog's lifetime
+        /// (e.g. PlantTargetingState watching a planting confirmation) must identify it here.
+        /// </summary>
+        public static Window CurrentDialog => currentDialog;
+
+        /// <summary>
         /// Returns true if the dialog was closed on the current frame.
         /// Used to prevent Escape from immediately triggering other actions.
         /// </summary>

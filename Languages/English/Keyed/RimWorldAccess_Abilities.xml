@@ -290,4 +290,30 @@
   <RimWorldAccess.Abilities.Teleport.NoLineOfSight>No line of sight to destination</RimWorldAccess.Abilities.Teleport.NoLineOfSight>
   <RimWorldAccess.Abilities.Teleport.InvalidDestination>Invalid teleport destination</RimWorldAccess.Abilities.Teleport.InvalidDestination>
   <RimWorldAccess.Abilities.Success.WarningsSuffix>. Warning: {0}</RimWorldAccess.Abilities.Success.WarningsSuffix>
+
+  <!-- Seed planting (CompPlantable: Gauranlen seeds, etc.). Per-tile prefixes are
+       kept terse for fast sweeping. Pressing Enter already reports why a cell can
+       or can't be planted, so there is no separate reason key. On entering planting
+       mode a temporary scanner category lists every plantable area nearest first
+       (Page Down through them, Home to jump the cursor there). {0} in Start/
+       StartNoAreas/ScannerCategory = the tree's label (e.g. "Gauranlen tree");
+       {1} in Start = the number of plantable areas found. -->
+  <RimWorldAccess.Abilities.Plant.Start>Planting {0}. Use arrow keys to choose a spot, Enter to plant. {1} plantable areas in the scanner, nearest first; press Page Down to step through them and Home to jump there.</RimWorldAccess.Abilities.Plant.Start>
+  <RimWorldAccess.Abilities.Plant.StartNoAreas>Planting {0}. Use arrow keys to choose a spot, Enter to plant. No plantable spots were found on the map.</RimWorldAccess.Abilities.Plant.StartNoAreas>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlant>Can plant, </RimWorldAccess.Abilities.Plant.PrefixCanPlant>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>Can plant, near buildings, </RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>
+  <RimWorldAccess.Abilities.Plant.PrefixBlocked>Blocked, </RimWorldAccess.Abilities.Plant.PrefixBlocked>
+  <RimWorldAccess.Abilities.Plant.ScannerCategory>{0} planting sites</RimWorldAccess.Abilities.Plant.ScannerCategory>
+  <RimWorldAccess.Abilities.Plant.ScannerItemLabel>Plantable spot</RimWorldAccess.Abilities.Plant.ScannerItemLabel>
+
+  <!-- Subcategory split for plants whose connection strength is reduced by nearby
+       artificial buildings (Gauranlen trees). Subcategory names are announced
+       verbatim by the scanner (Shift+Page Down switches between them). The Start
+       suffixes are appended to Plant.Start after a space; {0} in StartClearSuffix
+       = the clear-of-buildings subcategory's area count (grouped independently,
+       so it can exceed the total plantable area count). -->
+  <RimWorldAccess.Abilities.Plant.SubcatAll>All planting sites</RimWorldAccess.Abilities.Plant.SubcatAll>
+  <RimWorldAccess.Abilities.Plant.SubcatClear>Clear of buildings</RimWorldAccess.Abilities.Plant.SubcatClear>
+  <RimWorldAccess.Abilities.Plant.StartClearSuffix>The clear-of-buildings list has {0} areas where connection strength will not be reduced; press Shift+Page Down to switch to it.</RimWorldAccess.Abilities.Plant.StartClearSuffix>
+  <RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>Warning: every plantable spot is near artificial buildings, so planting anywhere will reduce connection strength.</RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>
 </LanguageData>

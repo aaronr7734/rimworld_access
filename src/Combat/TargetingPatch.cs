@@ -241,8 +241,10 @@ namespace RimWorldAccess
                                 }
                                 else if (ItemTargetingState.IsActive)
                                 {
-                                    string targetLabel = target.HasThing ? target.Thing.LabelShort : "target";
-                                    fallback = $"{targetLabel} is not a valid target";
+                                    string targetLabel = target.HasThing
+                                        ? target.Thing.LabelShort
+                                        : (string)"RimWorldAccess.Combat.Target.GenericTargetLabel".Translate();
+                                    fallback = "RimWorldAccess.Combat.Target.NotValidTarget".Translate(targetLabel).ToString();
                                 }
                             }
                             TolkHelper.SpeakData(fallback ?? (string)"RimWorldAccess.Combat.Target.InvalidTarget".Translate(), SpeechPriority.High);
@@ -480,11 +482,68 @@ namespace RimWorldAccess
                         }
                     }
 
+                    // Snapshot the targeter's action delegate so we can detect whether the
+                    // callback itself restarted targeting. Some action callbacks (notably
+                    // CompPlantable seed planting) re-open BeginTargeting on an invalid cell to
+                    // keep the player in placement mode. Vanilla relies on this: its
+                    // needsStopTargetingCall flag is reset to false by every BeginTargeting
+                    // overload, so the re-open suppresses the StopTargeting that would otherwise
+                    // fire. We replicate that here — if a fresh session was started, do NOT
+                    // StopTargeting and do NOT announce a bogus success. The callback already
+                    // spoke the rejection reason via Messages.Message (surfaced by
+                    // NotificationAccessibilityPatch), and the user stays in placement mode.
+                    var actionBeforeCallback = action;
+                    int windowCountBeforeCallback = Find.WindowStack?.Count ?? 0;
+                    bool windowlessDialogActiveBeforeCallback = WindowlessDialogState.IsActive;
+
                     // Execute the action callback
                     action(target);
 
+                    var actionAfterCallback = actionField?.GetValue(__instance) as Action<LocalTargetInfo>;
+                    if (__instance.IsTargeting
+                        && actionAfterCallback != null
+                        && !ReferenceEquals(actionAfterCallback, actionBeforeCallback))
+                    {
+                        // Callback rejected this cell and restarted targeting. Stay in placement
+                        // mode so the user can adjust the cursor and retry.
+                        Event.current.Use();
+                        return false;
+                    }
+
+                    // Did the callback open a confirmation dialog (e.g. CompPlantable warning that
+                    // planting a Gauranlen seed near artificial buildings will reduce connection
+                    // strength)? If so, that dialog now owns the interaction. The window count
+                    // alone can't tell us: DialogInterceptionPatch swallows WindowStack.Add for
+                    // Dialog_MessageBox and presents it via WindowlessDialogState instead, so the
+                    // stack never grows — check for the windowless dialog becoming active too.
+                    int windowCountAfterCallback = Find.WindowStack?.Count ?? 0;
+                    bool confirmationDialogOpened =
+                        windowCountAfterCallback > windowCountBeforeCallback
+                        || (WindowlessDialogState.IsActive && !windowlessDialogActiveBeforeCallback);
+
+                    // Capture the planting context BEFORE StopTargeting closes PlantTargetingState,
+                    // so that cancelling the dialog can re-open placement (see WatchConfirmationDialog)
+                    // instead of kicking the user out.
+                    if (confirmationDialogOpened && PlantTargetingState.IsActive)
+                        PlantTargetingState.NotifyConfirmationDialogOpened();
+
                     // Stop targeting mode
                     __instance.StopTargeting();
+
+                    if (confirmationDialogOpened)
+                    {
+                        // Two things must happen: (1) don't announce a bogus "Target selected" — the
+                        // dialog's own accessibility patch announces it; (2) stop the Enter that
+                        // opened it from auto-confirming it. An intercepted (windowless) dialog is
+                        // protected by WindowlessDialogState's same-frame guard; a non-intercepted
+                        // dialog would be auto-confirmed via Window.OnAcceptKeyPressed, which
+                        // Event.current.Use() does NOT block (see CLAUDE.md keyboard isolation
+                        // notes) — so mark the frame and let TargetConfirmDialogGuard's patch block
+                        // the game's accept for this frame.
+                        TargetConfirmDialogGuard.MarkDialogOpenedThisFrame();
+                        Event.current.Use();
+                        return false;
+                    }
 
                     // Announce with multi-select feedback
                     string targetLabel = target.HasThing

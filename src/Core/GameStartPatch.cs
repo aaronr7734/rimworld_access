@@ -30,6 +30,7 @@ namespace RimWorldAccess
             MapNavigationState.Reset(); // also invalidates ScannerState + ScannerHelper caches
             PawnSelectionState.Reset();
             WorldScannerState.Reset();
+            PlantTargetingState.Reset();
 
             LongEventHandler.ExecuteWhenFinished(() =>
             {
