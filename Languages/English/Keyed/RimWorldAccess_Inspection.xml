@@ -593,6 +593,9 @@
   <RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>Neural heat limiter: {0}</RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>
   <RimWorldAccess.Inspection.Gizmo.LimiterStateOn>ON</RimWorldAccess.Inspection.Gizmo.LimiterStateOn>
   <RimWorldAccess.Inspection.Gizmo.LimiterStateOff>OFF</RimWorldAccess.Inspection.Gizmo.LimiterStateOff>
+  <!-- ActivityGizmo (Anomaly) auto-suppression toggle. {0} = state phrase
+       (LimiterStateOn/Off). -->
+  <RimWorldAccess.Inspection.Gizmo.AutoSuppression>Auto-suppression: {0}</RimWorldAccess.Inspection.Gizmo.AutoSuppression>
 
   <!-- Targeting prompts when activating a gizmo that needs a target.
        {0} = gizmo / weapon label. AnimalTargetingWithRange: {0} =
@@ -622,6 +625,8 @@
   <RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>Could not adjust this control</RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>
   <!-- Hemogen toggle failure (GeneGizmo_ResourceHemogen). -->
   <RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>Could not toggle hemogen packs setting</RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>
+  <!-- Activity suppression toggle failure (ActivityGizmo). -->
+  <RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>Could not toggle auto-suppression</RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>
   <!-- Shift+key with no matching command. {0} = key name. -->
   <RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>No command for Shift plus {0}</RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>
 
@@ -634,6 +639,8 @@
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Press Enter to toggle limiter, right bracket to set psyfocus target</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
   <!-- GeneGizmo_ResourceHemogen mirrors PsychicEntropy: Enter toggles hemogen packs allowed, ] sets the target. -->
   <RimWorldAccess.Inspection.Gizmo.HintHemogen>. Press Enter to toggle hemogen packs allowed, right bracket to set target</RimWorldAccess.Inspection.Gizmo.HintHemogen>
+  <!-- ActivityGizmo (Anomaly) mirrors PsychicEntropy: Enter toggles auto-suppression, ] sets the suppression threshold. -->
+  <RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>. Press Enter to toggle auto-suppression, right bracket to set suppression threshold</RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>
 
   <!-- =================================================================
        Gizmo type labels (GetNonCommandGizmoLabel and helpers). These

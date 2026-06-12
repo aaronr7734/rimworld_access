@@ -1,4 +1,12 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/11/2026
+
+CHANGES
+-------
+- Anomaly entity suppression: you can now toggle auto-suppression on or off for
+  a held entity. On its activity gizmo, Enter toggles auto-suppression and right
+  bracket still adjusts the suppression threshold, matching the psyfocus gizmo's
+  Enter-and-slider layout. Previously only the threshold was reachable.
 06/01/2026
 
 CHANGES

@@ -744,6 +744,27 @@ namespace RimWorldAccess
                     return;
                 }
 
+                // 3c. ActivityGizmo (Anomaly) - toggle auto-suppression on Enter.
+                // The vanilla gizmo embeds a suppression on/off checkbox in its header
+                // alongside the threshold slider; right bracket still adjusts the slider,
+                // mirroring the PsychicEntropyGizmo dual-action pattern.
+                if (selectedGizmo.GetType().Name == "ActivityGizmo")
+                {
+                    bool? newState = ToggleActivitySuppression(selectedGizmo);
+                    if (newState.HasValue)
+                    {
+                        string stateStr = (newState.Value
+                            ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn"
+                            : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff").Translate();
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.AutoSuppression".Loc(stateStr));
+                    }
+                    else
+                    {
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression".Loc(), SpeechPriority.High);
+                    }
+                    return;
+                }
+
                 // 4. Command_Toggle - toggle and announce state
                 if (selectedGizmo is Command_Toggle toggle)
                 {
@@ -1110,14 +1131,16 @@ namespace RimWorldAccess
             if ((key == KeyCode.Return || key == KeyCode.KeypadEnter) && !KeyboardHelper.IsAltHeld)
             {
                 // Slider gizmos with no other Enter action enter adjustment mode directly.
-                // PsychicEntropyGizmo already has Enter = toggle neural heat limiter, and
-                // GeneGizmo_ResourceHemogen has Enter = toggle hemogenPacksAllowed; both
-                // keep their existing behavior and use right bracket for slider adjustment.
+                // PsychicEntropyGizmo already has Enter = toggle neural heat limiter,
+                // GeneGizmo_ResourceHemogen has Enter = toggle hemogenPacksAllowed, and
+                // ActivityGizmo has Enter = toggle auto-suppression; all keep their
+                // existing behavior and use right bracket for slider adjustment.
                 Gizmo enterGizmo = availableGizmos[selectedGizmoIndex];
                 string enterTypeName = enterGizmo.GetType().Name;
                 if (IsAdjustableSlider(enterGizmo)
                     && enterTypeName != "PsychicEntropyGizmo"
-                    && enterTypeName != "GeneGizmo_ResourceHemogen")
+                    && enterTypeName != "GeneGizmo_ResourceHemogen"
+                    && enterTypeName != "ActivityGizmo")
                 {
                     EnterSliderAdjustMode(enterGizmo);
                     Event.current.Use();
@@ -1418,6 +1441,10 @@ namespace RimWorldAccess
                     // right bracket adjusts the desired hemogen target value.
                     else if (hintTypeName == "GeneGizmo_ResourceHemogen")
                         announcement += "RimWorldAccess.Inspection.Gizmo.HintHemogen".Translate();
+                    // ActivityGizmo (Anomaly) mirrors that pattern: Enter toggles auto-suppression,
+                    // right bracket adjusts the suppression threshold slider.
+                    else if (hintTypeName == "ActivityGizmo")
+                        announcement += "RimWorldAccess.Inspection.Gizmo.HintActivitySuppression".Translate();
                     else
                         announcement += "RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust".Translate();
                 }
@@ -2007,6 +2034,45 @@ namespace RimWorldAccess
             catch (System.Exception ex)
             {
                 ModLogger.Error($"Exception toggling hemogen packs allowed: {ex.Message}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Toggles CompActivity.suppressionEnabled on an ActivityGizmo (Anomaly) and returns
+        /// the new state. Returns null if the entity cannot currently be suppressed or the
+        /// backing component cannot be reached. Reflection reads the gizmo's private thing
+        /// field; the CompActivity members are public.
+        /// </summary>
+        private static bool? ToggleActivitySuppression(Gizmo gizmo)
+        {
+            try
+            {
+                var flags = System.Reflection.BindingFlags.Instance |
+                    System.Reflection.BindingFlags.NonPublic |
+                    System.Reflection.BindingFlags.Public;
+
+                var thingField = gizmo.GetType().GetField("thing", flags);
+                if (thingField == null) return null;
+
+                var thing = thingField.GetValue(gizmo) as ThingWithComps;
+                var comp = thing?.GetComp<CompActivity>();
+                if (comp == null || !comp.CanBeSuppressed) return null;
+
+                bool newValue = !comp.suppressionEnabled;
+                comp.suppressionEnabled = newValue;
+
+                // Match the game's checkbox feedback (high tick when turning on, low when off).
+                if (newValue)
+                    SoundDefOf.Tick_High.PlayOneShotOnCamera();
+                else
+                    SoundDefOf.Tick_Low.PlayOneShotOnCamera();
+
+                return newValue;
+            }
+            catch (System.Exception ex)
+            {
+                ModLogger.Error($"Exception toggling activity suppression: {ex.Message}");
                 return null;
             }
         }
