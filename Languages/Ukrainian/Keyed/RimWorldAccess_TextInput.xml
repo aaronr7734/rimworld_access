@@ -3,9 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>поле</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>назва фракції</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>назва поселення</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelPawnFirstName>ім'я</RimWorldAccess.TextInput.LabelPawnFirstName>
-  <RimWorldAccess.TextInput.LabelPawnNickName>прізвисько</RimWorldAccess.TextInput.LabelPawnNickName>
-  <RimWorldAccess.TextInput.LabelPawnLastName>прізвище</RimWorldAccess.TextInput.LabelPawnLastName>
   <RimWorldAccess.TextInput.LabelZone>назва зони</RimWorldAccess.TextInput.LabelZone>
   <RimWorldAccess.TextInput.LabelStorage>назва складу</RimWorldAccess.TextInput.LabelStorage>
   <RimWorldAccess.TextInput.LabelPen>назва загону</RimWorldAccess.TextInput.LabelPen>

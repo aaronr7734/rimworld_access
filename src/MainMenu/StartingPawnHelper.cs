@@ -148,7 +148,7 @@ namespace RimWorldAccess
             // Bio
             var bioNode = new InspectionTreeItem
             {
-                Label = "Bio",
+                Label = "TabCharacter".Translate().ToString(),
                 IndentLevel = 2,
                 Type = InspectionTreeItem.ItemType.Category,
                 IsExpandable = true,
@@ -827,7 +827,7 @@ namespace RimWorldAccess
             options.Add(renameOption);
 
             // Edit pawn filter (Alt+F)
-            var filterOption = new FloatMenuOption("Edit pawn filter...", () =>
+            var filterOption = new FloatMenuOption("RimWorldAccess.StartingPawn.EditPawnFilter".Translate().ToString(), () =>
             {
                 PawnFilterState.Open();
             });
@@ -839,7 +839,7 @@ namespace RimWorldAccess
             {
                 if (pawns.Count < 6)
                 {
-                    var addOption = new FloatMenuOption("Add pawn", () =>
+                    var addOption = new FloatMenuOption("RimWorldAccess.StartingPawn.AddPawn".Translate().ToString(), () =>
                     {
                         WandererPatch.AddPawn();
                         rebuildCallback?.Invoke();
@@ -849,7 +849,7 @@ namespace RimWorldAccess
                 }
                 if (pawns.Count > 1)
                 {
-                    var removeOption = new FloatMenuOption("Remove pawn", () =>
+                    var removeOption = new FloatMenuOption("RimWorldAccess.StartingPawn.RemovePawn".Translate().ToString(), () =>
                     {
                         WandererPatch.RemovePawn(pawnIndex);
                         rebuildCallback?.Invoke();

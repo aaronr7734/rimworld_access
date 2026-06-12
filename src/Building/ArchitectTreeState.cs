@@ -171,7 +171,7 @@ namespace RimWorldAccess
 
             // Check if designator has right-click options and add hint
             bool hasRightClickOptions = designator.RightClickFloatMenuOptions.Any();
-            string rightClickHint = hasRightClickOptions ? " (right bracket for more options)" : "";
+            string rightClickHint = hasRightClickOptions ? " " + "RimWorldAccess.Building.Architect.MoreOptionsHint".Translate().ToString() : "";
 
             // Add cost, skill, and description for build designators
             if (designator is Designator_Build buildDesignator)

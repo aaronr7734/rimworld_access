@@ -229,11 +229,11 @@ namespace RimWorldAccess
                 string label = material.LabelCap;
                 if (availableCount > 0)
                 {
-                    label += $" ({availableCount} available)";
+                    label += " " + "RimWorldAccess.Building.Architect.MaterialAvailableCount".Translate(availableCount);
                 }
                 else
                 {
-                    label += " (none available)";
+                    label += " " + "RimWorldAccess.Building.Architect.MaterialNoneAvailable".Translate();
                 }
 
                 options.Add(new FloatMenuOption(label, () => onSelected(material)));

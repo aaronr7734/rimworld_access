@@ -266,7 +266,7 @@ namespace RimWorldAccess
 
         private static string FormatStateChange(InspectionTreeItem item)
         {
-            string state = item.IsExpanded ? "Expanded" : "Collapsed";
+            string state = (item.IsExpanded ? "RimWorldAccess.Tree.StateExpanded" : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString().CapitalizeFirst();
             string label = !string.IsNullOrEmpty(item.ExpandedLabel) ? item.ExpandedLabel : item.Label;
             return state + ". " + label;
         }

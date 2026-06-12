@@ -130,15 +130,12 @@
        agreement; the pod-noun key is inlined into the sentence so word order
        stays natural across languages.
        {0} = pod count, {1} = total mass capacity. -->
-  <RimWorldAccess.TransportPods.Loading.PodNounOne>капсула</RimWorldAccess.TransportPods.Loading.PodNounOne>
-  <RimWorldAccess.TransportPods.Loading.PodNounMany>капсул</RimWorldAccess.TransportPods.Loading.PodNounMany>
   <RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>Завантаження транспортної капсули. {0} капсула, місткість {1} кг. Вліво/Вправо для вкладок, Enter для зміни.</RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>
   <RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>Завантаження транспортних капсул. {0} капсул, місткість {1} кг. Вліво/Вправо для вкладок, Enter для зміни.</RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>
 
   <!-- Tab navigation. -->
   <RimWorldAccess.TransportPods.Loading.TabPawns>Персонажі</RimWorldAccess.TransportPods.Loading.TabPawns>
   <RimWorldAccess.TransportPods.Loading.TabItems>Предмети</RimWorldAccess.TransportPods.Loading.TabItems>
-  <RimWorldAccess.TransportPods.Loading.TabAnnouncement>Вкладка {0}, предметів: {1}</RimWorldAccess.TransportPods.Loading.TabAnnouncement>
   <RimWorldAccess.TransportPods.Loading.ReturnedToTab>Повернення до вкладки {0}</RimWorldAccess.TransportPods.Loading.ReturnedToTab>
 
   <!-- Shared empty-tab feedback (spoken in multiple navigation paths). -->

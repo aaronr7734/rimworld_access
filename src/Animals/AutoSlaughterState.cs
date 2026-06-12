@@ -514,13 +514,13 @@ namespace RimWorldAccess
 
             string announcement;
             if (includeAnimalName && includeColumnName)
-                announcement = $"{config.animal.LabelCap}, {columnName}: {value}. {position}";
+                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithName".Translate(config.animal.LabelCap, columnName, value, position).ToString();
             else if (includeAnimalName)
-                announcement = $"{config.animal.LabelCap}: {value}. {position}";
+                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn".Translate(config.animal.LabelCap, value, position).ToString();
             else if (includeColumnName)
-                announcement = $"{columnName}: {value}";
+                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.WithoutName".Translate(columnName, value).ToString();
             else
-                announcement = $"{value}. {position}";
+                announcement = "RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly".Translate(value, position).ToString();
 
             TolkHelper.SpeakData(announcement);
         }

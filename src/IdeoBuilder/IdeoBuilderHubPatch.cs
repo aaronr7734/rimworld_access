@@ -398,10 +398,10 @@ namespace RimWorldAccess
 
             Action confirm = () => DoBackConfirmed(page);
             Find.WindowStack.Add(new Dialog_MessageBox(
-                "Going back will discard this custom ideoligion. Continue?",
-                buttonAText: "Continue",
+                "RimWorldAccess.Ideology.Builder.DiscardConfirm".Translate(),
+                buttonAText: "RimWorldAccess.Ideology.Builder.DiscardContinue".Translate(),
                 buttonAAction: confirm,
-                buttonBText: "Cancel",
+                buttonBText: "RimWorldAccess.Ideology.Builder.DiscardCancel".Translate(),
                 buttonBAction: null,
                 title: null,
                 buttonADestructive: true,

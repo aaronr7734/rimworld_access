@@ -677,7 +677,7 @@ namespace RimWorldAccess
                 // Announce the move with placement context (except for disabled)
                 if (newColumnIndex == 4) // Disabled
                 {
-                    TolkHelper.SpeakData($"{entry.WorkType.labelShort}, {PriorityWord(newColumnIndex)}");
+                    TolkHelper.Speak("RimWorldAccess.Work.SetPriority.MovedToDisabled".Loc(entry.WorkType.labelShort));
                 }
                 else
                 {
@@ -751,11 +751,11 @@ namespace RimWorldAccess
         {
             switch (columnIndex)
             {
-                case 0: return "1";
-                case 1: return "2";
-                case 2: return "3";
-                case 3: return "4";
-                case 4: return "0";
+                case 0: return "RimWorldAccess.Work.PriorityWord.1".Translate();
+                case 1: return "RimWorldAccess.Work.PriorityWord.2".Translate();
+                case 2: return "RimWorldAccess.Work.PriorityWord.3".Translate();
+                case 3: return "RimWorldAccess.Work.PriorityWord.4".Translate();
+                case 4: return "RimWorldAccess.Work.PriorityWord.Disabled".Translate();
                 default: return "";
             }
         }
@@ -902,7 +902,9 @@ namespace RimWorldAccess
             List<string> incapableNames)
         {
             int totalPawns = allPawns.Count;
-            string priorityLabel = $"Priority {priority}";
+            string priorityLabel = priority == 0
+                ? "RimWorldAccess.Work.PriorityWord.Disabled".Translate().ToString()
+                : "RimWorldAccess.Work.PriorityLabel".Translate(priority).ToString();
             int successCount = changedNames.Count + alreadySetNames.Count;
 
             // Nobody can do this job
@@ -1372,7 +1374,9 @@ namespace RimWorldAccess
             }
             else
             {
-                string status = entry.CurrentPriority > 0 ? "enabled" : "disabled";
+                string status = (entry.CurrentPriority > 0
+                    ? "RimWorldAccess.Work.Status.Enabled".Translate()
+                    : "RimWorldAccess.Work.Status.Disabled".Translate()).ToString();
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true, status);
                 string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
                 TolkHelper.SpeakData($"{taskAnnouncement}. {position}");
@@ -1417,7 +1421,9 @@ namespace RimWorldAccess
                     return;
                 }
 
-                string status = entry.CurrentPriority > 0 ? "enabled" : "disabled";
+                string status = (entry.CurrentPriority > 0
+                    ? "RimWorldAccess.Work.Status.Enabled".Translate()
+                    : "RimWorldAccess.Work.Status.Disabled".Translate()).ToString();
                 string taskAnnouncement = BuildTaskAnnouncement(entry, true, status);
                 string position = MenuHelper.FormatPosition(basicModeIndex, allEntries.Count);
 
@@ -1499,7 +1505,7 @@ namespace RimWorldAccess
                 var relevantSkills = workType.relevantSkills;
                 if (relevantSkills == null || relevantSkills.Count == 0)
                 {
-                    sb.Append(". Unskilled labor");
+                    sb.Append("RimWorldAccess.Work.Task.UnskilledLabor".Translate().ToString());
                 }
                 else
                 {
@@ -1511,18 +1517,19 @@ namespace RimWorldAccess
 
                     if (skillNamesRedundant)
                     {
-                        sb.Append($". Level {skillLevel}");
+                        sb.Append("RimWorldAccess.Work.Task.LevelSuffix".Translate(skillLevel).ToString());
                     }
                     else
                     {
                         sb.Append(". ");
+                        string skillAndSeparator = "RimWorldAccess.Work.Task.SkillListAndSeparator".Translate();
                         for (int i = 0; i < relevantSkills.Count; i++)
                         {
                             if (i > 0)
-                                sb.Append(i == relevantSkills.Count - 1 ? " and " : ", ");
+                                sb.Append(i == relevantSkills.Count - 1 ? skillAndSeparator : ", ");
                             sb.Append(relevantSkills[i].skillLabel);
                         }
-                        sb.Append($": level {skillLevel}");
+                        sb.Append("RimWorldAccess.Work.Task.SkillsAndLevelSuffix".Translate(skillLevel).ToString());
                     }
                 }
 
@@ -1550,7 +1557,7 @@ namespace RimWorldAccess
             string workList = WorkTableHelper.BuildSpecificWorkList(workType);
             if (!string.IsNullOrEmpty(workList))
             {
-                sb.Append(". Includes: ");
+                sb.Append("RimWorldAccess.Work.Task.IncludesPrefix".Translate().ToString());
                 sb.Append(workList);
             }
 
@@ -1569,12 +1576,12 @@ namespace RimWorldAccess
         {
             switch (columnIndex)
             {
-                case 0: return "Priority 1";
-                case 1: return "Priority 2";
-                case 2: return "Priority 3";
-                case 3: return "Priority 4";
-                case 4: return "Priority 0";
-                default: return "Unknown";
+                case 0: return "RimWorldAccess.Work.Column.Priority1".Translate();
+                case 1: return "RimWorldAccess.Work.Column.Priority2".Translate();
+                case 2: return "RimWorldAccess.Work.Column.Priority3".Translate();
+                case 3: return "RimWorldAccess.Work.Column.Priority4".Translate();
+                case 4: return "RimWorldAccess.Work.Column.Disabled".Translate();
+                default: return "RimWorldAccess.Work.Column.Unknown".Translate();
             }
         }
 

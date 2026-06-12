@@ -418,7 +418,7 @@ namespace RimWorldAccess
                 return "ManageAreas".Translate().Resolve();
 
             if (option == null)
-                return "Unrestricted".Translate().Resolve();
+                return "NoAreaAllowed".Translate().Resolve();
 
             if (option is MechanitorControlGroup group)
             {
@@ -764,7 +764,7 @@ namespace RimWorldAccess
                     tableHelper.SelectPreviousRow(mechsList.Count);
 
                 Pawn target = mechsList[tableHelper.CurrentRowIndex];
-                string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
+                string areaName = lastAppliedArea?.Label ?? "NoAreaAllowed".Translate().Resolve();
                 string position = MenuHelper.FormatPosition(tableHelper.CurrentRowIndex, mechsList.Count);
                 Area targetArea = target.playerSettings?.AreaRestrictionInPawnCurrentMap;
 
@@ -912,7 +912,7 @@ namespace RimWorldAccess
             {
                 Pawn source = mechsList[currentRow];
                 lastAppliedArea = source.playerSettings?.AreaRestrictionInPawnCurrentMap;
-                string areaName = lastAppliedArea?.Label ?? "Unrestricted".Translate().Resolve();
+                string areaName = lastAppliedArea?.Label ?? "NoAreaAllowed".Translate().Resolve();
 
                 var changedNames = new List<string>();
                 for (int i = startRow; i <= endRow; i++)

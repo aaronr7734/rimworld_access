@@ -1348,7 +1348,7 @@ namespace RimWorldAccess
 
         private static WorldScannerCategory CreateRoadsAndRiversCategory(PlanetTile originTile)
         {
-            var category = new WorldScannerCategory("Roads and rivers");
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.RoadsAndRivers".Translate());
 
             // Check if we need to rebuild the caches (lastCacheOrigin is set by biome collection)
             bool cacheStale = !lastCacheOrigin.Valid ||
@@ -1371,11 +1371,11 @@ namespace RimWorldAccess
                 allItems.AddRange(roadItems);
                 allItems.AddRange(riverItems);
                 SortItemsByDistance(allItems, originTile);
-                AddSubcategoryIfAny(category, "All", allItems);
+                AddSubcategoryIfAny(category, "RimWorldAccess.WorldScanner.Sub.All".Translate(), allItems);
             }
 
-            AddSubcategoryIfAny(category, "Roads", roadItems);
-            AddSubcategoryIfAny(category, "Rivers", riverItems);
+            AddSubcategoryIfAny(category, "RimWorldAccess.WorldScanner.Sub.Roads".Translate(), roadItems);
+            AddSubcategoryIfAny(category, "RimWorldAccess.WorldScanner.Sub.Rivers".Translate(), riverItems);
 
             return category;
         }
@@ -2320,8 +2320,8 @@ namespace RimWorldAccess
                 float dist = Find.WorldGrid.ApproxDistanceInTiles(originTile, targetTile);
                 string dir = item.GetDirectionFromTile(originTile, targetTile);
                 string prefix = !string.IsNullOrEmpty(dir)
-                    ? $"Jumped {dist:F0} tiles {dir} to center"
-                    : "Jumped to center";
+                    ? "RimWorldAccess.WorldScanner.JumpedTilesToCenter".Translate(dist.ToString("F0"), dir).ToString()
+                    : "RimWorldAccess.WorldScanner.JumpedToCenter".Translate().ToString();
                 WorldNavigationState.AnnounceTile(prefix);
             }
             else
@@ -2506,15 +2506,15 @@ namespace RimWorldAccess
 
                 // Live proximity rank, not the static list slot — the nearest patch reads as
                 // "Region 1 of N" no matter where it sits in the stable build-time list.
-                parts.Add($"Region {item.InstanceRank(originTile, currentInstanceIndex)} of {item.InstanceCount}");
+                parts.Add("RimWorldAccess.WorldScanner.RegionPosition".Translate(item.InstanceRank(originTile, currentInstanceIndex), item.InstanceCount).ToString());
             }
 
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
                 if (distanceCapped)
-                    parts.Add($"{direction}, over {ANNOUNCE_TRAVERSAL_CAP:F0} tiles");
+                    parts.Add("RimWorldAccess.WorldScanner.DirectionOverTiles".Translate(direction, ANNOUNCE_TRAVERSAL_CAP.ToString("F0")).ToString());
                 else
-                    parts.Add($"{direction}, {distance:F0} tiles");
+                    parts.Add("RimWorldAccess.WorldScanner.DirectionDistanceTiles".Translate(direction, distance.ToString("F0")).ToString());
             }
             else if (distance <= 0.1f && !onDifferentLayer)
             {
@@ -2628,9 +2628,9 @@ namespace RimWorldAccess
             if (!string.IsNullOrEmpty(direction) && distance > 0.1f)
             {
                 if (distanceCapped)
-                    parts.Add($"{direction}, over {ANNOUNCE_TRAVERSAL_CAP:F0} tiles");
+                    parts.Add("RimWorldAccess.WorldScanner.DirectionOverTiles".Translate(direction, ANNOUNCE_TRAVERSAL_CAP.ToString("F0")).ToString());
                 else
-                    parts.Add($"{direction}, {distance:F0} tiles");
+                    parts.Add("RimWorldAccess.WorldScanner.DirectionDistanceTiles".Translate(direction, distance.ToString("F0")).ToString());
             }
             else if (distance <= 0.1f)
                 parts.Add("RimWorldAccess.WorldScanner.CurrentLocation".Translate());

@@ -47,9 +47,11 @@ namespace RimWorldAccess
 
         public static string GetColumnName(int columnIndex)
         {
-            if (columnIndex == NameColumnIndex) return "Name";
+            if (columnIndex == NameColumnIndex) return "RimWorldAccess.Work.Column.Name".Translate();
             WorkTypeDef workType = WorkTypeForColumn(columnIndex);
-            return workType != null ? workType.labelShort.CapitalizeFirst() : "Unknown";
+            return workType != null
+                ? workType.labelShort.CapitalizeFirst()
+                : "RimWorldAccess.Work.Column.Unknown".Translate().ToString();
         }
 
         public static string GetPawnLabel(Pawn pawn) => pawn?.LabelShort ?? "";
@@ -68,12 +70,14 @@ namespace RimWorldAccess
             if (workType == null) return "";
 
             if (pawn.workSettings == null || !pawn.workSettings.EverWork)
-                return "incapable";
+                return "RimWorldAccess.Work.Table.Incapable".Translate();
 
             if (pawn.WorkTypeIsDisabled(workType))
             {
                 string reasons = BuildDisabledReasons(pawn, workType);
-                return string.IsNullOrEmpty(reasons) ? "incapable" : $"incapable, {reasons}";
+                return string.IsNullOrEmpty(reasons)
+                    ? "RimWorldAccess.Work.Table.Incapable".Translate().ToString()
+                    : "RimWorldAccess.Work.Table.IncapableWithReasons".Translate(reasons).ToString();
             }
 
             int priority = pawn.workSettings.GetPriority(workType);
@@ -107,12 +111,12 @@ namespace RimWorldAccess
             string workList = BuildSpecificWorkList(workType);
             if (!string.IsNullOrEmpty(workList))
             {
-                sb.Append(". Includes: ");
+                sb.Append("RimWorldAccess.Work.Task.IncludesPrefix".Translate().ToString());
                 sb.Append(workList);
             }
             if (pawn?.Ideo != null && pawn.Ideo.IsWorkTypeConsideredDangerous(workType))
             {
-                sb.Append(". Ideology opposes this work");
+                sb.Append("RimWorldAccess.Work.Task.IdeologyOpposes".Translate().ToString());
             }
             return sb.ToString();
         }
@@ -198,7 +202,9 @@ namespace RimWorldAccess
         private static string FormatState(int priority)
         {
             if (!Find.PlaySettings.useWorkPriorities)
-                return priority > 0 ? "on" : "off";
+                return (priority > 0
+                    ? "RimWorldAccess.Work.Status.Enabled".Translate()
+                    : "RimWorldAccess.Work.Status.Disabled".Translate()).ToString();
             return priority.ToString();
         }
 

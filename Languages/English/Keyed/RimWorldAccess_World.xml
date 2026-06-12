@@ -494,7 +494,6 @@
   <RimWorldAccess.World.Settlement.LabelField>Settlement: {0}</RimWorldAccess.World.Settlement.LabelField>
   <RimWorldAccess.World.Settlement.FactionField>Faction: {0}</RimWorldAccess.World.Settlement.FactionField>
   <RimWorldAccess.World.Settlement.RelationshipField>Relationship: {0}</RimWorldAccess.World.Settlement.RelationshipField>
-  <RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>Relationship: {0} ({1})</RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>
   <RimWorldAccess.World.Settlement.GoodwillField>Goodwill: {0}</RimWorldAccess.World.Settlement.GoodwillField>
   <RimWorldAccess.World.Settlement.PlayerColonyRelationship>Player Colony</RimWorldAccess.World.Settlement.PlayerColonyRelationship>
   <RimWorldAccess.World.Settlement.HostileRelationship>Hostile</RimWorldAccess.World.Settlement.HostileRelationship>
@@ -685,6 +684,17 @@
   <RimWorldAccess.WorldScanner.Cat.Landmarks>Landmarks</RimWorldAccess.WorldScanner.Cat.Landmarks>
   <RimWorldAccess.WorldScanner.Sub.Waypoints>Waypoints</RimWorldAccess.WorldScanner.Sub.Waypoints>
   <RimWorldAccess.WorldScanner.Sub.All>All</RimWorldAccess.WorldScanner.Sub.All>
+  <RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>Roads and rivers</RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>
+  <RimWorldAccess.WorldScanner.Sub.Roads>Roads</RimWorldAccess.WorldScanner.Sub.Roads>
+  <RimWorldAccess.WorldScanner.Sub.Rivers>Rivers</RimWorldAccess.WorldScanner.Sub.Rivers>
+  <!-- RegionPosition: live proximity rank of the current patch. {0} = rank, {1} = total. -->
+  <RimWorldAccess.WorldScanner.RegionPosition>Region {0} of {1}</RimWorldAccess.WorldScanner.RegionPosition>
+  <!-- Direction-and-distance suffixes: {0} = compass direction, {1} = tile count. -->
+  <RimWorldAccess.WorldScanner.DirectionDistanceTiles>{0}, {1} tiles</RimWorldAccess.WorldScanner.DirectionDistanceTiles>
+  <RimWorldAccess.WorldScanner.DirectionOverTiles>{0}, over {1} tiles</RimWorldAccess.WorldScanner.DirectionOverTiles>
+  <!-- Center-jump cue: {0} = tile count, {1} = compass direction. -->
+  <RimWorldAccess.WorldScanner.JumpedTilesToCenter>Jumped {0} tiles {1} to center</RimWorldAccess.WorldScanner.JumpedTilesToCenter>
+  <RimWorldAccess.WorldScanner.JumpedToCenter>Jumped to center</RimWorldAccess.WorldScanner.JumpedToCenter>
   <RimWorldAccess.WorldScanner.Sub.Player>Player</RimWorldAccess.WorldScanner.Sub.Player>
   <RimWorldAccess.WorldScanner.Sub.Allied>Allied</RimWorldAccess.WorldScanner.Sub.Allied>
   <RimWorldAccess.WorldScanner.Sub.Neutral>Neutral</RimWorldAccess.WorldScanner.Sub.Neutral>
@@ -693,7 +703,6 @@
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Player Caravans</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
   <RimWorldAccess.WorldScanner.Sub.Sites>Sites</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>All Biomes</RimWorldAccess.WorldScanner.Sub.AllBiomes>
-  <RimWorldAccess.WorldScanner.Sub.AllRoads>All Roads</RimWorldAccess.WorldScanner.Sub.AllRoads>
   <RimWorldAccess.WorldScanner.Unreachable>Unreachable</RimWorldAccess.WorldScanner.Unreachable>
   <RimWorldAccess.WorldScanner.QuestPrefix>Quest: {0}</RimWorldAccess.WorldScanner.QuestPrefix>
   <RimWorldAccess.WorldScanner.FactionWithType>{0}, {1}</RimWorldAccess.WorldScanner.FactionWithType>

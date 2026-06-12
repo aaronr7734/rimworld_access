@@ -919,8 +919,8 @@ namespace RimWorldAccess
             else
             {
                 string columnName = currentColumn == ModListColumn.Active
-                    ? "Active".Translate().ToString()
-                    : "Inactive".Translate().ToString();
+                    ? "RimWorldAccess.ModList.ColumnActive".Translate().ToString()
+                    : "RimWorldAccess.ModList.ColumnInactive".Translate().ToString();
                 TolkHelper.Speak("RimWorldAccess.ModList.ColumnEmpty".Loc(columnName));
             }
         }

@@ -59,13 +59,8 @@
   <RimWorldAccess.UI.Save.NoFiles>No save files available</RimWorldAccess.UI.Save.NoFiles>
   <RimWorldAccess.UI.Save.InvalidSelection>Invalid save selection</RimWorldAccess.UI.Save.InvalidSelection>
   <RimWorldAccess.UI.Save.NeedName>Need a name for the save file</RimWorldAccess.UI.Save.NeedName>
-  <RimWorldAccess.UI.Save.SavedAs>Saved as {0}</RimWorldAccess.UI.Save.SavedAs>
-  <RimWorldAccess.UI.Save.Loading>Loading {0}</RimWorldAccess.UI.Save.Loading>
   <RimWorldAccess.UI.Save.CannotDeleteCreateNew>Cannot delete 'Create New Save' option</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
   <!-- {0} = file name (stripped of extension). -->
-  <RimWorldAccess.UI.Save.DeleteConfirmPrompt>Delete {0}? Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Save.DeleteConfirmPrompt>
-  <RimWorldAccess.UI.Save.Deleted>Deleted {0}</RimWorldAccess.UI.Save.Deleted>
-  <RimWorldAccess.UI.Save.DeleteCancelled>Delete cancelled</RimWorldAccess.UI.Save.DeleteCancelled>
   <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
        {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
        date-time, {2} = position. -->
@@ -115,8 +110,6 @@
        suffix. Each prompt is a whole-phrase key so translators can vary
        wording for politeness register (e.g. "Quit to desktop?" might be
        expressed differently in some locales). -->
-  <RimWorldAccess.UI.Pause.QuitMainMenuPrompt>Confirm quit to main menu? Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Pause.QuitMainMenuPrompt>
-  <RimWorldAccess.UI.Pause.QuitDesktopPrompt>Confirm quit to desktop? Press Enter to confirm, Escape to cancel</RimWorldAccess.UI.Pause.QuitDesktopPrompt>
   <RimWorldAccess.UI.Pause.ResumedGame>Resumed game</RimWorldAccess.UI.Pause.ResumedGame>
 
   <!-- =================================================================
@@ -252,4 +245,13 @@
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.UI.Dialog.FieldCannotBeEdited>{0} {1}. Cannot be edited.</RimWorldAccess.UI.Dialog.FieldCannotBeEdited>
   <RimWorldAccess.UI.SaveMenu.NoSaveFiles>No save files available</RimWorldAccess.UI.SaveMenu.NoSaveFiles>
+
+  <!-- Save menu: name-row typing instructions and per-row tags.
+       VersionTag: {0} = game version string. -->
+  <RimWorldAccess.UI.Save.CreateNewInstructions>Type a new name, Down arrow for existing saves, Enter to save.</RimWorldAccess.UI.Save.CreateNewInstructions>
+  <RimWorldAccess.UI.Save.AutosaveTag>autosave</RimWorldAccess.UI.Save.AutosaveTag>
+  <RimWorldAccess.UI.Save.VersionTag>version {0}</RimWorldAccess.UI.Save.VersionTag>
+  <!-- Pause menu option labels the game has no keys for. -->
+  <RimWorldAccess.UI.Pause.PlaySettings>Play settings</RimWorldAccess.UI.Pause.PlaySettings>
+  <RimWorldAccess.UI.Pause.ResumeGame>Resume game</RimWorldAccess.UI.Pause.ResumeGame>
 </LanguageData>

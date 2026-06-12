@@ -69,7 +69,7 @@ namespace RimWorldAccess
                     yield return new Command_Action
                     {
                         defaultLabel = "Rename".Translate(),
-                        defaultDesc = "RenameGravshipDesc".Translate(),
+                        defaultDesc = "RimWorldAccess.Gravships.Engine.RenameDesc".Translate(),
                         icon = ContentFinder<Texture2D>.Get("UI/Buttons/Rename", true),
                         action = delegate
                         {

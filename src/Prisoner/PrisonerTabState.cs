@@ -605,7 +605,7 @@ namespace RimWorldAccess
                     break;
 
                 case TabSection.IdeologySelection:
-                    TolkHelper.Speak("IdeoConversionTarget".Loc());
+                    TolkHelper.Speak("RimWorldAccess.Prisoner.Section.IdeologySelection".Loc());
                     break;
             }
 

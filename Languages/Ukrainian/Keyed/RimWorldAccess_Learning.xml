@@ -27,7 +27,6 @@
   <!-- Menu opening / Tab-toggle announcements.
        {0} = vanilla "LearningHelper" title.
        AllLessonsCount additionally takes {1} = total concept count. -->
-  <RimWorldAccess.Learning.OpeningTitle>{0}</RimWorldAccess.Learning.OpeningTitle>
   <RimWorldAccess.Learning.OpeningNoActive>{0}. Немає активних уроків. Натисніть Tab, щоб переглянути всі уроки.</RimWorldAccess.Learning.OpeningNoActive>
   <RimWorldAccess.Learning.AllLessonsCount>{0}. Усі уроки, {1} загалом</RimWorldAccess.Learning.AllLessonsCount>
   <RimWorldAccess.Learning.ActiveLessons>{0}. Активні уроки</RimWorldAccess.Learning.ActiveLessons>

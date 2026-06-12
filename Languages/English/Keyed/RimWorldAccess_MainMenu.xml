@@ -277,7 +277,6 @@
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>empty</RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>{0} lines, {1} words</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>{0} words</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>
-  <RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>New line</RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>
   <RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>No options available for this field.</RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>
 
   <!-- =================================================================
@@ -287,8 +286,6 @@
        {0} = page title, {1} = storyteller label, {2} = description,
        {3} = position suffix.
        ================================================================= -->
-  <RimWorldAccess.Storyteller.OpenInstructions>{0} - {1} - {2}{3}. Tab and Shift+Tab to move between Storyteller, Difficulty, and Save Mode.</RimWorldAccess.Storyteller.OpenInstructions>
-  <RimWorldAccess.Storyteller.OpenPositionSuffix> ({0})</RimWorldAccess.Storyteller.OpenPositionSuffix>
   <RimWorldAccess.Storyteller.ModeIndicator>[{0}]</RimWorldAccess.Storyteller.ModeIndicator>
   <!-- Per-row announcements (StorytellerNavigationState).
        The custom-difficulty marker is a parenthetical added to the difficulty
@@ -487,7 +484,6 @@
   <RimWorldAccess.StartingPawn.WandererTitle>{0}. Alt+A to add, Delete to remove.</RimWorldAccess.StartingPawn.WandererTitle>
   <RimWorldAccess.StartingPawn.RandomizeWithMatch>{0}. Found match in {1} attempts.</RimWorldAccess.StartingPawn.RandomizeWithMatch>
   <RimWorldAccess.StartingPawn.RandomizeNoMatch>{0}. No match after {1} attempts, keeping last result.</RimWorldAccess.StartingPawn.RandomizeNoMatch>
-  <RimWorldAccess.StartingPawn.RandomizeWithSummary>{0}. {1}</RimWorldAccess.StartingPawn.RandomizeWithSummary>
   <RimWorldAccess.StartingPawn.RerollStopped>Stopped at {0} attempts.</RimWorldAccess.StartingPawn.RerollStopped>
   <RimWorldAccess.StartingPawn.RerollFound>Found match in {0} attempts.</RimWorldAccess.StartingPawn.RerollFound>
   <RimWorldAccess.StartingPawn.RerollNoMatch>No match after {0} attempts, keeping last result.</RimWorldAccess.StartingPawn.RerollNoMatch>
@@ -751,4 +747,16 @@
   <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>playstyles</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
   <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>settings</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
   <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>Select an anomaly playstyle</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
+
+  <!-- Pawn filter editor: range-bound words and labels that previously
+       pointed at nonexistent keys. -->
+  <RimWorldAccess.PawnFilter.Minimum>minimum</RimWorldAccess.PawnFilter.Minimum>
+  <RimWorldAccess.PawnFilter.Maximum>maximum</RimWorldAccess.PawnFilter.Maximum>
+  <RimWorldAccess.PawnFilter.SectionSettings>Settings</RimWorldAccess.PawnFilter.SectionSettings>
+  <RimWorldAccess.PawnFilter.TraitExcluded>Excluded</RimWorldAccess.PawnFilter.TraitExcluded>
+  <!-- Starting pawn editor context menu entries. -->
+  <RimWorldAccess.StartingPawn.EditPawnFilter>Edit pawn filter...</RimWorldAccess.StartingPawn.EditPawnFilter>
+  <RimWorldAccess.StartingPawn.AddPawn>Add pawn</RimWorldAccess.StartingPawn.AddPawn>
+  <RimWorldAccess.StartingPawn.RemovePawn>Remove pawn</RimWorldAccess.StartingPawn.RemovePawn>
+
 </LanguageData>

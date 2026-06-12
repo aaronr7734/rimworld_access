@@ -57,4 +57,10 @@
          and pawn count.
        SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
   <RimWorldAccess.Archonexus.Convert.OpenInstructions>Space or Enter to convert, Escape when finished.</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+
+  <!-- Convert-colonists checkbox toggle announcements. {0} = ideoligion name. -->
+  <RimWorldAccess.Archonexus.Convert.Selected>Selected</RimWorldAccess.Archonexus.Convert.Selected>
+  <RimWorldAccess.Archonexus.Convert.NotSelected>Not selected</RimWorldAccess.Archonexus.Convert.NotSelected>
+  <RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>Not selected. Currently {0}</RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>
+
 </LanguageData>

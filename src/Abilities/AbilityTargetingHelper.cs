@@ -427,9 +427,9 @@ namespace RimWorldAccess
             if (!ability.def.HasAreaOfEffect)
             {
                 // Single target
-                string targetLine = $"Target: {affected[0].LabelShort}";
+                string targetLine = "RimWorldAccess.Abilities.Affected.TargetOne".Translate(affected[0].LabelShort).ToString();
                 if (!string.IsNullOrEmpty(warnings))
-                    targetLine += $". Warning: {warnings}";
+                    targetLine += "RimWorldAccess.Abilities.Success.WarningsSuffix".Translate(warnings);
                 return targetLine;
             }
 

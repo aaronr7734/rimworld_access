@@ -188,7 +188,10 @@ namespace RimWorldAccess
                 return;
 
             if (IsInTextField)
+            {
+                TolkHelper.Speak("RimWorldAccess.UI.Save.CannotDeleteCreateNew".Loc(), SpeechPriority.High);
                 return;
+            }
 
             if (selectedIndex < 0 || selectedIndex >= saveFiles.Count)
                 return;
@@ -246,7 +249,7 @@ namespace RimWorldAccess
 
             if (string.IsNullOrEmpty(saveName))
             {
-                TolkHelper.Speak("NeedAName".Loc());
+                TolkHelper.Speak("RimWorldAccess.UI.Save.NeedName".Loc());
                 return;
             }
 
@@ -710,7 +713,9 @@ namespace RimWorldAccess
         {
             if (IsInTextField)
             {
-                return $"{"SaveGameButton".Translate()}: {nameController.CurrentText}. Type a new name, Down arrow for existing saves, Enter to save.";
+                return "RimWorldAccess.UI.Save.CreateNewRow".Loc(
+                    nameController.CurrentText,
+                    "RimWorldAccess.UI.Save.CreateNewInstructions".Loc().ToString()).ToString();
             }
 
             if (saveFiles == null || saveFiles.Count == 0)
@@ -725,28 +730,32 @@ namespace RimWorldAccess
 
             SaveFileInfo file = saveFiles[selectedIndex];
             string fileName = Path.GetFileNameWithoutExtension(file.FileName);
-            string prefix = currentMode == SaveLoadMode.Save
-                ? "OverwriteButton".Translate().ToString()
-                : "LoadGameButton".Translate().ToString();
+            string position = MenuHelper.FormatPosition(selectedIndex, saveFiles.Count);
+            string dateTime = FormatDateTime(file.LastWriteTime);
 
-            var parts = new List<string> { $"{prefix}: {fileName}" };
+            string row = currentMode == SaveLoadMode.Save
+                ? "RimWorldAccess.UI.Save.OverwriteRow".Loc(fileName, dateTime, position).ToString()
+                : "RimWorldAccess.UI.Save.LoadRow".Loc(fileName, dateTime, position).ToString();
+
+            // Append optional metadata clauses (current feature, absent from the
+            // historical row template) as localized fragments.
+            var extras = new List<string>();
 
             if (SaveGameFilesUtility.IsAutoSave(fileName))
             {
-                parts.Add("autosave");
+                extras.Add("RimWorldAccess.UI.Save.AutosaveTag".Loc().ToString());
             }
-
-            parts.Add(FormatDateTime(file.LastWriteTime));
 
             string version = file.GameVersion;
             if (!string.IsNullOrEmpty(version) && version != "???" && version != "LoadingVersionInfo".Translate().ToString())
             {
-                parts.Add($"version {version}");
+                extras.Add("RimWorldAccess.UI.Save.VersionTag".Loc(version).ToString());
             }
 
-            parts.Add(MenuHelper.FormatPosition(selectedIndex, saveFiles.Count));
+            if (extras.Count == 0)
+                return row;
 
-            return string.Join(" - ", parts.Where(p => !string.IsNullOrEmpty(p)));
+            return $"{row} - {string.Join(" - ", extras)}";
         }
 
         private static string FormatDateTime(DateTime dateTime)

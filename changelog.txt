@@ -1,4 +1,25 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/12/2026
+
+CHANGES
+-------
+- Big localization repair for non-English players (thank you for the detailed
+  reports!). Announcements that spoke English or raw key names are now
+  properly translated: work menu priorities, skills, and "Includes" details;
+  schedule hours and positions; storage, apparel, and food filter
+  allowed/disallowed and expanded/collapsed words; ritual role assignments;
+  the quest menu's tabs and buttons; save and pause menus (including "Resume
+  game" and "Play settings"); animal table column names; allowed areas
+  ("Unrestricted"); the world map's roads and rivers scanner with region
+  positions and distances; the map scanner's Unexplored category, area
+  positions, and center jumps; architect menu hints like "right bracket for
+  more options" and material availability; the ideoligion builder's discard
+  confirmation, selected/removed markers, and culture "current" marker;
+  backstory Childhood/Adulthood headers; mood thought expiry; royal permit
+  statuses; the F12 menu; pawn filter labels; and more.
+- The build now automatically verifies every translation key used in code
+  actually exists, and flags translated keys that code no longer uses, so
+  these regressions cannot slip through silently again.
 06/11/2026
 
 CHANGES

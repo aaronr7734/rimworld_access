@@ -58,7 +58,7 @@ namespace RimWorldAccess
             configured = true;
             treeNav.AnnounceChildCounts = false;
             treeNav.FormatItemAnnouncement = FormatItem;
-            treeNav.FormatStateChangeAnnouncement = i => (i.IsExpanded ? "Expanded" : "Collapsed") + ". " + i.Label;
+            treeNav.FormatStateChangeAnnouncement = i => (i.IsExpanded ? "RimWorldAccess.Tree.StateExpanded" : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString().CapitalizeFirst() + ". " + i.Label;
             treeNav.FormatSearchAnnouncement = (i, t) => $"{i.Label}, {t.CurrentMatchPosition} of {t.MatchCount} matches for '{t.SearchBuffer}'";
             treeNav.OnActivate = HandleActivate;
             treeNav.OnDelete = HandleDelete;

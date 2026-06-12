@@ -368,20 +368,19 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = (string)"RimWorldAccess.Map.Pawn.Idle".Translate();
 
-            string announcement = selectedPawn.LabelShort;
+            string subject = selectedPawn.LabelShort;
             if (selectedPawn.Spawned && selectedPawn.Map != null)
             {
                 string location = TileInfoHelper.GetLocationContextPlain(selectedPawn.Position, selectedPawn.Map);
                 if (!string.IsNullOrEmpty(location))
-                    announcement += $", {location}";
+                    subject += $", {location}";
             }
-            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
-            {
-                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
-                if (!string.IsNullOrEmpty(coverInfo))
-                    announcement += $", {coverInfo}";
-            }
-            announcement += $" - {currentTask}";
+            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+                ? CoverHelper.GetCoverInfo(selectedPawn)
+                : null;
+            string announcement = !string.IsNullOrEmpty(coverInfo)
+                ? "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(subject, coverInfo, currentTask).ToString()
+                : "RimWorldAccess.Map.Pawn.Selection".Translate(subject, currentTask).ToString();
             TolkHelper.SpeakData(announcement);
 
             return false; // Block original method
@@ -464,20 +463,19 @@ namespace RimWorldAccess
             if (string.IsNullOrEmpty(currentTask))
                 currentTask = (string)"RimWorldAccess.Map.Pawn.Idle".Translate();
 
-            string announcement = selectedPawn.LabelShort;
+            string subject = selectedPawn.LabelShort;
             if (selectedPawn.Spawned && selectedPawn.Map != null)
             {
                 string location = TileInfoHelper.GetLocationContextPlain(selectedPawn.Position, selectedPawn.Map);
                 if (!string.IsNullOrEmpty(location))
-                    announcement += $", {location}";
+                    subject += $", {location}";
             }
-            if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
-            {
-                string coverInfo = CoverHelper.GetCoverInfo(selectedPawn);
-                if (!string.IsNullOrEmpty(coverInfo))
-                    announcement += $", {coverInfo}";
-            }
-            announcement += $" - {currentTask}";
+            string coverInfo = (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
+                ? CoverHelper.GetCoverInfo(selectedPawn)
+                : null;
+            string announcement = !string.IsNullOrEmpty(coverInfo)
+                ? "RimWorldAccess.Map.Pawn.SelectionWithCover".Translate(subject, coverInfo, currentTask).ToString()
+                : "RimWorldAccess.Map.Pawn.Selection".Translate(subject, currentTask).ToString();
             TolkHelper.SpeakData(announcement);
 
             return false; // Block original method

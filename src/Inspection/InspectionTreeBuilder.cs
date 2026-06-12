@@ -1923,7 +1923,7 @@ namespace RimWorldAccess
                 {
                     bool isCurrent = approach == relation.CurrentPregnancyApproach;
                     string optionLabel = isCurrent
-                        ? $"{"Current".Translate()}: {approach.GetDescription()}"
+                        ? (string)"RimWorldAccess.Inspection.CurrentMarker".Translate(approach.GetDescription())
                         : approach.GetDescription();
 
                     var optionItem = new InspectionTreeItem
@@ -3368,7 +3368,7 @@ namespace RimWorldAccess
                         // Single thought - simple expiry
                         Thought_Memory memory = (Thought_Memory)leadingThought;
                         int remaining = durationTicks - memory.age;
-                        expiryText = $" (expires in {remaining.ToStringTicksToPeriod()})";
+                        expiryText = " " + "RimWorldAccess.Inspection.Thought.ExpiresIn".Translate(remaining.ToStringTicksToPeriod());
                     }
                     else
                     {
@@ -3385,7 +3385,7 @@ namespace RimWorldAccess
                         }
                         int firstExpires = durationTicks - maxAge;
                         int lastExpires = durationTicks - minAge;
-                        expiryText = $" (expires in {firstExpires.ToStringTicksToPeriod()} to {lastExpires.ToStringTicksToPeriod()})";
+                        expiryText = " " + "RimWorldAccess.Inspection.Thought.ExpiresInRange".Translate(firstExpires.ToStringTicksToPeriod(), lastExpires.ToStringTicksToPeriod());
                     }
                 }
 

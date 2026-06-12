@@ -20,19 +20,19 @@ namespace RimWorldAccess
 
             if (view.MaxCount > 0)
             {
-                sb.Append($"{view.AssignedCount} assigned of {view.MaxCount} max");
-                if (view.IsRequired) sb.Append(", required");
+                sb.Append((string)"RimWorldAccess.Rituals.Role.AssignedOfMax".Translate(view.AssignedCount, view.MaxCount));
+                if (view.IsRequired) sb.Append((string)"RimWorldAccess.Rituals.Role.Required".Translate());
             }
             else if (view.MaxCount == 0)
             {
-                sb.Append($"{view.AssignedCount} assigned, optional");
+                sb.Append((string)"RimWorldAccess.Rituals.Role.AssignedOptional".Translate(view.AssignedCount));
             }
             else
             {
-                sb.Append($"{view.AssignedCount} assigned");
+                sb.Append((string)"RimWorldAccess.Rituals.Role.AssignedUnlimited".Translate(view.AssignedCount));
             }
 
-            if (view.IsLocked) sb.Append(", locked");
+            if (view.IsLocked) sb.Append((string)"RimWorldAccess.Rituals.Role.Locked".Translate());
             sb.Append(".");
 
             if (!string.IsNullOrEmpty(view.ExtraInfoLine))
@@ -55,7 +55,9 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             sb.Append(toggle.Label);
             sb.Append(": ");
-            sb.Append(toggle.Checked ? "checked" : "unchecked");
+            sb.Append(toggle.Checked
+                ? (string)"RimWorldAccess.Rituals.Checkbox.Checked".Translate()
+                : (string)"RimWorldAccess.Rituals.Checkbox.Unchecked".Translate());
             sb.Append(".");
 
             if (includeTooltip && !string.IsNullOrEmpty(toggle.Tooltip))
@@ -75,12 +77,12 @@ namespace RimWorldAccess
             parts.Add(view.Pawn.LabelShort);
 
             if (view.IsForced)
-                parts.Add("forced, cannot change");
+                parts.Add((string)"RimWorldAccess.Rituals.Pawn.ForcedCannotChange".Translate());
             else if (view.IsAssigned)
-                parts.Add("Selected");
+                parts.Add((string)"RimWorldAccess.Rituals.Pawn.Selected".Translate());
 
             if (!string.IsNullOrEmpty(view.DisabledReason))
-                parts.Add($"cannot assign: {view.DisabledReason}");
+                parts.Add((string)"RimWorldAccess.Rituals.Pawn.CannotAssignReason".Translate(view.DisabledReason));
 
             if (!string.IsNullOrEmpty(view.SuitabilityLine))
                 parts.Add(view.SuitabilityLine);
@@ -112,11 +114,15 @@ namespace RimWorldAccess
                 else if (!changeHasContext)
                 {
                     if (row.IsPresent)
-                        sb.Append(row.IsPositive ? " Bonus." : " Penalty.");
+                        sb.Append(row.IsPositive
+                            ? " " + (string)"RimWorldAccess.Rituals.Quality.Bonus".Translate()
+                            : " " + (string)"RimWorldAccess.Rituals.Quality.Penalty".Translate());
                     else if (row.Quality != 0)
-                        sb.Append(row.Quality > 0 ? " Bonus." : " Penalty.");
+                        sb.Append(row.Quality > 0
+                            ? " " + (string)"RimWorldAccess.Rituals.Quality.Bonus".Translate()
+                            : " " + (string)"RimWorldAccess.Rituals.Quality.Penalty".Translate());
                     else
-                        sb.Append(" Not met.");
+                        sb.Append(" " + (string)"RimWorldAccess.Rituals.Quality.NotMet".Translate());
                 }
             }
 

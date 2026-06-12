@@ -550,17 +550,17 @@ namespace RimWorldAccess
             {
                 case WorldParamField.PlanetCoverage:
                     if (activePlanetCoverages[planetCoverageIndex] == 1f)
-                        return ". " + "MessageMaxPlanetCoveragePerformanceWarning".Translate().ToString();
+                        return "RimWorldAccess.WorldParams.WarningPrefix".Translate("MessageMaxPlanetCoveragePerformanceWarning".Translate()).ToString();
                     break;
 
                 case WorldParamField.MapSize:
                     if (activeMapSizes[mapSizeIndex] > 280)
-                        return ". " + "MapSizePerformanceWarning".Translate().ToString();
+                        return "RimWorldAccess.WorldParams.WarningPrefix".Translate("MapSizePerformanceWarning".Translate()).ToString();
                     break;
 
                 case WorldParamField.StartingSeason:
                     if (Seasons[seasonIndex] == Season.Winter)
-                        return ". " + "MapWinterWarning".Translate().ToString();
+                        return "RimWorldAccess.WorldParams.WarningPrefix".Translate("MapWinterWarning".Translate()).ToString();
                     break;
             }
             return "";

@@ -33,6 +33,7 @@ namespace RimWorldAccess
             ["Orders"] = "Orders",
             ["Zones"] = "Zones",
             ["Rooms"] = "Rooms",
+            ["Unexplored"] = "Unexplored",
             ["Uncategorized"] = "Uncategorized",
         };
 

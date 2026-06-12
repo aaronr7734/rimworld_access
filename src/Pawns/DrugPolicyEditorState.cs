@@ -356,7 +356,10 @@ namespace RimWorldAccess
         {
             if (policy == null || policy.Count == 0)
             {
-                TolkHelper.Speak("NoDrugs".Loc());
+                // Vanilla's own "(no drugs)" label for an empty policy. Note the
+                // raw "NoDrugs" key vanilla passes to Widgets.Label does not exist
+                // as a keyed string, so we use the real translated NoDrugsBrackets.
+                TolkHelper.Speak("NoDrugsBrackets".Loc());
                 return;
             }
 
@@ -466,12 +469,8 @@ namespace RimWorldAccess
             if (parts.Count == 0)
                 return "None".Translate();
 
-            if (parts.Count == 1)
-                return parts[0];
-            if (parts.Count == 2)
-                return $"{parts[0]} and {parts[1]}";
-            // Oxford comma for 3+
-            return string.Join(", ", parts.Take(parts.Count - 1)) + ", and " + parts[parts.Count - 1];
+            // Vanilla joiner: localized "A, B and C" via the ToCommaListAnd key.
+            return parts.ToCommaList(useAnd: true);
         }
     }
 }

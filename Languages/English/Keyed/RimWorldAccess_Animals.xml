@@ -32,6 +32,9 @@
   <RimWorldAccess.Animals.Value.Unknown>Unknown</RimWorldAccess.Animals.Value.Unknown>
   <RimWorldAccess.Animals.Value.NotApplicable>N/A</RimWorldAccess.Animals.Value.NotApplicable>
   <RimWorldAccess.Animals.Value.Normal>Normal</RimWorldAccess.Animals.Value.Normal>
+  <!-- BondBroken is wrapped in parentheses after the "Bonded to X" text. -->
+  <RimWorldAccess.Animals.Value.BondBroken>bond broken</RimWorldAccess.Animals.Value.BondBroken>
+  <RimWorldAccess.Animals.Value.Scheduled>Scheduled</RimWorldAccess.Animals.Value.Scheduled>
 
   <!-- Paint value labels. AnimalsMenuHelper.GetPaintValueLabel and
        WildlifeMenuHelper.GetPaintValueLabel return these for checkbox
@@ -47,6 +50,12 @@
        ================================================================= -->
   <RimWorldAccess.Animals.Column.Name>Name</RimWorldAccess.Animals.Column.Name>
   <RimWorldAccess.Animals.Column.Age>Age</RimWorldAccess.Animals.Column.Age>
+  <RimWorldAccess.Animals.Column.LifeStage>Life stage</RimWorldAccess.Animals.Column.LifeStage>
+  <RimWorldAccess.Animals.Column.SpecialTraining>Special training</RimWorldAccess.Animals.Column.SpecialTraining>
+  <RimWorldAccess.Animals.Column.MentalState>Mental state</RimWorldAccess.Animals.Column.MentalState>
+  <RimWorldAccess.Animals.Column.BondInfo>Bond</RimWorldAccess.Animals.Column.BondInfo>
+  <RimWorldAccess.Animals.Column.Sterile>Sterile</RimWorldAccess.Animals.Column.Sterile>
+  <RimWorldAccess.Animals.Column.MedicalCare>Medical care</RimWorldAccess.Animals.Column.MedicalCare>
 
   <!-- =================================================================
        Training status (AnimalsMenuHelper.GetTrainingStatus and
@@ -212,4 +221,10 @@
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>Empty</RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>Invalid number. Use minus 1 for unlimited</RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>Cancelled</RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>
+
+  <!-- Auto-slaughter partial cell shapes (single-axis announcements).
+       NameWithoutColumn: {0} = animal, {1} = value, {2} = position.
+       ValueOnly: {0} = value, {1} = position. -->
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>{0}: {1}. {2}</RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>
+  <RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>{0}. {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>
 </LanguageData>

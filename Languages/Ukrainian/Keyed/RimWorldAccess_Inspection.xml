@@ -36,16 +36,6 @@
        ================================================================= -->
   <RimWorldAccess.Inspection.Summary.Unknown>Невідомий об'єкт</RimWorldAccess.Inspection.Summary.Unknown>
   <RimWorldAccess.Inspection.Summary.Pawn>Персонаж: {0}</RimWorldAccess.Inspection.Summary.Pawn>
-  <RimWorldAccess.Inspection.Summary.PawnDead>Персонаж: {0} (мертвий)</RimWorldAccess.Inspection.Summary.PawnDead>
-  <RimWorldAccess.Inspection.Summary.PawnDowned>Персонаж: {0} (знесилений)</RimWorldAccess.Inspection.Summary.PawnDowned>
-  <RimWorldAccess.Inspection.Summary.PawnDrafted>Персонаж: {0} (бойовий режим)</RimWorldAccess.Inspection.Summary.PawnDrafted>
-  <RimWorldAccess.Inspection.Summary.Animal>Тварина: {0}</RimWorldAccess.Inspection.Summary.Animal>
-  <RimWorldAccess.Inspection.Summary.AnimalDead>Тварина: {0} (мертва)</RimWorldAccess.Inspection.Summary.AnimalDead>
-  <RimWorldAccess.Inspection.Summary.AnimalDowned>Тварина: {0} (знесилена)</RimWorldAccess.Inspection.Summary.AnimalDowned>
-  <RimWorldAccess.Inspection.Summary.AnimalDrafted>Тварина: {0} (бойовий режим)</RimWorldAccess.Inspection.Summary.AnimalDrafted>
-  <RimWorldAccess.Inspection.Summary.Building>Будівля: {0}</RimWorldAccess.Inspection.Summary.Building>
-  <RimWorldAccess.Inspection.Summary.Plant>Рослина: {0}</RimWorldAccess.Inspection.Summary.Plant>
-  <RimWorldAccess.Inspection.Summary.Item>Предмет: {0}</RimWorldAccess.Inspection.Summary.Item>
   <RimWorldAccess.Inspection.Summary.Zone>{0} ({1})</RimWorldAccess.Inspection.Summary.Zone>
   <!-- Master-merge additions: pawn summary now uses KindLabel prefix and
        a generic status suffix rather than per-kind×status whole phrases.
@@ -167,11 +157,6 @@
        label. RangeLabel.HitPoints: {0} = min %, {1} = max %.
        RangeLabel.Quality: {0} = min QualityCategory, {1} = max
        QualityCategory. -->
-  <RimWorldAccess.Inspection.Storage.PriorityLabel>Пріоритет: {0}</RimWorldAccess.Inspection.Storage.PriorityLabel>
-  <RimWorldAccess.Inspection.Storage.ClearAll>Очистити все</RimWorldAccess.Inspection.Storage.ClearAll>
-  <RimWorldAccess.Inspection.Storage.AllowAll>Дозволити все</RimWorldAccess.Inspection.Storage.AllowAll>
-  <RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints>Міцність: {0} - {1}</RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints>
-  <RimWorldAccess.Inspection.Storage.RangeLabel.Quality>Якість: {0} - {1}</RimWorldAccess.Inspection.Storage.RangeLabel.Quality>
 
   <!-- Toggle result. {0} = item / category label; the state words are
        split into one whole-phrase key per (state, capitalization) so
@@ -214,13 +199,9 @@
   <RimWorldAccess.Inspection.Storage.NoInfoCard>Картка інформації недоступна</RimWorldAccess.Inspection.Storage.NoInfoCard>
 
   <!-- Bulk action results. -->
-  <RimWorldAccess.Inspection.Storage.ClearedAllItems>Усі предмети очищено</RimWorldAccess.Inspection.Storage.ClearedAllItems>
-  <RimWorldAccess.Inspection.Storage.AllowedAllItems>Усі предмети дозволено</RimWorldAccess.Inspection.Storage.AllowedAllItems>
 
   <!-- Expand-all-siblings results when * is pressed. AllAlreadyExpanded /
        NoneToExpand cover the edge cases where the action is a no-op. -->
-  <RimWorldAccess.Inspection.Storage.AllAlreadyExpanded>Усі категорії на цьому рівні вже розгорнуто</RimWorldAccess.Inspection.Storage.AllAlreadyExpanded>
-  <RimWorldAccess.Inspection.Storage.NoneToExpand>На цьому рівні немає категорій для розгортання</RimWorldAccess.Inspection.Storage.NoneToExpand>
 
   <!-- Range editing announcements (StorageSettingsMenuPatch). Spoken
        after Enter applies the new range or Escape discards it.
@@ -229,13 +210,11 @@
        since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>Зміни діапазону застосовано</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>Редагування діапазону скасовано</RimWorldAccess.Inspection.Storage.RangeCancelled>
-  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>Натисніть Enter, щоб редагувати діапазон</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->
   <RimWorldAccess.Inspection.Storage.MenuClosed>Меню налаштувань зберігання закрито</RimWorldAccess.Inspection.Storage.MenuClosed>
   <RimWorldAccess.Inspection.Storage.PlantSelectionClosed>Меню вибору рослини закрито</RimWorldAccess.Inspection.Storage.PlantSelectionClosed>
-  <RimWorldAccess.Inspection.Storage.PlaySettingsClosed>Меню налаштувань гри закрито</RimWorldAccess.Inspection.Storage.PlaySettingsClosed>
 
   <!-- =================================================================
        ThingFilter tree-navigation state (ThingFilterNavigationState).
@@ -813,9 +792,6 @@
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
-  <RimWorldAccess.Inspection.Building.PowerConsumption>Споживання: {0} Вт</RimWorldAccess.Inspection.Building.PowerConsumption>
-  <RimWorldAccess.Inspection.Building.PowerOff>Енергію наразі вимкнено або недоступно.</RimWorldAccess.Inspection.Building.PowerOff>
-  <RimWorldAccess.Inspection.Building.NoPower>Ця будівля не використовує енергію.</RimWorldAccess.Inspection.Building.NoPower>
 
   <!-- Bed assignment. -->
   <RimWorldAccess.Inspection.Building.PrisonBed>Тип: в'язничне ліжко</RimWorldAccess.Inspection.Building.PrisonBed>
@@ -1116,9 +1092,7 @@
   <RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>Меню фільтра предметів закрито</RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>
   <RimWorldAccess.Inspection.Patch.CancelledRangeEditing>Редагування діапазону скасовано</RimWorldAccess.Inspection.Patch.CancelledRangeEditing>
   <RimWorldAccess.Inspection.Patch.AppliedRangeChanges>Зміни діапазону застосовано</RimWorldAccess.Inspection.Patch.AppliedRangeChanges>
-  <RimWorldAccess.Inspection.Patch.ClosedPowerControl>Меню контролю енергії закрито</RimWorldAccess.Inspection.Patch.ClosedPowerControl>
   <RimWorldAccess.Inspection.Patch.ClosedFuelSettings>Меню налаштувань палива закрито</RimWorldAccess.Inspection.Patch.ClosedFuelSettings>
-  <RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>Перегляд стану поломки закрито</RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>
   <RimWorldAccess.Inspection.Patch.ClosedDoorControls>Керування дверима закрито</RimWorldAccess.Inspection.Patch.ClosedDoorControls>
   <RimWorldAccess.Inspection.Patch.ClosedForbidControls>Керування забороною закрито</RimWorldAccess.Inspection.Patch.ClosedForbidControls>
   <RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>Меню зони рибальства закрито</RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>

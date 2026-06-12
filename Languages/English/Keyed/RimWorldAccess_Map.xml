@@ -391,6 +391,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Orders>Orders</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>Zones</RimWorldAccess.Map.Scanner.CatName.Zones>
   <RimWorldAccess.Map.Scanner.CatName.Rooms>Rooms</RimWorldAccess.Map.Scanner.CatName.Rooms>
+  <RimWorldAccess.Map.Scanner.CatName.Unexplored>Unexplored</RimWorldAccess.Map.Scanner.CatName.Unexplored>
   <RimWorldAccess.Map.Scanner.CatName.Uncategorized>Uncategorized</RimWorldAccess.Map.Scanner.CatName.Uncategorized>
 
   <!-- Localized scanner subcategory display.
@@ -505,7 +506,6 @@
        phrase is a whole-phrase key the translator can rearrange.
        ================================================================= -->
   <RimWorldAccess.Map.Tile.OutOfBounds>Out of bounds</RimWorldAccess.Map.Tile.OutOfBounds>
-  <RimWorldAccess.Map.Tile.PositionOutOfBounds>Position out of bounds</RimWorldAccess.Map.Tile.PositionOutOfBounds>
   <!-- Fogged tiles: "{designations}, unseen, {x}, {z}" or just
        "unseen, {x}, {z}". -->
   <RimWorldAccess.Map.Tile.UnseenWithDesignations>{0}, unseen, {1}, {2}</RimWorldAccess.Map.Tile.UnseenWithDesignations>
@@ -532,8 +532,6 @@
   <!-- " floor" appended to smoothed-stone terrain labels. -->
   <RimWorldAccess.Map.Tile.FloorSuffix> floor</RimWorldAccess.Map.Tile.FloorSuffix>
   <!-- Roof status. -->
-  <RimWorldAccess.Map.Tile.Roof.Underground>underground</RimWorldAccess.Map.Tile.Roof.Underground>
-  <RimWorldAccess.Map.Tile.Roof.Roofed>roofed</RimWorldAccess.Map.Tile.Roof.Roofed>
 
   <!-- Stack count appended to item label (e.g. "wood x5"). -->
   <RimWorldAccess.Map.Tile.Item.StackCount> x{0}</RimWorldAccess.Map.Tile.Item.StackCount>
@@ -551,7 +549,6 @@
   <RimWorldAccess.Map.Tile.Flooring.Beauty>beauty: {0}</RimWorldAccess.Map.Tile.Flooring.Beauty>
   <RimWorldAccess.Map.Tile.Flooring.Cleanliness>cleanliness: {0}</RimWorldAccess.Map.Tile.Flooring.Cleanliness>
   <RimWorldAccess.Map.Tile.Flooring.PathCost>path cost: {0}</RimWorldAccess.Map.Tile.Flooring.PathCost>
-  <RimWorldAccess.Map.Tile.Flooring.Fish>fish: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Flooring.Fish>
 
   <!-- Plants/resources hotkey (key 3). Covers plants, Odyssey fish, and deep ore.
        Empty-result messages list only the resource types relevant to the tile context
@@ -654,4 +651,12 @@
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Map.Scanner.Region.SizeTiles>{0} tiles</RimWorldAccess.Map.Scanner.Region.SizeTiles>
   <RimWorldAccess.Map.Scanner.UnexploredArea>unexplored area</RimWorldAccess.Map.Scanner.UnexploredArea>
+
+  <!-- Scanner patch-position cues. PressHomeForCenter teaches the second
+       Home press; JumpedTilesToCenter: {0} = tile count, {1} = compass
+       direction (already localized). -->
+  <RimWorldAccess.Map.Scanner.PressHomeForCenter>Press Home for center</RimWorldAccess.Map.Scanner.PressHomeForCenter>
+  <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>Jumped {0} tiles {1} to center</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
+  <RimWorldAccess.Map.Scanner.JumpedToCenter>Jumped to center</RimWorldAccess.Map.Scanner.JumpedToCenter>
+
 </LanguageData>

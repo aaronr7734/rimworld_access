@@ -228,19 +228,29 @@ namespace RimWorldAccess
 
             string message;
             if (includePawn && includeHour)
-                message = $"{pawn.LabelShort}, Hour {hour}: {assignment.LabelCap}";
+            {
+                // Value line + (pawn position, hour position) covered by a single combined key.
+                bool hasPositions = !string.IsNullOrEmpty(pawnPos) && !string.IsNullOrEmpty(hourPos);
+                message = hasPositions
+                    ? "RimWorldAccess.Pawns.Schedule.CellWithPositions".Translate(pawn.LabelShort, hour, assignment.LabelCap, pawnPos, hourPos).ToString()
+                    : "RimWorldAccess.Pawns.Schedule.Cell".Translate(pawn.LabelShort, hour, assignment.LabelCap).ToString();
+            }
             else if (includePawn)
-                message = $"{pawn.LabelShort}: {assignment.LabelCap}";
+            {
+                message = "RimWorldAccess.Pawns.Schedule.CellPawnOnly".Translate(pawn.LabelShort, assignment.LabelCap).ToString();
+                if (!string.IsNullOrEmpty(pawnPos))
+                    message = "RimWorldAccess.Pawns.Schedule.CellWithSuffix".Translate(message, "RimWorldAccess.Pawns.Schedule.PositionPawn".Translate(pawnPos)).ToString();
+            }
             else if (includeHour)
-                message = $"Hour {hour}: {assignment.LabelCap}";
+            {
+                message = "RimWorldAccess.Pawns.Schedule.CellHourOnly".Translate(hour, assignment.LabelCap).ToString();
+                if (!string.IsNullOrEmpty(hourPos))
+                    message = "RimWorldAccess.Pawns.Schedule.CellWithSuffix".Translate(message, "RimWorldAccess.Pawns.Schedule.PositionHour".Translate(hourPos)).ToString();
+            }
             else
+            {
                 message = assignment.LabelCap;
-
-            var positions = new List<string>();
-            if (includePawn && !string.IsNullOrEmpty(pawnPos)) positions.Add($"Pawn {pawnPos}");
-            if (includeHour && !string.IsNullOrEmpty(hourPos)) positions.Add($"Hour {hourPos}");
-            if (positions.Count > 0)
-                message += ". " + string.Join(", ", positions) + ".";
+            }
 
             if (tableHelper.Typeahead.HasActiveSearch)
                 message += tableHelper.Typeahead.BuildSearchContextSuffix();

@@ -130,15 +130,12 @@
        agreement; the pod-noun key is inlined into the sentence so word order
        stays natural across languages.
        {0} = pod count, {1} = total mass capacity. -->
-  <RimWorldAccess.TransportPods.Loading.PodNounOne>运输舱</RimWorldAccess.TransportPods.Loading.PodNounOne>
-  <RimWorldAccess.TransportPods.Loading.PodNounMany>运输舱</RimWorldAccess.TransportPods.Loading.PodNounMany>
   <RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>装载运输舱。{0} 个运输舱，容量 {1} 千克。左右切换选项卡，回车调整。</RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>
   <RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>装载运输舱。{0} 个运输舱，容量 {1} 千克。左右切换选项卡，回车调整。</RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>
 
   <!-- Tab navigation. -->
   <RimWorldAccess.TransportPods.Loading.TabPawns>人物</RimWorldAccess.TransportPods.Loading.TabPawns>
   <RimWorldAccess.TransportPods.Loading.TabItems>物品</RimWorldAccess.TransportPods.Loading.TabItems>
-  <RimWorldAccess.TransportPods.Loading.TabAnnouncement>{0} 选项卡，{1} 项</RimWorldAccess.TransportPods.Loading.TabAnnouncement>
   <RimWorldAccess.TransportPods.Loading.ReturnedToTab>已返回 {0} 选项卡</RimWorldAccess.TransportPods.Loading.ReturnedToTab>
 
   <!-- Shared empty-tab feedback (spoken in multiple navigation paths). -->

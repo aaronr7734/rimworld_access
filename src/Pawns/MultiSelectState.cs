@@ -647,7 +647,9 @@ namespace RimWorldAccess
         /// </summary>
         public static void AnnounceFocusedPawn(Pawn pawn)
         {
-            string selectedStatus = IsPawnSelected(pawn) ? "selected" : "not selected";
+            string selectedStatus = (IsPawnSelected(pawn)
+                ? "RimWorldAccess.Pawns.MultiSelect.SelectedStatus"
+                : "RimWorldAccess.Pawns.MultiSelect.NotSelectedStatus").Translate();
 
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))

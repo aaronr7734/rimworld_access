@@ -39,7 +39,7 @@ namespace RimWorldAccess
                 case ColumnType.Name: return "RimWorldAccess.Animals.Wildlife.Column.Name".Translate().ToString();
                 case ColumnType.Predator: return "RimWorldAccess.Animals.Wildlife.Column.Predator".Translate().ToString();
                 case ColumnType.Gender: return "Sex".Translate().Resolve();
-                case ColumnType.LifeStage: return "LifeStage".Translate().Resolve();
+                case ColumnType.LifeStage: return "RimWorldAccess.Animals.Column.LifeStage".Translate().Resolve();
                 case ColumnType.Hunt: return "DesignatorHunt".Translate().Resolve();
                 case ColumnType.ManhunterOnDamage: return "HarmedRevengeChance".Translate().Resolve();
                 case ColumnType.Tame: return "DesignatorTame".Translate().Resolve();

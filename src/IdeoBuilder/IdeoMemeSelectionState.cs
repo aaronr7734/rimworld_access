@@ -121,7 +121,7 @@ namespace RimWorldAccess
         {
             // After expand/collapse, use the short label when one exists (memes) so the user hears
             // a terse "Expanded. Flesh purity" rather than the whole detail wall on every keypress.
-            string state = item.IsExpanded ? "Expanded" : "Collapsed";
+            string state = (item.IsExpanded ? "RimWorldAccess.Tree.StateExpanded" : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString().CapitalizeFirst();
             string label = !string.IsNullOrEmpty(item.ExpandedLabel) ? item.ExpandedLabel : item.Label;
             return state + ". " + label;
         }
@@ -260,10 +260,12 @@ namespace RimWorldAccess
                 // validation line, NOT the whole description.
                 bool nowSelected = newMemes.Contains(meme);
                 var sb = new StringBuilder();
-                sb.Append(meme.LabelCap.ToString()).Append(", ").Append(nowSelected ? "Selected" : "Removed");
+                sb.Append(meme.LabelCap.ToString()).Append(", ").Append((nowSelected
+                    ? "RimWorldAccess.Ideology.Builder.Status.Selected"
+                    : "RimWorldAccess.Ideology.Builder.Status.Removed").Translate().ToString());
                 // Name any meme that was silently swapped out so the player isn't surprised.
                 foreach (var d in displaced)
-                    sb.Append(". ").Append(d.LabelCap.ToString()).Append(", ").Append("Removed");
+                    sb.Append(". ").Append(d.LabelCap.ToString()).Append(", ").Append("RimWorldAccess.Ideology.Builder.Status.Removed".Translate().ToString());
                 string status = IdeoMemeSelectionHelper.BuildStatusLine(currentDialog);
                 if (!string.IsNullOrEmpty(status))
                     sb.Append(". ").Append(status);

@@ -277,7 +277,6 @@
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>порожньо</RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>{0} рядків, {1} слів</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>{0} слів</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>
-  <RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>Новий рядок</RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>
   <RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>Немає доступних варіантів для цього поля.</RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>
 
   <!-- =================================================================
@@ -287,8 +286,6 @@
        {0} = page title, {1} = storyteller label, {2} = description,
        {3} = position suffix.
        ================================================================= -->
-  <RimWorldAccess.Storyteller.OpenInstructions>{0} - {1} - {2}{3}. Tab та Shift+Tab для переходу між Оповідачем, Складністю та Режимом збереження.</RimWorldAccess.Storyteller.OpenInstructions>
-  <RimWorldAccess.Storyteller.OpenPositionSuffix> ({0})</RimWorldAccess.Storyteller.OpenPositionSuffix>
   <RimWorldAccess.Storyteller.ModeIndicator>[{0}]</RimWorldAccess.Storyteller.ModeIndicator>
   <!-- Per-row announcements (StorytellerNavigationState).
        The custom-difficulty marker is a parenthetical added to the difficulty
@@ -487,7 +484,6 @@
   <RimWorldAccess.StartingPawn.WandererTitle>{0}. Alt+A для додавання, Delete для видалення.</RimWorldAccess.StartingPawn.WandererTitle>
   <RimWorldAccess.StartingPawn.RandomizeWithMatch>{0}. Знайдено збіг за {1} спроб.</RimWorldAccess.StartingPawn.RandomizeWithMatch>
   <RimWorldAccess.StartingPawn.RandomizeNoMatch>{0}. Збігу не знайдено після {1} спроб, зберігається останній результат.</RimWorldAccess.StartingPawn.RandomizeNoMatch>
-  <RimWorldAccess.StartingPawn.RandomizeWithSummary>{0}. {1}</RimWorldAccess.StartingPawn.RandomizeWithSummary>
   <RimWorldAccess.StartingPawn.RerollStopped>Зупинено на {0} спроб.</RimWorldAccess.StartingPawn.RerollStopped>
   <RimWorldAccess.StartingPawn.RerollFound>Знайдено збіг за {0} спроб.</RimWorldAccess.StartingPawn.RerollFound>
   <RimWorldAccess.StartingPawn.RerollNoMatch>Збігу не знайдено після {0} спроб, зберігається останній результат.</RimWorldAccess.StartingPawn.RerollNoMatch>

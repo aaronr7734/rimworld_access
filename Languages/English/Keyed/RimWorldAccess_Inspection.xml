@@ -36,16 +36,6 @@
        ================================================================= -->
   <RimWorldAccess.Inspection.Summary.Unknown>Unknown object</RimWorldAccess.Inspection.Summary.Unknown>
   <RimWorldAccess.Inspection.Summary.Pawn>Pawn: {0}</RimWorldAccess.Inspection.Summary.Pawn>
-  <RimWorldAccess.Inspection.Summary.PawnDead>Pawn: {0} (Dead)</RimWorldAccess.Inspection.Summary.PawnDead>
-  <RimWorldAccess.Inspection.Summary.PawnDowned>Pawn: {0} (Downed)</RimWorldAccess.Inspection.Summary.PawnDowned>
-  <RimWorldAccess.Inspection.Summary.PawnDrafted>Pawn: {0} (Drafted)</RimWorldAccess.Inspection.Summary.PawnDrafted>
-  <RimWorldAccess.Inspection.Summary.Animal>Animal: {0}</RimWorldAccess.Inspection.Summary.Animal>
-  <RimWorldAccess.Inspection.Summary.AnimalDead>Animal: {0} (Dead)</RimWorldAccess.Inspection.Summary.AnimalDead>
-  <RimWorldAccess.Inspection.Summary.AnimalDowned>Animal: {0} (Downed)</RimWorldAccess.Inspection.Summary.AnimalDowned>
-  <RimWorldAccess.Inspection.Summary.AnimalDrafted>Animal: {0} (Drafted)</RimWorldAccess.Inspection.Summary.AnimalDrafted>
-  <RimWorldAccess.Inspection.Summary.Building>Building: {0}</RimWorldAccess.Inspection.Summary.Building>
-  <RimWorldAccess.Inspection.Summary.Plant>Plant: {0}</RimWorldAccess.Inspection.Summary.Plant>
-  <RimWorldAccess.Inspection.Summary.Item>Item: {0}</RimWorldAccess.Inspection.Summary.Item>
   <RimWorldAccess.Inspection.Summary.Zone>{0} ({1})</RimWorldAccess.Inspection.Summary.Zone>
   <!-- Master-merge additions: pawn summary now uses KindLabel prefix and
        a generic status suffix rather than per-kind×status whole phrases.
@@ -167,11 +157,6 @@
        label. RangeLabel.HitPoints: {0} = min %, {1} = max %.
        RangeLabel.Quality: {0} = min QualityCategory, {1} = max
        QualityCategory. -->
-  <RimWorldAccess.Inspection.Storage.PriorityLabel>Priority: {0}</RimWorldAccess.Inspection.Storage.PriorityLabel>
-  <RimWorldAccess.Inspection.Storage.ClearAll>Clear All</RimWorldAccess.Inspection.Storage.ClearAll>
-  <RimWorldAccess.Inspection.Storage.AllowAll>Allow All</RimWorldAccess.Inspection.Storage.AllowAll>
-  <RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints>Hit Points: {0} - {1}</RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints>
-  <RimWorldAccess.Inspection.Storage.RangeLabel.Quality>Quality: {0} - {1}</RimWorldAccess.Inspection.Storage.RangeLabel.Quality>
 
   <!-- Toggle result. {0} = item / category label; the state words are
        split into one whole-phrase key per (state, capitalization) so
@@ -214,13 +199,9 @@
   <RimWorldAccess.Inspection.Storage.NoInfoCard>No info card available</RimWorldAccess.Inspection.Storage.NoInfoCard>
 
   <!-- Bulk action results. -->
-  <RimWorldAccess.Inspection.Storage.ClearedAllItems>Cleared all items</RimWorldAccess.Inspection.Storage.ClearedAllItems>
-  <RimWorldAccess.Inspection.Storage.AllowedAllItems>Allowed all items</RimWorldAccess.Inspection.Storage.AllowedAllItems>
 
   <!-- Expand-all-siblings results when * is pressed. AllAlreadyExpanded /
        NoneToExpand cover the edge cases where the action is a no-op. -->
-  <RimWorldAccess.Inspection.Storage.AllAlreadyExpanded>All categories already expanded at this level</RimWorldAccess.Inspection.Storage.AllAlreadyExpanded>
-  <RimWorldAccess.Inspection.Storage.NoneToExpand>No categories to expand at this level</RimWorldAccess.Inspection.Storage.NoneToExpand>
 
   <!-- Range editing announcements (StorageSettingsMenuPatch). Spoken
        after Enter applies the new range or Escape discards it.
@@ -229,13 +210,11 @@
        since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>Applied range changes</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>Cancelled range editing</RimWorldAccess.Inspection.Storage.RangeCancelled>
-  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>Press Enter to edit range</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->
   <RimWorldAccess.Inspection.Storage.MenuClosed>Closed storage settings menu</RimWorldAccess.Inspection.Storage.MenuClosed>
   <RimWorldAccess.Inspection.Storage.PlantSelectionClosed>Closed plant selection menu</RimWorldAccess.Inspection.Storage.PlantSelectionClosed>
-  <RimWorldAccess.Inspection.Storage.PlaySettingsClosed>Closed play settings menu</RimWorldAccess.Inspection.Storage.PlaySettingsClosed>
 
   <!-- =================================================================
        ThingFilter tree-navigation state (ThingFilterNavigationState).
@@ -821,9 +800,6 @@
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
-  <RimWorldAccess.Inspection.Building.PowerConsumption>Consumption: {0} W</RimWorldAccess.Inspection.Building.PowerConsumption>
-  <RimWorldAccess.Inspection.Building.PowerOff>Power is currently off or unavailable.</RimWorldAccess.Inspection.Building.PowerOff>
-  <RimWorldAccess.Inspection.Building.NoPower>This building does not use power.</RimWorldAccess.Inspection.Building.NoPower>
 
   <!-- Bed assignment. -->
   <RimWorldAccess.Inspection.Building.PrisonBed>Type: Prison Bed</RimWorldAccess.Inspection.Building.PrisonBed>
@@ -1124,9 +1100,7 @@
   <RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>Closed thing filter menu</RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>
   <RimWorldAccess.Inspection.Patch.CancelledRangeEditing>Cancelled range editing</RimWorldAccess.Inspection.Patch.CancelledRangeEditing>
   <RimWorldAccess.Inspection.Patch.AppliedRangeChanges>Applied range changes</RimWorldAccess.Inspection.Patch.AppliedRangeChanges>
-  <RimWorldAccess.Inspection.Patch.ClosedPowerControl>Closed power control menu</RimWorldAccess.Inspection.Patch.ClosedPowerControl>
   <RimWorldAccess.Inspection.Patch.ClosedFuelSettings>Closed fuel settings menu</RimWorldAccess.Inspection.Patch.ClosedFuelSettings>
-  <RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>Closed breakdown status view</RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>
   <RimWorldAccess.Inspection.Patch.ClosedDoorControls>Closed door controls</RimWorldAccess.Inspection.Patch.ClosedDoorControls>
   <RimWorldAccess.Inspection.Patch.ClosedForbidControls>Closed forbid controls</RimWorldAccess.Inspection.Patch.ClosedForbidControls>
   <RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>Closed fishing zone menu</RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>
@@ -1498,4 +1472,22 @@
   <RimWorldAccess.Inspection.CategoryName.JobQueueLabel>{0} ({1} queued)</RimWorldAccess.Inspection.CategoryName.JobQueueLabel>
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.Inspection.Inventory.CarriedByColonists>{0} x{1} ({2} carried by colonists)</RimWorldAccess.Inspection.Inventory.CarriedByColonists>
+
+  <!-- Pregnancy approach options: marker for the active approach. {0} = approach description. -->
+  <RimWorldAccess.Inspection.CurrentMarker>Current: {0}</RimWorldAccess.Inspection.CurrentMarker>
+  <!-- Mood thought expiry suffixes. {0}/{1} = localized time periods. -->
+  <RimWorldAccess.Inspection.Thought.ExpiresIn>(expires in {0})</RimWorldAccess.Inspection.Thought.ExpiresIn>
+  <RimWorldAccess.Inspection.Thought.ExpiresInRange>(expires in {0} to {1})</RimWorldAccess.Inspection.Thought.ExpiresInRange>
+
+  <!-- Hemogen-pack auto-ingest gizmo toggle. {0} = localized on/off state. -->
+  <RimWorldAccess.Inspection.Gizmo.HemogenPacks>Hemogen packs allowed: {0}</RimWorldAccess.Inspection.Gizmo.HemogenPacks>
+
+  <!-- Royal permit statuses in the Info Card permits section.
+       AvailableWithPoints: {0} = permit point cost.
+       LockedWithReason: {0} = localized prerequisite/title requirement. -->
+  <RimWorldAccess.Inspection.Permit.Granted>Granted</RimWorldAccess.Inspection.Permit.Granted>
+  <RimWorldAccess.Inspection.Permit.GrantedOnCooldown>Granted (on cooldown)</RimWorldAccess.Inspection.Permit.GrantedOnCooldown>
+  <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Available ({0} points)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
+  <RimWorldAccess.Inspection.Permit.LockedWithReason>Locked ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
+  <RimWorldAccess.Inspection.Permit.Locked>Locked</RimWorldAccess.Inspection.Permit.Locked>
 </LanguageData>

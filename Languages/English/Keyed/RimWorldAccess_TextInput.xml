@@ -3,9 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>field</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>faction name</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>settlement name</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelPawnFirstName>first name</RimWorldAccess.TextInput.LabelPawnFirstName>
-  <RimWorldAccess.TextInput.LabelPawnNickName>nickname</RimWorldAccess.TextInput.LabelPawnNickName>
-  <RimWorldAccess.TextInput.LabelPawnLastName>last name</RimWorldAccess.TextInput.LabelPawnLastName>
   <RimWorldAccess.TextInput.LabelZone>zone name</RimWorldAccess.TextInput.LabelZone>
   <RimWorldAccess.TextInput.LabelStorage>storage name</RimWorldAccess.TextInput.LabelStorage>
   <RimWorldAccess.TextInput.LabelPen>pen name</RimWorldAccess.TextInput.LabelPen>

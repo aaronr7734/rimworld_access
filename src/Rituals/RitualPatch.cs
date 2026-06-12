@@ -198,7 +198,7 @@ namespace RimWorldAccess
 
                 Text.Font = GameFont.Tiny;
                 Text.Anchor = TextAnchor.MiddleCenter;
-                Widgets.Label(r, "Keyboard Mode Active");
+                Widgets.Label(r, (string)"RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator".Translate());
                 Text.Anchor = TextAnchor.UpperLeft;
                 Text.Font = GameFont.Small;
             }

@@ -56,7 +56,7 @@ namespace RimWorldAccess
             var options = new List<FloatMenuOption>
             {
                 // Save has no keyboard shortcut (Alt+S is "continue") — it lives only in this menu.
-                new FloatMenuOption("Save".Translate() + " " + "Ideoligion".Translate().ToString().ToLower(),
+                new FloatMenuOption("Save".Translate() + " " + "StatsReport_Ideoligion".Translate().ToString().ToLower(),
                     () => SaveIdeoligion(ideo)),
             };
 

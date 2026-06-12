@@ -98,8 +98,6 @@
        FocusedTask: ClearMultiSelect single-select fallback.
        ================================================================= -->
   <RimWorldAccess.Pawns.MultiSelect.NoFocus>未聚焦任何角色</RimWorldAccess.Pawns.MultiSelect.NoFocus>
-  <RimWorldAccess.Pawns.MultiSelect.DeselectedCleared>{0} 已取消选择。已清空选择。</RimWorldAccess.Pawns.MultiSelect.DeselectedCleared>
-  <RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle>{0} 已移除。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.RemovedThenSingle>
   <RimWorldAccess.Pawns.MultiSelect.Removed>{0} 已移除。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.Removed>
   <RimWorldAccess.Pawns.MultiSelect.Added>{0} 已添加。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.Added>
   <RimWorldAccess.Pawns.MultiSelect.AlreadySelected>{0}，已在选择中。已选择 {1} 个。</RimWorldAccess.Pawns.MultiSelect.AlreadySelected>
@@ -112,7 +110,6 @@
   <RimWorldAccess.Pawns.MultiSelect.Idle>闲置</RimWorldAccess.Pawns.MultiSelect.Idle>
   <RimWorldAccess.Pawns.MultiSelect.PawnSummary>{0}, {1}, {2}</RimWorldAccess.Pawns.MultiSelect.PawnSummary>
   <RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>{0}, {1}, {2}. {3}</RimWorldAccess.Pawns.MultiSelect.PawnSummaryWithPos>
-  <RimWorldAccess.Pawns.MultiSelect.FocusedTask>{0} - {1}</RimWorldAccess.Pawns.MultiSelect.FocusedTask>
   <!-- BlockedByTargeting: spoken when a Selector action is attempted during active
        targeting. {0} = the action verb phrase (one of the Action* keys below),
        kept as a data slot so each blocked action names itself. -->

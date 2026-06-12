@@ -464,7 +464,7 @@ namespace RimWorldAccess
 
                 // Play Settings (auto-rebuild, auto-expand home area)
                 options.Add(new PauseMenuOption(
-                    "Play Settings",
+                    "RimWorldAccess.UI.Pause.PlaySettings".Translate(),
                     () => PlaySettingsMenuState.Open()
                 ));
 
@@ -528,7 +528,7 @@ namespace RimWorldAccess
 
                 // Resume game (close menu)
                 options.Add(new PauseMenuOption(
-                    "ResumeGame".Translate(),
+                    "RimWorldAccess.UI.Pause.ResumeGame".Translate(),
                     () => {
                         // Just close the menu
                         TolkHelper.Speak("RimWorldAccess.UI.Pause.ResumedGame".Loc());

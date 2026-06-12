@@ -26,68 +26,23 @@
        AnnouncementBuilder owns separators between them. -->
   <RimWorldAccess.Prisoner.Info.HeaderPrisoner>{0} — в'язень</RimWorldAccess.Prisoner.Info.HeaderPrisoner>
   <RimWorldAccess.Prisoner.Info.HeaderSlave>{0} — раб</RimWorldAccess.Prisoner.Info.HeaderSlave>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>Втеча: наразі здійснює втечу!</RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakNever>Інтервал втечі: ніколи</RimWorldAccess.Prisoner.Info.PrisonBreakNever>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>Заборонено геном: {0}</RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakDays>Інтервал втечі: {0} днів</RimWorldAccess.Prisoner.Info.PrisonBreakDays>
-  <RimWorldAccess.Prisoner.Info.Resistance>Психологічний опір: {0}</RimWorldAccess.Prisoner.Info.Resistance>
-  <RimWorldAccess.Prisoner.Info.ResistanceInitialRange>Початковий діапазон: від {0} до {1}</RimWorldAccess.Prisoner.Info.ResistanceInitialRange>
-  <RimWorldAccess.Prisoner.Info.NonRecruitable>Вербування: неможливе</RimWorldAccess.Prisoner.Info.NonRecruitable>
-  <RimWorldAccess.Prisoner.Info.WillLevel>Воля: {0}</RimWorldAccess.Prisoner.Info.WillLevel>
-  <RimWorldAccess.Prisoner.Info.WillInitialRange>Початковий діапазон: від {0} до {1}</RimWorldAccess.Prisoner.Info.WillInitialRange>
-  <RimWorldAccess.Prisoner.Info.SlavePrice>Ціна раба: {0} срібла</RimWorldAccess.Prisoner.Info.SlavePrice>
-  <RimWorldAccess.Prisoner.Info.StudiableYes>Можна дослідити: так</RimWorldAccess.Prisoner.Info.StudiableYes>
-  <RimWorldAccess.Prisoner.Info.ReleaseRelationGains>Зміна відносин при звільненні: {0}</RimWorldAccess.Prisoner.Info.ReleaseRelationGains>
-  <RimWorldAccess.Prisoner.Info.GuiltyUntilInnocent>Винний: ще {0}</RimWorldAccess.Prisoner.Info.GuiltyUntilInnocent>
-  <RimWorldAccess.Prisoner.Info.GuiltyNoTimer>Винний: без таймера (у {0})</RimWorldAccess.Prisoner.Info.GuiltyNoTimer>
-  <RimWorldAccess.Prisoner.Info.IdeoConversionTarget>Ціль навернення: {0}</RimWorldAccess.Prisoner.Info.IdeoConversionTarget>
 
   <!-- Last recruitment attempt breakdown. -->
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>Остання спроба вербування</RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>Зменшення опору: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>Рекрутер: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>Фактор настрою: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>Навички перемовин: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>Фактор думки: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>
 
   <!-- Slave stats block. -->
   <RimWorldAccess.Prisoner.Slave.Suppression>Пригнічення: {0}</RimWorldAccess.Prisoner.Slave.Suppression>
-  <RimWorldAccess.Prisoner.Slave.SuppressionFallRate>Швидкість спаду пригнічення: {0} на день</RimWorldAccess.Prisoner.Slave.SuppressionFallRate>
-  <RimWorldAccess.Prisoner.Slave.Terror>Жах: {0}</RimWorldAccess.Prisoner.Slave.Terror>
-  <RimWorldAccess.Prisoner.Slave.RebellionAsleep>Інтервал повстання раба: не під час сну</RimWorldAccess.Prisoner.Slave.RebellionAsleep>
-  <RimWorldAccess.Prisoner.Slave.RebellionNever>Інтервал повстання раба: ніколи</RimWorldAccess.Prisoner.Slave.RebellionNever>
-  <RimWorldAccess.Prisoner.Slave.RebellionPeriod>Інтервал повстання раба: {0}</RimWorldAccess.Prisoner.Slave.RebellionPeriod>
 
   <!-- Release relation gain summary (shared between prisoner and slave paths).
        {0} = faction name, {1} = signed goodwill change (e.g. "+3" / "-7"),
        {2} = mental state inspect line. -->
-  <RimWorldAccess.Prisoner.Release.None>Немає</RimWorldAccess.Prisoner.Release.None>
-  <RimWorldAccess.Prisoner.Release.FactionChange>{0} {1}</RimWorldAccess.Prisoner.Release.FactionChange>
-  <RimWorldAccess.Prisoner.Release.NoneUntended>Немає (нелікована травма)</RimWorldAccess.Prisoner.Release.NoneUntended>
-  <RimWorldAccess.Prisoner.Release.NoneMentalState>Немає ({0})</RimWorldAccess.Prisoner.Release.NoneMentalState>
 
   <!-- Medical care category labels. Used in the care-level stepper. -->
-  <RimWorldAccess.Prisoner.MedicalCare.NoCare>Без допомоги</RimWorldAccess.Prisoner.MedicalCare.NoCare>
-  <RimWorldAccess.Prisoner.MedicalCare.NoMeds>Без ліків</RimWorldAccess.Prisoner.MedicalCare.NoMeds>
-  <RimWorldAccess.Prisoner.MedicalCare.HerbalOrWorse>Лікарські трави або гірше</RimWorldAccess.Prisoner.MedicalCare.HerbalOrWorse>
-  <RimWorldAccess.Prisoner.MedicalCare.NormalOrWorse>Звичайні або гірше</RimWorldAccess.Prisoner.MedicalCare.NormalOrWorse>
-  <RimWorldAccess.Prisoner.MedicalCare.Best>Найкращі</RimWorldAccess.Prisoner.MedicalCare.Best>
-  <RimWorldAccess.Prisoner.MedicalCare.Announce>Медична допомога: {0}</RimWorldAccess.Prisoner.MedicalCare.Announce>
-  <RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>Медична допомога: {0}. Використовуйте стрілки вгору/вниз для зміни</RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>
   <!-- Standalone hint appended to a section announcement when entering the medical care row. -->
-  <RimWorldAccess.Prisoner.MedicalCare.AdjustHint>Використовуйте стрілки вгору/вниз для зміни</RimWorldAccess.Prisoner.MedicalCare.AdjustHint>
 
   <!-- Interaction mode descriptions - warning suffixes appended after the
        def's own description through AnnouncementBuilder. {0} = ideo name. -->
-  <RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>УВАГА: немає наглядача, здатного поневолювати</RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>
-  <RimWorldAccess.Prisoner.Warning.NoViolenceWarden>УВАГА: немає наглядача, здатного застосовувати насильство</RimWorldAccess.Prisoner.Warning.NoViolenceWarden>
-  <RimWorldAccess.Prisoner.Warning.NoIdeoWarden>УВАГА: немає наглядача віри {0}</RimWorldAccess.Prisoner.Warning.NoIdeoWarden>
-  <RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>. УВАГА: немає наглядача цієї віри</RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>
 
   <!-- Slave emancipation outcome suffixes. {0} = slave faction name. -->
-  <RimWorldAccess.Prisoner.Emancipate.BecomeColonist>Стане колоністом</RimWorldAccess.Prisoner.Emancipate.BecomeColonist>
-  <RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>Стане вільним, без фракції</RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>
-  <RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>Повернеться до фракції {0}</RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>
 
   <!-- Tab open / close announcements. -->
   <RimWorldAccess.Prisoner.Tab.Closed>Вкладку в'язня закрито</RimWorldAccess.Prisoner.Tab.Closed>
@@ -109,20 +64,14 @@
 
   <!-- Item-level announcements during navigation.
        Active/Current markers are placed at the start of the item line. -->
-  <RimWorldAccess.Prisoner.Item.MarkerActive>[АКТИВНО] </RimWorldAccess.Prisoner.Item.MarkerActive>
-  <RimWorldAccess.Prisoner.Item.MarkerCurrent>[ПОТОЧНИЙ] </RimWorldAccess.Prisoner.Item.MarkerCurrent>
   <RimWorldAccess.Prisoner.Item.StateOn>[УВІМКНЕНО]</RimWorldAccess.Prisoner.Item.StateOn>
   <RimWorldAccess.Prisoner.Item.StateOff>[ВИМКНЕНО]</RimWorldAccess.Prisoner.Item.StateOff>
-  <RimWorldAccess.Prisoner.Item.ModeWithDescription>{0}{1}. {2}</RimWorldAccess.Prisoner.Item.ModeWithDescription>
   <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0}: {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
   <RimWorldAccess.Prisoner.Item.SelectedSuffix>, вибрано</RimWorldAccess.Prisoner.Item.SelectedSuffix>
-  <RimWorldAccess.Prisoner.Item.Ideo>{0}{1}</RimWorldAccess.Prisoner.Item.Ideo>
 
   <!-- Selection / toggle action feedback. -->
   <RimWorldAccess.Prisoner.Action.Selected>Вибрано: {0}. {1}</RimWorldAccess.Prisoner.Action.Selected>
   <RimWorldAccess.Prisoner.Action.ToggleEnabled>Увімкнено</RimWorldAccess.Prisoner.Action.ToggleEnabled>
   <RimWorldAccess.Prisoner.Action.ToggleDisabled>Вимкнено</RimWorldAccess.Prisoner.Action.ToggleDisabled>
   <RimWorldAccess.Prisoner.Action.ToggleMode>{0}: {1}</RimWorldAccess.Prisoner.Action.ToggleMode>
-  <RimWorldAccess.Prisoner.Action.ConversionTarget>Ціль навернення: {0}{1}</RimWorldAccess.Prisoner.Action.ConversionTarget>
-  <RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning>Увага: страта раба з нейтральної фракції {0}. Виберіть знову для підтвердження.</RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning>
 </LanguageData>

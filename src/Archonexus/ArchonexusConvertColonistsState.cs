@@ -186,8 +186,10 @@ namespace RimWorldAccess
             // they now keep so the player hears the consequence of leaving them unconverted.
             bool nowConverting = newIdeo == target;
             TolkHelper.SpeakData(nowConverting
-                ? "Selected"
-                : (newIdeo != null ? $"Not selected. Currently {newIdeo.name}" : "Not selected"));
+                ? "RimWorldAccess.Archonexus.Convert.Selected".Translate().ToString()
+                : (newIdeo != null
+                    ? "RimWorldAccess.Archonexus.Convert.NotSelectedCurrently".Translate(newIdeo.name).ToString()
+                    : "RimWorldAccess.Archonexus.Convert.NotSelected".Translate().ToString()));
         }
 
         #endregion

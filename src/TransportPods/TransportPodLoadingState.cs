@@ -965,7 +965,9 @@ namespace RimWorldAccess
                 selectedIndex = savedIndex;
                 typeahead.ClearSearch();
 
-                string tabName = currentTab == Tab.Pawns ? "Pawns" : "Items";
+                string tabName = currentTab == Tab.Pawns
+                    ? (string)"RimWorldAccess.TransportPods.Loading.TabPawns".Translate()
+                    : (string)"RimWorldAccess.TransportPods.Loading.TabItems".Translate();
                 TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.ReturnedToTab".Translate(tabName));
                 AnnounceCurrentItem();
             }
@@ -1020,7 +1022,7 @@ namespace RimWorldAccess
 
             string item = summaryItems[summaryIndex];
             string position = MenuHelper.FormatPosition(summaryIndex, summaryItems.Count);
-            TolkHelper.SpeakData($"{item}. {position}");
+            TolkHelper.SpeakData((string)"RimWorldAccess.TransportPods.Loading.SummaryItemAnnouncement".Translate(item, position));
         }
 
         /// <summary>

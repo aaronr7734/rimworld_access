@@ -130,15 +130,12 @@
        agreement; the pod-noun key is inlined into the sentence so word order
        stays natural across languages.
        {0} = pod count, {1} = total mass capacity. -->
-  <RimWorldAccess.TransportPods.Loading.PodNounOne>pod</RimWorldAccess.TransportPods.Loading.PodNounOne>
-  <RimWorldAccess.TransportPods.Loading.PodNounMany>pods</RimWorldAccess.TransportPods.Loading.PodNounMany>
   <RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>Load transport pod. {0} pod, {1} kg capacity. Left/Right for tabs, Enter to adjust.</RimWorldAccess.TransportPods.Loading.OpenAnnouncementOne>
   <RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>Load transport pods. {0} pods, {1} kg capacity. Left/Right for tabs, Enter to adjust.</RimWorldAccess.TransportPods.Loading.OpenAnnouncementMany>
 
   <!-- Tab navigation. -->
   <RimWorldAccess.TransportPods.Loading.TabPawns>Pawns</RimWorldAccess.TransportPods.Loading.TabPawns>
   <RimWorldAccess.TransportPods.Loading.TabItems>Items</RimWorldAccess.TransportPods.Loading.TabItems>
-  <RimWorldAccess.TransportPods.Loading.TabAnnouncement>{0} tab, {1} items</RimWorldAccess.TransportPods.Loading.TabAnnouncement>
   <RimWorldAccess.TransportPods.Loading.ReturnedToTab>Returned to {0} tab</RimWorldAccess.TransportPods.Loading.ReturnedToTab>
 
   <!-- Shared empty-tab feedback (spoken in multiple navigation paths). -->

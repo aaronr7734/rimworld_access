@@ -92,4 +92,10 @@
   <RimWorldAccess.Ideology.Builder.Status.Removed>removed</RimWorldAccess.Ideology.Builder.Status.Removed>
   <RimWorldAccess.Ideology.Builder.Status.Reformed>reformed</RimWorldAccess.Ideology.Builder.Status.Reformed>
   <RimWorldAccess.Ideology.Builder.Status.Yours>yours</RimWorldAccess.Ideology.Builder.Status.Yours>
+
+  <!-- Discard confirmation when backing out of the ideoligion builder. -->
+  <RimWorldAccess.Ideology.Builder.DiscardConfirm>Going back will discard this custom ideoligion. Continue?</RimWorldAccess.Ideology.Builder.DiscardConfirm>
+  <RimWorldAccess.Ideology.Builder.DiscardContinue>Continue</RimWorldAccess.Ideology.Builder.DiscardContinue>
+  <RimWorldAccess.Ideology.Builder.DiscardCancel>Cancel</RimWorldAccess.Ideology.Builder.DiscardCancel>
+
 </LanguageData>

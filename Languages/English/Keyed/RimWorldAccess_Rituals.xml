@@ -23,7 +23,6 @@
   -->
 
   <!-- Dialog lifecycle (RitualPatch.cs). -->
-  <RimWorldAccess.Rituals.Dialog.Closed>Ritual dialog closed.</RimWorldAccess.Rituals.Dialog.Closed>
   <RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator>Keyboard Mode Active</RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator>
 
   <!-- Opening announcement (RitualState.Open).
@@ -43,10 +42,6 @@
        RitualStatFormatter.FormatQualitySummary).
        Single: {0} = single percentage (min == max).
        Range:  {0} = min percentage, {1} = max percentage. -->
-  <RimWorldAccess.Rituals.Open.ExpectedQualitySingle>Expected quality: {0}.</RimWorldAccess.Rituals.Open.ExpectedQualitySingle>
-  <RimWorldAccess.Rituals.Open.ExpectedQualityRange>Expected quality: {0} to {1}.</RimWorldAccess.Rituals.Open.ExpectedQualityRange>
-  <RimWorldAccess.Rituals.Quality.ExpectedQualitySingle>Expected Quality: {0}.</RimWorldAccess.Rituals.Quality.ExpectedQualitySingle>
-  <RimWorldAccess.Rituals.Quality.ExpectedQualityRange>Expected Quality: {0} to {1}.</RimWorldAccess.Rituals.Quality.ExpectedQualityRange>
 
   <!-- Role announcement composition (RitualStatFormatter.FormatRoleAnnouncement).
        The role/spectator label is emitted first, followed by one of the count
@@ -92,13 +87,10 @@
        factors. ExpectedQualitySummaryTooltip: description for that row. -->
   <RimWorldAccess.Rituals.Quality.UnknownFactor>Unknown</RimWorldAccess.Rituals.Quality.UnknownFactor>
   <RimWorldAccess.Rituals.Quality.ExpectedQualityLabel>Expected Quality</RimWorldAccess.Rituals.Quality.ExpectedQualityLabel>
-  <RimWorldAccess.Rituals.Quality.ExpectedQualityTooltip>The overall expected quality of this ritual based on all factors.</RimWorldAccess.Rituals.Quality.ExpectedQualityTooltip>
 
   <!-- No-data fallbacks (RitualState.BuildQualityStatsList).
        NoQualityFactorsLabel: row label when a ritual has zero quality factors.
        NoQualityFactorsTooltip: description spoken via Alt+I. -->
-  <RimWorldAccess.Rituals.Quality.NoQualityFactorsLabel>No quality factors</RimWorldAccess.Rituals.Quality.NoQualityFactorsLabel>
-  <RimWorldAccess.Rituals.Quality.NoQualityFactorsTooltip>This ritual does not have quality factors that affect its outcome.</RimWorldAccess.Rituals.Quality.NoQualityFactorsTooltip>
   <RimWorldAccess.Rituals.Quality.Unavailable>Quality stats unavailable</RimWorldAccess.Rituals.Quality.Unavailable>
 
   <!-- Location row prepended to the quality-stats list (RitualState.BuildQualityStatsList,
@@ -124,15 +116,12 @@
 
   <!-- Fallback labels used by RitualTreeBuilder when game data is missing. -->
   <RimWorldAccess.Rituals.Fallback.Spectators>Spectators</RimWorldAccess.Rituals.Fallback.Spectators>
-  <RimWorldAccess.Rituals.Fallback.Ritual>Ritual</RimWorldAccess.Rituals.Fallback.Ritual>
   <RimWorldAccess.Rituals.Fallback.Role>role</RimWorldAccess.Rituals.Fallback.Role>
 
   <!-- Pawn-selection mode transitions (RitualState.EnterPawnSelection / ExitPawnSelection).
        EnterInstructions: {0} = role label, {1} = candidate-count clause below.
        CandidateCountOne/Many: {0} = count; split for English "1 candidate" vs
        "N candidates". -->
-  <RimWorldAccess.Rituals.PawnSelection.NoRoleSelected>No role selected.</RimWorldAccess.Rituals.PawnSelection.NoRoleSelected>
-  <RimWorldAccess.Rituals.PawnSelection.RoleLocked>Role is locked. All assigned pawns are required by the ritual.</RimWorldAccess.Rituals.PawnSelection.RoleLocked>
   <RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns>No eligible pawns for this role.</RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns>
   <RimWorldAccess.Rituals.PawnSelection.CandidateCountOne>{0} candidate</RimWorldAccess.Rituals.PawnSelection.CandidateCountOne>
   <RimWorldAccess.Rituals.PawnSelection.CandidateCountMany>{0} candidates</RimWorldAccess.Rituals.PawnSelection.CandidateCountMany>
@@ -169,12 +158,9 @@
   <RimWorldAccess.Rituals.QualityStats.NoBreakdown>No detailed breakdown available for this factor.</RimWorldAccess.Rituals.QualityStats.NoBreakdown>
 
   <!-- Start ritual (RitualState.StartRitual). -->
-  <RimWorldAccess.Rituals.Start.NoDialog>No ritual dialog open.</RimWorldAccess.Rituals.Start.NoDialog>
-  <RimWorldAccess.Rituals.Start.CannotStart>Cannot start ritual. {0}</RimWorldAccess.Rituals.Start.CannotStart>
 
   <!-- Blocking issues surfaced during Open (RitualState.GetBlockingIssues).
        DraftedParticipants is spoken when any assigned participant is drafted. -->
-  <RimWorldAccess.Rituals.Warning.DraftedParticipants>Some participants are drafted.</RimWorldAccess.Rituals.Warning.DraftedParticipants>
 
   <!-- LordJobDialogState generic messages (covers ritual, psychic-ritual, gravship launch).
        These are intentionally distinct from the Ritual-specific keys above which mention

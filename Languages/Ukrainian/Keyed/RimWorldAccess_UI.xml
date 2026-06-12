@@ -59,13 +59,8 @@
   <RimWorldAccess.UI.Save.NoFiles>Немає доступних файлів збереження</RimWorldAccess.UI.Save.NoFiles>
   <RimWorldAccess.UI.Save.InvalidSelection>Недійсний вибір збереження</RimWorldAccess.UI.Save.InvalidSelection>
   <RimWorldAccess.UI.Save.NeedName>Потрібна назва для файлу збереження</RimWorldAccess.UI.Save.NeedName>
-  <RimWorldAccess.UI.Save.SavedAs>Збережено як {0}</RimWorldAccess.UI.Save.SavedAs>
-  <RimWorldAccess.UI.Save.Loading>Завантаження: {0}</RimWorldAccess.UI.Save.Loading>
   <RimWorldAccess.UI.Save.CannotDeleteCreateNew>Неможливо видалити пункт «Створити нове збереження»</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
   <!-- {0} = file name (stripped of extension). -->
-  <RimWorldAccess.UI.Save.DeleteConfirmPrompt>Видалити {0}? Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Save.DeleteConfirmPrompt>
-  <RimWorldAccess.UI.Save.Deleted>Видалено: {0}</RimWorldAccess.UI.Save.Deleted>
-  <RimWorldAccess.UI.Save.DeleteCancelled>Видалення скасовано</RimWorldAccess.UI.Save.DeleteCancelled>
   <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
        {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
        date-time, {2} = position. -->
@@ -115,8 +110,6 @@
        suffix. Each prompt is a whole-phrase key so translators can vary
        wording for politeness register (e.g. "Quit to desktop?" might be
        expressed differently in some locales). -->
-  <RimWorldAccess.UI.Pause.QuitMainMenuPrompt>Підтвердити вихід до головного меню? Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Pause.QuitMainMenuPrompt>
-  <RimWorldAccess.UI.Pause.QuitDesktopPrompt>Підтвердити вихід на робочий стіл? Натисніть Enter для підтвердження, Escape для скасування</RimWorldAccess.UI.Pause.QuitDesktopPrompt>
   <RimWorldAccess.UI.Pause.ResumedGame>Гру відновлено</RimWorldAccess.UI.Pause.ResumedGame>
 
   <!-- =================================================================

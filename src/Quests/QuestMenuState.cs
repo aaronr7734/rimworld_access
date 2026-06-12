@@ -1020,7 +1020,9 @@ namespace RimWorldAccess
 
             // Difficulty
             int rating = Math.Max(quest.challengeRating, 1);
-            string ratingLine = $"{"Difficulty".Translate()}: {rating} star{(rating == 1 ? "" : "s")}";
+            string ratingLine = rating == 1
+                ? "RimWorldAccess.Quests.Detail.DifficultyOne".Translate().ToString()
+                : "RimWorldAccess.Quests.Detail.DifficultyMany".Translate(rating).ToString();
             if (quest.charity)
                 ratingLine += "RimWorldAccess.Quests.Detail.CharitySuffix".Translate();
             lines.Add(new DetailLine(ratingLine));
@@ -1028,7 +1030,8 @@ namespace RimWorldAccess
             // Time info
             if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry > 0)
             {
-                lines.Add(new DetailLine("QuestExpiresIn".Translate(quest.TicksUntilExpiry.ToStringTicksToPeriod()).ToString()));
+                lines.Add(new DetailLine("RimWorldAccess.Quests.Detail.ExpiresIn".Translate(
+                    quest.TicksUntilExpiry.ToStringTicksToPeriod()).ToString()));
             }
             else if (quest.EverAccepted && !quest.Historical)
             {
@@ -1122,7 +1125,7 @@ namespace RimWorldAccess
                     {
                         string rewardDesc = QuestRewardHelper.BuildRewardDescription(choicePart.choices[0].rewards);
                         if (!string.IsNullOrEmpty(rewardDesc))
-                            acceptLabel = $"{acceptLabel}: {rewardDesc}";
+                            acceptLabel = "RimWorldAccess.Quests.Button.AcceptWithRewards".Translate(rewardDesc);
                     }
                     buttons.Add(new ButtonInfo
                     {
@@ -1158,7 +1161,7 @@ namespace RimWorldAccess
                 // Dismiss button for available quests
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "CommandShuttleDismiss".Translate(),
+                    Label = "RimWorldAccess.Quests.Button.Dismiss".Translate(),
                     Action = () =>
                     {
                         quest.dismissed = true;
@@ -1175,7 +1178,9 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = quest.dismissed ? "Resume" : ((string)"CommandShuttleDismiss".Translate()),
+                    Label = (quest.dismissed
+                        ? "RimWorldAccess.Quests.Button.Resume"
+                        : "RimWorldAccess.Quests.Button.Dismiss").Translate(),
                     Action = () =>
                     {
                         quest.dismissed = !quest.dismissed;
@@ -1195,7 +1200,7 @@ namespace RimWorldAccess
             {
                 buttons.Add(new ButtonInfo
                 {
-                    Label = "Delete".Translate(),
+                    Label = "RimWorldAccess.Quests.Button.Delete".Translate(),
                     Action = () =>
                     {
                         quest.hiddenInUI = true;
@@ -1216,8 +1221,8 @@ namespace RimWorldAccess
                 GlobalTargetInfo localTarget = target;
                 string targetLabel = localTarget.Label;
                 string buttonLabel = string.IsNullOrEmpty(targetLabel)
-                    ? "Jump to location"
-                    : (string)"JumpToTargetCustom".Translate(targetLabel);
+                    ? (string)"RimWorldAccess.Quests.Button.JumpToLocation".Translate()
+                    : (string)"RimWorldAccess.Quests.Button.JumpToTarget".Translate(targetLabel);
 
                 buttons.Add(new ButtonInfo
                 {
@@ -1404,7 +1409,7 @@ namespace RimWorldAccess
         {
             if (quest.State == QuestState.NotYetAccepted && quest.TicksUntilExpiry >= 0)
             {
-                return "QuestExpiresIn".Translate(
+                return "RimWorldAccess.Quests.List.ExpiresIn".Translate(
                     quest.TicksUntilExpiry.ToStringTicksToPeriod(allowSeconds: true, shortForm: true)).ToString();
             }
             else if (quest.Historical)
@@ -1427,7 +1432,7 @@ namespace RimWorldAccess
                             delayPart.TicksLeft.ToStringTicksToPeriod(allowSeconds: false, shortForm: true, canUseDecimals: false)).ToString();
                     }
                 }
-                return (string)"RimWorldAccess.Quests.AcceptedAgo".Translate(quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true));
+                return (string)"RimWorldAccess.Quests.List.AcceptedAgo".Translate(quest.TicksSinceAccepted.ToStringTicksToPeriod(allowSeconds: false, shortForm: true));
             }
 
             return "";
@@ -1438,11 +1443,11 @@ namespace RimWorldAccess
             switch (currentTab)
             {
                 case QuestsTab.Available:
-                    return "AvailableQuests".Translate();
+                    return "RimWorldAccess.Quests.Tab.Available".Translate();
                 case QuestsTab.Active:
-                    return "ActiveQuests".Translate();
+                    return "RimWorldAccess.Quests.Tab.Active".Translate();
                 case QuestsTab.Historical:
-                    return "HistoricalQuests".Translate();
+                    return "RimWorldAccess.Quests.Tab.Historical".Translate();
                 default:
                     return "RimWorldAccess.Quests.Tab.Generic".Translate();
             }

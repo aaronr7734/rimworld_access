@@ -868,29 +868,32 @@ namespace RimWorldAccess
         {
             string task = pawn.GetJobReport();
             if (string.IsNullOrEmpty(task))
-                task = "Idle";
+                task = "RimWorldAccess.Pawns.Bar.Idle".Translate();
 
-            string announcement = pawn.LabelShort;
-
+            // Build the middle context (location and/or cover) shown between the
+            // pawn name and its task.
+            var contextParts = new List<string>();
             if (pawn.Spawned && pawn.Map != null)
             {
                 string location = TileInfoHelper.GetLocationContextPlain(pawn.Position, pawn.Map);
                 if (!string.IsNullOrEmpty(location))
-                    announcement += $", {location}";
+                    contextParts.Add(location);
             }
 
             if (RimWorldAccessMod_Settings.Settings?.ShowCoverInfo ?? true)
             {
                 string coverInfo = CoverHelper.GetCoverInfo(pawn);
                 if (!string.IsNullOrEmpty(coverInfo))
-                    announcement += $", {coverInfo}";
+                    contextParts.Add(coverInfo);
             }
 
-            announcement += $" - {task}";
+            string announcement = contextParts.Count > 0
+                ? "RimWorldAccess.Pawns.Bar.PawnTaskWithCover".Translate(pawn.LabelShort, contextParts.ToCommaList(useAnd: false), task).ToString()
+                : "RimWorldAccess.Pawns.Bar.PawnTask".Translate(pawn.LabelShort, task).ToString();
 
             string positionPart = MenuHelper.FormatPosition(barPosition, totalInSection);
             if (!string.IsNullOrEmpty(positionPart))
-                announcement += $". {positionPart}";
+                announcement = "RimWorldAccess.Pawns.Bar.WithPosition".Translate(announcement, positionPart).ToString();
 
             TolkHelper.SpeakData(announcement);
         }

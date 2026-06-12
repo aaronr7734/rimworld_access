@@ -36,16 +36,6 @@
        ================================================================= -->
   <RimWorldAccess.Inspection.Summary.Unknown>未知对象</RimWorldAccess.Inspection.Summary.Unknown>
   <RimWorldAccess.Inspection.Summary.Pawn>角色: {0}</RimWorldAccess.Inspection.Summary.Pawn>
-  <RimWorldAccess.Inspection.Summary.PawnDead>角色: {0}（已死亡）</RimWorldAccess.Inspection.Summary.PawnDead>
-  <RimWorldAccess.Inspection.Summary.PawnDowned>角色: {0}（倒地）</RimWorldAccess.Inspection.Summary.PawnDowned>
-  <RimWorldAccess.Inspection.Summary.PawnDrafted>角色: {0}（已征召）</RimWorldAccess.Inspection.Summary.PawnDrafted>
-  <RimWorldAccess.Inspection.Summary.Animal>动物: {0}</RimWorldAccess.Inspection.Summary.Animal>
-  <RimWorldAccess.Inspection.Summary.AnimalDead>动物: {0}（已死亡）</RimWorldAccess.Inspection.Summary.AnimalDead>
-  <RimWorldAccess.Inspection.Summary.AnimalDowned>动物: {0}（倒地）</RimWorldAccess.Inspection.Summary.AnimalDowned>
-  <RimWorldAccess.Inspection.Summary.AnimalDrafted>动物: {0}（已征召）</RimWorldAccess.Inspection.Summary.AnimalDrafted>
-  <RimWorldAccess.Inspection.Summary.Building>建筑: {0}</RimWorldAccess.Inspection.Summary.Building>
-  <RimWorldAccess.Inspection.Summary.Plant>植物: {0}</RimWorldAccess.Inspection.Summary.Plant>
-  <RimWorldAccess.Inspection.Summary.Item>物品: {0}</RimWorldAccess.Inspection.Summary.Item>
   <RimWorldAccess.Inspection.Summary.Zone>{0}（{1}）</RimWorldAccess.Inspection.Summary.Zone>
   <!-- Master-merge additions: pawn summary now uses KindLabel prefix and
        a generic status suffix rather than per-kind×status whole phrases.
@@ -167,11 +157,6 @@
        label. RangeLabel.HitPoints: {0} = min %, {1} = max %.
        RangeLabel.Quality: {0} = min QualityCategory, {1} = max
        QualityCategory. -->
-  <RimWorldAccess.Inspection.Storage.PriorityLabel>优先级: {0}</RimWorldAccess.Inspection.Storage.PriorityLabel>
-  <RimWorldAccess.Inspection.Storage.ClearAll>全部清除</RimWorldAccess.Inspection.Storage.ClearAll>
-  <RimWorldAccess.Inspection.Storage.AllowAll>全部允许</RimWorldAccess.Inspection.Storage.AllowAll>
-  <RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints>耐久度: {0} - {1}</RimWorldAccess.Inspection.Storage.RangeLabel.HitPoints>
-  <RimWorldAccess.Inspection.Storage.RangeLabel.Quality>品质: {0} - {1}</RimWorldAccess.Inspection.Storage.RangeLabel.Quality>
 
   <!-- Toggle result. {0} = item / category label; the state words are
        split into one whole-phrase key per (state, capitalization) so
@@ -214,13 +199,9 @@
   <RimWorldAccess.Inspection.Storage.NoInfoCard>无可用信息卡</RimWorldAccess.Inspection.Storage.NoInfoCard>
 
   <!-- Bulk action results. -->
-  <RimWorldAccess.Inspection.Storage.ClearedAllItems>已清除全部物品</RimWorldAccess.Inspection.Storage.ClearedAllItems>
-  <RimWorldAccess.Inspection.Storage.AllowedAllItems>已允许全部物品</RimWorldAccess.Inspection.Storage.AllowedAllItems>
 
   <!-- Expand-all-siblings results when * is pressed. AllAlreadyExpanded /
        NoneToExpand cover the edge cases where the action is a no-op. -->
-  <RimWorldAccess.Inspection.Storage.AllAlreadyExpanded>此层级所有类别均已展开</RimWorldAccess.Inspection.Storage.AllAlreadyExpanded>
-  <RimWorldAccess.Inspection.Storage.NoneToExpand>此层级没有可展开的类别</RimWorldAccess.Inspection.Storage.NoneToExpand>
 
   <!-- Range editing announcements (StorageSettingsMenuPatch). Spoken
        after Enter applies the new range or Escape discards it.
@@ -229,13 +210,11 @@
        since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>已应用范围更改</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>已取消范围编辑</RimWorldAccess.Inspection.Storage.RangeCancelled>
-  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>按回车键编辑范围</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->
   <RimWorldAccess.Inspection.Storage.MenuClosed>已关闭储存设置菜单</RimWorldAccess.Inspection.Storage.MenuClosed>
   <RimWorldAccess.Inspection.Storage.PlantSelectionClosed>已关闭植物选择菜单</RimWorldAccess.Inspection.Storage.PlantSelectionClosed>
-  <RimWorldAccess.Inspection.Storage.PlaySettingsClosed>已关闭游戏设置菜单</RimWorldAccess.Inspection.Storage.PlaySettingsClosed>
 
   <!-- =================================================================
        ThingFilter tree-navigation state (ThingFilterNavigationState).
@@ -813,9 +792,6 @@
   <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
        PowerConsumption: {0} = wattage. -->
   <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
-  <RimWorldAccess.Inspection.Building.PowerConsumption>消耗: {0} 瓦</RimWorldAccess.Inspection.Building.PowerConsumption>
-  <RimWorldAccess.Inspection.Building.PowerOff>当前电力已关闭或不可用。</RimWorldAccess.Inspection.Building.PowerOff>
-  <RimWorldAccess.Inspection.Building.NoPower>该建筑不使用电力。</RimWorldAccess.Inspection.Building.NoPower>
 
   <!-- Bed assignment. -->
   <RimWorldAccess.Inspection.Building.PrisonBed>类型: 囚犯床</RimWorldAccess.Inspection.Building.PrisonBed>
@@ -1116,9 +1092,7 @@
   <RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>已关闭物品筛选菜单</RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>
   <RimWorldAccess.Inspection.Patch.CancelledRangeEditing>已取消范围编辑</RimWorldAccess.Inspection.Patch.CancelledRangeEditing>
   <RimWorldAccess.Inspection.Patch.AppliedRangeChanges>已应用范围更改</RimWorldAccess.Inspection.Patch.AppliedRangeChanges>
-  <RimWorldAccess.Inspection.Patch.ClosedPowerControl>已关闭电力控制菜单</RimWorldAccess.Inspection.Patch.ClosedPowerControl>
   <RimWorldAccess.Inspection.Patch.ClosedFuelSettings>已关闭燃料设置菜单</RimWorldAccess.Inspection.Patch.ClosedFuelSettings>
-  <RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>已关闭故障状态视图</RimWorldAccess.Inspection.Patch.ClosedBreakdownStatus>
   <RimWorldAccess.Inspection.Patch.ClosedDoorControls>已关闭门控制</RimWorldAccess.Inspection.Patch.ClosedDoorControls>
   <RimWorldAccess.Inspection.Patch.ClosedForbidControls>已关闭禁用控制</RimWorldAccess.Inspection.Patch.ClosedForbidControls>
   <RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>已关闭钓鱼区菜单</RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>

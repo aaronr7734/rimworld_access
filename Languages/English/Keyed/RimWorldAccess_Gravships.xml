@@ -79,4 +79,7 @@
        label spoken when the user navigates onto a disconnected cluster. -->
   <RimWorldAccess.Gravships.Substructure.CategoryLabel>Disconnected Substructure</RimWorldAccess.Gravships.Substructure.CategoryLabel>
   <RimWorldAccess.Gravships.Substructure.ItemLabel>Disconnected substructure</RimWorldAccess.Gravships.Substructure.ItemLabel>
+
+  <!-- Gravship rename gizmo description (vanilla has none). -->
+  <RimWorldAccess.Gravships.Engine.RenameDesc>Rename this gravship.</RimWorldAccess.Gravships.Engine.RenameDesc>
 </LanguageData>

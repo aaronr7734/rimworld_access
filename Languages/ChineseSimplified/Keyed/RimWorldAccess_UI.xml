@@ -59,13 +59,8 @@
   <RimWorldAccess.UI.Save.NoFiles>没有可用的存档文件</RimWorldAccess.UI.Save.NoFiles>
   <RimWorldAccess.UI.Save.InvalidSelection>无效的存档选择</RimWorldAccess.UI.Save.InvalidSelection>
   <RimWorldAccess.UI.Save.NeedName>需要为存档文件输入名称</RimWorldAccess.UI.Save.NeedName>
-  <RimWorldAccess.UI.Save.SavedAs>已保存为 {0}</RimWorldAccess.UI.Save.SavedAs>
-  <RimWorldAccess.UI.Save.Loading>正在载入 {0}</RimWorldAccess.UI.Save.Loading>
   <RimWorldAccess.UI.Save.CannotDeleteCreateNew>无法删除“新建存档”选项</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
   <!-- {0} = file name (stripped of extension). -->
-  <RimWorldAccess.UI.Save.DeleteConfirmPrompt>删除 {0}？按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Save.DeleteConfirmPrompt>
-  <RimWorldAccess.UI.Save.Deleted>已删除 {0}</RimWorldAccess.UI.Save.Deleted>
-  <RimWorldAccess.UI.Save.DeleteCancelled>已取消删除</RimWorldAccess.UI.Save.DeleteCancelled>
   <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
        {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
        date-time, {2} = position. -->
@@ -115,8 +110,6 @@
        suffix. Each prompt is a whole-phrase key so translators can vary
        wording for politeness register (e.g. "Quit to desktop?" might be
        expressed differently in some locales). -->
-  <RimWorldAccess.UI.Pause.QuitMainMenuPrompt>确认退出到主菜单？按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Pause.QuitMainMenuPrompt>
-  <RimWorldAccess.UI.Pause.QuitDesktopPrompt>确认退出到桌面？按回车键确认，按 Esc 键取消</RimWorldAccess.UI.Pause.QuitDesktopPrompt>
   <RimWorldAccess.UI.Pause.ResumedGame>已恢复游戏</RimWorldAccess.UI.Pause.ResumedGame>
 
   <!-- =================================================================

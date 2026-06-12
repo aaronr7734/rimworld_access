@@ -184,7 +184,7 @@ namespace RimWorldAccess
                     case ColumnType.Name: return "RimWorldAccess.Animals.Column.Name".Translate().ToString();
                     case ColumnType.Gender: return "Sex".Translate().Resolve();
                     case ColumnType.Age: return "RimWorldAccess.Animals.Column.Age".Translate().ToString();
-                    case ColumnType.LifeStage: return "LifeStage".Translate().Resolve();
+                    case ColumnType.LifeStage: return "RimWorldAccess.Animals.Column.LifeStage".Translate().Resolve();
                     case ColumnType.Pregnant: return HediffDefOf.Pregnant.LabelCap.Resolve();
                     default: return type.ToString();
                 }
@@ -213,17 +213,17 @@ namespace RimWorldAccess
         {
             switch (type)
             {
-                case ColumnType.SpecialTrainable: return "SpecialTraining".Translate().Resolve();
+                case ColumnType.SpecialTrainable: return "RimWorldAccess.Animals.Column.SpecialTraining".Translate().Resolve();
                 case ColumnType.FollowDrafted: return "CreatureFollowDrafted".Translate().Resolve();
                 case ColumnType.FollowFieldwork: return "CreatureFollowFieldwork".Translate().Resolve();
                 case ColumnType.AnimalDig: return "DigEnabled".Translate().Resolve();
                 case ColumnType.AnimalForage: return "ForageEnabled".Translate().Resolve();
                 case ColumnType.Master: return "Master".Translate().Resolve();
-                case ColumnType.MentalState: return "MentalState".Translate().Resolve();
-                case ColumnType.Bond: return "BondInfo".Translate().Resolve();
-                case ColumnType.Sterile: return "Sterile".Translate().Resolve();
+                case ColumnType.MentalState: return "RimWorldAccess.Animals.Column.MentalState".Translate().Resolve();
+                case ColumnType.Bond: return "RimWorldAccess.Animals.Column.BondInfo".Translate().Resolve();
+                case ColumnType.Sterile: return "RimWorldAccess.Animals.Column.Sterile".Translate().Resolve();
                 case ColumnType.Slaughter: return "DesignatorSlaughter".Translate().Resolve();
-                case ColumnType.MedicalCare: return "MedicalCare".Translate().Resolve();
+                case ColumnType.MedicalCare: return "RimWorldAccess.Animals.Column.MedicalCare".Translate().Resolve();
                 case ColumnType.ReleaseToWild: return "DesignatorReleaseAnimalToWild".Translate().Resolve();
                 case ColumnType.AllowedArea: return "AllowedArea".Translate().Resolve();
                 default: return type.ToString().Replace("_", " ");
@@ -726,7 +726,7 @@ namespace RimWorldAccess
                 string bondText = "BondedTo".Translate().Resolve() + " " + bondedPawn.LabelShort;
                 if (bondBroken)
                 {
-                    bondText += " (" + "BondBroken".Translate().Resolve() + ")";
+                    bondText += " (" + "RimWorldAccess.Animals.Value.BondBroken".Translate().Resolve() + ")";
                 }
                 return bondText;
             }
@@ -763,7 +763,7 @@ namespace RimWorldAccess
             // Sterilization scheduled (interactive - can cancel)
             if (HasSterilizationScheduled(pawn))
             {
-                return "Scheduled".Translate().Resolve();
+                return "RimWorldAccess.Animals.Value.Scheduled".Translate().Resolve();
             }
 
             // Not scheduled (interactive - can schedule)
@@ -825,7 +825,7 @@ namespace RimWorldAccess
             Area area = pawn.playerSettings.AreaRestrictionInPawnCurrentMap;
             if (area == null)
             {
-                return "Unrestricted".Translate().Resolve();
+                return "NoAreaAllowed".Translate().Resolve();
             }
             return area.Label;
         }

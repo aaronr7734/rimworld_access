@@ -43,7 +43,6 @@
        inline qualifier appended after the relation word. -->
   <RimWorldAccess.Factions.Status.Defeated>переможено</RimWorldAccess.Factions.Status.Defeated>
   <RimWorldAccess.Factions.Status.DefeatedCap>Переможено</RimWorldAccess.Factions.Status.DefeatedCap>
-  <RimWorldAccess.Factions.Status.PermanentEnemy>завжди ворожі</RimWorldAccess.Factions.Status.PermanentEnemy>
 
   <!-- Leader line. {0} = leader title (e.g. "Queen"), {1} = leader full name. -->
   <RimWorldAccess.Factions.Leader>{0}: {1}</RimWorldAccess.Factions.Leader>

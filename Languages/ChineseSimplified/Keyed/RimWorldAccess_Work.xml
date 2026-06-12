@@ -25,8 +25,6 @@
   <!-- Menu lifecycle announcements (open, cancel, confirm).
        OpeningTitle is spoken when the menu first appears; the current
        position announcement follows it immediately. -->
-  <RimWorldAccess.Work.OpeningTitle>工作菜单</RimWorldAccess.Work.OpeningTitle>
-  <RimWorldAccess.Work.Cancelled>工作菜单已取消，更改已放弃</RimWorldAccess.Work.Cancelled>
   <RimWorldAccess.Work.Saved>工作偏好已保存</RimWorldAccess.Work.Saved>
 
   <!-- Pawn switch via Tab / Shift+Tab.
@@ -129,8 +127,6 @@
   <RimWorldAccess.Work.Task.SkillListAndSeparator>和</RimWorldAccess.Work.Task.SkillListAndSeparator>
 
   <!-- Passion suffixes appended at the end of the task announcement. -->
-  <RimWorldAccess.Work.Task.BurningPassion>. 狂热兴趣.</RimWorldAccess.Work.Task.BurningPassion>
-  <RimWorldAccess.Work.Task.Passion>. 兴趣.</RimWorldAccess.Work.Task.Passion>
 
   <!-- Placement context announced after a SetPriority move, describing
        where the item landed inside the destination column. C# strips the
@@ -195,7 +191,6 @@
        BasicModeItem: {0} = task announcement, {1} = status, {2} = pos. -->
   <RimWorldAccess.Work.Position.WithColumn>{0}, {1} {2}</RimWorldAccess.Work.Position.WithColumn>
   <RimWorldAccess.Work.Position.WithoutColumn>{0} {1}</RimWorldAccess.Work.Position.WithoutColumn>
-  <RimWorldAccess.Work.Position.BasicModeItem>{0} {1}, {2}</RimWorldAccess.Work.Position.BasicModeItem>
 
   <!-- WorkTableState lifecycle and mode announcements.
        OpeningAnnouncement: {0} = colonist count, {1} = work type count, {2} = mode string.

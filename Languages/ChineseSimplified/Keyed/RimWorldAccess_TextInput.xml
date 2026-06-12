@@ -3,9 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>字段</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>派系名称</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>定居点名称</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelPawnFirstName>名</RimWorldAccess.TextInput.LabelPawnFirstName>
-  <RimWorldAccess.TextInput.LabelPawnNickName>昵称</RimWorldAccess.TextInput.LabelPawnNickName>
-  <RimWorldAccess.TextInput.LabelPawnLastName>姓</RimWorldAccess.TextInput.LabelPawnLastName>
   <RimWorldAccess.TextInput.LabelZone>区域名称</RimWorldAccess.TextInput.LabelZone>
   <RimWorldAccess.TextInput.LabelStorage>储存区名称</RimWorldAccess.TextInput.LabelStorage>
   <RimWorldAccess.TextInput.LabelPen>畜栏名称</RimWorldAccess.TextInput.LabelPen>

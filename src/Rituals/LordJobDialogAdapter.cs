@@ -316,7 +316,7 @@ namespace RimWorldAccess
             {
                 return range.min.ToStringPercent("F0");
             }
-            return $"{range.min.ToStringPercent("F0")} to {range.max.ToStringPercent("F0")}";
+            return (string)"RimWorldAccess.Rituals.Quality.RangeFormat".Translate(range.min.ToStringPercent("F0"), range.max.ToStringPercent("F0"));
         }
 
         protected static string SanitizeText(string text)

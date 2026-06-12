@@ -734,8 +734,7 @@ namespace RimWorldAccess
                         string stateStr = (newState.Value
                             ? "RimWorldAccess.Inspection.Gizmo.LimiterStateOn"
                             : "RimWorldAccess.Inspection.Gizmo.LimiterStateOff").Translate();
-                        string label = "AllowHemogenPacks".Translate().CapitalizeFirst();
-                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.LabelWithState".Loc(label, stateStr));
+                        TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.HemogenPacks".Loc(stateStr));
                     }
                     else
                     {
@@ -1594,8 +1593,7 @@ namespace RimWorldAccess
                     return "RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo".Translate();
 
                 case "GeneGizmo_DeathrestCapacity":
-                    // Vanilla translation key; resolves to "deathrest capacity" in English.
-                    return "DeathrestCapacity".Translate().ToString().CapitalizeFirst();
+                    return "RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity".Translate();
 
                 case "ActivityGizmo":
                     return GetActivityGizmoLabel(gizmo);

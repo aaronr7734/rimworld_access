@@ -293,14 +293,14 @@ namespace RimWorldAccess
         {
             var options = new List<MenuOption>();
 
-            options.Add(new MenuOption("Factions", () =>
+            options.Add(new MenuOption(MainButtonDefOf.Factions.LabelCap.ToString(), () =>
             {
                 MainButtonDefOf.Factions.Worker.Activate();
             }));
 
             if (ModsConfig.IdeologyActive)
             {
-                options.Add(new MenuOption("Ideology", () =>
+                options.Add(new MenuOption(MainButtonDefOf.Ideos.LabelCap.ToString(), () =>
                 {
                     MainButtonDefOf.Ideos.Worker.Activate();
                 }));

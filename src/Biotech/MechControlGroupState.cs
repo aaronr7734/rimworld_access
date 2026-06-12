@@ -690,7 +690,7 @@ namespace RimWorldAccess
             {
                 Type = SettingsItemType.RechargeRange,
                 Label = "MechRechargeSettingsTitle".Translate()
-                    + ": " + FormatPercent(range.min) + " to " + FormatPercent(range.max),
+                    + ": " + "RimWorldAccess.Mechs.PercentRange".Translate(FormatPercent(range.min), FormatPercent(range.max)),
                 Description = "MechRechargeSettingsExplanation".Translate()
             });
 

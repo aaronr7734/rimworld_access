@@ -277,7 +277,6 @@
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>空</RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>{0} 行, {1} 个词</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>
   <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>{0} 个词</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>
-  <RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>换行</RimWorldAccess.ScenarioBuilder.PartEdit.NewLineSpoken>
   <RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>此字段没有可用的选项。</RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>
 
   <!-- =================================================================
@@ -287,8 +286,6 @@
        {0} = page title, {1} = storyteller label, {2} = description,
        {3} = position suffix.
        ================================================================= -->
-  <RimWorldAccess.Storyteller.OpenInstructions>{0} - {1} - {2}{3}. 按 Tab 和 Shift+Tab 在故事叙述者、难度和存档模式之间切换。</RimWorldAccess.Storyteller.OpenInstructions>
-  <RimWorldAccess.Storyteller.OpenPositionSuffix> ({0})</RimWorldAccess.Storyteller.OpenPositionSuffix>
   <RimWorldAccess.Storyteller.ModeIndicator>[{0}]</RimWorldAccess.Storyteller.ModeIndicator>
   <!-- Per-row announcements (StorytellerNavigationState).
        The custom-difficulty marker is a parenthetical added to the difficulty
@@ -487,7 +484,6 @@
   <RimWorldAccess.StartingPawn.WandererTitle>{0}. Alt+A 添加，Delete 移除。</RimWorldAccess.StartingPawn.WandererTitle>
   <RimWorldAccess.StartingPawn.RandomizeWithMatch>{0}. 在 {1} 次尝试中找到匹配。</RimWorldAccess.StartingPawn.RandomizeWithMatch>
   <RimWorldAccess.StartingPawn.RandomizeNoMatch>{0}. {1} 次尝试后仍无匹配，保留上次结果。</RimWorldAccess.StartingPawn.RandomizeNoMatch>
-  <RimWorldAccess.StartingPawn.RandomizeWithSummary>{0}. {1}</RimWorldAccess.StartingPawn.RandomizeWithSummary>
   <RimWorldAccess.StartingPawn.RerollStopped>在 {0} 次尝试后停止。</RimWorldAccess.StartingPawn.RerollStopped>
   <RimWorldAccess.StartingPawn.RerollFound>在 {0} 次尝试中找到匹配。</RimWorldAccess.StartingPawn.RerollFound>
   <RimWorldAccess.StartingPawn.RerollNoMatch>{0} 次尝试后仍无匹配，保留上次结果。</RimWorldAccess.StartingPawn.RerollNoMatch>

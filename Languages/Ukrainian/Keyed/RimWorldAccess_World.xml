@@ -494,7 +494,6 @@
   <RimWorldAccess.World.Settlement.LabelField>Поселення: {0}</RimWorldAccess.World.Settlement.LabelField>
   <RimWorldAccess.World.Settlement.FactionField>Фракція: {0}</RimWorldAccess.World.Settlement.FactionField>
   <RimWorldAccess.World.Settlement.RelationshipField>Стосунки: {0}</RimWorldAccess.World.Settlement.RelationshipField>
-  <RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>Стосунки: {0} ({1})</RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>
   <RimWorldAccess.World.Settlement.GoodwillField>Прихильність: {0}</RimWorldAccess.World.Settlement.GoodwillField>
   <RimWorldAccess.World.Settlement.PlayerColonyRelationship>Колонія гравця</RimWorldAccess.World.Settlement.PlayerColonyRelationship>
   <RimWorldAccess.World.Settlement.HostileRelationship>Ворожі</RimWorldAccess.World.Settlement.HostileRelationship>
@@ -693,7 +692,6 @@
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Каравани гравця</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
   <RimWorldAccess.WorldScanner.Sub.Sites>Локації</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>Усі біоми</RimWorldAccess.WorldScanner.Sub.AllBiomes>
-  <RimWorldAccess.WorldScanner.Sub.AllRoads>Усі дороги</RimWorldAccess.WorldScanner.Sub.AllRoads>
   <RimWorldAccess.WorldScanner.Unreachable>Недосяжно</RimWorldAccess.WorldScanner.Unreachable>
   <RimWorldAccess.WorldScanner.QuestPrefix>Завдання: {0}</RimWorldAccess.WorldScanner.QuestPrefix>
   <RimWorldAccess.WorldScanner.FactionWithType>{0}, {1}</RimWorldAccess.WorldScanner.FactionWithType>

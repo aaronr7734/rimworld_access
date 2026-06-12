@@ -539,8 +539,10 @@ namespace RimWorldAccess
         private static string StateLabel(int priority)
         {
             if (!Find.PlaySettings.useWorkPriorities)
-                return priority > 0 ? "on" : "off";
-            return $"priority {priority}";
+                return (priority > 0
+                    ? "RimWorldAccess.Work.Status.Enabled".Translate()
+                    : "RimWorldAccess.Work.Status.Disabled".Translate()).ToString();
+            return "RimWorldAccess.Work.PriorityLabel".Translate(priority).ToString();
         }
 
         private static void PlayPriorityChangeSound()

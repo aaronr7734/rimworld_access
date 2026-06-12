@@ -26,68 +26,23 @@
        AnnouncementBuilder owns separators between them. -->
   <RimWorldAccess.Prisoner.Info.HeaderPrisoner>{0} - Prisoner</RimWorldAccess.Prisoner.Info.HeaderPrisoner>
   <RimWorldAccess.Prisoner.Info.HeaderSlave>{0} - Slave</RimWorldAccess.Prisoner.Info.HeaderSlave>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>Prison Break: Currently Prison Breaking!</RimWorldAccess.Prisoner.Info.PrisonBreakInProgress>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakNever>Prison Break MTB: Never</RimWorldAccess.Prisoner.Info.PrisonBreakNever>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>Prevented by gene: {0}</RimWorldAccess.Prisoner.Info.PrisonBreakPreventedByGene>
-  <RimWorldAccess.Prisoner.Info.PrisonBreakDays>Prison Break MTB: {0} days</RimWorldAccess.Prisoner.Info.PrisonBreakDays>
-  <RimWorldAccess.Prisoner.Info.Resistance>Recruitment Resistance: {0}</RimWorldAccess.Prisoner.Info.Resistance>
-  <RimWorldAccess.Prisoner.Info.ResistanceInitialRange>Initial range: {0} to {1}</RimWorldAccess.Prisoner.Info.ResistanceInitialRange>
-  <RimWorldAccess.Prisoner.Info.NonRecruitable>Recruitment: Non-Recruitable</RimWorldAccess.Prisoner.Info.NonRecruitable>
-  <RimWorldAccess.Prisoner.Info.WillLevel>Will Level: {0}</RimWorldAccess.Prisoner.Info.WillLevel>
-  <RimWorldAccess.Prisoner.Info.WillInitialRange>Initial range: {0} to {1}</RimWorldAccess.Prisoner.Info.WillInitialRange>
-  <RimWorldAccess.Prisoner.Info.SlavePrice>Slave Price: {0} silver</RimWorldAccess.Prisoner.Info.SlavePrice>
-  <RimWorldAccess.Prisoner.Info.StudiableYes>Studiable: Yes</RimWorldAccess.Prisoner.Info.StudiableYes>
-  <RimWorldAccess.Prisoner.Info.ReleaseRelationGains>Release Relation Gains: {0}</RimWorldAccess.Prisoner.Info.ReleaseRelationGains>
-  <RimWorldAccess.Prisoner.Info.GuiltyUntilInnocent>Guilty: {0} until innocent</RimWorldAccess.Prisoner.Info.GuiltyUntilInnocent>
-  <RimWorldAccess.Prisoner.Info.GuiltyNoTimer>Guilty: No timer (in {0})</RimWorldAccess.Prisoner.Info.GuiltyNoTimer>
-  <RimWorldAccess.Prisoner.Info.IdeoConversionTarget>Ideo Conversion Target: {0}</RimWorldAccess.Prisoner.Info.IdeoConversionTarget>
 
   <!-- Last recruitment attempt breakdown. -->
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>Last Recruitment</RimWorldAccess.Prisoner.Info.LastRecruitmentHeader>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>Resistance Reduction: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentResistance>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>Recruiter: {0}</RimWorldAccess.Prisoner.Info.LastRecruitmentRecruiter>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>Mood Factor: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentMoodFactor>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>Negotiation Ability: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentNegotiation>
-  <RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>Opinion Factor: x{0}</RimWorldAccess.Prisoner.Info.LastRecruitmentOpinion>
 
   <!-- Slave stats block. -->
   <RimWorldAccess.Prisoner.Slave.Suppression>Suppression: {0}</RimWorldAccess.Prisoner.Slave.Suppression>
-  <RimWorldAccess.Prisoner.Slave.SuppressionFallRate>Suppression Fall Rate: {0} per day</RimWorldAccess.Prisoner.Slave.SuppressionFallRate>
-  <RimWorldAccess.Prisoner.Slave.Terror>Terror: {0}</RimWorldAccess.Prisoner.Slave.Terror>
-  <RimWorldAccess.Prisoner.Slave.RebellionAsleep>Slave Rebellion MTB: Not while asleep</RimWorldAccess.Prisoner.Slave.RebellionAsleep>
-  <RimWorldAccess.Prisoner.Slave.RebellionNever>Slave Rebellion MTB: Never</RimWorldAccess.Prisoner.Slave.RebellionNever>
-  <RimWorldAccess.Prisoner.Slave.RebellionPeriod>Slave Rebellion MTB: {0}</RimWorldAccess.Prisoner.Slave.RebellionPeriod>
 
   <!-- Release relation gain summary (shared between prisoner and slave paths).
        {0} = faction name, {1} = signed goodwill change (e.g. "+3" / "-7"),
        {2} = mental state inspect line. -->
-  <RimWorldAccess.Prisoner.Release.None>None</RimWorldAccess.Prisoner.Release.None>
-  <RimWorldAccess.Prisoner.Release.FactionChange>{0} {1}</RimWorldAccess.Prisoner.Release.FactionChange>
-  <RimWorldAccess.Prisoner.Release.NoneUntended>None (Untended Injury)</RimWorldAccess.Prisoner.Release.NoneUntended>
-  <RimWorldAccess.Prisoner.Release.NoneMentalState>None ({0})</RimWorldAccess.Prisoner.Release.NoneMentalState>
 
   <!-- Medical care category labels. Used in the care-level stepper. -->
-  <RimWorldAccess.Prisoner.MedicalCare.NoCare>No Care</RimWorldAccess.Prisoner.MedicalCare.NoCare>
-  <RimWorldAccess.Prisoner.MedicalCare.NoMeds>No Meds</RimWorldAccess.Prisoner.MedicalCare.NoMeds>
-  <RimWorldAccess.Prisoner.MedicalCare.HerbalOrWorse>Herbal or Worse</RimWorldAccess.Prisoner.MedicalCare.HerbalOrWorse>
-  <RimWorldAccess.Prisoner.MedicalCare.NormalOrWorse>Normal or Worse</RimWorldAccess.Prisoner.MedicalCare.NormalOrWorse>
-  <RimWorldAccess.Prisoner.MedicalCare.Best>Best</RimWorldAccess.Prisoner.MedicalCare.Best>
-  <RimWorldAccess.Prisoner.MedicalCare.Announce>Medical Care: {0}</RimWorldAccess.Prisoner.MedicalCare.Announce>
-  <RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>Medical Care: {0}. Use Up/Down arrows to adjust</RimWorldAccess.Prisoner.MedicalCare.AnnounceWithHint>
   <!-- Standalone hint appended to a section announcement when entering the medical care row. -->
-  <RimWorldAccess.Prisoner.MedicalCare.AdjustHint>Use Up/Down arrows to adjust</RimWorldAccess.Prisoner.MedicalCare.AdjustHint>
 
   <!-- Interaction mode descriptions - warning suffixes appended after the
        def's own description through AnnouncementBuilder. {0} = ideo name. -->
-  <RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>WARNING: No warden capable of enslavement</RimWorldAccess.Prisoner.Warning.NoEnslavementWarden>
-  <RimWorldAccess.Prisoner.Warning.NoViolenceWarden>WARNING: No warden capable of violence</RimWorldAccess.Prisoner.Warning.NoViolenceWarden>
-  <RimWorldAccess.Prisoner.Warning.NoIdeoWarden>WARNING: No warden of {0}</RimWorldAccess.Prisoner.Warning.NoIdeoWarden>
-  <RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>. WARNING: No warden of this ideology</RimWorldAccess.Prisoner.Warning.NoIdeoWardenInline>
 
   <!-- Slave emancipation outcome suffixes. {0} = slave faction name. -->
-  <RimWorldAccess.Prisoner.Emancipate.BecomeColonist>Will become colonist</RimWorldAccess.Prisoner.Emancipate.BecomeColonist>
-  <RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>Will become free, no faction</RimWorldAccess.Prisoner.Emancipate.BecomeFreeNoFaction>
-  <RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>Will return to {0}</RimWorldAccess.Prisoner.Emancipate.ReturnToFaction>
 
   <!-- Tab open / close announcements. -->
   <RimWorldAccess.Prisoner.Tab.Closed>Prisoner tab closed</RimWorldAccess.Prisoner.Tab.Closed>
@@ -109,20 +64,14 @@ Press Left/Right to navigate sections, Up/Down within sections, Enter to select<
 
   <!-- Item-level announcements during navigation.
        Active/Current markers are placed at the start of the item line. -->
-  <RimWorldAccess.Prisoner.Item.MarkerActive>[ACTIVE] </RimWorldAccess.Prisoner.Item.MarkerActive>
-  <RimWorldAccess.Prisoner.Item.MarkerCurrent>[CURRENT] </RimWorldAccess.Prisoner.Item.MarkerCurrent>
   <RimWorldAccess.Prisoner.Item.StateOn>[ON]</RimWorldAccess.Prisoner.Item.StateOn>
   <RimWorldAccess.Prisoner.Item.StateOff>[OFF]</RimWorldAccess.Prisoner.Item.StateOff>
-  <RimWorldAccess.Prisoner.Item.ModeWithDescription>{0}{1}. {2}</RimWorldAccess.Prisoner.Item.ModeWithDescription>
   <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0}: {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
   <RimWorldAccess.Prisoner.Item.SelectedSuffix>, selected</RimWorldAccess.Prisoner.Item.SelectedSuffix>
-  <RimWorldAccess.Prisoner.Item.Ideo>{0}{1}</RimWorldAccess.Prisoner.Item.Ideo>
 
   <!-- Selection / toggle action feedback. -->
   <RimWorldAccess.Prisoner.Action.Selected>Selected: {0}. {1}</RimWorldAccess.Prisoner.Action.Selected>
   <RimWorldAccess.Prisoner.Action.ToggleEnabled>Enabled</RimWorldAccess.Prisoner.Action.ToggleEnabled>
   <RimWorldAccess.Prisoner.Action.ToggleDisabled>Disabled</RimWorldAccess.Prisoner.Action.ToggleDisabled>
   <RimWorldAccess.Prisoner.Action.ToggleMode>{0}: {1}</RimWorldAccess.Prisoner.Action.ToggleMode>
-  <RimWorldAccess.Prisoner.Action.ConversionTarget>Conversion target: {0}{1}</RimWorldAccess.Prisoner.Action.ConversionTarget>
-  <RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning>Warning: Executing slave from neutral faction {0}. Select again to confirm.</RimWorldAccess.Prisoner.Action.ExecuteNeutralWarning>
 </LanguageData>

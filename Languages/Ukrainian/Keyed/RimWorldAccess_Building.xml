@@ -23,12 +23,7 @@
        noun. -->
   <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>Будівля не може зламатися</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
   <RimWorldAccess.Building.Breakdown.StatusBrokenDown>Стан: Зламано</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
-  <RimWorldAccess.Building.Breakdown.NeedsRepair>Цю будівлю потрібно полагодити, перш ніж вона зможе працювати</RimWorldAccess.Building.Breakdown.NeedsRepair>
-  <RimWorldAccess.Building.Breakdown.RepairSkill>Полагодити її може колоніст із навичкою будівництва</RimWorldAccess.Building.Breakdown.RepairSkill>
   <RimWorldAccess.Building.Breakdown.StatusOperational>Стан: Працює</RimWorldAccess.Building.Breakdown.StatusOperational>
-  <RimWorldAccess.Building.Breakdown.OperationalDescription>Ця будівля працює нормально</RimWorldAccess.Building.Breakdown.OperationalDescription>
-  <RimWorldAccess.Building.Breakdown.BreakdownsOverTime>Будівлі з компонентами поломки можуть з часом ламатися</RimWorldAccess.Building.Breakdown.BreakdownsOverTime>
-  <RimWorldAccess.Building.Breakdown.UnpoweredImmune>Примітка: Будівля знеструмлена. Знеструмлені будівлі не ламаються</RimWorldAccess.Building.Breakdown.UnpoweredImmune>
 
   <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
        Toggles CompForbiddable. Status-row keys compose with the building
@@ -65,21 +60,6 @@
   <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
        Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
        LabelPowerSwitch: {0} = building label, {1} = vanilla "On"/"Off". -->
-  <RimWorldAccess.Building.Flickable.NoFlickComponent>Будівля не має керування живленням</RimWorldAccess.Building.Flickable.NoFlickComponent>
-  <RimWorldAccess.Building.Flickable.AlreadyOn>Живлення вже увімкнено</RimWorldAccess.Building.Flickable.AlreadyOn>
-  <RimWorldAccess.Building.Flickable.AlreadyOff>Живлення вже вимкнено</RimWorldAccess.Building.Flickable.AlreadyOff>
-  <RimWorldAccess.Building.Flickable.LabelPowerStatus>{0} - Живлення: {1}</RimWorldAccess.Building.Flickable.LabelPowerStatus>
-  <RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix> (Немає доступного живлення)</RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix>
-  <RimWorldAccess.Building.Flickable.ConsumingSuffix> - Споживає: {0}Вт</RimWorldAccess.Building.Flickable.ConsumingSuffix>
-  <RimWorldAccess.Building.Flickable.ProducingSuffix> - Виробляє: {0}Вт</RimWorldAccess.Building.Flickable.ProducingSuffix>
-  <RimWorldAccess.Building.Flickable.LabelPowerSwitch>{0} - Вимикач живлення: {1}</RimWorldAccess.Building.Flickable.LabelPowerSwitch>
-  <RimWorldAccess.Building.Flickable.DetailConnected>Під'єднано до енергомережі</RimWorldAccess.Building.Flickable.DetailConnected>
-  <RimWorldAccess.Building.Flickable.DetailActiveSuffix> - Активно</RimWorldAccess.Building.Flickable.DetailActiveSuffix>
-  <RimWorldAccess.Building.Flickable.DetailNoPowerSuffix> - Немає доступного живлення</RimWorldAccess.Building.Flickable.DetailNoPowerSuffix>
-  <RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix> - Вимкнено</RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix>
-  <RimWorldAccess.Building.Flickable.DetailNotConnected>Не під'єднано до енергомережі</RimWorldAccess.Building.Flickable.DetailNotConnected>
-  <RimWorldAccess.Building.Flickable.DetailConsuming>Споживає: {0}Вт</RimWorldAccess.Building.Flickable.DetailConsuming>
-  <RimWorldAccess.Building.Flickable.DetailProducing>Виробляє: {0}Вт</RimWorldAccess.Building.Flickable.DetailProducing>
 
   <!-- Uninstall designation (src/Building/UninstallControlState.cs).
        Toggles DesignationDefOf.Uninstall on minifiable buildings. Vanilla

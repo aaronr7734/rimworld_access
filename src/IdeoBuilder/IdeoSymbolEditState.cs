@@ -141,7 +141,7 @@ namespace RimWorldAccess
             {
                 var captured = iconDef;
                 string label = iconDef.label.NullOrEmpty() ? iconDef.defName : iconDef.LabelCap.ToString();
-                if (iconDef == ideo.iconDef) label += ". current";
+                if (iconDef == ideo.iconDef) label += ". " + "RimWorldAccess.Ideology.Builder.PreceptCurrent".Translate();
                 options.Add(new FloatMenuOption(label, () =>
                 {
                     ideo.SetIcon(captured, ideo.colorDef);
@@ -164,7 +164,7 @@ namespace RimWorldAccess
             {
                 var captured = colorDef;
                 string label = colorDef.label.NullOrEmpty() ? colorDef.defName : colorDef.LabelCap.ToString();
-                if (colorDef == ideo.colorDef) label += ". current";
+                if (colorDef == ideo.colorDef) label += ". " + "RimWorldAccess.Ideology.Builder.PreceptCurrent".Translate();
                 options.Add(new FloatMenuOption(label, () =>
                 {
                     ideo.SetIcon(ideo.iconDef, captured, clearPrimaryFactionColor: true);
@@ -186,7 +186,7 @@ namespace RimWorldAccess
                 string label = culture.LabelCap.ToString();
                 if (!string.IsNullOrEmpty(culture.description))
                     label += ". " + culture.description;
-                if (culture == ideo.culture) label += ". current";
+                if (culture == ideo.culture) label += ". " + "RimWorldAccess.Ideology.Builder.PreceptCurrent".Translate();
                 options.Add(new FloatMenuOption(label, () =>
                 {
                     if (ideo.culture != captured)

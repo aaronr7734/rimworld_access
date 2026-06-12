@@ -23,12 +23,7 @@
        noun. -->
   <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>建筑不会发生故障</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
   <RimWorldAccess.Building.Breakdown.StatusBrokenDown>状态: 已故障</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
-  <RimWorldAccess.Building.Breakdown.NeedsRepair>此建筑需要先修理才能运作</RimWorldAccess.Building.Breakdown.NeedsRepair>
-  <RimWorldAccess.Building.Breakdown.RepairSkill>有建造技能的殖民者可以修理它</RimWorldAccess.Building.Breakdown.RepairSkill>
   <RimWorldAccess.Building.Breakdown.StatusOperational>状态: 正常运作</RimWorldAccess.Building.Breakdown.StatusOperational>
-  <RimWorldAccess.Building.Breakdown.OperationalDescription>此建筑运作正常</RimWorldAccess.Building.Breakdown.OperationalDescription>
-  <RimWorldAccess.Building.Breakdown.BreakdownsOverTime>带有故障组件的建筑会随时间发生故障</RimWorldAccess.Building.Breakdown.BreakdownsOverTime>
-  <RimWorldAccess.Building.Breakdown.UnpoweredImmune>注意: 建筑未通电。未通电的建筑不会发生故障</RimWorldAccess.Building.Breakdown.UnpoweredImmune>
 
   <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
        Toggles CompForbiddable. Status-row keys compose with the building
@@ -65,21 +60,6 @@
   <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
        Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
        LabelPowerSwitch: {0} = building label, {1} = vanilla "On"/"Off". -->
-  <RimWorldAccess.Building.Flickable.NoFlickComponent>建筑没有电力控制</RimWorldAccess.Building.Flickable.NoFlickComponent>
-  <RimWorldAccess.Building.Flickable.AlreadyOn>电力已开启</RimWorldAccess.Building.Flickable.AlreadyOn>
-  <RimWorldAccess.Building.Flickable.AlreadyOff>电力已关闭</RimWorldAccess.Building.Flickable.AlreadyOff>
-  <RimWorldAccess.Building.Flickable.LabelPowerStatus>{0} - 电力: {1}</RimWorldAccess.Building.Flickable.LabelPowerStatus>
-  <RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix> (无可用电力)</RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix>
-  <RimWorldAccess.Building.Flickable.ConsumingSuffix> - 消耗: {0}W</RimWorldAccess.Building.Flickable.ConsumingSuffix>
-  <RimWorldAccess.Building.Flickable.ProducingSuffix> - 产出: {0}W</RimWorldAccess.Building.Flickable.ProducingSuffix>
-  <RimWorldAccess.Building.Flickable.LabelPowerSwitch>{0} - 电源开关: {1}</RimWorldAccess.Building.Flickable.LabelPowerSwitch>
-  <RimWorldAccess.Building.Flickable.DetailConnected>已连接到电网</RimWorldAccess.Building.Flickable.DetailConnected>
-  <RimWorldAccess.Building.Flickable.DetailActiveSuffix> - 运作中</RimWorldAccess.Building.Flickable.DetailActiveSuffix>
-  <RimWorldAccess.Building.Flickable.DetailNoPowerSuffix> - 无可用电力</RimWorldAccess.Building.Flickable.DetailNoPowerSuffix>
-  <RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix> - 已关闭</RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix>
-  <RimWorldAccess.Building.Flickable.DetailNotConnected>未连接到电网</RimWorldAccess.Building.Flickable.DetailNotConnected>
-  <RimWorldAccess.Building.Flickable.DetailConsuming>消耗: {0}W</RimWorldAccess.Building.Flickable.DetailConsuming>
-  <RimWorldAccess.Building.Flickable.DetailProducing>产出: {0}W</RimWorldAccess.Building.Flickable.DetailProducing>
 
   <!-- Uninstall designation (src/Building/UninstallControlState.cs).
        Toggles DesignationDefOf.Uninstall on minifiable buildings. Vanilla

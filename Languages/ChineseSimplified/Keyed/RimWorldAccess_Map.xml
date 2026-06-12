@@ -505,7 +505,6 @@
        phrase is a whole-phrase key the translator can rearrange.
        ================================================================= -->
   <RimWorldAccess.Map.Tile.OutOfBounds>超出边界</RimWorldAccess.Map.Tile.OutOfBounds>
-  <RimWorldAccess.Map.Tile.PositionOutOfBounds>位置超出边界</RimWorldAccess.Map.Tile.PositionOutOfBounds>
   <!-- Fogged tiles: "{designations}, unseen, {x}, {z}" or just
        "unseen, {x}, {z}". -->
   <RimWorldAccess.Map.Tile.UnseenWithDesignations>{0}, 未探明, {1}, {2}</RimWorldAccess.Map.Tile.UnseenWithDesignations>
@@ -532,8 +531,6 @@
   <!-- " floor" appended to smoothed-stone terrain labels. -->
   <RimWorldAccess.Map.Tile.FloorSuffix>地板</RimWorldAccess.Map.Tile.FloorSuffix>
   <!-- Roof status. -->
-  <RimWorldAccess.Map.Tile.Roof.Underground>地下</RimWorldAccess.Map.Tile.Roof.Underground>
-  <RimWorldAccess.Map.Tile.Roof.Roofed>有屋顶</RimWorldAccess.Map.Tile.Roof.Roofed>
 
   <!-- Stack count appended to item label (e.g. "wood x5"). -->
   <RimWorldAccess.Map.Tile.Item.StackCount> x{0}</RimWorldAccess.Map.Tile.Item.StackCount>
@@ -551,7 +548,6 @@
   <RimWorldAccess.Map.Tile.Flooring.Beauty>美观: {0}</RimWorldAccess.Map.Tile.Flooring.Beauty>
   <RimWorldAccess.Map.Tile.Flooring.Cleanliness>清洁度: {0}</RimWorldAccess.Map.Tile.Flooring.Cleanliness>
   <RimWorldAccess.Map.Tile.Flooring.PathCost>移动消耗: {0}</RimWorldAccess.Map.Tile.Flooring.PathCost>
-  <RimWorldAccess.Map.Tile.Flooring.Fish>鱼类: {0} ({1}/{2})</RimWorldAccess.Map.Tile.Flooring.Fish>
 
   <!-- Plants/resources hotkey (key 3). Covers plants, Odyssey fish, and deep ore.
        Empty-result messages list only the resource types relevant to the tile context

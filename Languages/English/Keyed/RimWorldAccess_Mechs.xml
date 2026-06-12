@@ -130,4 +130,7 @@
   <RimWorldAccess.Mechs.Paint.Bulk.CellApplied>Painted {0} {1} for {2}</RimWorldAccess.Mechs.Paint.Bulk.CellApplied>
   <RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>All already {1}</RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>
 
+
+  <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
+  <RimWorldAccess.Mechs.PercentRange>{0} to {1}</RimWorldAccess.Mechs.PercentRange>
 </LanguageData>

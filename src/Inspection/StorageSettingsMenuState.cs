@@ -628,31 +628,41 @@ namespace RimWorldAccess
 
                 case NodeType.SpecialFilter:
                 {
-                    string state = data.IsChecked ? "allowed" : "disallowed";
+                    string state = (string)(data.IsChecked
+                        ? "RimWorldAccess.Inspection.Storage.ItemAllowed"
+                        : "RimWorldAccess.Inspection.Storage.ItemDisallowed").Translate(item.Label);
                     string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
-                    return $"{item.Label}. {state}.{desc}{positionTail}{suffix}";
+                    return $"{state}.{desc}{positionTail}{suffix}";
                 }
 
                 case NodeType.Category:
                 {
-                    string summary = "disallowed";
+                    string expanded = (string)(item.IsExpanded
+                        ? "RimWorldAccess.Tree.StateExpanded"
+                        : "RimWorldAccess.Tree.StateCollapsed").Translate();
+                    string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
                     if (data.Reference is TreeNode_ThingCategory catNode)
                     {
                         var s = ThingFilterHelper.GetCategorySummary(
                             catNode.catDef, currentSettings.filter,
                             td => ThingFilterHelper.IsVisible(td, parentFilter));
-                        summary = ThingFilterHelper.FormatCategorySummary(s);
+                        string summary = ThingFilterHelper.FormatCategorySummary(s);
+                        string body = (string)"RimWorldAccess.Inspection.Storage.CategoryWithSummary".Translate(
+                            item.Label, summary, expanded);
+                        return $"{body}.{desc}{positionTail}{suffix}";
                     }
-                    string expanded = item.IsExpanded ? "expanded" : "collapsed";
-                    string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
-                    return $"{item.Label}. {summary}, {expanded}.{desc}{positionTail}{suffix}";
+                    string labelState = (string)"RimWorldAccess.Inspection.Storage.LabelWithExpandState".Translate(
+                        item.Label, expanded);
+                    return $"{labelState}.{desc}{positionTail}{suffix}";
                 }
 
                 case NodeType.ThingDef:
                 {
-                    string state = data.IsChecked ? "allowed" : "disallowed";
+                    string state = (string)(data.IsChecked
+                        ? "RimWorldAccess.Inspection.Storage.ItemAllowed"
+                        : "RimWorldAccess.Inspection.Storage.ItemDisallowed").Translate(item.Label);
                     string desc = string.IsNullOrEmpty(item.Description) ? "" : $" {item.Description}";
-                    return $"{item.Label}. {state}.{desc}{positionTail}{suffix}";
+                    return $"{state}.{desc}{positionTail}{suffix}";
                 }
 
                 default:

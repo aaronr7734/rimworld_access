@@ -25,8 +25,6 @@
   <!-- Menu lifecycle announcements (open, cancel, confirm).
        OpeningTitle is spoken when the menu first appears; the current
        position announcement follows it immediately. -->
-  <RimWorldAccess.Work.OpeningTitle>Work menu</RimWorldAccess.Work.OpeningTitle>
-  <RimWorldAccess.Work.Cancelled>Work menu cancelled, changes discarded</RimWorldAccess.Work.Cancelled>
   <RimWorldAccess.Work.Saved>Work preferences saved</RimWorldAccess.Work.Saved>
 
   <!-- Pawn switch via Tab / Shift+Tab.
@@ -129,8 +127,6 @@
   <RimWorldAccess.Work.Task.SkillListAndSeparator> and </RimWorldAccess.Work.Task.SkillListAndSeparator>
 
   <!-- Passion suffixes appended at the end of the task announcement. -->
-  <RimWorldAccess.Work.Task.BurningPassion>. Burning passion.</RimWorldAccess.Work.Task.BurningPassion>
-  <RimWorldAccess.Work.Task.Passion>. Passion.</RimWorldAccess.Work.Task.Passion>
 
   <!-- Placement context announced after a SetPriority move, describing
        where the item landed inside the destination column. C# strips the
@@ -195,7 +191,6 @@
        BasicModeItem: {0} = task announcement, {1} = status, {2} = pos. -->
   <RimWorldAccess.Work.Position.WithColumn>{0}, {1} {2}</RimWorldAccess.Work.Position.WithColumn>
   <RimWorldAccess.Work.Position.WithoutColumn>{0} {1}</RimWorldAccess.Work.Position.WithoutColumn>
-  <RimWorldAccess.Work.Position.BasicModeItem>{0} {1}, {2}</RimWorldAccess.Work.Position.BasicModeItem>
 
   <!-- WorkTableState lifecycle and mode announcements.
        OpeningAnnouncement: {0} = colonist count, {1} = work type count, {2} = mode string.
@@ -275,4 +270,14 @@
   <RimWorldAccess.Work.Overlay.BasicInstructions1>Left/Right: Navigate tasks | Space: Toggle</RimWorldAccess.Work.Overlay.BasicInstructions1>
   <RimWorldAccess.Work.Overlay.BasicInstructions2>Tab/Shift+Tab: Switch pawn</RimWorldAccess.Work.Overlay.BasicInstructions2>
   <RimWorldAccess.Work.Overlay.BasicInstructions3>Enter/Escape: Save &amp; close | Alt+M: Switch to manual mode</RimWorldAccess.Work.Overlay.BasicInstructions3>
+
+  <!-- Task detail composition pieces restored/added after the merge.
+       IncludesPrefix leads the comma-joined work-giver list; leading
+       ". " is part of the value, matching Task.UnskilledLabor.
+       IncapableWithReasons: {0} = comma-joined disabled reasons. -->
+  <RimWorldAccess.Work.Task.IncludesPrefix>. Includes: </RimWorldAccess.Work.Task.IncludesPrefix>
+  <RimWorldAccess.Work.Task.IdeologyOpposes>. Ideology opposes this work</RimWorldAccess.Work.Task.IdeologyOpposes>
+  <RimWorldAccess.Work.Column.Name>Name</RimWorldAccess.Work.Column.Name>
+  <RimWorldAccess.Work.Table.Incapable>incapable</RimWorldAccess.Work.Table.Incapable>
+  <RimWorldAccess.Work.Table.IncapableWithReasons>incapable, {0}</RimWorldAccess.Work.Table.IncapableWithReasons>
 </LanguageData>

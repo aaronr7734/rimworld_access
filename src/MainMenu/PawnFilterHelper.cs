@@ -199,7 +199,7 @@ namespace RimWorldAccess
             // Settings section
             items.Add(new FilterMenuItem
             {
-                Label = "Settings".Translate(),
+                Label = "RimWorldAccess.PawnFilter.SectionSettings".Translate(),
                 ItemType = FilterItemType.SectionHeader
             });
 
@@ -242,7 +242,7 @@ namespace RimWorldAccess
             switch (mode)
             {
                 case TraitFilterMode.Required: return "Required".Translate();
-                case TraitFilterMode.Excluded: return "Excluded".Translate();
+                case TraitFilterMode.Excluded: return "RimWorldAccess.PawnFilter.TraitExcluded".Translate();
                 case TraitFilterMode.Optional: return "Optional".Translate();
                 default: return mode.ToString();
             }
@@ -278,7 +278,7 @@ namespace RimWorldAccess
 
             var parts = new List<string>();
             if (skill.MinLevel > 0)
-                parts.Add($"{"minimum".Translate()} {skill.MinLevel}");
+                parts.Add($"{"RimWorldAccess.PawnFilter.Minimum".Translate()} {skill.MinLevel}");
 
             if (skill.MinPassion != Passion.None)
             {
@@ -296,7 +296,7 @@ namespace RimWorldAccess
             string value = filter.PassionMin <= 0
                 ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
                 : filter.PassionMin.ToString();
-            return (string)"RimWorldAccess.PawnFilter.TotalPassionsWithValue".Translate("minimum".Translate(), value);
+            return (string)"RimWorldAccess.PawnFilter.TotalPassionsWithValue".Translate("RimWorldAccess.PawnFilter.Minimum".Translate(), value);
         }
 
         public static string FormatPassionMaxLabel(PawnFilter filter)
@@ -304,7 +304,7 @@ namespace RimWorldAccess
             string value = filter.PassionMax >= 12
                 ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
                 : filter.PassionMax.ToString();
-            return (string)"RimWorldAccess.PawnFilter.TotalPassionsWithValue".Translate("maximum".Translate(), value);
+            return (string)"RimWorldAccess.PawnFilter.TotalPassionsWithValue".Translate("RimWorldAccess.PawnFilter.Maximum".Translate(), value);
         }
 
         public static string FormatSkillPointsMinLabel(PawnFilter filter)
@@ -312,7 +312,7 @@ namespace RimWorldAccess
             string value = filter.SkillPointsMin <= 0
                 ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
                 : filter.SkillPointsMin.ToString();
-            return (string)"RimWorldAccess.PawnFilter.TotalSkillPointsWithValue".Translate("minimum".Translate(), value);
+            return (string)"RimWorldAccess.PawnFilter.TotalSkillPointsWithValue".Translate("RimWorldAccess.PawnFilter.Minimum".Translate(), value);
         }
 
         public static string FormatSkillPointsMaxLabel(PawnFilter filter)
@@ -320,7 +320,7 @@ namespace RimWorldAccess
             string value = filter.SkillPointsMax >= 240
                 ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
                 : filter.SkillPointsMax.ToString();
-            return (string)"RimWorldAccess.PawnFilter.TotalSkillPointsWithValue".Translate("maximum".Translate(), value);
+            return (string)"RimWorldAccess.PawnFilter.TotalSkillPointsWithValue".Translate("RimWorldAccess.PawnFilter.Maximum".Translate(), value);
         }
 
         public static string FormatCountOnlyHighestAttackLabel(PawnFilter filter)
@@ -345,7 +345,7 @@ namespace RimWorldAccess
             string value = filter.AgeMin <= 0
                 ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
                 : filter.AgeMin.ToString();
-            return (string)"RimWorldAccess.PawnFilter.AgeWithValue".Translate("minimum".Translate(), value);
+            return (string)"RimWorldAccess.PawnFilter.AgeWithValue".Translate("RimWorldAccess.PawnFilter.Minimum".Translate(), value);
         }
 
         public static string FormatAgeMaxLabel(PawnFilter filter)
@@ -353,7 +353,7 @@ namespace RimWorldAccess
             string value = filter.AgeMax >= 120
                 ? (string)"RimWorldAccess.PawnFilter.Any".Translate()
                 : filter.AgeMax.ToString();
-            return (string)"RimWorldAccess.PawnFilter.AgeWithValue".Translate("maximum".Translate(), value);
+            return (string)"RimWorldAccess.PawnFilter.AgeWithValue".Translate("RimWorldAccess.PawnFilter.Maximum".Translate(), value);
         }
 
         public static string FormatGenderLabel(PawnFilter filter)

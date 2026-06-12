@@ -322,14 +322,14 @@ namespace RimWorldAccess
                 {
                     string title = pawn.story.Childhood.TitleCapFor(pawn.gender);
                     string desc = pawn.story.Childhood.FullDescriptionFor(pawn).Resolve();
-                    info.Add(($"Childhood: {title}", desc));
+                    info.Add(($"{"Childhood".Translate()}: {title}", desc));
                 }
 
                 if (pawn.story.Adulthood != null)
                 {
                     string title = pawn.story.Adulthood.TitleCapFor(pawn.gender);
                     string desc = pawn.story.Adulthood.FullDescriptionFor(pawn).Resolve();
-                    info.Add(($"Adulthood: {title}", desc));
+                    info.Add(($"{"Adulthood".Translate()}: {title}", desc));
                 }
             }
             catch (Exception ex)
@@ -811,30 +811,31 @@ namespace RimWorldAccess
                             {
                                 var factionPermit = pawn.royalty.AllFactionPermits
                                     .FirstOrDefault(fp => fp.Permit == permitDef && fp.Faction == faction);
-                                status = (factionPermit != null && factionPermit.OnCooldown)
-                                    ? "Granted (on cooldown)" : "Granted";
+                                status = (string)((factionPermit != null && factionPermit.OnCooldown)
+                                    ? "RimWorldAccess.Inspection.Permit.GrantedOnCooldown".Translate()
+                                    : "RimWorldAccess.Inspection.Permit.Granted".Translate());
                             }
                             else
                             {
                                 // Unlocked via upgrade chain (prerequisite of a held permit)
-                                status = "Granted";
+                                status = "RimWorldAccess.Inspection.Permit.Granted".Translate();
                             }
                         }
                         else if (permitDef.AvailableForPawn(pawn, faction))
                         {
-                            status = $"Available ({permitDef.permitPointCost} points)";
+                            status = "RimWorldAccess.Inspection.Permit.AvailableWithPoints".Translate(permitDef.permitPointCost).ToString();
                         }
                         else
                         {
                             if (permitDef.prerequisite != null && !IsPermitUnlocked(permitDef.prerequisite, pawn, faction))
-                                status = "Locked (" + "UpgradeFrom".Translate(permitDef.prerequisite.LabelCap).Resolve() + ")";
+                                status = "RimWorldAccess.Inspection.Permit.LockedWithReason".Translate("UpgradeFrom".Translate(permitDef.prerequisite.LabelCap)).ToString();
                             else if (permitDef.minTitle != null)
-                                status = "Locked (" + "RequiresTitle".Translate(permitDef.minTitle.GetLabelForBothGenders()).Resolve() + ")";
+                                status = "RimWorldAccess.Inspection.Permit.LockedWithReason".Translate("RequiresTitle".Translate(permitDef.minTitle.GetLabelForBothGenders())).ToString();
                             else
-                                status = "Locked";
+                                status = "RimWorldAccess.Inspection.Permit.Locked".Translate();
                         }
 
-                        string requiredTitle = permitDef.minTitle?.GetLabelFor(pawn).CapitalizeFirst() ?? "None";
+                        string requiredTitle = permitDef.minTitle?.GetLabelFor(pawn).CapitalizeFirst() ?? (string)"None".Translate();
                         permits.Add((permitDef.LabelCap, faction, status,
                             permitDef.description ?? "", requiredTitle, permitDef));
                     }

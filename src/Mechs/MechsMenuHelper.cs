@@ -330,7 +330,7 @@ namespace RimWorldAccess
                 return "RimWorldAccess.Mechs.Value.NotApplicable".Translate().ToString();
 
             Area area = pawn.playerSettings.AreaRestrictionInPawnCurrentMap;
-            return area?.Label ?? "Unrestricted".Translate().Resolve();
+            return area?.Label ?? "NoAreaAllowed".Translate().Resolve();
         }
     }
 }

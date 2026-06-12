@@ -494,7 +494,6 @@
   <RimWorldAccess.World.Settlement.LabelField>定居点: {0}</RimWorldAccess.World.Settlement.LabelField>
   <RimWorldAccess.World.Settlement.FactionField>派系: {0}</RimWorldAccess.World.Settlement.FactionField>
   <RimWorldAccess.World.Settlement.RelationshipField>关系: {0}</RimWorldAccess.World.Settlement.RelationshipField>
-  <RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>关系: {0} ({1})</RimWorldAccess.World.Settlement.RelationshipWithGoodwillField>
   <RimWorldAccess.World.Settlement.GoodwillField>好感度: {0}</RimWorldAccess.World.Settlement.GoodwillField>
   <RimWorldAccess.World.Settlement.PlayerColonyRelationship>玩家殖民地</RimWorldAccess.World.Settlement.PlayerColonyRelationship>
   <RimWorldAccess.World.Settlement.HostileRelationship>敌对</RimWorldAccess.World.Settlement.HostileRelationship>
@@ -693,7 +692,6 @@
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>玩家远行队</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
   <RimWorldAccess.WorldScanner.Sub.Sites>地点</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>全部生物群系</RimWorldAccess.WorldScanner.Sub.AllBiomes>
-  <RimWorldAccess.WorldScanner.Sub.AllRoads>全部道路</RimWorldAccess.WorldScanner.Sub.AllRoads>
   <RimWorldAccess.WorldScanner.Unreachable>无法抵达</RimWorldAccess.WorldScanner.Unreachable>
   <RimWorldAccess.WorldScanner.QuestPrefix>任务: {0}</RimWorldAccess.WorldScanner.QuestPrefix>
   <RimWorldAccess.WorldScanner.FactionWithType>{0}, {1}</RimWorldAccess.WorldScanner.FactionWithType>

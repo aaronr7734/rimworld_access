@@ -23,12 +23,7 @@
        noun. -->
   <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>Building cannot break down</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
   <RimWorldAccess.Building.Breakdown.StatusBrokenDown>Status: Broken down</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
-  <RimWorldAccess.Building.Breakdown.NeedsRepair>This building requires repair before it can function</RimWorldAccess.Building.Breakdown.NeedsRepair>
-  <RimWorldAccess.Building.Breakdown.RepairSkill>A colonist with the Construction skill can repair it</RimWorldAccess.Building.Breakdown.RepairSkill>
   <RimWorldAccess.Building.Breakdown.StatusOperational>Status: Operational</RimWorldAccess.Building.Breakdown.StatusOperational>
-  <RimWorldAccess.Building.Breakdown.OperationalDescription>This building is functioning normally</RimWorldAccess.Building.Breakdown.OperationalDescription>
-  <RimWorldAccess.Building.Breakdown.BreakdownsOverTime>Buildings with breakdown components can break down over time</RimWorldAccess.Building.Breakdown.BreakdownsOverTime>
-  <RimWorldAccess.Building.Breakdown.UnpoweredImmune>Note: Building is not powered. Unpowered buildings do not break down</RimWorldAccess.Building.Breakdown.UnpoweredImmune>
 
   <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
        Toggles CompForbiddable. Status-row keys compose with the building
@@ -65,21 +60,6 @@
   <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
        Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
        LabelPowerSwitch: {0} = building label, {1} = vanilla "On"/"Off". -->
-  <RimWorldAccess.Building.Flickable.NoFlickComponent>Building does not have power control</RimWorldAccess.Building.Flickable.NoFlickComponent>
-  <RimWorldAccess.Building.Flickable.AlreadyOn>Power is already on</RimWorldAccess.Building.Flickable.AlreadyOn>
-  <RimWorldAccess.Building.Flickable.AlreadyOff>Power is already off</RimWorldAccess.Building.Flickable.AlreadyOff>
-  <RimWorldAccess.Building.Flickable.LabelPowerStatus>{0} - Power: {1}</RimWorldAccess.Building.Flickable.LabelPowerStatus>
-  <RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix> (No power available)</RimWorldAccess.Building.Flickable.NoPowerAvailableSuffix>
-  <RimWorldAccess.Building.Flickable.ConsumingSuffix> - Consuming: {0}W</RimWorldAccess.Building.Flickable.ConsumingSuffix>
-  <RimWorldAccess.Building.Flickable.ProducingSuffix> - Producing: {0}W</RimWorldAccess.Building.Flickable.ProducingSuffix>
-  <RimWorldAccess.Building.Flickable.LabelPowerSwitch>{0} - Power switch: {1}</RimWorldAccess.Building.Flickable.LabelPowerSwitch>
-  <RimWorldAccess.Building.Flickable.DetailConnected>Connected to power grid</RimWorldAccess.Building.Flickable.DetailConnected>
-  <RimWorldAccess.Building.Flickable.DetailActiveSuffix> - Active</RimWorldAccess.Building.Flickable.DetailActiveSuffix>
-  <RimWorldAccess.Building.Flickable.DetailNoPowerSuffix> - No power available</RimWorldAccess.Building.Flickable.DetailNoPowerSuffix>
-  <RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix> - Switched off</RimWorldAccess.Building.Flickable.DetailSwitchedOffSuffix>
-  <RimWorldAccess.Building.Flickable.DetailNotConnected>Not connected to power grid</RimWorldAccess.Building.Flickable.DetailNotConnected>
-  <RimWorldAccess.Building.Flickable.DetailConsuming>Consuming: {0}W</RimWorldAccess.Building.Flickable.DetailConsuming>
-  <RimWorldAccess.Building.Flickable.DetailProducing>Producing: {0}W</RimWorldAccess.Building.Flickable.DetailProducing>
 
   <!-- Uninstall designation (src/Building/UninstallControlState.cs).
        Toggles DesignationDefOf.Uninstall on minifiable buildings. Vanilla
@@ -1021,4 +1001,11 @@
   <RimWorldAccess.Building.Zone.WillCreateNew>will create new zone.</RimWorldAccess.Building.Zone.WillCreateNew>
   <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
   <RimWorldAccess.Building.Meditation.SkippedProtected>{0} skipped, protected by {1}</RimWorldAccess.Building.Meditation.SkippedProtected>
+
+  <!-- Architect tree: right-click options hint and material availability
+       suffixes (composed after the designator / material label). -->
+  <RimWorldAccess.Building.Architect.MoreOptionsHint>(right bracket for more options)</RimWorldAccess.Building.Architect.MoreOptionsHint>
+  <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} available)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
+  <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(none available)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
+
 </LanguageData>
