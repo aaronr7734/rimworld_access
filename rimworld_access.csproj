@@ -64,6 +64,16 @@
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
   </ItemGroup>
 
+  <!-- Post-build: verify translation-key integrity. Fails the build on "fake"
+       keys (.Translate()/.Loc() on a key that exists in no Keyed XML — these
+       compile fine and even render plausible English, but speak the raw key
+       name in every language) and warns on orphaned keys (defined in our
+       English XML but unreferenced in src — the signature of merge-reverted
+       announcement code). The Localized-type guard cannot catch either class. -->
+  <Target Name="CheckLocalizationKeys" AfterTargets="Build" Condition="'$(OS)' != 'Windows_NT'">
+    <Exec Command="python3 &quot;$(ProjectDir)scripts/check_l10n_keys.py&quot; --game-dir &quot;$(RimWorldDir)&quot;" />
+  </Target>
+
   <!-- Post-build: Copy mod files to RimWorld Mods folder (skip in CI) -->
   <Target Name="DeployMod" AfterTargets="Build" Condition="'$(CI)' != 'true'">
     <Message Text="--- Deploying RimWorld Access mod to $(ModOutputDir) ---" Importance="high" />
