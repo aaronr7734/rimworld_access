@@ -27,6 +27,9 @@ CHANGES
   filters now says "Press Enter to edit range" instead of just rejecting.
 - The work menu's on-screen table-view overlay (for sighted observers) is now
   localized like the rest of the mod.
+- The ideoligion presets tab now announces itself with the game's own section
+  heading ("Preset ideoligions") instead of a mod-invented name, so it speaks
+  whatever wording your game's translation uses.
 06/11/2026
 
 CHANGES

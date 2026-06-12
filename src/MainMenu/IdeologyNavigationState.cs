@@ -236,6 +236,33 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>
+        /// Names the presets tab with vanilla's own section heading ("Preset
+        /// ideoligions"), so the wording is game-translated. The heading lives
+        /// per category (groupLabel); it only names the whole tab when every
+        /// displayed category agrees on it — some translations split the
+        /// heading per category, in which case our own key is the fallback.
+        /// </summary>
+        private static string PresetsTabName()
+        {
+            string shared = null;
+            foreach (var c in DefDatabase<IdeoPresetCategoryDef>.AllDefsListForReading)
+            {
+                if (c == IdeoPresetCategoryDefOf.Classic
+                    || c == IdeoPresetCategoryDefOf.Custom
+                    || c == IdeoPresetCategoryDefOf.Fluid
+                    || string.IsNullOrEmpty(c.groupLabel))
+                    continue;
+                if (shared == null)
+                    shared = c.groupLabel;
+                else if (shared != c.groupLabel)
+                    return "RimWorldAccess.Ideology.PresetsTab".Translate().ToString();
+            }
+            return shared != null
+                ? shared.CapitalizeFirst()
+                : "RimWorldAccess.Ideology.PresetsTab".Translate().ToString();
+        }
+
         private static void AnnounceTabSwitch()
         {
             if (currentTab == TabOptions)
@@ -245,7 +272,7 @@ namespace RimWorldAccess
             }
             else
             {
-                string tabName = "RimWorldAccess.Ideology.PresetsTab".Translate();
+                string tabName = PresetsTabName();
                 if (presetsTreeNav.Count > 0)
                 {
                     string hint = "";
