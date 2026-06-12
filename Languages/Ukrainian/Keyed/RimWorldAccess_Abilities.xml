@@ -290,4 +290,30 @@
   <RimWorldAccess.Abilities.Teleport.NoLineOfSight>Немає прямої видимості призначення</RimWorldAccess.Abilities.Teleport.NoLineOfSight>
   <RimWorldAccess.Abilities.Teleport.InvalidDestination>Неприпустиме місце телепортації</RimWorldAccess.Abilities.Teleport.InvalidDestination>
   <RimWorldAccess.Abilities.Success.WarningsSuffix>. Попередження: {0}</RimWorldAccess.Abilities.Success.WarningsSuffix>
+
+  <!-- Seed planting (CompPlantable: Gauranlen seeds, etc.). Per-tile prefixes are
+       kept terse for fast sweeping. Pressing Enter already reports why a cell can
+       or can't be planted, so there is no separate reason key. On entering planting
+       mode a temporary scanner category lists every plantable area nearest first
+       (Page Down through them, Home to jump the cursor there). {0} in Start/
+       StartNoAreas/ScannerCategory = the tree's label (e.g. "Gauranlen tree");
+       {1} in Start = the number of plantable areas found. -->
+  <RimWorldAccess.Abilities.Plant.Start>Посадка: {0}. Виберіть місце клавішами зі стрілками, Enter — посадити. У сканері {1} ділянок для посадки, найближчі спочатку; натисніть Page Down, щоб переходити між ними, і Home, щоб перейти туди.</RimWorldAccess.Abilities.Plant.Start>
+  <RimWorldAccess.Abilities.Plant.StartNoAreas>Посадка: {0}. Виберіть місце клавішами зі стрілками, Enter — посадити. На мапі не знайдено придатних місць для посадки.</RimWorldAccess.Abilities.Plant.StartNoAreas>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlant>Можна посадити, </RimWorldAccess.Abilities.Plant.PrefixCanPlant>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>Можна посадити, поряд з будівлями, </RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>
+  <RimWorldAccess.Abilities.Plant.PrefixBlocked>Заблоковано, </RimWorldAccess.Abilities.Plant.PrefixBlocked>
+  <RimWorldAccess.Abilities.Plant.ScannerCategory>Місця посадки: {0}</RimWorldAccess.Abilities.Plant.ScannerCategory>
+  <RimWorldAccess.Abilities.Plant.ScannerItemLabel>Місце для посадки</RimWorldAccess.Abilities.Plant.ScannerItemLabel>
+
+  <!-- Subcategory split for plants whose connection strength is reduced by nearby
+       artificial buildings (Gauranlen trees). Subcategory names are announced
+       verbatim by the scanner (Shift+Page Down switches between them). The Start
+       suffixes are appended to Plant.Start after a space; {0} in StartClearSuffix
+       = the clear-of-buildings subcategory's area count (grouped independently,
+       so it can exceed the total plantable area count). -->
+  <RimWorldAccess.Abilities.Plant.SubcatAll>Усі місця посадки</RimWorldAccess.Abilities.Plant.SubcatAll>
+  <RimWorldAccess.Abilities.Plant.SubcatClear>Подалі від будівель</RimWorldAccess.Abilities.Plant.SubcatClear>
+  <RimWorldAccess.Abilities.Plant.StartClearSuffix>У списку «Подалі від будівель» {0} ділянок, де сила зв'язку не знижуватиметься; натисніть Shift+Page Down, щоб перейти до нього.</RimWorldAccess.Abilities.Plant.StartClearSuffix>
+  <RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>Попередження: усі придатні місця розташовані поряд з будівлями, тож посадка будь-де знизить силу зв'язку.</RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>
 </LanguageData>

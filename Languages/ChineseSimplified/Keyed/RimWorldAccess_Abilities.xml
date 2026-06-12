@@ -290,4 +290,30 @@
   <RimWorldAccess.Abilities.Teleport.NoLineOfSight>目的地不在视线内</RimWorldAccess.Abilities.Teleport.NoLineOfSight>
   <RimWorldAccess.Abilities.Teleport.InvalidDestination>无效的传送目的地</RimWorldAccess.Abilities.Teleport.InvalidDestination>
   <RimWorldAccess.Abilities.Success.WarningsSuffix>. 警告: {0}</RimWorldAccess.Abilities.Success.WarningsSuffix>
+
+  <!-- Seed planting (CompPlantable: Gauranlen seeds, etc.). Per-tile prefixes are
+       kept terse for fast sweeping. Pressing Enter already reports why a cell can
+       or can't be planted, so there is no separate reason key. On entering planting
+       mode a temporary scanner category lists every plantable area nearest first
+       (Page Down through them, Home to jump the cursor there). {0} in Start/
+       StartNoAreas/ScannerCategory = the tree's label (e.g. "Gauranlen tree");
+       {1} in Start = the number of plantable areas found. -->
+  <RimWorldAccess.Abilities.Plant.Start>正在种植{0}。使用方向键选择位置，回车键种植。扫描器中有 {1} 处可种植区域，由近到远排列；按 Page Down 逐一浏览，按 Home 跳转到该处。</RimWorldAccess.Abilities.Plant.Start>
+  <RimWorldAccess.Abilities.Plant.StartNoAreas>正在种植{0}。使用方向键选择位置，回车键种植。地图上未找到可种植的位置。</RimWorldAccess.Abilities.Plant.StartNoAreas>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlant>可种植, </RimWorldAccess.Abilities.Plant.PrefixCanPlant>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>可种植, 靠近建筑物, </RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>
+  <RimWorldAccess.Abilities.Plant.PrefixBlocked>无法种植, </RimWorldAccess.Abilities.Plant.PrefixBlocked>
+  <RimWorldAccess.Abilities.Plant.ScannerCategory>{0}种植点</RimWorldAccess.Abilities.Plant.ScannerCategory>
+  <RimWorldAccess.Abilities.Plant.ScannerItemLabel>可种植位置</RimWorldAccess.Abilities.Plant.ScannerItemLabel>
+
+  <!-- Subcategory split for plants whose connection strength is reduced by nearby
+       artificial buildings (Gauranlen trees). Subcategory names are announced
+       verbatim by the scanner (Shift+Page Down switches between them). The Start
+       suffixes are appended to Plant.Start after a space; {0} in StartClearSuffix
+       = the clear-of-buildings subcategory's area count (grouped independently,
+       so it can exceed the total plantable area count). -->
+  <RimWorldAccess.Abilities.Plant.SubcatAll>全部种植点</RimWorldAccess.Abilities.Plant.SubcatAll>
+  <RimWorldAccess.Abilities.Plant.SubcatClear>远离建筑物</RimWorldAccess.Abilities.Plant.SubcatClear>
+  <RimWorldAccess.Abilities.Plant.StartClearSuffix>「远离建筑物」列表中有 {0} 处共鸣强度不会下降的区域；按 Shift+Page Down 切换到该列表。</RimWorldAccess.Abilities.Plant.StartClearSuffix>
+  <RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>警告: 所有可种植位置都靠近人造建筑物，无论种在何处都会导致共鸣强度下降。</RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>
 </LanguageData>
