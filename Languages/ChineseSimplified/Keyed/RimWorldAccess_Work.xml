@@ -270,6 +270,10 @@
   <RimWorldAccess.Work.Overlay.BasicInstructions1>左/右: 导航任务 | 空格: 切换</RimWorldAccess.Work.Overlay.BasicInstructions1>
   <RimWorldAccess.Work.Overlay.BasicInstructions2>Tab/Shift+Tab: 切换角色</RimWorldAccess.Work.Overlay.BasicInstructions2>
   <RimWorldAccess.Work.Overlay.BasicInstructions3>回车/Esc: 保存并关闭 | Alt+M: 切换至自定义模式</RimWorldAccess.Work.Overlay.BasicInstructions3>
+  <RimWorldAccess.Work.Overlay.TableTitle>工作 (表格视图) - {0} ({1}/{2}) - 列: {3}</RimWorldAccess.Work.Overlay.TableTitle>
+  <RimWorldAccess.Work.Overlay.TableInstructions1>上/下: 切换殖民者 | 左/右: 切换工作类型 | 0-4: 设置优先级 | [ ]: 循环切换优先级</RimWorldAccess.Work.Overlay.TableInstructions1>
+  <RimWorldAccess.Work.Overlay.TableInstructions2>Shift+[ ]: 为所有殖民者循环切换 | Shift+方向键: 涂刷 | Alt+S: 排序 | Alt+M: 切换模式</RimWorldAccess.Work.Overlay.TableInstructions2>
+  <RimWorldAccess.Work.Overlay.TableInstructions3>{0}+Tab: 切换到焦点视图 | Enter/Escape: 保存并关闭</RimWorldAccess.Work.Overlay.TableInstructions3>
 
   <!-- Task detail composition pieces restored/added after the merge.
        IncludesPrefix leads the comma-joined work-giver list; leading

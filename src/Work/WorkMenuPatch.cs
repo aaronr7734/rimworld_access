@@ -737,11 +737,13 @@ namespace RimWorldAccess
 
             int pawnCount = WorkTableState.PawnCount;
             int row = WorkTableState.CurrentRowIndex + 1;
-            string mode = WorkTableState.IsManualMode ? "Manual Priority Mode" : "Basic Mode";
+            string mode = WorkTableState.IsManualMode
+                ? "RimWorldAccess.Work.Mode.ManualOverlay".Translate().ToString()
+                : "RimWorldAccess.Work.Mode.BasicOverlay".Translate().ToString();
             string colName = pawnCount > 0
                 ? WorkTableState.TableHelper?.GetCurrentColumnName() ?? ""
                 : "";
-            string title = $"Work (Table View) - {mode} ({row}/{pawnCount}) - Column: {colName}";
+            string title = "RimWorldAccess.Work.Overlay.TableTitle".Translate(mode, row, pawnCount, colName);
 
             Rect titleRect = new Rect(overlayX, overlayY + 10f, overlayWidth, 25f);
             Widgets.Label(titleRect, title);
@@ -749,9 +751,9 @@ namespace RimWorldAccess
             Text.Font = GameFont.Tiny;
             GUI.color = new Color(0.8f, 0.9f, 1.0f);
 
-            string line1 = "Up/Down: pawn | Left/Right: work type | 0-4: priority | [ ]: cycle priority";
-            string line2 = "Shift+[ ]: cycle for all colonists | Shift+Arrows: paint | Alt+S: sort | Alt+M: mode";
-            string line3 = $"{KeyboardHelper.CtrlLabel}+Tab: switch to focused view | Enter/Escape: save & close";
+            string line1 = "RimWorldAccess.Work.Overlay.TableInstructions1".Translate();
+            string line2 = "RimWorldAccess.Work.Overlay.TableInstructions2".Translate();
+            string line3 = "RimWorldAccess.Work.Overlay.TableInstructions3".Translate(KeyboardHelper.CtrlLabel);
 
             Rect l1 = new Rect(overlayX, overlayY + 45f, overlayWidth, 22f);
             Rect l2 = new Rect(overlayX, overlayY + 70f, overlayWidth, 22f);

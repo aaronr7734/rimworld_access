@@ -270,6 +270,10 @@
   <RimWorldAccess.Work.Overlay.BasicInstructions1>Ліворуч/Праворуч: навігація завданнями | Пробіл: перемкнути</RimWorldAccess.Work.Overlay.BasicInstructions1>
   <RimWorldAccess.Work.Overlay.BasicInstructions2>Tab/Shift+Tab: змінити персонажа</RimWorldAccess.Work.Overlay.BasicInstructions2>
   <RimWorldAccess.Work.Overlay.BasicInstructions3>Enter/Escape: зберегти та закрити | Alt+M: перейти в ручний режим</RimWorldAccess.Work.Overlay.BasicInstructions3>
+  <RimWorldAccess.Work.Overlay.TableTitle>Праця (табличний вигляд) - {0} ({1}/{2}) - Стовпець: {3}</RimWorldAccess.Work.Overlay.TableTitle>
+  <RimWorldAccess.Work.Overlay.TableInstructions1>Вгору/Вниз: колоніст | Ліворуч/Праворуч: тип роботи | 0-4: пріоритет | [ ]: циклічна зміна пріоритету</RimWorldAccess.Work.Overlay.TableInstructions1>
+  <RimWorldAccess.Work.Overlay.TableInstructions2>Shift+[ ]: змінити для всіх колоністів | Shift+стрілки: малювання | Alt+S: сортування | Alt+M: режим</RimWorldAccess.Work.Overlay.TableInstructions2>
+  <RimWorldAccess.Work.Overlay.TableInstructions3>{0}+Tab: перейти до зосередженого вигляду | Enter/Escape: зберегти й закрити</RimWorldAccess.Work.Overlay.TableInstructions3>
 
   <!-- Task detail composition pieces restored/added after the merge.
        IncludesPrefix leads the comma-joined work-giver list; leading

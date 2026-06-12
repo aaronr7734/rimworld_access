@@ -210,6 +210,7 @@
        since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>Зміни діапазону застосовано</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>Редагування діапазону скасовано</RimWorldAccess.Inspection.Storage.RangeCancelled>
+  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>Натисніть Enter, щоб редагувати діапазон</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->

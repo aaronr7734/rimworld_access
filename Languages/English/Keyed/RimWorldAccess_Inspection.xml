@@ -210,6 +210,9 @@
        since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>Applied range changes</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>Cancelled range editing</RimWorldAccess.Inspection.Storage.RangeCancelled>
+  <!-- Spoken when Right is pressed on a range row (ranges have no children
+       to expand; Enter opens the range editor). -->
+  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>Press Enter to edit range</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->

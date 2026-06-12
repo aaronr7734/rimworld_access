@@ -20,6 +20,13 @@ CHANGES
 - The build now automatically verifies every translation key used in code
   actually exists, and flags translated keys that code no longer uses, so
   these regressions cannot slip through silently again.
+- Pressing * to expand all items now tells you when there was nothing to do
+  ("All items already expanded" / "No expandable items") instead of staying
+  silent.
+- Pressing Right on a hit points or quality range row in storage and policy
+  filters now says "Press Enter to edit range" instead of just rejecting.
+- The work menu's on-screen table-view overlay (for sighted observers) is now
+  localized like the rest of the mod.
 06/11/2026
 
 CHANGES

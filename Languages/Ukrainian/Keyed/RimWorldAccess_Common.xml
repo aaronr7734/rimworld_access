@@ -58,6 +58,8 @@
   <RimWorldAccess.Tree.ExpansionSpaceSuffix> {0}</RimWorldAccess.Tree.ExpansionSpaceSuffix>
   <RimWorldAccess.Tree.ExpandedCountOne>Розгорнуто {0} елемент</RimWorldAccess.Tree.ExpandedCountOne>
   <RimWorldAccess.Tree.ExpandedCountMany>Розгорнуто {0} елементів</RimWorldAccess.Tree.ExpandedCountMany>
+  <RimWorldAccess.Tree.AllAlreadyExpanded>Усі елементи вже розгорнуто</RimWorldAccess.Tree.AllAlreadyExpanded>
+  <RimWorldAccess.Tree.NoneToExpand>Немає елементів для розгортання</RimWorldAccess.Tree.NoneToExpand>
 
   <!-- Two-level menu (src/UI/TwoLevelMenuHelper.cs).
        Used by quest, history, notification, and mod-list menus.

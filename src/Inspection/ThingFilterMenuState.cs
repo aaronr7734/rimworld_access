@@ -1,5 +1,6 @@
 using System.Linq;
 using Verse;
+using Verse.Sound;
 using RimWorld;
 
 namespace RimWorldAccess
@@ -334,6 +335,16 @@ namespace RimWorldAccess
         public static void ExpandOrToggleOn()
         {
             if (treeNav.SelectedItem == null) return;
+
+            // Range rows have no children; Right teaches the edit affordance instead.
+            if (treeNav.SelectedItem.Data is FilterNodeData rangeData &&
+                (rangeData.Type == NodeType.HitPointsRange || rangeData.Type == NodeType.QualityRange))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Loc());
+                return;
+            }
+
             treeNav.ExpandOrDrillDown();
         }
 

@@ -210,6 +210,7 @@
        since ranges have no children). -->
   <RimWorldAccess.Inspection.Storage.RangeApplied>已应用范围更改</RimWorldAccess.Inspection.Storage.RangeApplied>
   <RimWorldAccess.Inspection.Storage.RangeCancelled>已取消范围编辑</RimWorldAccess.Inspection.Storage.RangeCancelled>
+  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>按回车键编辑范围</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
 
   <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
        parent inspection menu is active). -->

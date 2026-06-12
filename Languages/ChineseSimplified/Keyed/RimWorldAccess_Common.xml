@@ -58,6 +58,8 @@
   <RimWorldAccess.Tree.ExpansionSpaceSuffix> {0}</RimWorldAccess.Tree.ExpansionSpaceSuffix>
   <RimWorldAccess.Tree.ExpandedCountOne>已展开 {0} 项</RimWorldAccess.Tree.ExpandedCountOne>
   <RimWorldAccess.Tree.ExpandedCountMany>已展开 {0} 项</RimWorldAccess.Tree.ExpandedCountMany>
+  <RimWorldAccess.Tree.AllAlreadyExpanded>所有项均已展开</RimWorldAccess.Tree.AllAlreadyExpanded>
+  <RimWorldAccess.Tree.NoneToExpand>没有可展开的项</RimWorldAccess.Tree.NoneToExpand>
 
   <!-- Two-level menu (src/UI/TwoLevelMenuHelper.cs).
        Used by quest, history, notification, and mod-list menus.

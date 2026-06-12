@@ -58,6 +58,10 @@
   <RimWorldAccess.Tree.ExpansionSpaceSuffix> {0}</RimWorldAccess.Tree.ExpansionSpaceSuffix>
   <RimWorldAccess.Tree.ExpandedCountOne>Expanded {0} item</RimWorldAccess.Tree.ExpandedCountOne>
   <RimWorldAccess.Tree.ExpandedCountMany>Expanded {0} items</RimWorldAccess.Tree.ExpandedCountMany>
+  <!-- No-op feedback for ExpandAllSiblings: everything at this level was
+       already open, or nothing here can expand. -->
+  <RimWorldAccess.Tree.AllAlreadyExpanded>All items already expanded</RimWorldAccess.Tree.AllAlreadyExpanded>
+  <RimWorldAccess.Tree.NoneToExpand>No expandable items</RimWorldAccess.Tree.NoneToExpand>
 
   <!-- Two-level menu (src/UI/TwoLevelMenuHelper.cs).
        Used by quest, history, notification, and mod-list menus.

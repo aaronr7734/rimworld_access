@@ -552,7 +552,10 @@ namespace RimWorldAccess
             if (data == null || data.Type != NodeType.Category)
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.ThingFilter.CannotExpand".Loc());
+                // Sliders open a range editor on Enter; teach that instead of a bare rejection.
+                TolkHelper.Speak(data != null && data.Type == NodeType.Slider
+                    ? "RimWorldAccess.Inspection.Storage.PressEnterEditRange".Loc()
+                    : "RimWorldAccess.Inspection.ThingFilter.CannotExpand".Loc());
                 return;
             }
 

@@ -734,6 +734,14 @@ namespace RimWorldAccess
                             : "RimWorldAccess.Tree.ExpandedCountMany").Loc(expandedCount));
                 }
             }
+            else
+            {
+                // Nothing expanded: say why the keypress was a no-op instead of staying silent.
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak((siblings.Any(s => s.IsExpandable)
+                    ? "RimWorldAccess.Tree.AllAlreadyExpanded"
+                    : "RimWorldAccess.Tree.NoneToExpand").Loc());
+            }
         }
 
         /// <summary>

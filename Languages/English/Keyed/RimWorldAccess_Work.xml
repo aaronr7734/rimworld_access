@@ -271,6 +271,15 @@
   <RimWorldAccess.Work.Overlay.BasicInstructions2>Tab/Shift+Tab: Switch pawn</RimWorldAccess.Work.Overlay.BasicInstructions2>
   <RimWorldAccess.Work.Overlay.BasicInstructions3>Enter/Escape: Save &amp; close | Alt+M: Switch to manual mode</RimWorldAccess.Work.Overlay.BasicInstructions3>
 
+  <!-- Table-view visual overlay (WorkMenuPatch table overlay).
+       TableTitle: {0} = mode-overlay label, {1} = row 1-based,
+       {2} = pawn count, {3} = column name.
+       TableInstructions3: {0} = platform Ctrl label. -->
+  <RimWorldAccess.Work.Overlay.TableTitle>Work (Table View) - {0} ({1}/{2}) - Column: {3}</RimWorldAccess.Work.Overlay.TableTitle>
+  <RimWorldAccess.Work.Overlay.TableInstructions1>Up/Down: pawn | Left/Right: work type | 0-4: priority | [ ]: cycle priority</RimWorldAccess.Work.Overlay.TableInstructions1>
+  <RimWorldAccess.Work.Overlay.TableInstructions2>Shift+[ ]: cycle for all colonists | Shift+Arrows: paint | Alt+S: sort | Alt+M: mode</RimWorldAccess.Work.Overlay.TableInstructions2>
+  <RimWorldAccess.Work.Overlay.TableInstructions3>{0}+Tab: switch to focused view | Enter/Escape: save &amp; close</RimWorldAccess.Work.Overlay.TableInstructions3>
+
   <!-- Task detail composition pieces restored/added after the merge.
        IncludesPrefix leads the comma-joined work-giver list; leading
        ". " is part of the value, matching Task.UnskilledLabor.

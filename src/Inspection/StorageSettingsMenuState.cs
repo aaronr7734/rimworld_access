@@ -367,6 +367,14 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Range rows have no children; Right teaches the edit affordance instead.
+            if (data.Type == NodeType.HitPointsRange || data.Type == NodeType.QualityRange)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("RimWorldAccess.Inspection.Storage.PressEnterEditRange".Loc());
+                return;
+            }
+
             // For everything else delegate to TreeNavigationHelper. It plays the
             // standard FloatMenu_Open / Tick_Tiny sounds, handles drill-down for
             // already-expanded items, and lands on the first remembered/child
