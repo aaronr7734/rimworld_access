@@ -465,7 +465,7 @@ namespace RimWorldAccess
 
         private static string BuildDialogAnnouncement(string title, string message)
         {
-            string announcement = "Dialog opened. ";
+            string announcement = (string)"RimWorldAccess.UI.Dialog.Opened".Translate() + " ";
 
             if (!string.IsNullOrEmpty(title))
             {
@@ -621,7 +621,7 @@ namespace RimWorldAccess
 
         public override string GetAnnouncement()
         {
-            string text = "Dialog description: ";
+            string text = (string)"RimWorldAccess.UI.Dialog.DescriptionLabel".Translate() + " ";
             if (!string.IsNullOrEmpty(Title))
             {
                 text += Title;

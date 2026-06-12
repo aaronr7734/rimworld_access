@@ -80,4 +80,9 @@
   <RimWorldAccess.Ideology.Builder.PreceptSection.Active>Активні правила, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
   <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>Не встановлено, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
   <RimWorldAccess.Ideology.Builder.PreceptCurrent>поточне</RimWorldAccess.Ideology.Builder.PreceptCurrent>
+  <RimWorldAccess.Ideology.PressEnterToReform>Натисніть Enter, щоб реформувати</RimWorldAccess.Ideology.PressEnterToReform>
+  <RimWorldAccess.Ideology.Builder.Status.Selected>вибрано</RimWorldAccess.Ideology.Builder.Status.Selected>
+  <RimWorldAccess.Ideology.Builder.Status.Removed>видалено</RimWorldAccess.Ideology.Builder.Status.Removed>
+  <RimWorldAccess.Ideology.Builder.Status.Reformed>реформовано</RimWorldAccess.Ideology.Builder.Status.Reformed>
+  <RimWorldAccess.Ideology.Builder.Status.Yours>ваша</RimWorldAccess.Ideology.Builder.Status.Yours>
 </LanguageData>

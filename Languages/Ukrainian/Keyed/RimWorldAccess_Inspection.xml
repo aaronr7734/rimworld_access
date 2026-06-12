@@ -632,6 +632,7 @@
   <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>. Натисніть праву квадратну дужку для додаткових варіантів</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
   <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>. Натисніть Enter, щоб відрегулювати</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Натисніть Enter, щоб перемкнути обмежувач, праву квадратну дужку, щоб задати ціль пси-фокусу</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
+  <RimWorldAccess.Inspection.Gizmo.HintHemogen>. Натисніть Enter, щоб перемкнути дозвіл на пакети гемогену, праву квадратну дужку, щоб задати ціль</RimWorldAccess.Inspection.Gizmo.HintHemogen>
 
   <!-- =================================================================
        Gizmo type labels (GetNonCommandGizmoLabel and helpers). These

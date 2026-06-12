@@ -361,7 +361,7 @@ namespace RimWorldAccess
                 sb.Append(MainButtonDefOf.Ideos.LabelCap).Append(". ");
             sb.Append(IdeologyHelper.BuildIdeoListAnnouncement(ideo));
             if (ReferenceEquals(ideo, currentIdeo))
-                sb.Append(", yours");
+                sb.Append(", ").Append((string)"RimWorldAccess.Ideology.Builder.Status.Yours".Translate());
             string position = MenuHelper.FormatPosition(listIndex, allIdeos.Count);
             if (!string.IsNullOrEmpty(position))
                 sb.Append(". ").Append(position);

@@ -114,7 +114,7 @@ namespace RimWorldAccess
 
             string stateIndicator = "";
             if (item.IsExpandable)
-                stateIndicator = item.IsExpanded ? ", expanded" : ", collapsed";
+                stateIndicator = item.IsExpanded ? ", " + (string)"RimWorldAccess.Tree.StateExpanded".Translate() : ", " + (string)"RimWorldAccess.Tree.StateCollapsed".Translate();
 
             return typeahead.BuildItemAnnouncement($"{label}{stateIndicator}");
         }

@@ -80,4 +80,16 @@
   <RimWorldAccess.Ideology.Builder.PreceptSection.Active>Active precepts, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
   <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>Not set, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
   <RimWorldAccess.Ideology.Builder.PreceptCurrent>current</RimWorldAccess.Ideology.Builder.PreceptCurrent>
+
+  <!-- Action hint appended to the fluid-ideology development-points node when
+       the ideoligion can be reformed right now (IdeologyHelper.BuildFluidSection). -->
+  <RimWorldAccess.Ideology.PressEnterToReform>Press Enter to reform</RimWorldAccess.Ideology.PressEnterToReform>
+
+  <!-- Bare status-word suffixes spoken after a comma in the ideoligion builder
+       (e.g. "Theist deity, removed"). One word each so translators can decline
+       them; the leading ", " separator is composed in C#. -->
+  <RimWorldAccess.Ideology.Builder.Status.Selected>selected</RimWorldAccess.Ideology.Builder.Status.Selected>
+  <RimWorldAccess.Ideology.Builder.Status.Removed>removed</RimWorldAccess.Ideology.Builder.Status.Removed>
+  <RimWorldAccess.Ideology.Builder.Status.Reformed>reformed</RimWorldAccess.Ideology.Builder.Status.Reformed>
+  <RimWorldAccess.Ideology.Builder.Status.Yours>yours</RimWorldAccess.Ideology.Builder.Status.Yours>
 </LanguageData>

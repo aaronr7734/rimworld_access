@@ -130,6 +130,19 @@
   <RimWorldAccess.UI.Options.CannotChangeStoryteller>Cannot change storyteller right now</RimWorldAccess.UI.Options.CannotChangeStoryteller>
   <!-- {0} = mod's SettingsCategory() string. -->
   <RimWorldAccess.UI.Options.OpeningModSettings>Opening settings for {0}</RimWorldAccess.UI.Options.OpeningModSettings>
+  <!-- Language selection row value: appended to the active language's native name. -->
+  <RimWorldAccess.UI.Options.PressEnterToChange>(Press Enter to change)</RimWorldAccess.UI.Options.PressEnterToChange>
+  <!-- RimWorld Access settings edited directly in this menu (the game has no
+       key for these). WorkMenuView is a two-value enum: Label names the row,
+       Focused/Table are the value words spoken as the current value, and the
+       *Desc keys are the tooltip read after the value. -->
+  <RimWorldAccess.UI.Options.WorkMenuView.Label>Default Work Menu View (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
+  <RimWorldAccess.UI.Options.WorkMenuView.Focused>Focused</RimWorldAccess.UI.Options.WorkMenuView.Focused>
+  <RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>Priority-grouped per-pawn view.</RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>
+  <RimWorldAccess.UI.Options.WorkMenuView.Table>Table</RimWorldAccess.UI.Options.WorkMenuView.Table>
+  <RimWorldAccess.UI.Options.WorkMenuView.TableDesc>Pawn rows by work-type columns; mirrors vanilla and supports sorting and painting.</RimWorldAccess.UI.Options.WorkMenuView.TableDesc>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Label>Announce Forced Slowdowns From Threats</RimWorldAccess.UI.Options.ForcedSlowdowns.Label>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>When on, announces when the game forces Normal speed because of a nearby threat, and when the slowdown lifts. Only fires if your chosen speed is faster than Normal.</RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>
 
   <!-- =================================================================
        Generic dialog frame (WindowlessDialogState).
@@ -147,6 +160,15 @@
        languages can choose a punctuation-free word. -->
   <RimWorldAccess.UI.Dialog.TextField>Text field: {0}. Current value: {1}. Press Enter to edit.</RimWorldAccess.UI.Dialog.TextField>
   <RimWorldAccess.UI.Dialog.TextFieldEmpty>Empty</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+  <!-- Spoken when a generic dialog opens, and the label that prefixes the
+       re-readable description element. Both are composed in C# with the
+       dialog title and message following, so they end with their own
+       punctuation and no trailing space. -->
+  <RimWorldAccess.UI.Dialog.Opened>Dialog opened.</RimWorldAccess.UI.Dialog.Opened>
+  <RimWorldAccess.UI.Dialog.DescriptionLabel>Dialog description:</RimWorldAccess.UI.Dialog.DescriptionLabel>
+  <!-- Dialog_ModMismatch load prompt: {0} = the "Load anyway" button label,
+       {1} = the "Go back" button label (both from vanilla keys). -->
+  <RimWorldAccess.UI.ModMismatch.LoadInstructions>Press Enter for {0}, Escape for {1}.</RimWorldAccess.UI.ModMismatch.LoadInstructions>
 
   <!-- =================================================================
        Name dialogs (DialogElementExtractor + GiveNameDialogPatch).

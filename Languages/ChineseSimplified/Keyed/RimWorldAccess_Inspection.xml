@@ -632,6 +632,7 @@
   <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>。按右方括号键查看更多选项</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
   <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>。按回车键调整</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>。按回车键切换限制器，右方括号键设置精神力目标</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
+  <RimWorldAccess.Inspection.Gizmo.HintHemogen>。按回车键切换是否允许血红素包，右方括号键设置目标</RimWorldAccess.Inspection.Gizmo.HintHemogen>
 
   <!-- =================================================================
        Gizmo type labels (GetNonCommandGizmoLabel and helpers). These

@@ -130,6 +130,17 @@
   <RimWorldAccess.UI.Options.CannotChangeStoryteller>当前无法更改故事叙述者</RimWorldAccess.UI.Options.CannotChangeStoryteller>
   <!-- {0} = mod's SettingsCategory() string. -->
   <RimWorldAccess.UI.Options.OpeningModSettings>正在打开 {0} 的设置</RimWorldAccess.UI.Options.OpeningModSettings>
+  <!-- Enter-to-change hint, and the two RimWorld Access settings exposed in the
+       in-game options panel: default work-menu view mode and forced-slowdown
+       announcements. -->
+  <RimWorldAccess.UI.Options.PressEnterToChange>（按回车键更改）</RimWorldAccess.UI.Options.PressEnterToChange>
+  <RimWorldAccess.UI.Options.WorkMenuView.Label>默认工作菜单视图 (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
+  <RimWorldAccess.UI.Options.WorkMenuView.Focused>焦点</RimWorldAccess.UI.Options.WorkMenuView.Focused>
+  <RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>按优先级分组的逐角色视图。</RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>
+  <RimWorldAccess.UI.Options.WorkMenuView.Table>表格</RimWorldAccess.UI.Options.WorkMenuView.Table>
+  <RimWorldAccess.UI.Options.WorkMenuView.TableDesc>以角色为行、工作类型为列；与原版一致，支持排序和涂刷。</RimWorldAccess.UI.Options.WorkMenuView.TableDesc>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Label>播报威胁导致的强制减速</RimWorldAccess.UI.Options.ForcedSlowdowns.Label>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>开启后，当游戏因附近威胁强制降为正常速度时播报，并在减速解除时播报。仅当你选择的速度快于正常速度时才会触发。</RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>
 
   <!-- =================================================================
        Generic dialog frame (WindowlessDialogState).
@@ -147,6 +158,13 @@
        languages can choose a punctuation-free word. -->
   <RimWorldAccess.UI.Dialog.TextField>文本框：{0}. 当前值：{1}. 按回车键编辑。</RimWorldAccess.UI.Dialog.TextField>
   <RimWorldAccess.UI.Dialog.TextFieldEmpty>空</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+
+  <!-- Generic dialog open announcement + description label, and the mod-version
+       mismatch load prompt. ModMismatch.LoadInstructions: {0} = accept-action
+       label, {1} = cancel-action label. -->
+  <RimWorldAccess.UI.Dialog.Opened>对话框已打开。</RimWorldAccess.UI.Dialog.Opened>
+  <RimWorldAccess.UI.Dialog.DescriptionLabel>对话框描述:</RimWorldAccess.UI.Dialog.DescriptionLabel>
+  <RimWorldAccess.UI.ModMismatch.LoadInstructions>按回车键选择 {0}，按 Esc 键选择 {1}。</RimWorldAccess.UI.ModMismatch.LoadInstructions>
 
   <!-- =================================================================
        Name dialogs (DialogElementExtractor + GiveNameDialogPatch).

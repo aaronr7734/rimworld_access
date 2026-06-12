@@ -80,4 +80,13 @@
   <RimWorldAccess.Ideology.Builder.PreceptSection.Active>已设置教义, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
   <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>未设置, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
   <RimWorldAccess.Ideology.Builder.PreceptCurrent>当前</RimWorldAccess.Ideology.Builder.PreceptCurrent>
+
+  <!-- "Press Enter to reform" hint, and ideoligion-builder status words spoken
+       after a comma joiner. "reform" matches the Archonexus 重塑 wording; the
+       status words follow the half-width comma-joiner convention. -->
+  <RimWorldAccess.Ideology.PressEnterToReform>按回车键重塑</RimWorldAccess.Ideology.PressEnterToReform>
+  <RimWorldAccess.Ideology.Builder.Status.Selected>已选择</RimWorldAccess.Ideology.Builder.Status.Selected>
+  <RimWorldAccess.Ideology.Builder.Status.Removed>已移除</RimWorldAccess.Ideology.Builder.Status.Removed>
+  <RimWorldAccess.Ideology.Builder.Status.Reformed>已重塑</RimWorldAccess.Ideology.Builder.Status.Reformed>
+  <RimWorldAccess.Ideology.Builder.Status.Yours>你的</RimWorldAccess.Ideology.Builder.Status.Yours>
 </LanguageData>

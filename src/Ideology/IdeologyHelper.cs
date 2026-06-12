@@ -336,7 +336,7 @@ namespace RimWorldAccess
             // repeated as a child (that produced a "current points, current points" double).
             string title = "CurrentDevelopmentPoints".Translate().CapitalizeFirst() + ": " + points;
             if (canReform)
-                title += ". " + "Press Enter to reform";
+                title += ". " + (string)"RimWorldAccess.Ideology.PressEnterToReform".Translate();
 
             var children = new List<string>
             {

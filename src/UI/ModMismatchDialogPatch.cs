@@ -61,7 +61,7 @@ namespace RimWorldAccess
                     }
                 }
 
-                parts.Add($"Press Enter for {"LoadAnyway".Translate()}, Escape for {"GoBack".Translate()}.");
+                parts.Add((string)"RimWorldAccess.UI.ModMismatch.LoadInstructions".Translate("LoadAnyway".Translate(), "GoBack".Translate()));
 
                 TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.High);
             }

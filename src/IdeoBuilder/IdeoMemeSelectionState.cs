@@ -326,7 +326,7 @@ namespace RimWorldAccess
                     if (chosen != null)
                     {
                         FocusMemeNode(chosen);
-                        TolkHelper.SpeakData((string)"Randomize".Translate() + ". " + chosen.LabelCap + ", Selected");
+                        TolkHelper.SpeakData((string)"Randomize".Translate() + ". " + chosen.LabelCap + ", " + (string)"RimWorldAccess.Ideology.Builder.Status.Selected".Translate());
                         return;
                     }
                 }
@@ -336,7 +336,7 @@ namespace RimWorldAccess
                     .Where(m => m.category == MemeCategory.Normal)
                     .Select(m => (string)m.LabelCap));
                 if (string.IsNullOrEmpty(names)) names = "None".Translate();
-                TolkHelper.SpeakData((string)"Randomize".Translate() + ". " + names + ", Selected. "
+                TolkHelper.SpeakData((string)"Randomize".Translate() + ". " + names + ", " + (string)"RimWorldAccess.Ideology.Builder.Status.Selected".Translate() + ". "
                     + IdeoMemeSelectionHelper.BuildStatusLine(currentDialog));
             }
             catch (System.Exception ex)

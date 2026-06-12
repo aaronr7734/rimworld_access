@@ -283,7 +283,7 @@ namespace RimWorldAccess
             var newMemes = GetNewMemes(dialog);
             bool selected = newMemes != null && newMemes.Contains(meme);
             string name = meme.LabelCap.ToString();
-            return selected ? name + ", " + "Selected" : name;
+            return selected ? name + ", " + (string)"RimWorldAccess.Ideology.Builder.Status.Selected".Translate() : name;
         }
 
         /// <summary>

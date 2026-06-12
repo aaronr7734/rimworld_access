@@ -478,13 +478,29 @@ namespace RimWorldAccess
             if (Current.ProgramState == ProgramState.Entry)
             {
                 general.Settings.Add(new ButtonSetting("ChooseLanguage".Translate().ToString(),
-                    () => LanguageDatabase.activeLanguage.FriendlyNameNative + " (Press Enter to change)",
+                    () => LanguageDatabase.activeLanguage.FriendlyNameNative + " " + (string)"RimWorldAccess.UI.Options.PressEnterToChange".Translate(),
                     () => {
                         List<FloatMenuOption> options = new List<FloatMenuOption>();
                         foreach (LoadedLanguage lang in LanguageDatabase.AllLoadedLanguages)
                         {
                             LoadedLanguage localLang = lang;
-                            options.Add(new FloatMenuOption(localLang.FriendlyNameNative, () => LanguageDatabase.SelectLanguage(localLang)));
+                            options.Add(new FloatMenuOption(localLang.FriendlyNameNative, () =>
+                            {
+                                LanguageDatabase.SelectLanguage(localLang);
+                                // SelectLanguage reloads all play data on an async long event; our
+                                // category and setting labels were resolved at build time, so rebuild
+                                // them once the new language has finished loading and re-announce the
+                                // current position. Without this the menu stays in the old language
+                                // until it is closed and reopened.
+                                LongEventHandler.ExecuteWhenFinished(() =>
+                                {
+                                    if (isActive)
+                                    {
+                                        BuildCategories();
+                                        AnnounceCurrentState();
+                                    }
+                                });
+                            }));
                         }
                         WindowlessFloatMenuState.Open(options, false);
                     }));
@@ -677,16 +693,19 @@ namespace RimWorldAccess
                 () => RimWorldAccessMod_Settings.Settings?.SubmenuTreeNavigation ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation = v; },
                 "RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip".Translate()));
-            accessSettings.Settings.Add(new EnumSetting<WorkMenuView>("Default Work Menu View (F1)",
+            accessSettings.Settings.Add(new EnumSetting<WorkMenuView>("RimWorldAccess.UI.Options.WorkMenuView.Label".Translate().ToString(),
                 () => RimWorldAccessMod_Settings.Settings?.DefaultWorkMenuView ?? WorkMenuView.Focused,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.DefaultWorkMenuView = v; },
-                v => v == WorkMenuView.Focused
-                    ? "Priority-grouped per-pawn view."
-                    : "Pawn rows by work-type columns; mirrors vanilla and supports sorting and painting."));
-            accessSettings.Settings.Add(new CheckboxSetting("Announce Forced Slowdowns From Threats",
+                v => (v == WorkMenuView.Focused
+                    ? "RimWorldAccess.UI.Options.WorkMenuView.Focused"
+                    : "RimWorldAccess.UI.Options.WorkMenuView.Table").Translate().ToString(),
+                v => (v == WorkMenuView.Focused
+                    ? "RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc"
+                    : "RimWorldAccess.UI.Options.WorkMenuView.TableDesc").Translate().ToString()));
+            accessSettings.Settings.Add(new CheckboxSetting("RimWorldAccess.UI.Options.ForcedSlowdowns.Label".Translate(),
                 () => RimWorldAccessMod_Settings.Settings?.AnnounceForcedSlowdowns ?? false,
                 v => { if (RimWorldAccessMod_Settings.Settings != null) RimWorldAccessMod_Settings.Settings.AnnounceForcedSlowdowns = v; },
-                "When on, announces when the game forces Normal speed because of a nearby threat, and when the slowdown lifts. Only fires if your chosen speed is faster than Normal."));
+                "RimWorldAccess.UI.Options.ForcedSlowdowns.Desc".Translate()));
             categories.Add(accessSettings);
 
             // Mod Settings Category - list all mods that have settings
@@ -844,6 +863,7 @@ namespace RimWorldAccess
         {
             private readonly Func<T> getter;
             private readonly Action<T> setter;
+            private readonly Func<T, string> valueLabel;
             private readonly Func<T, string> valueTooltip;
             private readonly T[] values;
 
@@ -864,10 +884,21 @@ namespace RimWorldAccess
                 this.values = (T[])Enum.GetValues(typeof(T));
             }
 
+            public EnumSetting(string name, Func<T> getter, Action<T> setter, Func<T, string> valueLabel, Func<T, string> valueTooltip)
+                : base(name, null)
+            {
+                this.getter = getter;
+                this.setter = setter;
+                this.valueLabel = valueLabel;
+                this.valueTooltip = valueTooltip;
+                this.values = (T[])Enum.GetValues(typeof(T));
+            }
+
             public override string GetAnnouncement()
             {
                 T current = getter();
-                string announcement = $"{Name}: {current}";
+                string valueStr = valueLabel != null ? valueLabel(current) : current.ToString();
+                string announcement = $"{Name}: {valueStr}";
                 if (valueTooltip != null)
                 {
                     string vt = valueTooltip(current);

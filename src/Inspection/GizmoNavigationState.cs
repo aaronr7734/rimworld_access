@@ -1413,13 +1413,13 @@ namespace RimWorldAccess
                     string hintTypeName = gizmo.GetType().Name;
                     // PsychicEntropyGizmo has two actions: Enter toggles limiter, right bracket adjusts psyfocus
                     if (hintTypeName == "PsychicEntropyGizmo")
-                        announcement += ". Press Enter to toggle limiter, right bracket to set psyfocus target";
+                        announcement += "RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy".Translate();
                     // GeneGizmo_ResourceHemogen mirrors that pattern: Enter toggles hemogen packs allowed,
                     // right bracket adjusts the desired hemogen target value.
                     else if (hintTypeName == "GeneGizmo_ResourceHemogen")
-                        announcement += ". Press Enter to toggle hemogen packs allowed, right bracket to set target";
+                        announcement += "RimWorldAccess.Inspection.Gizmo.HintHemogen".Translate();
                     else
-                        announcement += ". Press Enter to adjust";
+                        announcement += "RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust".Translate();
                 }
             }
 

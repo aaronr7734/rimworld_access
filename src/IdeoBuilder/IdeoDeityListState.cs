@@ -198,7 +198,7 @@ namespace RimWorldAccess
             foundation.DeitiesListForReading.Remove(deity);
             ideo.RegenerateDescription();
             SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-            TolkHelper.SpeakData($"{deity.name}, removed");
+            TolkHelper.SpeakData($"{deity.name}, {(string)"RimWorldAccess.Ideology.Builder.Status.Removed".Translate()}");
             RebuildTree();
         }
 
@@ -321,7 +321,7 @@ namespace RimWorldAccess
             var sb = new StringBuilder();
             sb.Append(item.Label);
             if (item.IsExpandable)
-                sb.Append(item.IsExpanded ? ", expanded" : ", collapsed");
+                sb.Append(item.IsExpanded ? ", " + (string)"RimWorldAccess.Tree.StateExpanded".Translate() : ", " + (string)"RimWorldAccess.Tree.StateCollapsed".Translate());
             var (pos, total) = treeNav.GetSiblingPosition(item);
             string position = MenuHelper.FormatPosition(pos - 1, total);
             if (!string.IsNullOrEmpty(position))

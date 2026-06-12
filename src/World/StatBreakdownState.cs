@@ -327,7 +327,7 @@ namespace RimWorldAccess
             // Add expand/collapse indicator for items with children
             if (item.IsExpandable)
             {
-                announcement += item.IsExpanded ? ", expanded" : ", collapsed";
+                announcement += item.IsExpanded ? ", " + (string)"RimWorldAccess.Tree.StateExpanded".Translate() : ", " + (string)"RimWorldAccess.Tree.StateCollapsed".Translate();
             }
 
             // Add sibling position

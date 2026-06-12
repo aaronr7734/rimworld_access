@@ -63,7 +63,12 @@ Builder screens during `ProgramState.Entry` (pre-game) have unreliable IMGUI foc
 - Precept availability uses `Ideo.CanAddPreceptAllFactions` / `IdeoUIUtility.CanListPrecept`; impact uses `IdeoImpactUtility`; reform apply uses `IdeoDevelopmentUtility.ConfirmChangesToIdeo`/`ApplyChangesToIdeo`.
 
 ## Localization
-All labels/descriptions come from the game's translation keys or def labels. The few words the game has no key for (selection-state markers like "Selected"/"current"/"removed") are short English strings, consistent with existing mod usage.
+All labels/descriptions come from the game's translation keys or def labels. Selection-state
+markers the game has no key for are localized through our own keys: tree expand/collapse reuses
+`RimWorldAccess.Tree.StateExpanded`/`StateCollapsed`, and the builder's status words live under
+`RimWorldAccess.Ideology.Builder.Status.*` (`Selected`/`Removed`/`Reformed`/`Yours`) plus
+`RimWorldAccess.Ideology.PressEnterToReform`. Compose them in C# as `", " + "<key>".Translate()` so
+the leading separator stays out of the translation. Never emit a bare English status suffix.
 
 ## Dependencies
 **Requires:** `ScreenReader/` (TolkHelper), `Input/` (KeyboardHelper, TextInput), `UI/` (MenuHelper, TypeaheadSearchHelper, TreeNavigationHelper, WindowlessFloatMenuState, WindowlessDialogState, DialogInterceptionPatch), `Inspection/` (InspectionTreeItem), `MainMenu/` (IdeologySelectionPatch), `Ideology/` (viewer reform entry hook).

@@ -130,6 +130,14 @@
   <RimWorldAccess.UI.Options.CannotChangeStoryteller>Зараз неможливо змінити оповідача</RimWorldAccess.UI.Options.CannotChangeStoryteller>
   <!-- {0} = mod's SettingsCategory() string. -->
   <RimWorldAccess.UI.Options.OpeningModSettings>Відкриваються налаштування для {0}</RimWorldAccess.UI.Options.OpeningModSettings>
+  <RimWorldAccess.UI.Options.PressEnterToChange>(Натисніть Enter, щоб змінити)</RimWorldAccess.UI.Options.PressEnterToChange>
+  <RimWorldAccess.UI.Options.WorkMenuView.Label>Типовий вигляд меню праці (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
+  <RimWorldAccess.UI.Options.WorkMenuView.Focused>Зосереджений</RimWorldAccess.UI.Options.WorkMenuView.Focused>
+  <RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>Вигляд за персонажами, згрупований за пріоритетами.</RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>
+  <RimWorldAccess.UI.Options.WorkMenuView.Table>Таблиця</RimWorldAccess.UI.Options.WorkMenuView.Table>
+  <RimWorldAccess.UI.Options.WorkMenuView.TableDesc>Рядки персонажів за стовпцями типів праці; повторює оригінал і підтримує сортування та малювання.</RimWorldAccess.UI.Options.WorkMenuView.TableDesc>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Label>Озвучувати примусові сповільнення через загрози</RimWorldAccess.UI.Options.ForcedSlowdowns.Label>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>Якщо увімкнено, озвучує, коли гра примусово встановлює звичайну швидкість через близьку загрозу, і коли сповільнення зникає. Спрацьовує лише якщо обрана вами швидкість вища за звичайну.</RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>
 
   <!-- =================================================================
        Generic dialog frame (WindowlessDialogState).
@@ -147,6 +155,9 @@
        languages can choose a punctuation-free word. -->
   <RimWorldAccess.UI.Dialog.TextField>Текстове поле: {0}. Поточне значення: {1}. Натисніть Enter, щоб редагувати.</RimWorldAccess.UI.Dialog.TextField>
   <RimWorldAccess.UI.Dialog.TextFieldEmpty>Порожньо</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+  <RimWorldAccess.UI.Dialog.Opened>Діалог відкрито.</RimWorldAccess.UI.Dialog.Opened>
+  <RimWorldAccess.UI.Dialog.DescriptionLabel>Опис діалогу:</RimWorldAccess.UI.Dialog.DescriptionLabel>
+  <RimWorldAccess.UI.ModMismatch.LoadInstructions>Натисніть Enter для {0}, Escape для {1}.</RimWorldAccess.UI.ModMismatch.LoadInstructions>
 
   <!-- =================================================================
        Name dialogs (DialogElementExtractor + GiveNameDialogPatch).

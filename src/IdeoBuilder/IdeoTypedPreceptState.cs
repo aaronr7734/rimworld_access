@@ -293,7 +293,7 @@ namespace RimWorldAccess
             sb.Append(item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel)
                 ? item.ExpandedLabel : item.Label);
             if (item.IsExpandable)
-                sb.Append(item.IsExpanded ? ", expanded" : ", collapsed");
+                sb.Append(item.IsExpanded ? ", " + (string)"RimWorldAccess.Tree.StateExpanded".Translate() : ", " + (string)"RimWorldAccess.Tree.StateCollapsed".Translate());
 
             var (pos, total) = treeNav.GetSiblingPosition(item);
             string position = MenuHelper.FormatPosition(pos - 1, total);
@@ -357,7 +357,7 @@ namespace RimWorldAccess
             ideo.anyPreceptEdited = true;
             ideo.RegenerateDescription();
             SoundDefOf.Tick_Low.PlayOneShotOnCamera();
-            TolkHelper.SpeakData($"{removedName}, removed");
+            TolkHelper.SpeakData($"{removedName}, {(string)"RimWorldAccess.Ideology.Builder.Status.Removed".Translate()}");
             RebuildTree();
             return true;
         }

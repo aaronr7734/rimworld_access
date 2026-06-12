@@ -632,6 +632,8 @@
   <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>. Press right bracket for more options</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
   <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>. Press Enter to adjust</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Press Enter to toggle limiter, right bracket to set psyfocus target</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
+  <!-- GeneGizmo_ResourceHemogen mirrors PsychicEntropy: Enter toggles hemogen packs allowed, ] sets the target. -->
+  <RimWorldAccess.Inspection.Gizmo.HintHemogen>. Press Enter to toggle hemogen packs allowed, right bracket to set target</RimWorldAccess.Inspection.Gizmo.HintHemogen>
 
   <!-- =================================================================
        Gizmo type labels (GetNonCommandGizmoLabel and helpers). These

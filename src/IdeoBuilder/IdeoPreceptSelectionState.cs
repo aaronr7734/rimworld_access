@@ -82,7 +82,7 @@ namespace RimWorldAccess
                 ? item.ExpandedLabel : item.Label);
 
             if (item.IsExpandable)
-                sb.Append(item.IsExpanded ? ", expanded" : ", collapsed");
+                sb.Append(item.IsExpanded ? ", " + (string)"RimWorldAccess.Tree.StateExpanded".Translate() : ", " + (string)"RimWorldAccess.Tree.StateCollapsed".Translate());
 
             var (pos, total) = treeNav.GetSiblingPosition(item);
             string position = MenuHelper.FormatPosition(pos - 1, total);
@@ -314,7 +314,7 @@ namespace RimWorldAccess
         {
             var current = IdeoPreceptSelectionHelper.CurrentPreceptsForIssue(ideo, issue);
             var sb = new StringBuilder(IdeoPreceptSelectionHelper.BuildIssueLabel(issue, current));
-            sb.Append(current.Count > 0 ? ", selected" : ", removed");
+            sb.Append(current.Count > 0 ? ", " + (string)"RimWorldAccess.Ideology.Builder.Status.Selected".Translate() : ", " + (string)"RimWorldAccess.Ideology.Builder.Status.Removed".Translate());
 
             var sel = treeNav.SelectedItem;
             if (sel != null && !ReferenceEquals(sel.Data, issue))
@@ -386,7 +386,7 @@ namespace RimWorldAccess
                 }
                 sb.Append(". ").Append(first.Label);
                 if (first.IsExpandable)
-                    sb.Append(first.IsExpanded ? ", expanded" : ", collapsed");
+                    sb.Append(first.IsExpanded ? ", " + (string)"RimWorldAccess.Tree.StateExpanded".Translate() : ", " + (string)"RimWorldAccess.Tree.StateCollapsed".Translate());
             }
 
             TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);

@@ -383,7 +383,7 @@ namespace RimWorldAccess
                 dlg.Close(doCloseSound: false);
                 // The game shows no message on a successful reform, so confirm it ourselves —
                 // otherwise Alt+S just silently closes the dialog.
-                TolkHelper.SpeakData(reformedName + ", reformed", SpeechPriority.High);
+                TolkHelper.SpeakData(reformedName + ", " + (string)"RimWorldAccess.Ideology.Builder.Status.Reformed".Translate(), SpeechPriority.High);
             });
         }
 

@@ -188,7 +188,7 @@ namespace RimWorldAccess
                     fileInfo.Delete();
                     ReloadFilesMethod.Invoke(dialog, null);
                     RebuildFromDialog();
-                    TolkHelper.SpeakData($"{fileInfo.Name}, removed");
+                    TolkHelper.SpeakData($"{fileInfo.Name}, {(string)"RimWorldAccess.Ideology.Builder.Status.Removed".Translate()}");
                     AnnounceCurrent();
                 },
                 destructive: true));
