@@ -1,49 +1,45 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
 06/12/2026
 
-CHANGES
--------
-- Fixed the scanner sometimes showing items and pawns from a previous session
-  after loading a save without restarting the game, such as reporting a pawn
-  as downed when they are fine in the loaded save. The scanner, map cursor,
-  pawn cycling, and world scanner now fully reset every time a save is loaded.
-  Previously the only fix was closing and reopening the game. Thanks to
-  MasterJake and quanin for the reports that cracked this one.
-- Big localization repair for non-English players (thank you for the detailed
-  reports!). Announcements that spoke English or raw key names are now
-  properly translated: work menu priorities, skills, and "Includes" details;
-  schedule hours and positions; storage, apparel, and food filter
-  allowed/disallowed and expanded/collapsed words; ritual role assignments;
-  the quest menu's tabs and buttons; save and pause menus (including "Resume
-  game" and "Play settings"); animal table column names; allowed areas
-  ("Unrestricted"); the world map's roads and rivers scanner with region
-  positions and distances; the map scanner's Unexplored category, area
-  positions, and center jumps; architect menu hints like "right bracket for
-  more options" and material availability; the ideoligion builder's discard
-  confirmation, selected/removed markers, and culture "current" marker;
-  backstory Childhood/Adulthood headers; mood thought expiry; royal permit
-  statuses; the F12 menu; pawn filter labels; and more.
-- The build now automatically verifies every translation key used in code
-  actually exists, and flags translated keys that code no longer uses, so
-  these regressions cannot slip through silently again.
-- Pressing * to expand all items now tells you when there was nothing to do
-  ("All items already expanded" / "No expandable items") instead of staying
-  silent.
-- Pressing Right on a hit points or quality range row in storage and policy
-  filters now says "Press Enter to edit range" instead of just rejecting.
-- The work menu's on-screen table-view overlay (for sighted observers) is now
-  localized like the rest of the mod.
-- The ideoligion presets tab now announces itself with the game's own section
-  heading ("Preset ideoligions") instead of a mod-invented name, so it speaks
-  whatever wording your game's translation uses.
-06/11/2026
+ANNOUNCEMENTS
+-------------
+- Localization support begins today, as an early beta. The mod has been
+  massively refactored so that everything it speaks can be translated, and
+  two trial languages are included to start: Simplified Chinese and
+  Ukrainian. A lot of strings are going to be missing translations at first
+  (the mod speaks English wherever one is missing), so please report the
+  ones you catch. I will not be expanding to more languages until players
+  have caught most of them, because every missing string found later has to
+  be fixed across every supported language at once. Once the trial languages
+  stabilize, localization across all 29 of the game's supported languages is
+  coming. To set expectations: the base game is not localized perfectly in
+  all 29 languages, the DLCs are not localized in all 29 either, and neither
+  are most third-party mods. I cannot help with any of that; the game's own
+  localization is a community project, and the README document in the game's
+  installation folder lists where to go if you want to contribute.
+- I intend to release this update officially by Sunday, documentation
+  included. Steam Workshop support may not make it by Sunday, but the
+  release itself will be a complete, official update with everything here
+  built in.
 
 CHANGES
 -------
+- Improved the process of planting Gauranlen trees and other plantable
+  seeds. While planting, a temporary scanner category now lists every tile
+  you can plant on, with a second subcategory holding only the spots far
+  enough from buildings to avoid the reduced connection strength warning.
+  Arrow keys call out each tile's plantability as you sweep, and cancelling
+  that warning dialog now returns you to placement mode instead of throwing
+  away the whole planting order.
 - Anomaly entity suppression: you can now toggle auto-suppression on or off for
   a held entity. On its activity gizmo, Enter toggles auto-suppression and right
   bracket still adjusts the suppression threshold, matching the psyfocus gizmo's
   Enter-and-slider layout. Previously only the threshold was reachable.
+- Potentially fixed situations where a pawn could still be reported as
+  downed after reloading a save in which they are no longer downed. I was
+  never able to reproduce the problem myself, so I cannot promise the fix
+  works; if you have run into it, please let me know whether it is gone.
+
 06/01/2026
 
 CHANGES
