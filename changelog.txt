@@ -1,4 +1,12 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/13/2026
+
+CHANGES
+-------
+- You can now type Simplified Chinese, Japanese, and Korean into the mod's
+  text boxes and search fields. This is new, so if you use one of those
+  languages, please let me know whether typing and searching work for you.
+
 06/12/2026
 
 ANNOUNCEMENTS

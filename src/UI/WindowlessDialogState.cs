@@ -283,6 +283,17 @@ namespace RimWorldAccess
 
         private static bool HandleTextFieldInput(TextFieldElement textField, Event evt)
         {
+            // IME composition funnel (CJK languages only). This windowless-dialog input handler runs
+            // at Priority.VeryHigh — ahead of UnifiedKeyboardPatch — so the IME funnel must be invoked
+            // here, not there. While composing, or for a composition-starting letter, the keystroke is
+            // diverted to the hidden field and the committed character is routed to the controller via
+            // HandleImeCommittedChar. Non-IME players never enter this branch (IsActive is false).
+            if (ImeInputHost.TryRouteKeyDown(evt, HandleImeCommittedChar))
+            {
+                evt.Use();
+                return true;
+            }
+
             // Embedded mode (modal: false): controller doesn't register with TextInputManager,
             // so Up/Down etc. flow back to the dialog's main HandleInput for navigation.
             // Delete does per-char delete (consistent with every other text field in the mod);
@@ -293,6 +304,15 @@ namespace RimWorldAccess
                 return true;
             }
             return false;
+        }
+
+        /// <summary>
+        /// Insert a character the OS IME committed into the currently-editing dialog field.
+        /// Routed here by <see cref="ImeInputHost"/> via <see cref="HandleTextFieldInput"/>.
+        /// </summary>
+        public static void HandleImeCommittedChar(char c)
+        {
+            dialogController.HandleCharacter(c);
         }
 
         private static void SelectNext()

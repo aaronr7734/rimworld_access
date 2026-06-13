@@ -62,6 +62,19 @@ namespace RimWorldAccess
             Consumers.Sort((a, b) => a.Priority.CompareTo(b.Priority));
         }
 
+        /// <summary>
+        /// True if any registered consumer is currently active. Used by <see cref="ImeInputHost"/>
+        /// to decide whether a typeahead text sink is live (so the IME funnel should engage).
+        /// </summary>
+        public static bool AnyActive()
+        {
+            for (int i = 0; i < Consumers.Count; i++)
+            {
+                if (Consumers[i].IsActive()) return true;
+            }
+            return false;
+        }
+
         public static TypeaheadConsumer Register(double priority, Func<bool> isActive, Action<char> handleChar, Action handleBackspace = null, bool acceptsDigits = true)
         {
             var c = new TypeaheadConsumer(priority, isActive, handleChar, handleBackspace, acceptsDigits);

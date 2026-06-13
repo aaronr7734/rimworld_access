@@ -43,6 +43,38 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Route an IME-committed character (from <see cref="ImeInputHost"/>) to whichever text sink
+        /// is active. Mirrors the synthetic priority -1.6 (modal text edit) and -1.5 (typeahead +
+        /// embedded fields) dispatch order, and additionally feeds the editing windowless-dialog
+        /// field. Returns true if a sink accepted the character.
+        /// </summary>
+        public static bool RouteImeCommittedChar(char c)
+        {
+            if (char.IsControl(c)) return false;
+
+            if (TextInputManager.IsActive)
+            {
+                TextInputManager.Active.HandleCharacter(c);
+                return true;
+            }
+            if (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField)
+            {
+                WindowlessDialogState.HandleImeCommittedChar(c);
+                return true;
+            }
+            if (TypeaheadDispatcher.TryDispatchChar(c)) return true;
+            if (ScenarioBuilderPartEditState.IsActive && ScenarioBuilderPartEditState.HandleCharacterInput(c)) return true;
+            if (ScenarioBuilderAddPartState.IsActive && ScenarioBuilderAddPartState.HandleCharacterInput(c)) return true;
+            if (WindowlessScenarioSaveState.IsActive && WindowlessScenarioSaveState.HandleCharacterInput(c)) return true;
+            if (PawnFilterPresetSaveState.IsActive && PawnFilterPresetSaveState.HandleCharacterInput(c)) return true;
+            if (PawnFilterPresetLoadState.IsActive && PawnFilterPresetLoadState.HandleCharacterInput(c)) return true;
+            if (PawnFilterState.IsActive && !WindowlessFloatMenuState.IsActive
+                && !PawnFilterPresetSaveState.IsActive && !PawnFilterPresetLoadState.IsActive
+                && PawnFilterState.HandleCharacterInput(c)) return true;
+            return false;
+        }
+
+        /// <summary>
         /// Prefix patch that intercepts keyboard input for all accessibility features.
         /// </summary>
         [HarmonyPrefix]
@@ -54,6 +86,16 @@ namespace RimWorldAccess
             // Re-open seed-planting placement if a building-proximity confirmation dialog was
             // cancelled (must run every frame, not just on key events, to detect the close).
             PlantTargetingState.WatchConfirmationDialog();
+
+            // IME composition funnel (CJK languages only). Must run on EVERY OnGUI pass — including
+            // Layout/Repaint — so the hidden field keeps keyboard focus and its composition state
+            // alive between keystrokes. A text sink is any state that consumes typed characters: a
+            // modal text-edit session, an editing windowless-dialog field, or an active typeahead
+            // consumer. For non-CJK languages this is a no-op (see ImeInputHost.LanguageUsesIme).
+            bool imeSinkActive = TextInputManager.IsActive
+                || (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField)
+                || TypeaheadDispatcher.AnyActive();
+            ImeInputHost.Pump(imeSinkActive, c => RouteImeCommittedChar(c));
 
             // Only process keyboard events
             if (Event.current.type != EventType.KeyDown)
@@ -80,6 +122,20 @@ namespace RimWorldAccess
             if ((ArchonexusColonyState.IsActive || ArchonexusReformIdeoState.IsActive)
                 && !ArchonexusOverlayOpen())
             {
+                return;
+            }
+
+            // ===== IME composition funnel: divert composition keys to the hidden field =====
+            // CJK languages only — ImeInputHost.IsActive is false otherwise, so this is a no-op for
+            // direct-layout players. While composing, every key drives the OS candidate window;
+            // otherwise only letters begin composition. Runs BEFORE the modal text-edit (-1.6) and
+            // typeahead (-1.5) handlers so the raw pinyin keystrokes can't leak into a buffer as
+            // Latin letters; committed characters are routed back via RouteImeCommittedChar.
+            // Editing windowless-dialog fields are handled inside WindowlessDialogState instead,
+            // because its VeryHigh prefix consumes the KeyDown before this patch runs.
+            if (ImeInputHost.TryRouteKeyDown(Event.current, c => RouteImeCommittedChar(c)))
+            {
+                Event.current.Use();
                 return;
             }
 
