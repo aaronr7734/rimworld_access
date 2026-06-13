@@ -507,6 +507,13 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Age and birthday — vanilla shows the age in the card header with the birth date and
+            // chronological/biological breakdown on hover. Shared with the inspection-tree Character tab.
+            foreach (var ageLine in InfoCardDataExtractor.GetAgeInfo(pawn))
+            {
+                AddChild(tabNode, CreateInfoItem(ageLine, tabNode.IndentLevel + 1));
+            }
+
             // Backstory
             var backstoryInfo = InfoCardDataExtractor.GetBackstoryInfo(pawn);
             if (backstoryInfo.Count > 0)

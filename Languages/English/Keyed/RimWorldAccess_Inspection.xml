@@ -100,6 +100,8 @@
   <RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc>Childhood: {0}: {1}</RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc>
   <RimWorldAccess.Inspection.Pawn.Adulthood>Adulthood: {0}</RimWorldAccess.Inspection.Pawn.Adulthood>
   <RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc>Adulthood: {0}: {1}</RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc>
+  <RimWorldAccess.Inspection.Pawn.Age>Age: {0}</RimWorldAccess.Inspection.Pawn.Age>
+  <RimWorldAccess.Inspection.Pawn.LabeledList>{0}: {1}</RimWorldAccess.Inspection.Pawn.LabeledList>
 
   <!-- GeneSetHolder overview (GetGeneSetHolderOverview).
        GeneEntry: {0} = gene display label (already shade-aware).

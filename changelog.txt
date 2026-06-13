@@ -3,6 +3,14 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- The Character tab now reads a pawn's age and birthday: their biological age
+  (with chronological age alongside it when the two differ), the date they
+  were born, and the full chronological and biological breakdown. It also now
+  reads the rest of what the vanilla character card shows but we were leaving
+  out: backstory title, what the pawn is incapable of, royal titles, ideoligion
+  role, xenotype, and any abilities listed on the card. The pawn's info card
+  ('i') Character tab gained the same age and birthday details, so both places
+  match the game.
 - You can now type Simplified Chinese, Japanese, and Korean into the mod's
   text boxes and search fields. This is new, so if you use one of those
   languages, please let me know whether typing and searching work for you.

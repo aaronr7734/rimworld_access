@@ -404,6 +404,46 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Gets age display lines for a pawn: a summary line (biological age, with the
+        /// chronological age in parentheses when they differ) followed by the birth date and
+        /// the chronological/biological breakdown. Mirrors the vanilla character card's age
+        /// field and its hover tooltip. The debug tail that <c>AgeTooltipString</c> appends
+        /// when <c>Prefs.DevMode</c> is enabled is stripped out.
+        /// </summary>
+        public static List<string> GetAgeInfo(Pawn pawn)
+        {
+            var lines = new List<string>();
+            if (pawn?.ageTracker == null)
+                return lines;
+
+            try
+            {
+                lines.Add("RimWorldAccess.Inspection.Pawn.Age".Translate(pawn.ageTracker.AgeNumberString));
+
+                string tooltip = pawn.ageTracker.AgeTooltipString;
+                if (!string.IsNullOrEmpty(tooltip))
+                {
+                    int devIdx = tooltip.IndexOf("\n\nDev mode info:", StringComparison.Ordinal);
+                    if (devIdx >= 0)
+                        tooltip = tooltip.Substring(0, devIdx);
+
+                    foreach (var line in tooltip.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries))
+                    {
+                        string trimmed = line.StripTags().Trim();
+                        if (!string.IsNullOrEmpty(trimmed))
+                            lines.Add(trimmed);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error($"[InfoCardDataExtractor] Error getting age info: {ex.Message}");
+            }
+
+            return lines;
+        }
+
+        /// <summary>
         /// Gets incapable work tag info for a pawn, organized by WorkTag.
         /// Each entry includes the tag label (with inline causes), and affected work type defs.
         /// Mirrors the vanilla CharacterCardUtility tooltip structure.

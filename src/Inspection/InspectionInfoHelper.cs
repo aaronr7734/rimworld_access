@@ -578,30 +578,41 @@ namespace RimWorldAccess
             var lines = new List<string>();
 
             // Name information
-            if (pawn.Name is NameTriple nameTriple)
-            {
-                lines.Add("RimWorldAccess.Inspection.Pawn.NameLabel".Translate(nameTriple.ToStringFull));
-                lines.Add("");
-            }
-            else if (pawn.Name != null)
+            if (pawn.Name != null)
             {
                 lines.Add("RimWorldAccess.Inspection.Pawn.NameLabel".Translate(pawn.Name.ToStringFull));
-                lines.Add("");
+            }
+
+            // Age and birthday — shared with the InfoCard Character tab so the two never drift
+            lines.AddRange(InfoCardDataExtractor.GetAgeInfo(pawn));
+
+            // Xenotype (Biotech)
+            var xenotype = InfoCardDataExtractor.GetXenotypeInfo(pawn);
+            if (xenotype.HasValue)
+            {
+                lines.Add("RimWorldAccess.Inspection.Pawn.LabeledList".Translate(
+                    "Xenotype".Translate(), xenotype.Value.xenotypeName));
+            }
+
+            // Ideoligion role (Ideology)
+            var roleInfo = InfoCardDataExtractor.GetIdeologyRoleInfo(pawn);
+            if (roleInfo.HasValue)
+            {
+                lines.Add("RimWorldAccess.Inspection.Pawn.LabeledList".Translate(
+                    "RimWorldAccess.Inspection.InfoCardTree.Section.IdeologyRole".Translate(),
+                    $"{roleInfo.Value.roleName} ({roleInfo.Value.ideoName})"));
+            }
+
+            // Royal titles (Royalty)
+            foreach (var (title, faction, _) in InfoCardDataExtractor.GetRoyalTitlesInfo(pawn))
+            {
+                lines.Add("RimWorldAccess.Inspection.Pawn.LabeledList".Translate(
+                    "RimWorldAccess.Inspection.InfoCardTree.Section.RoyalTitles".Translate(),
+                    $"{title} ({faction})"));
             }
 
             if (pawn.story != null)
             {
-                // Traits
-                if (pawn.story.traits?.allTraits != null && pawn.story.traits.allTraits.Any())
-                {
-                    lines.Add("RimWorldAccess.Inspection.Pawn.TraitsHeader".Translate());
-                    foreach (var trait in pawn.story.traits.allTraits)
-                    {
-                        lines.Add("  " + FormatTraitLine(trait, pawn));
-                    }
-                    lines.Add("");
-                }
-
                 // Backstory
                 if (pawn.story.Childhood != null)
                 {
@@ -619,6 +630,41 @@ namespace RimWorldAccess
                         ? (string)"RimWorldAccess.Inspection.Pawn.Adulthood".Translate(title)
                         : (string)"RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc".Translate(title, desc));
                 }
+
+                // Backstory title (e.g. "Test subject") — vanilla shows this only when a custom title is set
+                if (!string.IsNullOrEmpty(pawn.story.title))
+                {
+                    lines.Add("RimWorldAccess.Inspection.Pawn.LabeledList".Translate(
+                        "BackstoryTitle".Translate(), pawn.story.title));
+                }
+
+                // Traits
+                if (pawn.story.traits?.allTraits != null && pawn.story.traits.allTraits.Any())
+                {
+                    lines.Add("RimWorldAccess.Inspection.Pawn.TraitsHeader".Translate());
+                    foreach (var trait in pawn.story.traits.allTraits)
+                    {
+                        lines.Add("  " + FormatTraitLine(trait, pawn));
+                    }
+                }
+            }
+
+            // Incapable of (disabled work tags) — reuse the InfoCard extractor for identical data
+            var incapable = InfoCardDataExtractor.GetIncapableWorkTagsInfo(pawn);
+            if (incapable.Count > 0)
+            {
+                string tags = string.Join(", ", incapable.Select(t => t.tagLabel));
+                lines.Add("RimWorldAccess.Inspection.Pawn.LabeledList".Translate(
+                    "IncapableOf".Translate(), tags));
+            }
+
+            // Abilities shown on the character card
+            var abilities = InfoCardDataExtractor.GetAbilitiesInfo(pawn);
+            if (abilities.Count > 0)
+            {
+                string list = string.Join(", ", abilities.Select(a => a.label));
+                lines.Add("RimWorldAccess.Inspection.Pawn.LabeledList".Translate(
+                    "Abilities".Translate(), list));
             }
 
             return string.Join("\n", lines).Trim();
