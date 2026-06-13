@@ -58,10 +58,6 @@
   <RimWorldAccess.Input.Cursor.InvalidPosition>Invalid position</RimWorldAccess.Input.Cursor.InvalidPosition>
   <RimWorldAccess.Input.Cursor.NoAvailableActions>No available actions</RimWorldAccess.Input.Cursor.NoAvailableActions>
 
-  <!-- Caravan reform (Shift+C). Spoken on the world map where Shift+C does
-       not apply. -->
-  <RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>Reform caravan only works on temporary maps, not the world map. Use C to form a new caravan from a settlement.</RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>
-
   <!-- F1 work menu, F4 animals/mechs menu. -->
   <RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>No colonists available</RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>
   <RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>No animals or mechs</RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>

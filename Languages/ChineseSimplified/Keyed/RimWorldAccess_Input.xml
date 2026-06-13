@@ -58,10 +58,6 @@
   <RimWorldAccess.Input.Cursor.InvalidPosition>无效位置</RimWorldAccess.Input.Cursor.InvalidPosition>
   <RimWorldAccess.Input.Cursor.NoAvailableActions>没有可用操作</RimWorldAccess.Input.Cursor.NoAvailableActions>
 
-  <!-- Caravan reform (Shift+C). Spoken on the world map where Shift+C does
-       not apply. -->
-  <RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>重组远行队仅在临时地图上有效，世界地图上无效。请按 C 键从定居点组建新的远行队。</RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>
-
   <!-- F1 work menu, F4 animals/mechs menu. -->
   <RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>没有可用的殖民者</RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>
   <RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>没有动物或机械族</RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>

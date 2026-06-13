@@ -58,10 +58,6 @@
   <RimWorldAccess.Input.Cursor.InvalidPosition>Неправильна позиція</RimWorldAccess.Input.Cursor.InvalidPosition>
   <RimWorldAccess.Input.Cursor.NoAvailableActions>Немає доступних дій</RimWorldAccess.Input.Cursor.NoAvailableActions>
 
-  <!-- Caravan reform (Shift+C). Spoken on the world map where Shift+C does
-       not apply. -->
-  <RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>Переформування каравану працює лише на тимчасових мапах, а не на мапі світу. Натисніть C, щоб сформувати новий караван із поселення.</RimWorldAccess.Input.Caravan.ReformOnlyOnTemporaryMaps>
-
   <!-- F1 work menu, F4 animals/mechs menu. -->
   <RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>Немає доступних колоністів</RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>
   <RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>Немає тварин чи мехів</RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>
