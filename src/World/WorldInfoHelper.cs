@@ -18,7 +18,9 @@ namespace RimWorldAccess
         // The tokens stay English inside this class so the dictionary lookups
         // (opposite-direction, priority ordering) keep working - localization
         // happens at announcement time only.
-        private static string LocalizeCompass(string englishCompass)
+        // Internal so route-planner announcements (RoutePlannerState) can localize
+        // the same English tokens at their own announcement time.
+        internal static string LocalizeCompass(string englishCompass)
         {
             switch (englishCompass)
             {

@@ -908,11 +908,14 @@ namespace RimWorldAccess
             // Check if at final destination
             if (planner.waypoints[planner.waypoints.Count - 1].Tile.tileId == tileId)
             {
-                return "Destination.";
+                return (string)"RimWorldAccess.Route.AtDestination".Translate();
             }
 
-            // Find ALL path segments that contain this tile and get direction for each
-            List<string> pathDescriptions = new List<string>();
+            // Find ALL path segments that contain this tile and collect the heading for each.
+            // Each entry pairs the target waypoint number with the internal English compass
+            // token; the token is localized only at announcement time, matching the pattern
+            // WorldInfoHelper uses for caravan path directions.
+            List<(int waypointNumber, string direction)> segments = new List<(int, string)>();
 
             for (int pathIndex = 0; pathIndex < paths.Count; pathIndex++)
             {
@@ -953,33 +956,26 @@ namespace RimWorldAccess
                     if (!string.IsNullOrEmpty(direction))
                     {
                         int targetWaypoint = pathIndex + 2; // paths[0] goes to waypoint 2, etc.
-                        pathDescriptions.Add($"To waypoint {targetWaypoint}: {direction}");
+                        segments.Add((targetWaypoint, direction));
                     }
                 }
             }
 
-            if (pathDescriptions.Count == 0)
+            if (segments.Count == 0)
                 return null;
 
-            // Build conversational format: "Head north to waypoint 2, south to waypoint 4."
-            // Extract direction and waypoint from each "To waypoint X: direction" entry
+            // Build the localized conversational format, e.g. "Head north to waypoint 2,
+            // south to waypoint 4." Each segment becomes a localized "<dir> to waypoint <n>"
+            // phrase; the wrapper key owns the leading verb and trailing punctuation so
+            // languages that place the verb differently stay natural.
             List<string> parts = new List<string>();
-            foreach (string desc in pathDescriptions)
+            foreach (var segment in segments)
             {
-                var match = System.Text.RegularExpressions.Regex.Match(desc, @"To waypoint (\d+): (.+)");
-                if (match.Success)
-                {
-                    string waypointNum = match.Groups[1].Value;
-                    string direction = match.Groups[2].Value;
-                    parts.Add($"{direction} to waypoint {waypointNum}");
-                }
+                string localizedDirection = WorldInfoHelper.LocalizeCompass(segment.direction);
+                parts.Add((string)"RimWorldAccess.Route.HeadSegment".Translate(localizedDirection, segment.waypointNumber));
             }
 
-            if (parts.Count == 0)
-                return null;
-
-            // Join with commas: "Head north to waypoint 2, south to waypoint 4."
-            return $"Head {string.Join(", ", parts)}.";
+            return (string)"RimWorldAccess.Route.HeadDirections".Translate(string.Join(", ", parts));
         }
 
         /// <summary>

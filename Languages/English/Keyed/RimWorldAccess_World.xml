@@ -417,6 +417,10 @@
   <RimWorldAccess.Route.WaypointSummary>{0} waypoints. {1} {2}</RimWorldAccess.Route.WaypointSummary>
   <RimWorldAccess.Route.RouteConfirmed>Route confirmed. Destination: {0}</RimWorldAccess.Route.RouteConfirmed>
   <RimWorldAccess.Route.AlreadySent>Caravan already sent. Route planner closed.</RimWorldAccess.Route.AlreadySent>
+  <!-- Route path tracing (GetRouteAnnouncement). HeadSegment: {0} = localized compass direction, {1} = waypoint number. HeadDirections wraps the comma-joined list of HeadSegment phrases. -->
+  <RimWorldAccess.Route.AtDestination>Destination.</RimWorldAccess.Route.AtDestination>
+  <RimWorldAccess.Route.HeadSegment>{0} to waypoint {1}</RimWorldAccess.Route.HeadSegment>
+  <RimWorldAccess.Route.HeadDirections>Head {0}.</RimWorldAccess.Route.HeadDirections>
 
   <!-- =================================================================
        World scanner (WorldScannerState).

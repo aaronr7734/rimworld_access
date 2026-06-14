@@ -13,6 +13,11 @@ CHANGES
   direction ("ascending"/"descending") read out when you sort a table column;
   the on/off state on toggle buttons in command menus; and the "Preview/Stop
   ritual sound" option in the ideoligion editor. Keep the reports coming.
+- The world route planner now reads its path directions in your language too.
+  When you trace a planned route tile by tile, the "head north to waypoint 2"
+  style guidance (and the "Destination" call-out at the end) was still coming
+  out in English. The compass direction and the whole phrasing around it are
+  now translated.
 
 06/13/2026
 

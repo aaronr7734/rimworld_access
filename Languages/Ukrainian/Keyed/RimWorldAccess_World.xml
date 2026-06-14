@@ -417,6 +417,10 @@
   <RimWorldAccess.Route.WaypointSummary>{0} точок маршруту. {1} {2}</RimWorldAccess.Route.WaypointSummary>
   <RimWorldAccess.Route.RouteConfirmed>Маршрут підтверджено. Призначення: {0}</RimWorldAccess.Route.RouteConfirmed>
   <RimWorldAccess.Route.AlreadySent>Караван уже відправлено. Планувальник маршруту закрито.</RimWorldAccess.Route.AlreadySent>
+  <!-- Route path tracing (GetRouteAnnouncement). HeadSegment: {0} = localized compass direction, {1} = waypoint number. HeadDirections wraps the comma-joined list of HeadSegment phrases. -->
+  <RimWorldAccess.Route.AtDestination>Призначення.</RimWorldAccess.Route.AtDestination>
+  <RimWorldAccess.Route.HeadSegment>на {0} до точки маршруту {1}</RimWorldAccess.Route.HeadSegment>
+  <RimWorldAccess.Route.HeadDirections>Прямуйте {0}.</RimWorldAccess.Route.HeadDirections>
 
   <!-- =================================================================
        World scanner (WorldScannerState).

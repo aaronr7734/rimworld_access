@@ -417,6 +417,10 @@
   <RimWorldAccess.Route.WaypointSummary>{0} 个路径点。{1} {2}</RimWorldAccess.Route.WaypointSummary>
   <RimWorldAccess.Route.RouteConfirmed>路线已确认。目的地: {0}</RimWorldAccess.Route.RouteConfirmed>
   <RimWorldAccess.Route.AlreadySent>远行队已派遣。路线规划器已关闭。</RimWorldAccess.Route.AlreadySent>
+  <!-- Route path tracing (GetRouteAnnouncement). HeadSegment: {0} = localized compass direction, {1} = waypoint number. HeadDirections wraps the comma-joined list of HeadSegment phrases. -->
+  <RimWorldAccess.Route.AtDestination>目的地。</RimWorldAccess.Route.AtDestination>
+  <RimWorldAccess.Route.HeadSegment>向{0}前往路径点{1}</RimWorldAccess.Route.HeadSegment>
+  <RimWorldAccess.Route.HeadDirections>{0}。</RimWorldAccess.Route.HeadDirections>
 
   <!-- =================================================================
        World scanner (WorldScannerState).
