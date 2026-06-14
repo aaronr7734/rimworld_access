@@ -254,4 +254,10 @@
   <!-- Pause menu option labels the game has no keys for. -->
   <RimWorldAccess.UI.Pause.PlaySettings>Play settings</RimWorldAccess.UI.Pause.PlaySettings>
   <RimWorldAccess.UI.Pause.ResumeGame>Resume game</RimWorldAccess.UI.Pause.ResumeGame>
+
+  <!-- Field captions for extracted vanilla name dialogs (Dialog_GiveName and
+       Dialog_Rename subclasses). NameLabel is the generic single-name caption;
+       FactionNameLabel is used for the player faction / settlement name field. -->
+  <RimWorldAccess.UI.Dialog.NameLabel>Name</RimWorldAccess.UI.Dialog.NameLabel>
+  <RimWorldAccess.UI.Dialog.FactionNameLabel>Faction Name</RimWorldAccess.UI.Dialog.FactionNameLabel>
 </LanguageData>

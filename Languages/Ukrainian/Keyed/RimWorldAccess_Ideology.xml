@@ -46,6 +46,8 @@
        label, resolved at call time. -->
   <RimWorldAccess.Ideology.RitualSound.Playing>{0}, відтворюється.</RimWorldAccess.Ideology.RitualSound.Playing>
   <RimWorldAccess.Ideology.RitualSound.Stopped>{0}, зупинено.</RimWorldAccess.Ideology.RitualSound.Stopped>
+  <RimWorldAccess.Ideology.RitualSound.Preview>Прослухати звук ритуалу</RimWorldAccess.Ideology.RitualSound.Preview>
+  <RimWorldAccess.Ideology.RitualSound.Stop>Зупинити звук ритуалу</RimWorldAccess.Ideology.RitualSound.Stop>
 
   <!-- Tab open/close composition.
          TabClosed: spoken when Escape closes the tab. {0} = tab label.

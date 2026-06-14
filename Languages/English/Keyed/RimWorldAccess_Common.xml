@@ -110,4 +110,17 @@
   <RimWorldAccess.Stepper.Maximum>Maximum</RimWorldAccess.Stepper.Maximum>
   <RimWorldAccess.Stepper.ValueAtMinimum>{0}, minimum</RimWorldAccess.Stepper.ValueAtMinimum>
   <RimWorldAccess.Stepper.ValueAtMaximum>{0}, maximum</RimWorldAccess.Stepper.ValueAtMaximum>
+
+  <!-- Generic shared labels. NameColumn is the header for a pawn-name column in
+       tabular menus (skills table, assign menu). Unknown is a defensive fallback
+       for an out-of-range column. Material is the generic placeholder cost word
+       for a stuff-based building before a specific stuff is chosen. SortAscending/
+       Descending are spoken when a table column is sorted. RenameLabeled is a
+       rename gizmo label with the target's name ({0}). -->
+  <RimWorldAccess.Common.NameColumn>Name</RimWorldAccess.Common.NameColumn>
+  <RimWorldAccess.Common.Unknown>Unknown</RimWorldAccess.Common.Unknown>
+  <RimWorldAccess.Common.Material>material</RimWorldAccess.Common.Material>
+  <RimWorldAccess.Common.SortAscending>ascending</RimWorldAccess.Common.SortAscending>
+  <RimWorldAccess.Common.SortDescending>descending</RimWorldAccess.Common.SortDescending>
+  <RimWorldAccess.Common.RenameLabeled>Rename {0}</RimWorldAccess.Common.RenameLabeled>
 </LanguageData>

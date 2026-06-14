@@ -388,7 +388,7 @@ namespace RimWorldAccess
                 return;
             }
             comp.extractBioferrite = !comp.extractBioferrite;
-            string status = comp.extractBioferrite ? "On" : "Off";
+            string status = (comp.extractBioferrite ? "On" : "Off").Translate();
             TolkHelper.SpeakData($"{"EntityStudyMode_Extract".Translate()}: {status}");
         }
 
@@ -566,7 +566,7 @@ namespace RimWorldAccess
             var comp = heldPawn?.TryGetComp<CompHoldingPlatformTarget>();
             if (comp == null) return "";
             string label = "EntityStudyMode_Extract".Translate();
-            string status = comp.extractBioferrite ? "On" : "Off";
+            string status = (comp.extractBioferrite ? "On" : "Off").Translate();
             string description = "EntityStudyMode_ExtractDesc".Translate();
             string row = rows[selectedIndex].DisabledReason;
             string disabledNote = string.IsNullOrEmpty(row) ? "" : $". {row}";

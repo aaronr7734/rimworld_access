@@ -243,4 +243,7 @@
   <!-- Pause menu option labels the game has no keys for. -->
   <RimWorldAccess.UI.Pause.PlaySettings>Налаштування гри</RimWorldAccess.UI.Pause.PlaySettings>
   <RimWorldAccess.UI.Pause.ResumeGame>Відновити гру</RimWorldAccess.UI.Pause.ResumeGame>
+
+  <RimWorldAccess.UI.Dialog.NameLabel>Назва</RimWorldAccess.UI.Dialog.NameLabel>
+  <RimWorldAccess.UI.Dialog.FactionNameLabel>Назва фракції</RimWorldAccess.UI.Dialog.FactionNameLabel>
 </LanguageData>

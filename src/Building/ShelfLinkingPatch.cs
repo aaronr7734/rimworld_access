@@ -186,8 +186,8 @@ namespace RimWorldAccess
 
             // === Gizmo 3: Rename/Name storage group ===
             string renameLabel = storageMember.Group != null
-                ? $"Rename {storageMember.Group.RenamableLabel}"
-                : "Rename";
+                ? "RimWorldAccess.Common.RenameLabeled".Translate(storageMember.Group.RenamableLabel)
+                : "Rename".Translate();
 
             // Capture for delegate
             IStorageGroupMember renameMemberCapture = storageMember;

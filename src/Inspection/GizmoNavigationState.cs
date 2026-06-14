@@ -3490,7 +3490,7 @@ namespace RimWorldAccess
             if (gizmo is Command_Toggle toggle)
             {
                 bool isOn = toggle.isActive?.Invoke() ?? false;
-                announcement += isOn ? ": ON" : ": OFF";
+                announcement += ": " + (isOn ? "On" : "Off").Translate();
             }
 
             if (!string.IsNullOrEmpty(statusValue))

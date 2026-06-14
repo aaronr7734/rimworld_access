@@ -45,9 +45,9 @@ namespace RimWorldAccess
 
         public static string GetColumnName(int columnIndex)
         {
-            if (columnIndex == NameColumnIndex) return "Name";
+            if (columnIndex == NameColumnIndex) return "RimWorldAccess.Common.NameColumn".Translate();
             SkillDef def = SkillForColumn(columnIndex);
-            if (def == null) return "Unknown";
+            if (def == null) return "RimWorldAccess.Common.Unknown".Translate();
             // skillLabel is the translatable form; LabelCap falls back to defName.
             string label = !string.IsNullOrEmpty(def.skillLabel) ? def.skillLabel : def.label;
             return string.IsNullOrEmpty(label) ? def.defName : label.CapitalizeFirst();

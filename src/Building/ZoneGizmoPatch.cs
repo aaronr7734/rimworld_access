@@ -22,8 +22,8 @@ namespace RimWorldAccess
 
             // === Gizmo: Rename zone ===
             string renameLabel = !string.IsNullOrEmpty(__instance.label)
-                ? $"Rename {__instance.label}"
-                : "Rename";
+                ? "RimWorldAccess.Common.RenameLabeled".Translate(__instance.label)
+                : "Rename".Translate();
 
             var renameGizmo = new Command_Action
             {

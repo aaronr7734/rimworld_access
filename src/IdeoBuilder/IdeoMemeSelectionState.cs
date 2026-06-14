@@ -90,7 +90,9 @@ namespace RimWorldAccess
 
             if (item.IsExpandable)
             {
-                string state = item.IsExpanded ? "expanded" : "collapsed";
+                string state = (item.IsExpanded
+                    ? "RimWorldAccess.Tree.StateExpanded"
+                    : "RimWorldAccess.Tree.StateCollapsed").Translate();
                 sb.Append(", ").Append(state);
             }
 
@@ -518,7 +520,9 @@ namespace RimWorldAccess
                 var first = treeNav.VisibleItems[0];
                 sb.Append(". ").Append(ShortOrFullLabel(first));
                 if (first.IsExpandable)
-                    sb.Append(", ").Append(first.IsExpanded ? "expanded" : "collapsed");
+                    sb.Append(", ").Append((first.IsExpanded
+                        ? "RimWorldAccess.Tree.StateExpanded"
+                        : "RimWorldAccess.Tree.StateCollapsed").Translate().ToString());
             }
 
             TolkHelper.SpeakData(sb.ToString(), SpeechPriority.High);

@@ -1206,7 +1206,7 @@ namespace RimWorldAccess
                 {
                     return ArchitectState.SelectedMaterial.label;
                 }
-                return "material";
+                return "RimWorldAccess.Common.Material".Translate();
             }
 
             // For fixed cost buildings, return the primary resource name

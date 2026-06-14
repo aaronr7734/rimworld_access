@@ -113,12 +113,12 @@ namespace RimWorldAccess
         public static string GetColumnName(int index)
         {
             if (index < 0 || index >= activeColumns.Count)
-                return "Unknown";
+                return "RimWorldAccess.Common.Unknown".Translate();
 
             switch (activeColumns[index])
             {
                 case AssignColumnType.Name:
-                    return GetPawnColumnLabel("Label", "Name");
+                    return GetPawnColumnLabel("Label", "RimWorldAccess.Common.NameColumn".Translate());
                 case AssignColumnType.Ideo:
                     return "Ideo".Translate().Resolve();
                 case AssignColumnType.Xenotype:
@@ -138,14 +138,14 @@ namespace RimWorldAccess
                 case AssignColumnType.MedicineCarry:
                     return GetPawnColumnLabel("Carry", "Carry");
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.Common.Unknown".Translate();
             }
         }
 
         public static string GetColumnValue(Pawn pawn, int index)
         {
             if (index < 0 || index >= activeColumns.Count)
-                return "Unknown";
+                return "RimWorldAccess.Common.Unknown".Translate();
 
             switch (activeColumns[index])
             {
@@ -172,7 +172,7 @@ namespace RimWorldAccess
                 case AssignColumnType.MedicineCarry:
                     return GetMedicineCarryValue(pawn);
                 default:
-                    return "Unknown";
+                    return "RimWorldAccess.Common.Unknown".Translate();
             }
         }
 

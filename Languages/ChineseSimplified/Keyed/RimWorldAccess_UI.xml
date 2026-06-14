@@ -250,4 +250,7 @@
   <!-- Pause menu option labels the game has no keys for. -->
   <RimWorldAccess.UI.Pause.PlaySettings>游戏设置</RimWorldAccess.UI.Pause.PlaySettings>
   <RimWorldAccess.UI.Pause.ResumeGame>继续游戏</RimWorldAccess.UI.Pause.ResumeGame>
+
+  <RimWorldAccess.UI.Dialog.NameLabel>名称</RimWorldAccess.UI.Dialog.NameLabel>
+  <RimWorldAccess.UI.Dialog.FactionNameLabel>派系名称</RimWorldAccess.UI.Dialog.FactionNameLabel>
 </LanguageData>

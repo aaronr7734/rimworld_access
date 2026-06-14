@@ -1,4 +1,19 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/14/2026
+
+CHANGES
+-------
+- Tracked down more places where the mod still spoke English instead of your
+  language, thanks to reports from players running it in Chinese. Fixed: the
+  expand/collapse state on memes in the custom ideoligion editor; the "Name"
+  column header in the skills table and the assign menu; the generic "material"
+  cost word shown for a wall or other stuff-built thing before you pick a
+  material; the "Faction Name" text-box label when naming your faction; the
+  "Rename" label on the zone and storage-group rename buttons; the sort
+  direction ("ascending"/"descending") read out when you sort a table column;
+  the on/off state on toggle buttons in command menus; and the "Preview/Stop
+  ritual sound" option in the ideoligion editor. Keep the reports coming.
+
 06/13/2026
 
 CHANGES

@@ -108,4 +108,11 @@
   <RimWorldAccess.Stepper.Maximum>最大值</RimWorldAccess.Stepper.Maximum>
   <RimWorldAccess.Stepper.ValueAtMinimum>{0}, 最小值</RimWorldAccess.Stepper.ValueAtMinimum>
   <RimWorldAccess.Stepper.ValueAtMaximum>{0}, 最大值</RimWorldAccess.Stepper.ValueAtMaximum>
+
+  <RimWorldAccess.Common.NameColumn>名字</RimWorldAccess.Common.NameColumn>
+  <RimWorldAccess.Common.Unknown>未知</RimWorldAccess.Common.Unknown>
+  <RimWorldAccess.Common.Material>材料</RimWorldAccess.Common.Material>
+  <RimWorldAccess.Common.SortAscending>升序</RimWorldAccess.Common.SortAscending>
+  <RimWorldAccess.Common.SortDescending>降序</RimWorldAccess.Common.SortDescending>
+  <RimWorldAccess.Common.RenameLabeled>重命名{0}</RimWorldAccess.Common.RenameLabeled>
 </LanguageData>

@@ -67,7 +67,9 @@ namespace RimWorldAccess
             {
                 bool playing = ritualPreviewSustainer != null && !ritualPreviewSustainer.Ended;
                 options.Add(new FloatMenuOption(
-                    (playing ? "Stop" : "Preview") + " ritual sound", () => ToggleRitualPreview(ideo)));
+                    (playing
+                        ? "RimWorldAccess.Ideology.RitualSound.Stop"
+                        : "RimWorldAccess.Ideology.RitualSound.Preview").Translate(), () => ToggleRitualPreview(ideo)));
             }
 
             // Each action announces its own result, so suppress the generic "{label} selected" echo.

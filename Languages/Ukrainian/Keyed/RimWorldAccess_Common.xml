@@ -108,4 +108,11 @@
   <RimWorldAccess.Stepper.Maximum>Максимум</RimWorldAccess.Stepper.Maximum>
   <RimWorldAccess.Stepper.ValueAtMinimum>{0}, мінімум</RimWorldAccess.Stepper.ValueAtMinimum>
   <RimWorldAccess.Stepper.ValueAtMaximum>{0}, максимум</RimWorldAccess.Stepper.ValueAtMaximum>
+
+  <RimWorldAccess.Common.NameColumn>Ім'я</RimWorldAccess.Common.NameColumn>
+  <RimWorldAccess.Common.Unknown>Невідомо</RimWorldAccess.Common.Unknown>
+  <RimWorldAccess.Common.Material>матеріал</RimWorldAccess.Common.Material>
+  <RimWorldAccess.Common.SortAscending>за зростанням</RimWorldAccess.Common.SortAscending>
+  <RimWorldAccess.Common.SortDescending>за спаданням</RimWorldAccess.Common.SortDescending>
+  <RimWorldAccess.Common.RenameLabeled>Перейменувати {0}</RimWorldAccess.Common.RenameLabeled>
 </LanguageData>

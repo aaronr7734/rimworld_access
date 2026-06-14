@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -238,7 +239,9 @@ namespace RimWorldAccess
                 sortDescending = true;
             }
 
-            sortDirection = sortDescending ? "descending" : "ascending";
+            sortDirection = (sortDescending
+                ? "RimWorldAccess.Common.SortDescending"
+                : "RimWorldAccess.Common.SortAscending").Translate();
 
             // Remember current item to preserve selection
             TItem currentItem = default(TItem);

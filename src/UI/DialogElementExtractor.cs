@@ -234,16 +234,16 @@ namespace RimWorldAccess
                 }
 
                 // Determine appropriate label
-                string label = "Name";
+                string label = "RimWorldAccess.UI.Dialog.NameLabel".Translate();
                 if (isDialogGiveName && useSecondName)
                 {
                     // If there are two names, first is faction, second is settlement
-                    label = "Faction Name";
+                    label = "RimWorldAccess.UI.Dialog.FactionNameLabel".Translate();
                 }
                 else if (isDialogGiveName)
                 {
                     // Single name dialog - could be faction, colony, etc.
-                    label = "Faction Name";
+                    label = "RimWorldAccess.UI.Dialog.FactionNameLabel".Translate();
                 }
 
                 TextFieldElement textField = new TextFieldElement(
