@@ -3,6 +3,10 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- Fixed type-ahead search in the info card. Some idiot (me) forgot to register
+  the info card with the new type-ahead system I built, so typing a letter in
+  the info card either did nothing (when opened with Alt+I) or jumped around the
+  inspection screen underneath it. It is now registered and works correctly.
 - Tracked down more places where the mod still spoke English instead of your
   language, thanks to reports from players running it in Chinese. Fixed: the
   expand/collapse state on memes in the custom ideoligion editor; the "Name"

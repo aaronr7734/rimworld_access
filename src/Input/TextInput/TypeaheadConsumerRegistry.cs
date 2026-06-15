@@ -23,6 +23,13 @@ namespace RimWorldAccess
             // Typeahead-only consumers register here. Priority numbers approximate the
             // existing UnifiedKeyboardPatch dispatch order.
 
+            // -0.25: Info Card — a modal dialog (keyboard handler at priority -0.25 in
+            // UnifiedKeyboardPatch). It opens OVER the inspection tree (4.806) and other
+            // inspection-adjacent screens, which stay active beneath it, so its typeahead
+            // must win over them; otherwise the tree below steals the keystroke. A float
+            // menu it owns (-1.0) still wins, and HandleTypeahead defers to it.
+            TypeaheadDispatcher.Register(-0.25, () => InfoCardState.IsActive, c => InfoCardState.HandleTypeahead(c));
+
             // -0.2: Scanner search + GoTo numeric input
             TypeaheadDispatcher.Register(-0.2, () => ScannerSearchState.IsActive, c => ScannerSearchState.HandleCharacter(c));
             TypeaheadDispatcher.Register(-0.2, () => GoToState.IsActive, c => GoToState.HandleCharacter(c));

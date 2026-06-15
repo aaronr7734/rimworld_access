@@ -457,6 +457,25 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Routes a layout-aware typeahead character into the tree's search.
+        /// Called by the priority -1.5 TypeaheadDispatcher (registered in
+        /// TypeaheadConsumerRegistry). The KeyCode branch in HandleInput consumes
+        /// only the first half of Unity's key-pair and relies on this entry point
+        /// for the actual search character.
+        /// </summary>
+        public static void HandleTypeahead(char c)
+        {
+            if (!IsActive)
+                return;
+
+            // While we own a float menu, route typeahead to it instead of the tree.
+            if (ownsFloatMenu && WindowlessFloatMenuState.IsActive)
+                return;
+
+            treeNav.HandleTypeahead(c);
+        }
+
+        /// <summary>
         /// Handles keyboard input for the Info Card.
         /// Returns true if input was handled.
         /// Called from UnifiedKeyboardPatch which handles Event.current.Use().
