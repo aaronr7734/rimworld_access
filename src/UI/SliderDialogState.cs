@@ -83,7 +83,8 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Enter: if user typed digits, parse and set; otherwise confirm current value.
+            // Enter: if user typed digits, commit that value first, then confirm so a
+            // single Enter both applies the typed amount and invokes the action.
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
                 if (digitBuffer.Length > 0 && int.TryParse(digitBuffer.ToString(), out int typed))
@@ -91,8 +92,6 @@ namespace RimWorldAccess
                     int clamped = Mathf.Clamp(typed, from, to);
                     SetCurValue(clamped);
                     digitBuffer.Clear();
-                    AnnounceCurrent();
-                    return true;
                 }
                 Confirm();
                 return true;
