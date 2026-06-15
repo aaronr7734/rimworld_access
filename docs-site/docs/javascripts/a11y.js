@@ -46,6 +46,19 @@
       .forEach(function (label) {
         label.setAttribute("aria-hidden", "true");
       });
+
+    // 4. Top-level navigation sections (for example "Getting Started",
+    //    "Reference") render as <label> elements that toggle a sibling
+    //    checkbox to expand the section, so they carry no role and announce as
+    //    plain clickable text rather than as part of the site navigation.
+    //    Expose them as links so screen reader users recognize and reach them
+    //    as navigation. The role attribute is invisible, so the visual
+    //    appearance and the existing click-to-expand behavior are unchanged.
+    document
+      .querySelectorAll('label.md-nav__link[for^="__nav_"]')
+      .forEach(function (el) {
+        el.setAttribute("role", "link");
+      });
   }
 
   if (document.readyState === "loading") {
