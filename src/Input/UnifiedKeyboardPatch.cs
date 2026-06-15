@@ -92,9 +92,21 @@ namespace RimWorldAccess
             // alive between keystrokes. A text sink is any state that consumes typed characters: a
             // modal text-edit session, an editing windowless-dialog field, or an active typeahead
             // consumer. For non-CJK languages this is a no-op (see ImeInputHost.LanguageUsesIme).
+            //
+            // A typeahead consumer reports IsActive for the WHOLE time its menu is open (e.g. the
+            // trade or work-priority screen), not just while the user is typing search text. If the
+            // funnel stayed engaged across the whole menu, Input.imeCompositionMode=On would route
+            // the letter of every Alt/Ctrl shortcut (Alt+B, Alt+A, Alt+M, …) into IME pinyin
+            // composition instead of delivering it as a KeyCode — silently breaking those shortcuts
+            // for CJK players. So while an action-modifier (Alt/Ctrl, or Mac Option/Cmd) is held the
+            // user intends a shortcut, never search text: suppress the typeahead sink so the funnel
+            // disengages and the shortcut's letter passes through cleanly. Modal text-edit and
+            // editing dialog fields stay engaged regardless (you don't fire Alt-shortcuts mid-rename,
+            // and those are the confirmed-working text-box paths).
+            bool modifierForShortcut = KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld;
             bool imeSinkActive = TextInputManager.IsActive
                 || (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField)
-                || TypeaheadDispatcher.AnyActive();
+                || (!modifierForShortcut && TypeaheadDispatcher.AnyActive());
             ImeInputHost.Pump(imeSinkActive, c => RouteImeCommittedChar(c));
 
             // Only process keyboard events

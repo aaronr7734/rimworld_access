@@ -3,6 +3,11 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- Fixed Alt+letter shortcuts (Alt+B/Alt+A in trade, Alt+M in work priorities)
+  breaking for players using a Chinese/Japanese/Korean input method.
+- Translated two more spots that spoke English: the "active/not set" summary in
+  the custom ideoligion precepts list, and the "material" cost word on the
+  architect build menu.
 - Fixed "Refuel from cargo" on passenger shuttles: typing an amount and pressing
   Enter once now correctly applies it and confirms.
 06/14/2026

@@ -346,7 +346,10 @@ namespace RimWorldAccess
                 int stuffCount = buildable.CostStuffCount;
                 if (stuffCount > 0)
                 {
-                    costParts.Add($"{stuffCount} material");
+                    // Use the mod's shared localized "material" term (matches GetResourceName) so the
+                    // stuff-cost readout follows the player's language; the fixed costs below already
+                    // use the localized thingDef.label.
+                    costParts.Add($"{stuffCount} {(string)"RimWorldAccess.Common.Material".Translate()}");
                 }
             }
 

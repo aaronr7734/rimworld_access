@@ -81,6 +81,7 @@
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Ideology.Builder.PreceptSection.Active>Активні правила, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
   <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>Не встановлено, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
+  <RimWorldAccess.Ideology.Builder.PreceptSummary>{0} встановлено, {1} не встановлено</RimWorldAccess.Ideology.Builder.PreceptSummary>
   <RimWorldAccess.Ideology.Builder.PreceptCurrent>поточне</RimWorldAccess.Ideology.Builder.PreceptCurrent>
   <RimWorldAccess.Ideology.PressEnterToReform>Натисніть Enter, щоб реформувати</RimWorldAccess.Ideology.PressEnterToReform>
   <RimWorldAccess.Ideology.Builder.Status.Selected>вибрано</RimWorldAccess.Ideology.Builder.Status.Selected>

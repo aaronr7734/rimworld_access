@@ -370,7 +370,7 @@ namespace RimWorldAccess
             // counts the set ones, which previously read as a confusing bare number).
             var issues = IdeoPreceptSelectionHelper.ConfigurableIssues(ideo);
             int activeCount = issues.Count(i => IdeoPreceptSelectionHelper.CurrentPreceptsForIssue(ideo, i).Count > 0);
-            sb.Append(". ").Append(activeCount).Append(" active, ").Append(issues.Count - activeCount).Append(" not set");
+            sb.Append(". ").Append((string)"RimWorldAccess.Ideology.Builder.PreceptSummary".Translate(activeCount, issues.Count - activeCount));
 
             if (treeNav.Count > 0)
             {

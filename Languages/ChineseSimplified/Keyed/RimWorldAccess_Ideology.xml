@@ -81,6 +81,7 @@
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Ideology.Builder.PreceptSection.Active>已设置教义, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.Active>
   <RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>未设置, {0}</RimWorldAccess.Ideology.Builder.PreceptSection.NotSet>
+  <RimWorldAccess.Ideology.Builder.PreceptSummary>已设置 {0}, 未设置 {1}</RimWorldAccess.Ideology.Builder.PreceptSummary>
   <RimWorldAccess.Ideology.Builder.PreceptCurrent>当前</RimWorldAccess.Ideology.Builder.PreceptCurrent>
 
   <!-- "Press Enter to reform" hint, and ideoligion-builder status words spoken
