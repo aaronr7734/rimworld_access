@@ -48,16 +48,26 @@
       });
 
     // 4. Top-level navigation sections (for example "Getting Started",
-    //    "Reference") render as <label> elements that toggle a sibling
-    //    checkbox to expand the section, so they carry no role and announce as
+    //    "Reference") render as <label> elements tied to a sibling checkbox
+    //    that expands or collapses the section. With no role they announce as
     //    plain clickable text rather than as part of the site navigation.
-    //    Expose them as links so screen reader users recognize and reach them
-    //    as navigation. The role attribute is invisible, so the visual
-    //    appearance and the existing click-to-expand behavior are unchanged.
+    //    Expose them as buttons that report their expanded state, so screen
+    //    reader users recognize them as navigation and hear whether each
+    //    section is open or closed. aria-expanded is kept in sync with the
+    //    checkbox, including when the section is toggled. These attributes are
+    //    invisible, so the visual appearance and the existing click-to-expand
+    //    behavior are unchanged.
     document
       .querySelectorAll('label.md-nav__link[for^="__nav_"]')
       .forEach(function (el) {
-        el.setAttribute("role", "link");
+        var toggle = document.getElementById(el.getAttribute("for"));
+        if (!toggle) return;
+        el.setAttribute("role", "button");
+        var sync = function () {
+          el.setAttribute("aria-expanded", toggle.checked ? "true" : "false");
+        };
+        sync();
+        toggle.addEventListener("change", sync);
       });
   }
 
