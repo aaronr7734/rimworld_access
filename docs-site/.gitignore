@@ -1,0 +1,11 @@
+# Python virtual environment
+.venv/
+
+# MkDocs build output
+site/
+
+# Internal planning notes and raw feedback recordings (kept local, not published)
+research/
+RWA docs feedback doc.txt
+RWA docs feedback doc.ORIGINAL-backup.txt
+feedback session number two..txt

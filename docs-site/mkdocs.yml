@@ -1,0 +1,93 @@
+site_name: RimWorld Access
+site_description: Play RimWorld with a screen reader and keyboard, across every DLC.
+site_url: https://rimworldaccess.com/
+docs_dir: docs
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.top
+    - navigation.tracking
+    - toc.follow
+    - search.suggest
+    - search.highlight
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+extra_javascript:
+  - javascripts/a11y.js
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+
+plugins:
+  - search
+  - print-site:
+      add_to_navigation: true
+      print_page_title: "Everything on one page"
+
+nav:
+  - Home: index.md
+  - Getting Started:
+      - Installation: getting-started/installation.md
+      - First launch: getting-started/first-launch.md
+  - Core Concepts:
+      - Navigating menus: concepts/navigating-menus.md
+      - The map: concepts/the-map.md
+      - The scanner: concepts/the-scanner.md
+      - Gizmos: concepts/gizmos.md
+      - Context menu: concepts/context-menu.md
+      - Info card: concepts/info-card.md
+      - Selecting pawns: concepts/selecting-pawns.md
+      - Checking on pawns: concepts/checking-on-pawns.md
+  - Starting a Game:
+      - New game: starting/new-game.md
+      - World map and site: starting/world-map-site.md
+      - Creating colonists: starting/creating-colonists.md
+  - Managing Your Colony:
+      - Work: colony/work.md
+      - Schedule: colony/schedule.md
+      - Assign: colony/assign.md
+      - Animals and mechs: colony/animals.md
+      - Wildlife: colony/wildlife.md
+      - Research: colony/research.md
+      - Quests: colony/quests.md
+      - Health and medical: colony/health-and-medical.md
+      - Combat: colony/combat.md
+      - Prisoners: colony/prisoners.md
+      - History and messages: colony/history-messages.md
+      - Factions and ideology: colony/factions-ideology.md
+  - Building and Production:
+      - Architect menu: building/architect.md
+      - Walls, doors, and rooms: building/walls-doors-rooms.md
+      - Zones and stockpiles: building/zones-stockpiles.md
+      - Allowed areas: building/allowed-areas.md
+      - Bills: building/bills.md
+      - Moving and reinstalling: building/moving-reinstalling.md
+      - Forbidding and the home area: building/forbidding-and-home-area.md
+  - The World and Travel:
+      - World map: world/world-map.md
+      - Caravans: world/caravans.md
+      - Transport pods: world/transport-pods.md
+      - Trading: world/trading.md
+  - Reference:
+      - Keyboard reference: reference/keyboard.md
+      - Settings: reference/settings.md
+      - Playing on Mac: reference/playing-on-mac.md
+      - FAQ: reference/faq.md
+      - Where to learn RimWorld: reference/learn-rimworld.md
+      - Reporting bugs: reference/reporting-bugs.md
