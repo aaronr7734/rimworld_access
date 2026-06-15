@@ -224,7 +224,7 @@
        OpenPrompt: {0} = current value text (from textGetter), {1} = min, {2} = max.
        Confirmed: {0} = confirmed integer value.
        Cleared: spoken when digit buffer is emptied via Backspace. -->
-  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. Range {1} to {2}. Up Down to nudge, Left Right to step ten percent, type digits and Enter to set, Enter to confirm, Escape to cancel.</RimWorldAccess.UI.Slider.OpenPrompt>
+  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. {1} to {2}. Use Up/Down to adjust, Left/Right to jump by ten percent, type a number, or press Enter to confirm.</RimWorldAccess.UI.Slider.OpenPrompt>
   <RimWorldAccess.UI.Slider.Confirmed>Confirmed {0}</RimWorldAccess.UI.Slider.Confirmed>
   <RimWorldAccess.UI.Slider.Cleared>Cleared</RimWorldAccess.UI.Slider.Cleared>
 

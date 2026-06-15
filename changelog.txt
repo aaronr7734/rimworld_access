@@ -4,8 +4,7 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 CHANGES
 -------
 - Fixed "Refuel from cargo" on passenger shuttles: typing an amount and pressing
-  Enter once now applies it and confirms, instead of needing a second Enter.
-
+  Enter once now correctly applies it and confirms.
 06/14/2026
 
 CHANGES

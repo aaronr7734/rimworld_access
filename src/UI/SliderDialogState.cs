@@ -1,8 +1,10 @@
 using System;
 using System.Reflection;
 using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -83,33 +85,34 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Enter: if user typed digits, commit that value first, then confirm so a
-            // single Enter both applies the typed amount and invokes the action.
+            // Enter confirms. Typed digits are already applied to the slider live, so a
+            // single Enter just invokes the action with the current value.
             if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
             {
-                if (digitBuffer.Length > 0 && int.TryParse(digitBuffer.ToString(), out int typed))
-                {
-                    int clamped = Mathf.Clamp(typed, from, to);
-                    SetCurValue(clamped);
-                    digitBuffer.Clear();
-                }
+                digitBuffer.Clear();
                 Confirm();
                 return true;
             }
 
-            // Backspace removes from digit buffer.
+            // Backspace shortens the typed buffer and re-applies the remaining value so
+            // the slider tracks what's left in the buffer.
             if (key == KeyCode.Backspace && digitBuffer.Length > 0)
             {
                 digitBuffer.Length--;
-                TolkHelper.SpeakData(digitBuffer.Length > 0 ? digitBuffer.ToString() : (string)"RimWorldAccess.UI.Slider.Cleared".Translate(), SpeechPriority.Low);
+                if (digitBuffer.Length > 0 && int.TryParse(digitBuffer.ToString(), out int remaining))
+                    SetValueWithSound(remaining);
+                else
+                    TolkHelper.SpeakData((string)"RimWorldAccess.UI.Slider.Cleared".Translate(), SpeechPriority.Low);
                 return true;
             }
 
-            // Digit input → buffer (announces digit-by-digit so user can verify).
+            // Digit input applies to the slider live — typing a number moves the slider
+            // (and plays the drag sound) just like dragging it does.
             if (TryReadDigit(key, out char digit))
             {
                 digitBuffer.Append(digit);
-                TolkHelper.SpeakData(digitBuffer.ToString(), SpeechPriority.Low);
+                if (int.TryParse(digitBuffer.ToString(), out int typed))
+                    SetValueWithSound(typed);
                 return true;
             }
 
@@ -140,14 +143,12 @@ namespace RimWorldAccess
             // Home/End: jump to bounds.
             if (key == KeyCode.Home)
             {
-                SetCurValue(from);
-                AnnounceCurrent();
+                SetValueWithSound(from);
                 return true;
             }
             if (key == KeyCode.End)
             {
-                SetCurValue(to);
-                AnnounceCurrent();
+                SetValueWithSound(to);
                 return true;
             }
 
@@ -168,8 +169,21 @@ namespace RimWorldAccess
 
         private static void Adjust(int delta)
         {
-            int newValue = Mathf.Clamp(GetCurValue() + delta, from, to);
+            SetValueWithSound(GetCurValue() + delta);
+        }
+
+        /// <summary>
+        /// Clamps and applies a new slider value, announces it, and plays vanilla's
+        /// drag-slider sound — but only when the value actually moves, matching
+        /// <see cref="Widgets.HorizontalSlider"/>, which stays silent when already pinned to a bound.
+        /// </summary>
+        private static void SetValueWithSound(int rawValue)
+        {
+            int oldValue = GetCurValue();
+            int newValue = Mathf.Clamp(rawValue, from, to);
             SetCurValue(newValue);
+            if (newValue != oldValue)
+                SoundDefOf.DragSlider.PlayOneShotOnCamera();
             AnnounceCurrent();
         }
 
