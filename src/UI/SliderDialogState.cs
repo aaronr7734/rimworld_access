@@ -187,8 +187,14 @@ namespace RimWorldAccess
             AnnounceCurrent();
         }
 
-        private static void Confirm()
+        /// <summary>
+        /// Applies the current slider value by invoking the dialog's confirm action, then closes.
+        /// Idempotent: a no-op once the dialog is already closed, so it is safe to call from both
+        /// the keyboard handler and the <c>Window.OnAcceptKeyPressed</c> patch without double-firing.
+        /// </summary>
+        public static void Confirm()
         {
+            if (!isActive || currentDialog == null) return;
             try
             {
                 int curValue = GetCurValue();
@@ -200,7 +206,7 @@ namespace RimWorldAccess
             }
             catch (Exception ex)
             {
-                Log.Error($"[SliderDialogState] Confirm failed: {ex.Message}");
+                Log.Error($"[SliderDialogState] Confirm failed: {ex}");
                 Close();
             }
         }
