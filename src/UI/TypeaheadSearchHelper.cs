@@ -14,6 +14,16 @@ namespace RimWorldAccess
         // Configuration
         private const float AUTO_RESET_SECONDS = 3.0f;
 
+        /// <summary>
+        /// When true, the per-keystroke auto-reset timeout is ignored — the search buffer persists
+        /// until explicitly cleared. Set while an explicit CJK/IME search session is open
+        /// (see <c>MenuSearchState</c>), where each character can take seconds to compose through
+        /// the OS candidate window and the 3-second instant-typeahead timeout would otherwise wipe
+        /// a multi-character query between commits. Applies to every typeahead consumer because they
+        /// all share this helper (TabularMenuHelper, TreeNavigationHelper, TradeNavigationState, …).
+        /// </summary>
+        public static bool SuppressAutoReset { get; set; }
+
         // Word separators for prefix matching
         private static readonly char[] WordSeparators = { ' ', '-', '_', '(', ')', '[', ']', '/', '\\', '.', ',' };
 
@@ -72,8 +82,9 @@ namespace RimWorldAccess
 
             float currentTime = Time.realtimeSinceStartup;
 
-            // Check timeout FIRST with current time
-            if (HasActiveSearch && currentTime - lastInputTime > AUTO_RESET_SECONDS)
+            // Check timeout FIRST with current time (skipped during an explicit CJK search session,
+            // where slow IME composition between commits must not wipe the in-progress query).
+            if (!SuppressAutoReset && HasActiveSearch && currentTime - lastInputTime > AUTO_RESET_SECONDS)
             {
                 ClearSearch();
             }

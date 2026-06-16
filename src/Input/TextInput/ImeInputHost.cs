@@ -189,7 +189,7 @@ namespace RimWorldAccess
         /// language's folder name (both the current and legacy ASCII names) so it holds regardless of
         /// whether the folder uses the native or legacy form.
         /// </summary>
-        private static bool LanguageUsesIme()
+        internal static bool LanguageUsesIme()
         {
             LoadedLanguage lang = LanguageDatabase.activeLanguage;
             if (lang == null) return false;

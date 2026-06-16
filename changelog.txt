@@ -1,4 +1,13 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/16/2026
+
+CHANGES
+-------
+- Players using a Chinese, Japanese, or Korean input method can now search lists
+  again. Instant type-ahead can't compose pinyin, so you open a search box on
+  purpose: press / in a list menu (trade, animals, research, and so on) or Z for
+  the map scanner, type your query, then press Enter or Escape to close it.
+  Everyone else keeps the instant type-ahead they already had, unchanged.
 06/15/2026
 
 CHANGES

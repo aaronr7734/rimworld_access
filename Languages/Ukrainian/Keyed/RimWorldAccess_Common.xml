@@ -30,6 +30,8 @@
        {0} = current 1-based match position, {1} = total matches,
        {2} = search buffer (ContextSuffix). -->
   <RimWorldAccess.Search.Cleared>Пошук очищено</RimWorldAccess.Search.Cleared>
+  <RimWorldAccess.Search.Prompt>Пошук</RimWorldAccess.Search.Prompt>
+  <RimWorldAccess.Search.Closed>Пошук закрито</RimWorldAccess.Search.Closed>
   <RimWorldAccess.Search.NoMatches>Немає збігів для «{0}»</RimWorldAccess.Search.NoMatches>
   <RimWorldAccess.Search.ContextSuffix>, {0} з {1} збігів для «{2}»</RimWorldAccess.Search.ContextSuffix>
 

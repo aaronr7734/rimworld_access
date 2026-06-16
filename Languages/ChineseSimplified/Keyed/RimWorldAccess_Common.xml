@@ -30,6 +30,8 @@
        {0} = current 1-based match position, {1} = total matches,
        {2} = search buffer (ContextSuffix). -->
   <RimWorldAccess.Search.Cleared>已清除搜索</RimWorldAccess.Search.Cleared>
+  <RimWorldAccess.Search.Prompt>搜索</RimWorldAccess.Search.Prompt>
+  <RimWorldAccess.Search.Closed>已关闭搜索</RimWorldAccess.Search.Closed>
   <RimWorldAccess.Search.NoMatches>没有匹配“{0}”的结果</RimWorldAccess.Search.NoMatches>
   <RimWorldAccess.Search.ContextSuffix>, 第 {0} 项，共 {1} 个匹配“{2}”</RimWorldAccess.Search.ContextSuffix>
 

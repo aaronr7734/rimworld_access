@@ -105,8 +105,15 @@ namespace RimWorldAccess
             // byte identical to the pre-IME behavior that worked. Trade-off: pinyin type-ahead search
             // inside a menu's list is unavailable; CJK text entry still works in the actual text boxes
             // (rename, colony/faction naming) that route through the sinks below.
+            // Explicit, deliberately-opened search prompts ALSO arm the funnel, but only while the
+            // prompt itself is open (not across a whole menu), so they don't reintroduce the Alt
+            // problem: the scanner search box (Z), whose ScannerSearchState.IsActive is true only
+            // while the player is typing the query, and the '/'-triggered menu search (MenuSearchState)
+            // for always-on type-ahead menus. Both self-gate to CJK inside Pump.
             bool imeSinkActive = TextInputManager.IsActive
-                || (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField);
+                || (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField)
+                || ScannerSearchState.IsActive
+                || MenuSearchState.IsActive;
             ImeInputHost.Pump(imeSinkActive, c => RouteImeCommittedChar(c));
 
             // Only process keyboard events
@@ -147,6 +154,49 @@ namespace RimWorldAccess
             // because its VeryHigh prefix consumes the KeyDown before this patch runs.
             if (ImeInputHost.TryRouteKeyDown(Event.current, c => RouteImeCommittedChar(c)))
             {
+                Event.current.Use();
+                return;
+            }
+
+            // ===== EXPLICIT CJK MENU SEARCH (MenuSearchState) =====
+            // CJK/IME players invoke always-on-menu type-ahead through an explicit '/' prompt rather
+            // than instant type-ahead (which can't compose pinyin without arming the funnel across the
+            // whole menu and breaking Alt shortcuts). While the prompt is open, letters are already
+            // consumed by the funnel above; here we own only the session control keys. Direct-layout
+            // players never enter this mode (the '/' trigger below is CJK-gated), so their instant
+            // type-ahead is untouched.
+            if (MenuSearchState.IsActive)
+            {
+                // The menu under the prompt closed or changed out from under us — don't leave the
+                // funnel armed in an unrelated menu.
+                if (MenuSearchState.UnderlyingMenuChanged)
+                {
+                    MenuSearchState.ForceCloseSilently();
+                }
+                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter || key == KeyCode.Escape)
+                {
+                    // Both accept (Enter) and cancel (Escape) just close the prompt; the menu's
+                    // selection stays on the current match. Consume so Enter doesn't activate the
+                    // item and Escape doesn't close the menu underneath (the window cancel hook is
+                    // blocked this frame by Window_OnCancelKeyPressed_MenuSearchBlock).
+                    MenuSearchState.Close();
+                    Event.current.Use();
+                    return;
+                }
+                // Everything else falls through to the menu's own handlers: Backspace edits the query
+                // through each menu's existing (inline or dispatcher) backspace path — the committed
+                // pinyin went into that same buffer — and arrows/Home/End move among matches.
+            }
+            // Trigger: '/' opens the explicit search prompt over whatever type-ahead menu is active.
+            // CJK languages only, and not when a deliberately-opened search prompt (scanner) or a
+            // text-edit session already owns input.
+            else if (key == KeyCode.Slash && !Event.current.shift && !Event.current.control
+                && !KeyboardHelper.IsAltHeld
+                && ImeInputHost.LanguageUsesIme()
+                && TypeaheadDispatcher.AnyActive()
+                && !ScannerSearchState.IsActive && !TextInputManager.IsActive)
+            {
+                MenuSearchState.Open();
                 Event.current.Use();
                 return;
             }

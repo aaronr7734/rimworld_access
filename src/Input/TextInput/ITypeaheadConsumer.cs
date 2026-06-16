@@ -75,6 +75,24 @@ namespace RimWorldAccess
             return false;
         }
 
+        /// <summary>
+        /// The first active consumer in priority order, or null if none is active. This is the one
+        /// that owns input right now (menus are modal, so it's unique in practice). Used by
+        /// <see cref="MenuSearchState"/> to detect when the menu under an open search prompt has gone
+        /// away or changed, so the prompt can auto-close instead of leaking the IME funnel into it.
+        /// </summary>
+        public static TypeaheadConsumer ActiveConsumer
+        {
+            get
+            {
+                for (int i = 0; i < Consumers.Count; i++)
+                {
+                    if (Consumers[i].IsActive()) return Consumers[i];
+                }
+                return null;
+            }
+        }
+
         public static TypeaheadConsumer Register(double priority, Func<bool> isActive, Action<char> handleChar, Action handleBackspace = null, bool acceptsDigits = true)
         {
             var c = new TypeaheadConsumer(priority, isActive, handleChar, handleBackspace, acceptsDigits);
