@@ -87,26 +87,26 @@ namespace RimWorldAccess
             // cancelled (must run every frame, not just on key events, to detect the close).
             PlantTargetingState.WatchConfirmationDialog();
 
-            // IME composition funnel (CJK languages only). Must run on EVERY OnGUI pass — including
-            // Layout/Repaint — so the hidden field keeps keyboard focus and its composition state
-            // alive between keystrokes. A text sink is any state that consumes typed characters: a
-            // modal text-edit session, an editing windowless-dialog field, or an active typeahead
-            // consumer. For non-CJK languages this is a no-op (see ImeInputHost.LanguageUsesIme).
+            // IME composition funnel (CJK languages only). Engages ONLY for a genuine text-edit
+            // session — a modal TextInputController or an editing windowless-dialog field. It must
+            // run on EVERY OnGUI pass (Layout/Repaint included) while engaged so the hidden field
+            // keeps keyboard focus and its composition state alive between keystrokes. For non-CJK
+            // languages this is a no-op (see ImeInputHost.LanguageUsesIme).
             //
-            // A typeahead consumer reports IsActive for the WHOLE time its menu is open (e.g. the
-            // trade or work-priority screen), not just while the user is typing search text. If the
-            // funnel stayed engaged across the whole menu, Input.imeCompositionMode=On would route
-            // the letter of every Alt/Ctrl shortcut (Alt+B, Alt+A, Alt+M, …) into IME pinyin
-            // composition instead of delivering it as a KeyCode — silently breaking those shortcuts
-            // for CJK players. So while an action-modifier (Alt/Ctrl, or Mac Option/Cmd) is held the
-            // user intends a shortcut, never search text: suppress the typeahead sink so the funnel
-            // disengages and the shortcut's letter passes through cleanly. Modal text-edit and
-            // editing dialog fields stay engaged regardless (you don't fire Alt-shortcuts mid-rename,
-            // and those are the confirmed-working text-box paths).
-            bool modifierForShortcut = KeyboardHelper.IsAltHeld || KeyboardHelper.IsCtrlHeld;
+            // It deliberately does NOT engage just because a menu with typeahead search is open. A
+            // typeahead consumer reports IsActive for the WHOLE time its menu is on screen (the trade
+            // screen, work priorities, the options/save menu), not only while the user types. Keeping
+            // the funnel armed there forces Input.imeCompositionMode=On with a focused hidden field,
+            // which makes the OS IME swallow the letter of every Alt/Ctrl shortcut (Alt+B/Alt+A in
+            // trade, Alt+M in work priorities, Alt+S to save) as pinyin instead of delivering it as a
+            // KeyCode — so the shortcut never fires. An earlier attempt to disengage only while a
+            // modifier was held was unreliable, because releasing the hidden field's IMGUI focus
+            // mid-KeyDown doesn't take effect in time. So menus stay completely funnel-free, byte-for-
+            // byte identical to the pre-IME behavior that worked. Trade-off: pinyin type-ahead search
+            // inside a menu's list is unavailable; CJK text entry still works in the actual text boxes
+            // (rename, colony/faction naming) that route through the sinks below.
             bool imeSinkActive = TextInputManager.IsActive
-                || (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField)
-                || (!modifierForShortcut && TypeaheadDispatcher.AnyActive());
+                || (WindowlessDialogState.IsActive && WindowlessDialogState.IsEditingTextField);
             ImeInputHost.Pump(imeSinkActive, c => RouteImeCommittedChar(c));
 
             // Only process keyboard events
