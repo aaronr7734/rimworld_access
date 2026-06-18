@@ -11,6 +11,10 @@ CHANGES
   selected. Selecting a mech and pressing F1 (or Alt+W) now opens on a real
   colonist, the same way the table view already did, instead of letting you edit
   a mech's single bogus job priority.
+- Fixed map switching (Shift+Period / Shift+Comma) skipping maps that have no
+  colonists, mechs, or animals left on them. A gravship or quest map left holding
+  only a structure (such as a grav anchor) after everyone shuttled off can now be
+  switched to and from again, instead of becoming unreachable.
 06/16/2026
 
 CHANGES

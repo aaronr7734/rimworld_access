@@ -46,23 +46,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets a list of maps the player can navigate to.
-        /// Includes: player home maps, and maps with any player presence (colonists, mechs, or animals).
-        /// Returns maps in a consistent order (by map ID).
+        /// Gets the list of maps the player can navigate to: every map the game is keeping
+        /// loaded. Returns maps in a consistent order (by map ID).
         /// </summary>
-        private static List<Map> GetMapsWithPlayerPresence()
+        /// <remarks>
+        /// This intentionally does NOT filter on player presence. The game only retains a map in
+        /// Find.Maps while it is relevant to the player, and some relevant maps have no pawns at
+        /// all — e.g. a gravship/quest map left holding only a grav anchor after everyone shuttled
+        /// off. A presence filter (colonists/mechs/animals/home) excluded those maps, so the user
+        /// could no longer switch back to them even though the game still had them loaded. Vanilla's
+        /// Game.CurrentMap setter accepts any loaded map; we mirror that.
+        /// </remarks>
+        private static List<Map> GetSwitchableMaps()
         {
             if (Find.Maps == null)
                 return new List<Map>();
 
-            // Use FreeColonists (not FreeColonistsSpawned) to include colonists in pods/containers
-            // This fixes the delay when switching to a new map after transport pod landing
             return Find.Maps
-                .Where(m => m != null && m.mapPawns != null &&
-                            (m.IsPlayerHome
-                             || m.mapPawns.FreeColonists.Any()
-                             || m.mapPawns.SpawnedColonyMechs.Any()
-                             || m.mapPawns.SpawnedColonyAnimals.Any()))
+                .Where(m => m != null)
                 .OrderBy(m => m.uniqueID)
                 .ToList();
         }
@@ -219,7 +220,7 @@ namespace RimWorldAccess
             mapName = null;
             presenceInfo = null;
 
-            var maps = GetMapsWithPlayerPresence();
+            var maps = GetSwitchableMaps();
 
             if (maps.Count <= 1)
             {
@@ -309,12 +310,12 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Gets the number of maps with player presence.
+        /// Gets the number of maps the player can switch between.
         /// Useful for checking if map switching is available.
         /// </summary>
         public static int GetMapCount()
         {
-            return GetMapsWithPlayerPresence().Count;
+            return GetSwitchableMaps().Count;
         }
 
         /// <summary>
