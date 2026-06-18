@@ -5,6 +5,13 @@ CHANGES
 -------
 - Fixed one more English leak reported by a Chinese player: the "X available"
   count on items in the form-caravan list now speaks in your language.
+- Fixed the G gizmo menu after a Home-key or scanner jump: it now shows the
+  gizmos for the tile you landed on, not a colonist you had selected earlier.
+- Fixed the work priorities menu opening broken when a mech was selected;
+  pressing F1 or Alt+W on a mech now opens on a real colonist instead.
+- Fixed map switching (Shift+Period / Shift+Comma) skipping loaded maps with no
+  colonists, mechs, or animals, such as a gravship map left holding only a grav
+  anchor after everyone shuttled off.
 06/16/2026
 
 CHANGES

@@ -1169,6 +1169,12 @@ namespace RimWorldAccess
                 targetPosition = targetThing.Position;
             }
 
+            // A scanner jump moves the cursor onto a tile exactly like an arrow-key step, so it
+            // becomes the active gizmo context: clear "pawn just selected" so G targets this tile,
+            // not a pawn picked earlier on the colonist bar. Done before the no-move guard so a
+            // Home press onto the tile we already occupy still re-asserts tile context.
+            GizmoNavigationState.PawnJustSelected = false;
+
             // No-move guard: a Home press that targets the tile we are already standing on
             // shouldn't replay the terrain sound or re-announce the whole tile. Just confirm
             // where we are. Distinguish the patch center from any other tile of the patch.

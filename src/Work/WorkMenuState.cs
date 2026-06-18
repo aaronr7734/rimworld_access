@@ -62,24 +62,36 @@ namespace RimWorldAccess
         /// </summary>
         public static void Open(Pawn pawn)
         {
-            if (pawn == null || pawn.workSettings == null)
+            if (Find.CurrentMap == null)
                 return;
 
+            // Resolve against the eligible colonist list FIRST, exactly like the table view.
+            // The focused view only manages real colonists, so a selected mech (or any other
+            // non-colonist) must never become currentPawn — mechs are not Humanlike and so never
+            // appear in FreeColonists. Opening one directly produced a broken single-job grid.
+            // When the requested pawn is not eligible we fall back to the first colonist instead.
+            var eligible = BuildEligibleColonists() ?? new List<Pawn>();
+            if (eligible.Count == 0)
+            {
+                TolkHelper.Speak("RimWorldAccess.Input.WorkMenu.NoColonistsAvailable".Loc());
+                return;
+            }
+
+            int index = pawn != null ? eligible.IndexOf(pawn) : -1;
+            if (index < 0)
+                index = 0;
+
             isActive = true;
-            currentPawn = pawn;
+            allPawns.Clear();
+            allPawns = eligible;
+            currentPawnIndex = index;
+            currentPawn = allPawns[currentPawnIndex];
             currentColumn = 0;
             currentRow = 0;
             basicModeIndex = 0;
             typeahead.ClearSearch();
             searchJumpPending = false;
             hasUnsavedChanges = false;
-
-            // Build list of all colonists
-            allPawns.Clear();
-            allPawns = BuildEligibleColonists() ?? new List<Pawn>();
-            currentPawnIndex = allPawns.IndexOf(pawn);
-            if (currentPawnIndex < 0)
-                currentPawnIndex = 0;
 
             LoadWorkTypesForCurrentPawn();
 
@@ -584,7 +596,7 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null) return null;
             return PlayerPawnsDisplayOrderUtility.InOrder(
                     Find.CurrentMap.mapPawns.FreeColonists
-                        .Where(p => !p.DevelopmentalStage.Baby()))
+                        .Where(p => !p.DevelopmentalStage.Baby() && p.workSettings != null))
                 .ToList();
         }
 
