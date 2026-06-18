@@ -94,7 +94,7 @@ namespace RimWorldAccess
                 }
                 else
                 {
-                    announcement.Append($". {max} available");
+                    announcement.Append(". " + (string)"RimWorldAccess.Caravan.Announce.XAvailable".Translate(max));
                 }
             }
 
