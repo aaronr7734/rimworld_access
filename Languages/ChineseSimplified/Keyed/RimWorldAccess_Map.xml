@@ -572,6 +572,7 @@
   <!-- Light/temperature hotkey (key 4). -->
   <RimWorldAccess.Map.Tile.Light.LightLine>光照: {0} ({1})</RimWorldAccess.Map.Tile.Light.LightLine>
   <RimWorldAccess.Map.Tile.Light.Temperature>温度: {0}</RimWorldAccess.Map.Tile.Light.Temperature>
+  <RimWorldAccess.Map.Tile.Light.Vacuum>真空: {0}</RimWorldAccess.Map.Tile.Light.Vacuum>
   <RimWorldAccess.Map.Tile.Light.Indoors>室内</RimWorldAccess.Map.Tile.Light.Indoors>
   <RimWorldAccess.Map.Tile.Light.Outdoors>室外</RimWorldAccess.Map.Tile.Light.Outdoors>
   <!-- "{label}: {tempControlInfo}" — period-separated by AnnouncementBuilder. -->

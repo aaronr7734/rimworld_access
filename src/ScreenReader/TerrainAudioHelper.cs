@@ -167,6 +167,7 @@ namespace RimWorldAccess
             new KeyValuePair<string, string>("Limestone", "stone flooring.wav"),
             new KeyValuePair<string, string>("Slate", "stone flooring.wav"),
             new KeyValuePair<string, string>("Marble", "stone flooring.wav"),
+            new KeyValuePair<string, string>("Vacstone", "stone flooring.wav"),
             new KeyValuePair<string, string>("Flagstone", "stone flooring.wav"),
             new KeyValuePair<string, string>("Tile", "stone flooring.wav"),
             new KeyValuePair<string, string>("Concrete", "stone flooring.wav"),

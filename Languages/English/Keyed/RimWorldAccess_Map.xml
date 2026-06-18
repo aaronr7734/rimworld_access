@@ -572,6 +572,7 @@
   <!-- Light/temperature hotkey (key 4). -->
   <RimWorldAccess.Map.Tile.Light.LightLine>light: {0} ({1})</RimWorldAccess.Map.Tile.Light.LightLine>
   <RimWorldAccess.Map.Tile.Light.Temperature>temperature: {0}</RimWorldAccess.Map.Tile.Light.Temperature>
+  <RimWorldAccess.Map.Tile.Light.Vacuum>vacuum: {0}</RimWorldAccess.Map.Tile.Light.Vacuum>
   <RimWorldAccess.Map.Tile.Light.Indoors>indoors</RimWorldAccess.Map.Tile.Light.Indoors>
   <RimWorldAccess.Map.Tile.Light.Outdoors>outdoors</RimWorldAccess.Map.Tile.Light.Outdoors>
   <!-- "{label}: {tempControlInfo}" — period-separated by AnnouncementBuilder. -->

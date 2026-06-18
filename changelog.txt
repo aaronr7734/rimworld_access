@@ -3,6 +3,10 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- Added cursor sound for vacstone tiles.
+- On space and asteroid maps, the tile info key that reports light and
+  temperature (4) now also reports the vacuum level for the current tile,
+  shown only when there is vacuum present.
 - Fixed one more English leak reported by a Chinese player: the "X available"
   count on items in the form-caravan list now speaks in your language.
 - Fixed the G gizmo menu after a Home-key or scanner jump: it now shows the

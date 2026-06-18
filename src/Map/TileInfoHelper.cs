@@ -421,6 +421,11 @@ namespace RimWorldAccess
             builder.Add("RimWorldAccess.Map.Tile.Light.Temperature".Translate(
                 MenuHelper.FormatTemperature(temperature, "F1")));
 
+            float vacuum = position.GetVacuum(map);
+            if (vacuum > 0f)
+                builder.Add("RimWorldAccess.Map.Tile.Light.Vacuum".Translate(
+                    vacuum.ToStringPercent("0")));
+
             RoofDef roof = position.GetRoof(map);
             builder.Add(roof != null
                 ? "RimWorldAccess.Map.Tile.Light.Indoors".Translate()

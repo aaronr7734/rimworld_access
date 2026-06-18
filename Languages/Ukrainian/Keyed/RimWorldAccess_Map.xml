@@ -572,6 +572,7 @@
   <!-- Light/temperature hotkey (key 4). -->
   <RimWorldAccess.Map.Tile.Light.LightLine>освітлення: {0} ({1})</RimWorldAccess.Map.Tile.Light.LightLine>
   <RimWorldAccess.Map.Tile.Light.Temperature>температура: {0}</RimWorldAccess.Map.Tile.Light.Temperature>
+  <RimWorldAccess.Map.Tile.Light.Vacuum>вакуум: {0}</RimWorldAccess.Map.Tile.Light.Vacuum>
   <RimWorldAccess.Map.Tile.Light.Indoors>у приміщенні</RimWorldAccess.Map.Tile.Light.Indoors>
   <RimWorldAccess.Map.Tile.Light.Outdoors>назовні</RimWorldAccess.Map.Tile.Light.Outdoors>
   <!-- "{label}: {tempControlInfo}" — period-separated by AnnouncementBuilder. -->
