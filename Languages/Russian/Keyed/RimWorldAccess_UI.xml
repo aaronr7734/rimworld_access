@@ -1,0 +1,263 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    UI module strings (src/UI/). The UI module hosts shared dialog and
+    menu infrastructure used by the rest of the mod; many of its files
+    (TypeaheadSearchHelper, GuardHelper, MenuHelper, TreeNavigationHelper,
+    TwoLevelMenuHelper, NumericStepperHelper) were already wired through
+    Common.xml in earlier phases. This file covers the remaining
+    state/patch/helper files that still emit module-specific phrasing:
+
+      - WindowlessSaveMenuState.cs       (save/load file browser)
+      - WindowlessFloatMenuState.cs      (keyboard-navigable float menu)
+      - WindowlessPauseMenuState.cs      (in-game pause menu)
+      - WindowlessOptionsMenuState.cs    (options panel + setting hints)
+      - WindowlessDialogState.cs         (generic dialog frame)
+      - WindowlessConfirmationState.cs   (yes/no confirmation)
+      - QuantityMenuState.cs             (numeric quantity picker)
+      - GiveNameDialogPatch.cs           (Dialog_GiveName randomize/accept)
+      - DialogElementExtractor.cs        (Dialog_Rename / Dialog_GiveName /
+                                           Dialog_NamePawn OK feedback)
+      - TransferableQuantityHelper.cs    (caravan/trade quantity setters)
+      - MessageBoxAccessibilityPatch.cs  (Dialog_MessageBox Cancel)
+      - ExtraMenusState.cs               (extra-menus picker)
+      - Dialog_NameAllowedArea.cs        (zone-area name dialog)
+
+    Phrasing decisions:
+      - "{Label}. {Position}" appears across pause/options/extra menus.
+        It uses a shared key (UI.Item.WithPosition).
+      - The "{Label}. {Position}. No matches for '{X}'" pattern (typeahead
+        no-match in pause/extra menus) is also shared.
+      - "OK", "Accept", "Cancel" button labels delegate to vanilla
+        translation keys via .Translate() at the call site.
+      - The "RimWorld Access" settings sub-category in the in-game options
+        panel reuses the existing RimWorldAccess.Core.Settings.* keys
+        (canonical wording lives in RimWorldAccess_Core.xml).
+
+    Data such as save file names, faction names, settings category labels
+    from the game (Prefs categories), modder-supplied SettingsCategory()
+    text, mass values, item labels, and dialog button text extracted via
+    reflection from RimWorld dialogs is NOT translated here.
+  -->
+
+  <!-- =================================================================
+       Composition keys shared across multiple state classes.
+       Item.WithPosition: {0} = label/option text, {1} = position string.
+       Item.WithPositionNoMatches: {0} = label, {1} = position,
+                                    {2} = current search buffer (failed).
+       ================================================================= -->
+  <RimWorldAccess.UI.Item.WithPosition>{0}. {1}</RimWorldAccess.UI.Item.WithPosition>
+  <RimWorldAccess.UI.Item.WithPositionNoMatches>{0}. {1}. Нет совпадений для «{2}»</RimWorldAccess.UI.Item.WithPositionNoMatches>
+
+  <!-- =================================================================
+       Save / load menu (WindowlessSaveMenuState +
+                         WindowlessDeleteConfirmationState).
+       Save mode introduces a virtual "Create New Save" entry at index 0,
+       so position composition has its own keys. Load mode shares
+       Item.WithPosition for the basic line.
+       ================================================================= -->
+  <RimWorldAccess.UI.Save.NoFiles>Нет доступных сохранений</RimWorldAccess.UI.Save.NoFiles>
+  <RimWorldAccess.UI.Save.InvalidSelection>Неверный выбор сохранения</RimWorldAccess.UI.Save.InvalidSelection>
+  <RimWorldAccess.UI.Save.NeedName>Нужно имя для файла сохранения</RimWorldAccess.UI.Save.NeedName>
+  <RimWorldAccess.UI.Save.CannotDeleteCreateNew>Нельзя удалить пункт «Создать новое сохранение»</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
+  <!-- {0} = file name (stripped of extension). -->
+  <!-- Per-row composition. CreateNew: {0} = current typedSaveName,
+       {1} = position. Overwrite/Load: {0} = file name, {1} = formatted
+       date-time, {2} = position. -->
+  <RimWorldAccess.UI.Save.CreateNewRow>Создать новое сохранение: {0}. {1}</RimWorldAccess.UI.Save.CreateNewRow>
+  <RimWorldAccess.UI.Save.OverwriteRow>Перезаписать: {0} - {1}. {2}</RimWorldAccess.UI.Save.OverwriteRow>
+  <RimWorldAccess.UI.Save.LoadRow>Загрузить: {0} - {1}. {2}</RimWorldAccess.UI.Save.LoadRow>
+
+  <!-- =================================================================
+       Float menu (WindowlessFloatMenuState). The selection announcement
+       differentiates between a queued action (Shift held while clicking
+       a colonist order) and a normal one. {0} = option label.
+       FloatMenu.OptionTooltip: {0} = option text, {1} = tooltip text,
+                                 {2} = position phrase.
+       (The Item.WithPosition shared key handles the no-tooltip case.)
+       ================================================================= -->
+  <RimWorldAccess.UI.FloatMenu.SelectedQueued>{0}, {1}</RimWorldAccess.UI.FloatMenu.SelectedQueued>
+  <RimWorldAccess.UI.FloatMenu.Selected>{0}: выбрано</RimWorldAccess.UI.FloatMenu.Selected>
+  <!-- Suffix appended to a disabled option label. -->
+  <RimWorldAccess.UI.FloatMenu.UnavailableSuffix> (недоступно)</RimWorldAccess.UI.FloatMenu.UnavailableSuffix>
+  <!-- Spoken when activating a disabled float-menu option. {0} = option label. -->
+  <RimWorldAccess.UI.FloatMenu.LabelUnavailable>{0} - недоступно</RimWorldAccess.UI.FloatMenu.LabelUnavailable>
+  <!-- Generic confirmation prompt (WindowlessConfirmationState). {0} = the
+       caller-supplied message; the instruction tail is owned here. -->
+  <RimWorldAccess.UI.Confirm.MessageWithInstructions>{0} - нажмите Enter для подтверждения, Escape для отмены</RimWorldAccess.UI.Confirm.MessageWithInstructions>
+  <RimWorldAccess.UI.FloatMenu.OptionTooltip>{0}. {1} {2}</RimWorldAccess.UI.FloatMenu.OptionTooltip>
+  <!-- Tooltip variant inside an active typeahead search; the search
+       buffer suffix is appended by typeahead.BuildSearchContextSuffix(),
+       so this key does not include the query. -->
+  <RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>{0}. {1}</RimWorldAccess.UI.FloatMenu.OptionTooltipSearch>
+
+  <!-- =================================================================
+       Quantity menu (QuantityMenuState).
+       OpenInstructions: {0} = item label.
+       Selected: {0} = quantity, {1} = item label.
+       Invalid: {0} = current numeric buffer.
+       Maximum / Minimum spoken when increment cap is hit. -->
+  <RimWorldAccess.UI.Quantity.OpenInstructions>Меню количества для {0}. Используйте стрелки вверх и вниз для изменения, введите число или нажмите Enter для подтверждения.</RimWorldAccess.UI.Quantity.OpenInstructions>
+  <RimWorldAccess.UI.Quantity.Selected>{0} {1}: выбрано</RimWorldAccess.UI.Quantity.Selected>
+  <RimWorldAccess.UI.Quantity.Cancelled>Выбор количества отменён</RimWorldAccess.UI.Quantity.Cancelled>
+  <RimWorldAccess.UI.Quantity.Maximum>Максимальное количество</RimWorldAccess.UI.Quantity.Maximum>
+  <RimWorldAccess.UI.Quantity.Minimum>Минимальное количество</RimWorldAccess.UI.Quantity.Minimum>
+  <RimWorldAccess.UI.Quantity.InvalidNumber>Неверное число: {0}</RimWorldAccess.UI.Quantity.InvalidNumber>
+
+  <!-- =================================================================
+       Pause menu (WindowlessPauseMenuState).
+       Quit prompts share a "Press Enter to confirm, Escape to cancel"
+       suffix. Each prompt is a whole-phrase key so translators can vary
+       wording for politeness register (e.g. "Quit to desktop?" might be
+       expressed differently in some locales). -->
+  <RimWorldAccess.UI.Pause.ResumedGame>Игра продолжена</RimWorldAccess.UI.Pause.ResumedGame>
+
+  <!-- =================================================================
+       Options menu (WindowlessOptionsMenuState).
+       The "Press Enter to ..." button hints share a small key set;
+       each is one full phrase so translators can vary verb choice. -->
+  <RimWorldAccess.UI.Options.PressEnterToReset>Нажмите Enter, чтобы сбросить все настройки</RimWorldAccess.UI.Options.PressEnterToReset>
+  <RimWorldAccess.UI.Options.PressEnterToModify>Нажмите Enter, чтобы изменить</RimWorldAccess.UI.Options.PressEnterToModify>
+  <RimWorldAccess.UI.Options.PressEnterToOpen>Нажмите Enter, чтобы открыть</RimWorldAccess.UI.Options.PressEnterToOpen>
+  <RimWorldAccess.UI.Options.OpeningResetDialog>Открытие окна подтверждения сброса</RimWorldAccess.UI.Options.OpeningResetDialog>
+  <RimWorldAccess.UI.Options.CannotChangeStoryteller>Сейчас нельзя сменить рассказчика</RimWorldAccess.UI.Options.CannotChangeStoryteller>
+  <!-- {0} = mod's SettingsCategory() string. -->
+  <RimWorldAccess.UI.Options.OpeningModSettings>Открытие настроек для {0}</RimWorldAccess.UI.Options.OpeningModSettings>
+  <!-- Language selection row value: appended to the active language's native name. -->
+  <RimWorldAccess.UI.Options.PressEnterToChange>(нажмите Enter, чтобы сменить)</RimWorldAccess.UI.Options.PressEnterToChange>
+  <!-- RimWorld Access settings edited directly in this menu (the game has no
+       key for these). WorkMenuView is a two-value enum: Label names the row,
+       Focused/Table are the value words spoken as the current value, and the
+       *Desc keys are the tooltip read after the value. -->
+  <RimWorldAccess.UI.Options.WorkMenuView.Label>Вид меню работы по умолчанию (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
+  <RimWorldAccess.UI.Options.WorkMenuView.Focused>Сфокусированный</RimWorldAccess.UI.Options.WorkMenuView.Focused>
+  <RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>Вид по персонажу с группировкой по приоритетам.</RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>
+  <RimWorldAccess.UI.Options.WorkMenuView.Table>Таблица</RimWorldAccess.UI.Options.WorkMenuView.Table>
+  <RimWorldAccess.UI.Options.WorkMenuView.TableDesc>Строки персонажей по столбцам типов работ; повторяет ванильный вид и поддерживает сортировку и закрашивание.</RimWorldAccess.UI.Options.WorkMenuView.TableDesc>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Label>Озвучивать принудительные замедления при угрозах</RimWorldAccess.UI.Options.ForcedSlowdowns.Label>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>Когда включено, озвучивает момент, когда игра принудительно переходит на обычную скорость из-за близкой угрозы, и когда замедление снимается. Срабатывает только если выбранная вами скорость выше обычной.</RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>
+
+  <!-- =================================================================
+       Generic dialog frame (WindowlessDialogState).
+       ButtonExecuted: {0} = button label.
+       ButtonCannotActivate: {0} = disabled reason text.
+       Disabled suffix: ButtonAnnouncement: {0} = button label,
+                          DisabledSuffix: {0} = disabled reason. The two
+                        keys compose because the suffix is conditional. -->
+  <RimWorldAccess.UI.Dialog.ButtonExecuted>Активировано: {0}</RimWorldAccess.UI.Dialog.ButtonExecuted>
+  <RimWorldAccess.UI.Dialog.ButtonCannotActivate>Нельзя активировать: {0}</RimWorldAccess.UI.Dialog.ButtonCannotActivate>
+  <RimWorldAccess.UI.Dialog.ButtonAnnouncement>{0}, кнопка</RimWorldAccess.UI.Dialog.ButtonAnnouncement>
+  <RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>{0} (отключено: {1})</RimWorldAccess.UI.Dialog.ButtonDisabledSuffix>
+  <!-- TextField announcement: {0} = label, {1} = current value or
+       Empty marker. The Empty placeholder is its own key so non-Latin
+       languages can choose a punctuation-free word. -->
+  <RimWorldAccess.UI.Dialog.TextField>Текстовое поле: {0}. Текущее значение: {1}. Нажмите Enter, чтобы редактировать.</RimWorldAccess.UI.Dialog.TextField>
+  <RimWorldAccess.UI.Dialog.TextFieldEmpty>Пусто</RimWorldAccess.UI.Dialog.TextFieldEmpty>
+  <!-- Spoken when a generic dialog opens, and the label that prefixes the
+       re-readable description element. Both are composed in C# with the
+       dialog title and message following, so they end with their own
+       punctuation and no trailing space. -->
+  <RimWorldAccess.UI.Dialog.Opened>Окно открыто.</RimWorldAccess.UI.Dialog.Opened>
+  <RimWorldAccess.UI.Dialog.DescriptionLabel>Описание окна:</RimWorldAccess.UI.Dialog.DescriptionLabel>
+  <!-- Dialog_ModMismatch load prompt: {0} = the "Load anyway" button label,
+       {1} = the "Go back" button label (both from vanilla keys). -->
+  <RimWorldAccess.UI.ModMismatch.LoadInstructions>Нажмите Enter для «{0}», Escape для «{1}».</RimWorldAccess.UI.ModMismatch.LoadInstructions>
+
+  <!-- =================================================================
+       Name dialogs (DialogElementExtractor + GiveNameDialogPatch).
+       Both surfaces (Dialog_GiveName Patch + DialogElementExtractor's
+       reflection-based OK handlers) emit the same announcement set, so
+       the keys live in one place.
+       ================================================================= -->
+  <RimWorldAccess.UI.Name.Invalid>Неверное имя</RimWorldAccess.UI.Name.Invalid>
+  <RimWorldAccess.UI.Name.InvalidSecond>Неверное второе имя</RimWorldAccess.UI.Name.InvalidSecond>
+  <!-- {0} = randomized name. -->
+  <RimWorldAccess.UI.Name.Randomized>Случайное: {0}</RimWorldAccess.UI.Name.Randomized>
+  <RimWorldAccess.UI.Name.RandomizedFirst>Случайное имя: {0}</RimWorldAccess.UI.Name.RandomizedFirst>
+  <RimWorldAccess.UI.Name.RandomizedSecond>Случайное второе имя: {0}</RimWorldAccess.UI.Name.RandomizedSecond>
+  <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
+  <RimWorldAccess.UI.Name.Accepted>Имя принято: {0}</RimWorldAccess.UI.Name.Accepted>
+  <RimWorldAccess.UI.Name.AcceptedBoth>Имена приняты: {0}, {1}</RimWorldAccess.UI.Name.AcceptedBoth>
+  <RimWorldAccess.UI.Name.Renamed>Переименовано: {0}</RimWorldAccess.UI.Name.Renamed>
+  <RimWorldAccess.UI.Name.NamedSingle>Имя: {0}</RimWorldAccess.UI.Name.NamedSingle>
+  <RimWorldAccess.UI.Name.NamedBoth>Имя: {0} {1}</RimWorldAccess.UI.Name.NamedBoth>
+
+  <!-- Dialog_GiveName keyboard announcements (GiveNameDialogPatch).
+       DialogIntro {0} = first prompt; the text-field keys take {0} = prompt,
+       {1} = current value. -->
+  <RimWorldAccess.UI.GiveName.DialogIntro>Окно ввода имени. {0}</RimWorldAccess.UI.GiveName.DialogIntro>
+  <RimWorldAccess.UI.GiveName.NavHint>Используйте Tab для перехода между полями. Нажмите Enter для подтверждения.</RimWorldAccess.UI.GiveName.NavHint>
+  <RimWorldAccess.UI.GiveName.TextField>Текстовое поле: {0}. Текущее значение: {1}</RimWorldAccess.UI.GiveName.TextField>
+  <RimWorldAccess.UI.GiveName.FirstTextField>Первое текстовое поле: {0}. Текущее значение: {1}</RimWorldAccess.UI.GiveName.FirstTextField>
+  <RimWorldAccess.UI.GiveName.SecondTextField>Второе текстовое поле: {0}. Текущее значение: {1}</RimWorldAccess.UI.GiveName.SecondTextField>
+  <RimWorldAccess.UI.GiveName.RandomizeButton>Кнопка случайного выбора</RimWorldAccess.UI.GiveName.RandomizeButton>
+  <RimWorldAccess.UI.GiveName.RandomizeFirstButton>Кнопка случайного имени</RimWorldAccess.UI.GiveName.RandomizeFirstButton>
+  <RimWorldAccess.UI.GiveName.RandomizeSecondButton>Кнопка случайного второго имени</RimWorldAccess.UI.GiveName.RandomizeSecondButton>
+  <RimWorldAccess.UI.GiveName.OkButton>Кнопка OK</RimWorldAccess.UI.GiveName.OkButton>
+
+  <!-- Dialog_NameAllowedArea opening prompt. -->
+  <RimWorldAccess.UI.NameArea.OpenPrompt>Назовите эту доступную область. Введите имя и нажмите OK или Enter, чтобы продолжить.</RimWorldAccess.UI.NameArea.OpenPrompt>
+
+  <!-- =================================================================
+       TransferableQuantityHelper (caravan/trade quantity setters).
+       AdjustTo and SetToZero share a "{count} {item}" phrasing. The
+       SetToMax variant adds a localized "maximum" suffix and an
+       optional mass tag. {0} = count, {1} = item label.
+       MaxLine: {0} = count, {1} = item, {2} = mass suffix or empty.
+       MassSuffix: {0} = total mass formatted to one decimal. -->
+  <RimWorldAccess.UI.Transferable.QuantitySpoken>{0} {1}</RimWorldAccess.UI.Transferable.QuantitySpoken>
+  <RimWorldAccess.UI.Transferable.MaxLine>{0} {1}, максимум{2}</RimWorldAccess.UI.Transferable.MaxLine>
+  <RimWorldAccess.UI.Transferable.MassSuffix>, {0} кг</RimWorldAccess.UI.Transferable.MassSuffix>
+
+  <!-- =================================================================
+       MessageBox patch + ExtraMenusState + WindowlessConfirmationState.
+       Cancelled is shared (used by all three). -->
+  <RimWorldAccess.UI.Cancelled>Отменено</RimWorldAccess.UI.Cancelled>
+  <RimWorldAccess.UI.Extra.None>Нет доступных дополнительных меню</RimWorldAccess.UI.Extra.None>
+
+  <!-- MessageBox button prompts. {0} = accept button label, {1} = cancel button label. -->
+  <RimWorldAccess.UI.MessageBox.TwoButtons>Нажмите Enter для «{0}», Escape для «{1}».</RimWorldAccess.UI.MessageBox.TwoButtons>
+  <RimWorldAccess.UI.MessageBox.OneButton>Нажмите Enter для «{0}».</RimWorldAccess.UI.MessageBox.OneButton>
+
+  <!-- =================================================================
+       Slider dialog (SliderDialogState — Dialog_Slider keyboard nav).
+       OpenPrompt: {0} = current value text (from textGetter), {1} = min, {2} = max.
+       Confirmed: {0} = confirmed integer value.
+       Cleared: spoken when digit buffer is emptied via Backspace. -->
+  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. От {1} до {2}. Используйте стрелки вверх и вниз для изменения, влево и вправо для перехода на десять процентов, введите число или нажмите Enter для подтверждения.</RimWorldAccess.UI.Slider.OpenPrompt>
+  <RimWorldAccess.UI.Slider.Confirmed>Подтверждено: {0}</RimWorldAccess.UI.Slider.Confirmed>
+  <RimWorldAccess.UI.Slider.Cleared>Очищено</RimWorldAccess.UI.Slider.Cleared>
+
+  <!-- Save menu: no existing files to overwrite (save mode, Down from text field). -->
+  <RimWorldAccess.UI.Save.NoExistingSaves>Нет существующих сохранений для перезаписи.</RimWorldAccess.UI.Save.NoExistingSaves>
+
+  <!-- TwoLevelMenuHelper fallback messages, used when a caller does not supply
+       its own context-specific text. -->
+  <RimWorldAccess.TwoLevel.OpenFirstDefault>Нажмите Enter, чтобы сначала открыть этот элемент</RimWorldAccess.TwoLevel.OpenFirstDefault>
+  <RimWorldAccess.TwoLevel.NavigateDownDefault>Сначала перейдите вниз к кнопкам</RimWorldAccess.TwoLevel.NavigateDownDefault>
+  <RimWorldAccess.TwoLevel.NoButtonsDefault>Нет доступных кнопок</RimWorldAccess.TwoLevel.NoButtonsDefault>
+
+
+  <!-- Generic dialog nav instructions + give-name field labels (src/UI/WindowlessDialogState.cs, DialogElementExtractor.cs). -->
+  <RimWorldAccess.UI.Dialog.NavInstructions>{0_numCase ? элемент : элемента : элементов}. Используйте стрелки для перехода, Enter для активации, Escape для отмены.</RimWorldAccess.UI.Dialog.NavInstructions>
+  <RimWorldAccess.UI.GiveName.SettlementNameLabel>Название поселения</RimWorldAccess.UI.GiveName.SettlementNameLabel>
+  <RimWorldAccess.UI.GiveName.SecondNameLabel>Второе имя</RimWorldAccess.UI.GiveName.SecondNameLabel>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.UI.Dialog.FieldCannotBeEdited>{0} {1}. Редактирование невозможно.</RimWorldAccess.UI.Dialog.FieldCannotBeEdited>
+  <RimWorldAccess.UI.SaveMenu.NoSaveFiles>Нет доступных сохранений</RimWorldAccess.UI.SaveMenu.NoSaveFiles>
+
+  <!-- Save menu: name-row typing instructions and per-row tags.
+       VersionTag: {0} = game version string. -->
+  <RimWorldAccess.UI.Save.CreateNewInstructions>Введите новое имя, стрелка вниз для существующих сохранений, Enter для сохранения.</RimWorldAccess.UI.Save.CreateNewInstructions>
+  <RimWorldAccess.UI.Save.AutosaveTag>автосохранение</RimWorldAccess.UI.Save.AutosaveTag>
+  <RimWorldAccess.UI.Save.VersionTag>версия {0}</RimWorldAccess.UI.Save.VersionTag>
+  <!-- Pause menu option labels the game has no keys for. -->
+  <RimWorldAccess.UI.Pause.PlaySettings>Настройки игры</RimWorldAccess.UI.Pause.PlaySettings>
+  <RimWorldAccess.UI.Pause.ResumeGame>Продолжить игру</RimWorldAccess.UI.Pause.ResumeGame>
+
+  <!-- Field captions for extracted vanilla name dialogs (Dialog_GiveName and
+       Dialog_Rename subclasses). NameLabel is the generic single-name caption;
+       FactionNameLabel is used for the player faction / settlement name field. -->
+  <RimWorldAccess.UI.Dialog.NameLabel>Имя</RimWorldAccess.UI.Dialog.NameLabel>
+  <RimWorldAccess.UI.Dialog.FactionNameLabel>Название фракции</RimWorldAccess.UI.Dialog.FactionNameLabel>
+</LanguageData>

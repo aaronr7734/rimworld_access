@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Archonexus module strings (src/Archonexus/). Five files contribute:
+      - ArchonexusColonyState.cs         (Screen 1: choose things for new colony)
+      - NewColonyTilePickState.cs        (Screen 3: choose new colony site)
+      - ArchonexusReformIdeoState.cs     (Screen 4: reform ideoligion)
+      - ArchonexusConvertColonistsState.cs (Screen 4 sub-dialog: assign colonists)
+
+    Guard-style messages that exactly match Common.xml values are NOT repeated
+    here — callers use those shared keys directly:
+      - "World navigation not active" -> RimWorldAccess.Guard.WorldNavigationNotActive
+      - "No valid tile selected"       -> RimWorldAccess.Guard.NoValidTileSelected
+      - "Cannot access tile picker callbacks" -> RimWorldAccess.Gravships.Destination.CannotAccessCallbacks
+
+    Vanilla keys referenced by the C# (ChooseNextColonySite, ChooseThingsForNewColonyTitle,
+    ChooseThingsForNewColonyDesc, ConfigureIdeoligion, ChooseColonistsForIdeoTitle,
+    ChooseColonistsForIdeoDesc, CreateNew, CreateFluid, LoadExistingIdeoligion,
+    AssignColonists, Next, etc.) are NOT duplicated here.
+  -->
+
+  <!-- Screen 1 — opening announcement instruction fragment
+       (ArchonexusColonyState.AnnounceOpening). Appended after the vanilla
+       dialog title and description. -->
+  <RimWorldAccess.Archonexus.Colony.OpenInstructions>Пробел или Enter — выбрать, Alt S — отправить.</RimWorldAccess.Archonexus.Colony.OpenInstructions>
+
+  <!-- Screen 3 — tile pick (NewColonyTilePickState.Open).
+       OpenInstructions: appended after "ChooseNextColonySite".Translate().
+       MustChooseValid: spoken when the player presses Escape (cannot cancel).
+       ErrorSelectingTile: spoken on exception during tile confirmation. -->
+  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Используйте стрелки для навигации, PageUp и PageDown для сканера, Enter — подтвердить. Отменить нельзя — вы должны выбрать подходящую клетку.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
+  <RimWorldAccess.Archonexus.TilePick.MustChooseValid>Чтобы продолжить, вы должны выбрать подходящую клетку.</RimWorldAccess.Archonexus.TilePick.MustChooseValid>
+  <RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>Ошибка при выборе клетки</RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>
+
+  <!-- Screen 4 — reform ideoligion list (ArchonexusReformIdeoState).
+       OpenInstructions: appended after "ConfigureIdeoligion".Translate().
+       CannotCancel: spoken when the player presses Escape (the dialog cannot be cancelled).
+       NoIdeoDetailsHere: spoken when Tab is pressed on a non-ideoligion row.
+       AlreadyPrimary: {0} = ideoligion name.
+       SetAsPrimary: {0} = ideoligion name.
+       NoColonistsNeedConverting: spoken when "Assign colonists" is triggered but
+         all colonists already follow the chosen ideoligion.
+       ErrorConfirming: spoken on exception during the "Next" commit. -->
+  <RimWorldAccess.Archonexus.Reform.OpenInstructions>Вверх и Вниз — просмотр, поиск по вводу, Tab — полные сведения, Enter — сделать основной, Alt S — подтвердить.</RimWorldAccess.Archonexus.Reform.OpenInstructions>
+  <RimWorldAccess.Archonexus.Reform.CannotCancel>Реформирование идеолигии нельзя отменить. Нажмите Alt S, чтобы подтвердить и продолжить.</RimWorldAccess.Archonexus.Reform.CannotCancel>
+  <RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere>Здесь нет сведений об идеолигии. Сначала перейдите к идеолигии.</RimWorldAccess.Archonexus.Reform.NoIdeoDetailsHere>
+  <RimWorldAccess.Archonexus.Reform.AlreadyPrimary>{0} уже является основной идеолигией.</RimWorldAccess.Archonexus.Reform.AlreadyPrimary>
+  <RimWorldAccess.Archonexus.Reform.SetAsPrimary>Основная идеолигия: {0}.</RimWorldAccess.Archonexus.Reform.SetAsPrimary>
+  <RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>Нет поселенцев, которых нужно обратить.</RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>
+  <RimWorldAccess.Archonexus.Reform.ErrorConfirming>Ошибка при подтверждении идеолигии</RimWorldAccess.Archonexus.Reform.ErrorConfirming>
+  <!-- PressTabToEdit: appended to an item announcement when the focused ideoligion
+       is the editable custom one and the player just returned from a sub-screen. -->
+  <RimWorldAccess.Archonexus.Reform.PressTabToEdit>Нажмите Tab, чтобы изменить эту идеолигию.</RimWorldAccess.Archonexus.Reform.PressTabToEdit>
+
+  <!-- Screen 4 sub-dialog — assign colonists (ArchonexusConvertColonistsState).
+       OpenInstructions: appended after the vanilla dialog title, description,
+         and pawn count.
+       SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
+  <RimWorldAccess.Archonexus.Convert.OpenInstructions>Пробел или Enter — обратить, Escape по завершении.</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+
+  <!-- Convert-colonists checkbox toggle announcements. {0} = ideoligion name. -->
+  <RimWorldAccess.Archonexus.Convert.Selected>Выбрано</RimWorldAccess.Archonexus.Convert.Selected>
+  <RimWorldAccess.Archonexus.Convert.NotSelected>Не выбрано</RimWorldAccess.Archonexus.Convert.NotSelected>
+  <RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>Не выбрано. Сейчас: {0}</RimWorldAccess.Archonexus.Convert.NotSelectedCurrently>
+
+</LanguageData>

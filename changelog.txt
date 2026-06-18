@@ -1,4 +1,13 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/18/2026
+
+CHANGES
+-------
+- Added a full Russian (Русский) translation. The mod now speaks Russian
+  throughout, using RimWorld's own terminology and correct Russian plural
+  forms (one/few/many) for counts. Russian is supported by the base game and
+  every expansion. As with any machine-assisted translation, native-speaker
+  corrections are welcome.
 06/17/2026
 
 CHANGES

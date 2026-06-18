@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Input module strings (src/Input/). Two files contribute:
+      - UnifiedKeyboardPatch.cs  (central keyboard router with ~40 speak calls)
+      - MapArrowKeyHandler.cs    (map arrow-key navigation prefixes + boundary)
+
+    Text-input strings live in RimWorldAccess_TextInput.xml and are owned by
+    the Input/TextInput/ subsystem; do not duplicate them here.
+
+    The Drafting.* and Forbid.* keys have One/Many splits so translators can
+    give singular and plural subject-verb agreement natural wording. The
+    MultiSelectOrder.* keys are whole phrases per semantic case, mirroring
+    the pattern in RimWorldAccess_Combat.xml's MultiSelect.* entries.
+  -->
+
+  <!-- Close / exit announcements. -->
+  <RimWorldAccess.Input.Close.ReturnedToMap>Возврат к карте</RimWorldAccess.Input.Close.ReturnedToMap>
+  <RimWorldAccess.Input.Close.MenuClosed>Меню закрыто</RimWorldAccess.Input.Close.MenuClosed>
+  <RimWorldAccess.Input.Close.GizmoMenuClosed>Меню команд закрыто</RimWorldAccess.Input.Close.GizmoMenuClosed>
+
+  <!-- Drafting (B key). Singular "{name} Drafted" / "{name} Undrafted" for
+       single-select, "everyone" / "only" / "except" phrases for multi-select.
+       Status is capitalized at the start of a sentence; lower-case variants
+       are used mid-phrase. -->
+  <RimWorldAccess.Input.Drafting.StatusDraftedTitle>В бою</RimWorldAccess.Input.Drafting.StatusDraftedTitle>
+  <RimWorldAccess.Input.Drafting.StatusUndraftedTitle>Распущено</RimWorldAccess.Input.Drafting.StatusUndraftedTitle>
+  <RimWorldAccess.Input.Drafting.StatusDrafted>в бою</RimWorldAccess.Input.Drafting.StatusDrafted>
+  <RimWorldAccess.Input.Drafting.StatusUndrafted>распущено</RimWorldAccess.Input.Drafting.StatusUndrafted>
+  <!-- {0} = pawn name, {1} = status (Drafted/Undrafted, capitalized). -->
+  <RimWorldAccess.Input.Drafting.SinglePawnStatus>{0}: {1}</RimWorldAccess.Input.Drafting.SinglePawnStatus>
+  <!-- Multi-select drafting announcements. {0} = everyone-label from vanilla
+       key, {1} = name-list, {2} = status (drafted/undrafted, lowercase). -->
+  <RimWorldAccess.Input.Drafting.EveryoneStatus>{0}: {1}</RimWorldAccess.Input.Drafting.EveryoneStatus>
+  <RimWorldAccess.Input.Drafting.EveryoneExceptStatus>{0}, кроме {1}: {2}</RimWorldAccess.Input.Drafting.EveryoneExceptStatus>
+  <RimWorldAccess.Input.Drafting.OnlyStatus>Только {0}: {1}</RimWorldAccess.Input.Drafting.OnlyStatus>
+
+  <!-- Multi-select action feedback for right-bracket / left-bracket order
+       menus. Whole phrases so translators can reorder subject/verb/object.
+       {0} = everyone-label (EveryoneDoes/NoOneCould/EveryoneExcept) or
+             name-list (OnlyDoes), {1} = action label or name-list,
+       {2} = action label (EveryoneExcept only). -->
+  <RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>{0}: {1}</RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>
+  <RimWorldAccess.Input.MultiSelectOrder.NoOneCould>Никто не может: {0}</RimWorldAccess.Input.MultiSelectOrder.NoOneCould>
+  <RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>{0}, кроме {1}: {2}</RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>
+  <RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>Только {0}: {1}</RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>
+
+  <!-- Multi-select guards (Alt+Space group management, reorder). -->
+  <RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>На этой карте нет поселенцев</RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>
+  <RimWorldAccess.Input.MultiSelect.CannotSaveGroups>Нельзя сохранять группы вне игры</RimWorldAccess.Input.MultiSelect.CannotSaveGroups>
+  <RimWorldAccess.Input.MultiSelect.CannotRecallGroups>Нельзя вызывать группы вне игры</RimWorldAccess.Input.MultiSelect.CannotRecallGroups>
+  <RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect>Нельзя менять порядок во время множественного выбора</RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect>
+
+  <!-- Cursor-focused actions (rename at cursor, inspection at cursor). -->
+  <RimWorldAccess.Input.Cursor.NoPawnAtCursor>Под курсором нет персонажа</RimWorldAccess.Input.Cursor.NoPawnAtCursor>
+  <RimWorldAccess.Input.Cursor.PawnCannotBeRenamed>Этого персонажа нельзя переименовать</RimWorldAccess.Input.Cursor.PawnCannotBeRenamed>
+  <RimWorldAccess.Input.Cursor.NothingToInspect>Здесь нечего осматривать</RimWorldAccess.Input.Cursor.NothingToInspect>
+  <RimWorldAccess.Input.Cursor.InvalidPosition>Недопустимая позиция</RimWorldAccess.Input.Cursor.InvalidPosition>
+  <RimWorldAccess.Input.Cursor.NoAvailableActions>Нет доступных действий</RimWorldAccess.Input.Cursor.NoAvailableActions>
+
+  <!-- F1 work menu, F4 animals/mechs menu. -->
+  <RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>Нет доступных поселенцев</RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>
+  <RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>Нет животных или механоидов</RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>
+
+  <!-- Gizmo availability guard (G key). -->
+  <RimWorldAccess.Input.Gizmo.UnavailableDuringPlacement>Команды недоступны во время размещения или проверки</RimWorldAccess.Input.Gizmo.UnavailableDuringPlacement>
+
+  <!-- Right/left bracket order execution feedback. -->
+  <!-- {0} = single-pawn prefix ("Bob: " or ""), {1} = action label. -->
+  <RimWorldAccess.Input.Order.TopOptionUnavailable>{0}{1}: недоступно</RimWorldAccess.Input.Order.TopOptionUnavailable>
+  <!-- {0} = pawn name, {1} = action label, {2} = vanilla "Queued" label. -->
+  <RimWorldAccess.Input.Order.QueuedAction>{0}: {1}, {2}</RimWorldAccess.Input.Order.QueuedAction>
+  <!-- {0} = pawn name, {1} = action label. -->
+  <RimWorldAccess.Input.Order.Action>{0}: {1}</RimWorldAccess.Input.Order.Action>
+  <!-- {0} = GoHere label from vanilla. Suffix marks the line-formation variant. -->
+  <RimWorldAccess.Input.Order.FormationOption>{0} (строй)</RimWorldAccess.Input.Order.FormationOption>
+
+  <!-- Unforbid All (Alt+F). One/Many split for subject-verb agreement. -->
+  <RimWorldAccess.Input.Unforbid.NoForbiddenItems>На карте не найдено запрещённых предметов</RimWorldAccess.Input.Unforbid.NoForbiddenItems>
+  <RimWorldAccess.Input.Unforbid.CountOne>1 предмет разрешён</RimWorldAccess.Input.Unforbid.CountOne>
+  <RimWorldAccess.Input.Unforbid.CountMany>Разрешено предметов: {0}</RimWorldAccess.Input.Unforbid.CountMany>
+
+  <!-- Toggle forbid at cursor (F key). One/Many + forbidden/unforbidden
+       splits so translators can give the plural subject correct agreement. -->
+  <RimWorldAccess.Input.Forbid.NothingToForbid>В этом месте нечего запрещать или разрешать</RimWorldAccess.Input.Forbid.NothingToForbid>
+  <!-- {0} = item label. -->
+  <RimWorldAccess.Input.Forbid.SingleForbidden>{0}: запрещено</RimWorldAccess.Input.Forbid.SingleForbidden>
+  <RimWorldAccess.Input.Forbid.SingleUnforbidden>{0}: разрешено</RimWorldAccess.Input.Forbid.SingleUnforbidden>
+  <!-- {0} = toggled count. -->
+  <RimWorldAccess.Input.Forbid.ManyForbidden>Запрещено предметов: {0}</RimWorldAccess.Input.Forbid.ManyForbidden>
+  <RimWorldAccess.Input.Forbid.ManyUnforbidden>Разрешено предметов: {0}</RimWorldAccess.Input.Forbid.ManyUnforbidden>
+
+  <!-- Map arrow-key navigation prefixes (MapArrowKeyHandler.cs).
+       Composed with the tile info that follows, e.g. "Selected, stone, ...".
+       {0} = tile info. -->
+  <RimWorldAccess.Input.Map.Boundary>Край карты</RimWorldAccess.Input.Map.Boundary>
+  <RimWorldAccess.Input.Map.PrefixSelected>Выбрано, {0}</RimWorldAccess.Input.Map.PrefixSelected>
+  <RimWorldAccess.Input.Map.PrefixPreview>Предпросмотр, {0}</RimWorldAccess.Input.Map.PrefixPreview>
+  <RimWorldAccess.Input.Map.PrefixFirstPoint>Первая точка, {0}</RimWorldAccess.Input.Map.PrefixFirstPoint>
+  <RimWorldAccess.Input.Map.PrefixSecondPoint>Вторая точка, {0}</RimWorldAccess.Input.Map.PrefixSecondPoint>
+  <RimWorldAccess.Input.Map.PrefixInArea>В области, {0}</RimWorldAccess.Input.Map.PrefixInArea>
+  <RimWorldAccess.Input.Map.PrefixDisconnected>Не соединено, {0}</RimWorldAccess.Input.Map.PrefixDisconnected>
+
+  <!-- Schedule editor visual overlay (src/Input/UnifiedKeyboardPatch.cs). -->
+  <RimWorldAccess.Input.Schedule.OverlayTitle>Меню расписания - {0} ({1}/{2}) - Час {3}</RimWorldAccess.Input.Schedule.OverlayTitle>
+  <RimWorldAccess.Input.Schedule.OverlayCurrent>Текущее: {0}</RimWorldAccess.Input.Schedule.OverlayCurrent>
+  <RimWorldAccess.Input.Schedule.OverlayInstructions1>Стрелки: навигация | 1-5: выбрать кисть | Пробел/Enter: применить кисть</RimWorldAccess.Input.Schedule.OverlayInstructions1>
+  <RimWorldAccess.Input.Schedule.OverlayInstructions2>Shift+Стрелки: рисовать | Ctrl+C/V: копировать/вставить | Tab: области | Esc: закрыть</RimWorldAccess.Input.Schedule.OverlayInstructions2>
+</LanguageData>

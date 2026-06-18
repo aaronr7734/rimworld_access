@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Prisoner module strings (src/Prisoner/). Three files contribute:
+      - PrisonerTabPatch.cs    (Harmony patch, no user-facing text)
+      - PrisonerTabHelper.cs   (info/stats formatting, interaction descriptions)
+      - PrisonerTabState.cs    (tab navigation, section announcements, selections)
+
+    Placeholders follow string.Format ({0}, {1}, ...). Many keys embed
+    pawn names, def labels, faction names, or raw numbers/percentages that
+    come from the game's own data - do not attempt to translate the
+    substituted values, only the surrounding wording. Shared vocabulary
+    (e.g. "No pawn selected") is sourced from RimWorldAccess_Common.xml
+    through GuardHelper, so it is not duplicated here.
+  -->
+
+  <!-- Guest-tracker / identity fallbacks. Spoken when a pawn lacks the
+       expected tracker component or does not belong to the expected class.
+       {0} = pawn short label. -->
+  <RimWorldAccess.Prisoner.Guest.NoTracker>{0}: нет учёта гостей</RimWorldAccess.Prisoner.Guest.NoTracker>
+  <RimWorldAccess.Prisoner.Guest.NotPrisoner>{0}: не пленник</RimWorldAccess.Prisoner.Guest.NotPrisoner>
+  <RimWorldAccess.Prisoner.Guest.NotSlave>{0}: не раб</RimWorldAccess.Prisoner.Guest.NotSlave>
+  <RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>{0}: не пленник и не раб</RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>
+
+  <!-- Prisoner stats block. Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them. -->
+  <RimWorldAccess.Prisoner.Info.HeaderPrisoner>{0} — пленник</RimWorldAccess.Prisoner.Info.HeaderPrisoner>
+  <RimWorldAccess.Prisoner.Info.HeaderSlave>{0} — раб</RimWorldAccess.Prisoner.Info.HeaderSlave>
+
+  <!-- Last recruitment attempt breakdown. -->
+
+  <!-- Slave stats block. -->
+  <RimWorldAccess.Prisoner.Slave.Suppression>Подавленность: {0}</RimWorldAccess.Prisoner.Slave.Suppression>
+
+  <!-- Release relation gain summary (shared between prisoner and slave paths).
+       {0} = faction name, {1} = signed goodwill change (e.g. "+3" / "-7"),
+       {2} = mental state inspect line. -->
+
+  <!-- Medical care category labels. Used in the care-level stepper. -->
+  <!-- Standalone hint appended to a section announcement when entering the medical care row. -->
+
+  <!-- Interaction mode descriptions - warning suffixes appended after the
+       def's own description through AnnouncementBuilder. {0} = ideo name. -->
+
+  <!-- Slave emancipation outcome suffixes. {0} = slave faction name. -->
+
+  <!-- Tab open / close announcements. -->
+  <RimWorldAccess.Prisoner.Tab.Closed>Вкладка пленника закрыта</RimWorldAccess.Prisoner.Tab.Closed>
+  <RimWorldAccess.Prisoner.Tab.OpenedPrisoner>Вкладка пленника: {0}</RimWorldAccess.Prisoner.Tab.OpenedPrisoner>
+  <RimWorldAccess.Prisoner.Tab.OpenedSlave>Вкладка раба: {0}</RimWorldAccess.Prisoner.Tab.OpenedSlave>
+  <RimWorldAccess.Prisoner.Tab.CurrentMode>Текущий режим: {0}</RimWorldAccess.Prisoner.Tab.CurrentMode>
+  <RimWorldAccess.Prisoner.Tab.NavigationHint>
+Нажмите влево/вправо для перехода между разделами, вверх/вниз внутри раздела, Enter для выбора</RimWorldAccess.Prisoner.Tab.NavigationHint>
+  <!-- Inline variant without leading newline — used when embedded in a larger announcement sentence. -->
+  <RimWorldAccess.Prisoner.Tab.NavigationHintInline>Нажмите влево/вправо для перехода между разделами, вверх/вниз внутри раздела, Enter для выбора</RimWorldAccess.Prisoner.Tab.NavigationHintInline>
+
+  <!-- Section announcements. {0} = count (or current mode label). -->
+  <RimWorldAccess.Prisoner.Section.Information>Раздел сведений</RimWorldAccess.Prisoner.Section.Information>
+  <RimWorldAccess.Prisoner.Section.ExclusiveModes>Режимы взаимодействия — доступно {0}. Текущий: {1}</RimWorldAccess.Prisoner.Section.ExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.MedicalCare>{0} — доступно {1}</RimWorldAccess.Prisoner.Section.MedicalCare>
+  <RimWorldAccess.Prisoner.Section.SlaveModes>Режимы рабства — доступно {0}. Текущий: {1}</RimWorldAccess.Prisoner.Section.SlaveModes>
+  <RimWorldAccess.Prisoner.Section.NonExclusiveModes>Совместимые режимы — доступно {0}. Нажмите Пробел для переключения</RimWorldAccess.Prisoner.Section.NonExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.IdeologySelection>Выбор веры — выберите цель обращения</RimWorldAccess.Prisoner.Section.IdeologySelection>
+
+  <!-- Item-level announcements during navigation.
+       Active/Current markers are placed at the start of the item line. -->
+  <RimWorldAccess.Prisoner.Item.StateOn>[ВКЛ]</RimWorldAccess.Prisoner.Item.StateOn>
+  <RimWorldAccess.Prisoner.Item.StateOff>[ВЫКЛ]</RimWorldAccess.Prisoner.Item.StateOff>
+  <RimWorldAccess.Prisoner.Item.NonExclusiveMode>{0}: {1}. {2}</RimWorldAccess.Prisoner.Item.NonExclusiveMode>
+  <RimWorldAccess.Prisoner.Item.SelectedSuffix>, выбрано</RimWorldAccess.Prisoner.Item.SelectedSuffix>
+
+  <!-- Selection / toggle action feedback. -->
+  <RimWorldAccess.Prisoner.Action.Selected>Выбрано: {0}. {1}</RimWorldAccess.Prisoner.Action.Selected>
+  <RimWorldAccess.Prisoner.Action.ToggleEnabled>Включено</RimWorldAccess.Prisoner.Action.ToggleEnabled>
+  <RimWorldAccess.Prisoner.Action.ToggleDisabled>Отключено</RimWorldAccess.Prisoner.Action.ToggleDisabled>
+  <RimWorldAccess.Prisoner.Action.ToggleMode>{0}: {1}</RimWorldAccess.Prisoner.Action.ToggleMode>
+</LanguageData>

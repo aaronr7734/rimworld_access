@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Research module strings (src/Research/). Two state files contribute:
+      - WindowlessResearchMenuState.cs  (the accessible research menu that
+        replaces MainTabWindow_Research; hierarchical tree of tabs,
+        status groups, and projects)
+      - WindowlessResearchDetailState.cs  (the detail view opened from a
+        project; tree of description, prerequisites, unlocks, dependents,
+        and the start/stop action)
+
+    Shared phrases (no info card available, already at edge, etc.) are
+    delegated to RimWorldAccess_Common.xml so translators only localize
+    them once. Only strings unique to the research UI live here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). One/Many key
+    variants are used where English needs singular vs. plural agreement
+    (e.g. "1 hidden prerequisite" vs "3 hidden prerequisites");
+    translators with different plural classes can either collapse or
+    split these further.
+  -->
+
+  <!-- Menu open/close announcements (WindowlessResearchMenuState). -->
+  <RimWorldAccess.Research.Menu.Title>Меню технологий</RimWorldAccess.Research.Menu.Title>
+  <RimWorldAccess.Research.Menu.Closed>Меню технологий закрыто</RimWorldAccess.Research.Menu.Closed>
+  <RimWorldAccess.Research.Menu.ProjectNotAvailable>Исследование недоступно</RimWorldAccess.Research.Menu.ProjectNotAvailable>
+  <RimWorldAccess.Research.Menu.ProjectNotFound>Исследование {0} не найдено в меню</RimWorldAccess.Research.Menu.ProjectNotFound>
+
+  <!-- Root label for the built category tree. -->
+  <RimWorldAccess.Research.Tree.RootLabel>Технологии</RimWorldAccess.Research.Tree.RootLabel>
+
+  <!-- Status group labels. {0} = number of projects in the group. -->
+  <RimWorldAccess.Research.Status.InProgress>В процессе ({0})</RimWorldAccess.Research.Status.InProgress>
+  <RimWorldAccess.Research.Status.Available>Доступно ({0})</RimWorldAccess.Research.Status.Available>
+  <RimWorldAccess.Research.Status.Completed>Завершено ({0})</RimWorldAccess.Research.Status.Completed>
+  <RimWorldAccess.Research.Status.Locked>Заблокировано ({0})</RimWorldAccess.Research.Status.Locked>
+
+  <!-- Short status words used inline in labels (e.g. after prereq/dep rows). -->
+  <RimWorldAccess.Research.Status.CompletedWord>Завершено</RimWorldAccess.Research.Status.CompletedWord>
+  <RimWorldAccess.Research.Status.AvailableWord>Доступно</RimWorldAccess.Research.Status.AvailableWord>
+  <RimWorldAccess.Research.Status.LockedWord>Заблокировано</RimWorldAccess.Research.Status.LockedWord>
+
+  <!-- Project label formatting (menu list entries).
+       Cost/knowledge/progress suffixes are composed together with the
+       project name by the caller. {0} = the numeric value. -->
+  <RimWorldAccess.Research.Label.CostSuffix> - стоимость: {0}</RimWorldAccess.Research.Label.CostSuffix>
+  <RimWorldAccess.Research.Label.KnowledgeSuffix> - знания: {0}</RimWorldAccess.Research.Label.KnowledgeSuffix>
+  <RimWorldAccess.Research.Label.ProgressSuffix> - {0}% завершено</RimWorldAccess.Research.Label.ProgressSuffix>
+  <RimWorldAccess.Research.Label.StatusSuffix> - {0}</RimWorldAccess.Research.Label.StatusSuffix>
+
+  <!-- Detail view navigation (WindowlessResearchDetailState).
+       BackTo: {0} = the previous research project we return to. -->
+  <RimWorldAccess.Research.Detail.BackTo>Назад к: {0}</RimWorldAccess.Research.Detail.BackTo>
+  <RimWorldAccess.Research.Detail.ReturnedToMenu>Возврат в меню технологий</RimWorldAccess.Research.Detail.ReturnedToMenu>
+
+  <!-- Detail top-level node labels. -->
+  <RimWorldAccess.Research.Detail.DescriptionLabel>Описание</RimWorldAccess.Research.Detail.DescriptionLabel>
+  <RimWorldAccess.Research.Detail.StartResearch>Начать исследование</RimWorldAccess.Research.Detail.StartResearch>
+  <RimWorldAccess.Research.Detail.StopResearch>Остановить исследование</RimWorldAccess.Research.Detail.StopResearch>
+  <RimWorldAccess.Research.Detail.StartResearchHint>Нажмите Enter, чтобы начать это исследование</RimWorldAccess.Research.Detail.StartResearchHint>
+  <RimWorldAccess.Research.Detail.StopResearchHint>Нажмите Enter, чтобы остановить это исследование</RimWorldAccess.Research.Detail.StopResearchHint>
+
+  <!-- Category headers inside the detail tree.
+       WithCount: {0} = number of child items; None is used when empty. -->
+  <RimWorldAccess.Research.Detail.PrerequisitesWithCount>Требования ({0_numCase ? элемент : элемента : элементов})</RimWorldAccess.Research.Detail.PrerequisitesWithCount>
+  <RimWorldAccess.Research.Detail.PrerequisitesNone>Требования (нет)</RimWorldAccess.Research.Detail.PrerequisitesNone>
+  <RimWorldAccess.Research.Detail.UnlocksWithCount>Открывает ({0_numCase ? элемент : элемента : элементов})</RimWorldAccess.Research.Detail.UnlocksWithCount>
+  <RimWorldAccess.Research.Detail.UnlocksNone>Открывает (нет)</RimWorldAccess.Research.Detail.UnlocksNone>
+  <RimWorldAccess.Research.Detail.DependentsWithCount>Зависимые ({0_numCase ? элемент : элемента : элементов})</RimWorldAccess.Research.Detail.DependentsWithCount>
+  <RimWorldAccess.Research.Detail.DependentsNone>Зависимые (нет)</RimWorldAccess.Research.Detail.DependentsNone>
+
+  <!-- Research row inside a category (prereqs / dependents).
+       {0} = project label, {1} = cost, {2} = status word. -->
+  <RimWorldAccess.Research.Detail.ResearchRow>{0} - стоимость: {1} {2}</RimWorldAccess.Research.Detail.ResearchRow>
+
+  <!-- Hidden prerequisite summary. AllCompleted is used when nothing is
+       missing; IncompleteCount takes {0} = number still incomplete.
+       HiddenOne/Many compose with the status word: {0} = count (omitted
+       in One form), {1} = status word. -->
+  <RimWorldAccess.Research.Detail.HiddenAllCompleted>Всё завершено</RimWorldAccess.Research.Detail.HiddenAllCompleted>
+  <RimWorldAccess.Research.Detail.HiddenIncompleteCount>не завершено: {0}</RimWorldAccess.Research.Detail.HiddenIncompleteCount>
+  <RimWorldAccess.Research.Detail.HiddenOne>1 скрытое требование - {0}</RimWorldAccess.Research.Detail.HiddenOne>
+  <RimWorldAccess.Research.Detail.HiddenMany>{0} {0_numCase ? скрытое требование : скрытых требования : скрытых требований} - {1}</RimWorldAccess.Research.Detail.HiddenMany>
+
+  <!-- Prerequisite bench/facility/techprint/mechanitor/analyze/grav rows.
+       Each row has an inline status tail. {0} = value or main label. -->
+  <RimWorldAccess.Research.Detail.BenchAvailable>Доступно</RimWorldAccess.Research.Detail.BenchAvailable>
+  <RimWorldAccess.Research.Detail.BenchNotAvailable>Недоступно</RimWorldAccess.Research.Detail.BenchNotAvailable>
+  <RimWorldAccess.Research.Detail.RequiresBench>Требуется стол: {0} - {1}</RimWorldAccess.Research.Detail.RequiresBench>
+  <RimWorldAccess.Research.Detail.RequiresFacility>Требуется оборудование: {0}</RimWorldAccess.Research.Detail.RequiresFacility>
+
+  <RimWorldAccess.Research.Detail.TechprintsComplete>Завершено</RimWorldAccess.Research.Detail.TechprintsComplete>
+  <RimWorldAccess.Research.Detail.TechprintsProgress>{0}/{1}</RimWorldAccess.Research.Detail.TechprintsProgress>
+  <RimWorldAccess.Research.Detail.RequiresTechprints>Требуются чертежи: {0}</RimWorldAccess.Research.Detail.RequiresTechprints>
+
+  <RimWorldAccess.Research.Detail.MechanitorMet>Выполнено</RimWorldAccess.Research.Detail.MechanitorMet>
+  <RimWorldAccess.Research.Detail.MechanitorNotMet>Не выполнено</RimWorldAccess.Research.Detail.MechanitorNotMet>
+  <RimWorldAccess.Research.Detail.RequiresMechanitor>Требуется механитор - {0}</RimWorldAccess.Research.Detail.RequiresMechanitor>
+
+  <RimWorldAccess.Research.Detail.AnalyzeComplete>Завершено</RimWorldAccess.Research.Detail.AnalyzeComplete>
+  <RimWorldAccess.Research.Detail.AnalyzeProgress>{0}/{1}</RimWorldAccess.Research.Detail.AnalyzeProgress>
+  <RimWorldAccess.Research.Detail.RequiresAnalyzing>Требуется изучение: {0} - {1}</RimWorldAccess.Research.Detail.RequiresAnalyzing>
+
+  <RimWorldAccess.Research.Detail.GravEngineInspected>Осмотрено</RimWorldAccess.Research.Detail.GravEngineInspected>
+  <RimWorldAccess.Research.Detail.GravEngineNotInspected>Не осмотрено</RimWorldAccess.Research.Detail.GravEngineNotInspected>
+  <RimWorldAccess.Research.Detail.RequiresGravEngine>Требуется осмотр грав-двигателя - {0}</RimWorldAccess.Research.Detail.RequiresGravEngine>
+
+  <!-- Unlocked item categories. Nouns used in labels like "(Building)". -->
+  <RimWorldAccess.Research.Detail.UnlockCategoryBuilding>Постройка</RimWorldAccess.Research.Detail.UnlockCategoryBuilding>
+  <RimWorldAccess.Research.Detail.UnlockCategoryPlant>Растение</RimWorldAccess.Research.Detail.UnlockCategoryPlant>
+  <RimWorldAccess.Research.Detail.UnlockCategoryItem>Предмет</RimWorldAccess.Research.Detail.UnlockCategoryItem>
+  <RimWorldAccess.Research.Detail.UnlockCategoryRecipe>Рецепт</RimWorldAccess.Research.Detail.UnlockCategoryRecipe>
+
+  <!-- No-info-card message for non-target tree sections. -->
+  <RimWorldAccess.Research.Detail.NoInfoCardForSection>Для этого раздела нет карточки сведений</RimWorldAccess.Research.Detail.NoInfoCardForSection>
+
+  <!-- Description content builder (StringBuilder in BuildDescriptionContent).
+       Each key is a single line in the composed text block. -->
+  <RimWorldAccess.Research.Desc.ProjectLine>Исследование: {0}</RimWorldAccess.Research.Desc.ProjectLine>
+  <RimWorldAccess.Research.Desc.ResearchCost>Стоимость исследования: {0}</RimWorldAccess.Research.Desc.ResearchCost>
+  <RimWorldAccess.Research.Desc.KnowledgeCost>Стоимость в знаниях: {0}</RimWorldAccess.Research.Desc.KnowledgeCost>
+  <RimWorldAccess.Research.Desc.KnowledgeCategory>Категория знаний: {0}</RimWorldAccess.Research.Desc.KnowledgeCategory>
+  <RimWorldAccess.Research.Desc.Progress>Прогресс: {0}%</RimWorldAccess.Research.Desc.Progress>
+  <RimWorldAccess.Research.Desc.StatusCompleted>Состояние: завершено</RimWorldAccess.Research.Desc.StatusCompleted>
+  <RimWorldAccess.Research.Desc.StatusAvailable>Состояние: доступно для исследования</RimWorldAccess.Research.Desc.StatusAvailable>
+  <RimWorldAccess.Research.Desc.StatusLocked>Состояние: заблокировано</RimWorldAccess.Research.Desc.StatusLocked>
+  <RimWorldAccess.Research.Desc.RequiredBench>Требуемый стол: {0}</RimWorldAccess.Research.Desc.RequiredBench>
+  <RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix>Требуемое оборудование: </RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix>
+
+  <!-- Research action announcements (start / stop / blocked). -->
+  <RimWorldAccess.Research.Action.Stopped>Исследование остановлено: {0}</RimWorldAccess.Research.Action.Stopped>
+  <RimWorldAccess.Research.Action.AlreadyCompleted>{0}: уже завершено</RimWorldAccess.Research.Action.AlreadyCompleted>
+  <RimWorldAccess.Research.Action.MissingPrereqs>Невозможно начать исследование: отсутствуют требования - {0}</RimWorldAccess.Research.Action.MissingPrereqs>
+  <RimWorldAccess.Research.Action.NeedTechprints>Невозможно начать исследование: требуется чертежей: {0}, применено только {1}</RimWorldAccess.Research.Action.NeedTechprints>
+  <RimWorldAccess.Research.Action.StudyFirst>Невозможно начать исследование: сначала нужно изучить необходимые предметы</RimWorldAccess.Research.Action.StudyFirst>
+  <RimWorldAccess.Research.Action.Started>Исследование начато: {0}</RimWorldAccess.Research.Action.Started>
+  <RimWorldAccess.Research.Action.StartedReplacing>Исследование начато: {0}. Остановлено {1} на {2}% прогресса.</RimWorldAccess.Research.Action.StartedReplacing>
+
+  <!-- Missing prerequisite list fragments.
+       Unknown: spoken when currentProject is null or no parts collected.
+       HiddenOne/Many: {0} = count of hidden missing prereqs (omitted in One form). -->
+  <RimWorldAccess.Research.MissingPrereqs.Unknown>Неизвестно</RimWorldAccess.Research.MissingPrereqs.Unknown>
+  <RimWorldAccess.Research.MissingPrereqs.HiddenOne>1 скрытое требование</RimWorldAccess.Research.MissingPrereqs.HiddenOne>
+  <RimWorldAccess.Research.MissingPrereqs.HiddenMany>{0} {0_numCase ? скрытое требование : скрытых требования : скрытых требований}</RimWorldAccess.Research.MissingPrereqs.HiddenMany>
+</LanguageData>

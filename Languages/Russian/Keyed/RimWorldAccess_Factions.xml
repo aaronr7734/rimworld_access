@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Factions module strings (src/Factions/). Three files contribute:
+      - FactionHelper.cs       (shared announcement + tree-node builder)
+      - FactionTabState.cs     (in-game Factions tab close message)
+      - FactionTreeNavigation.cs (opening announcement, Alt+I feedback)
+
+    These keys cover every user-facing English phrase the module speaks or
+    puts in a treeview label. Faction names, leader names, goodwill numbers,
+    ideology names and description text all come from the game's own data
+    (vanilla keys, Def.label, Faction.Name, etc.) and are injected as
+    placeholders - they are NOT translated here.
+
+    A handful of keys are composed into longer sentences by C#. The section
+    that uses them is noted above the keys.
+  -->
+
+  <!-- Tree root label. The root node is hidden (IndentLevel -1) so this is
+       rarely spoken, but is still translated for consistency with other
+       treeview roots. -->
+  <RimWorldAccess.Factions.Tree.Root>Фракции</RimWorldAccess.Factions.Tree.Root>
+
+  <!-- Opening announcement (FactionTreeNavigation.AnnounceOpening).
+       OpeningWithCount: {0} = faction count. The first item's label and a
+       position suffix are composed onto this by C#.
+       OpeningNoFactions: spoken when the list is empty. -->
+  <RimWorldAccess.Factions.Tab.OpeningWithCount>Отношения с фракциями, {0} {0_numCase ? фракция : фракции : фракций}</RimWorldAccess.Factions.Tab.OpeningWithCount>
+  <RimWorldAccess.Factions.Tab.OpeningNoFactions>Отношения с фракциями. Нет фракций.</RimWorldAccess.Factions.Tab.OpeningNoFactions>
+
+  <!-- Close announcement (FactionTabState.Close). -->
+  <RimWorldAccess.Factions.Tab.Closed>Отношения с фракциями закрыты.</RimWorldAccess.Factions.Tab.Closed>
+
+  <!-- Info card feedback (FactionTreeNavigation.HandleInfoCard).
+       Spoken when Alt+I fires with no faction resolvable from the current
+       tree position. -->
+  <RimWorldAccess.Factions.Tab.NoFactionSelected>Фракция не выбрана.</RimWorldAccess.Factions.Tab.NoFactionSelected>
+
+  <!-- Status labels composed into the faction announcement and as tree
+       children (FactionHelper.BuildFactionAnnouncement / BuildFactionNode).
+       Defeated is used both as an inline suffix (", defeated" after the
+       faction name) and as a standalone child node. PermanentEnemy is an
+       inline qualifier appended after the relation word. -->
+  <RimWorldAccess.Factions.Status.Defeated>повержена</RimWorldAccess.Factions.Status.Defeated>
+  <RimWorldAccess.Factions.Status.DefeatedCap>Повержена</RimWorldAccess.Factions.Status.DefeatedCap>
+
+  <!-- Leader line. {0} = leader title (e.g. "Queen"), {1} = leader full name. -->
+  <RimWorldAccess.Factions.Leader>{0}: {1}</RimWorldAccess.Factions.Leader>
+
+  <!-- Goodwill line (HasGoodwill, not permanent enemy).
+       {0} = relation word (vanilla RelationKind label, e.g. "Ally"),
+       {1} = current goodwill with sign (e.g. "+35"),
+       {2} = natural goodwill with sign. -->
+  <RimWorldAccess.Factions.Goodwill>{0}, репутация {1}, базовая репутация {2}</RimWorldAccess.Factions.Goodwill>
+
+  <!-- Relation qualifier for permanent-enemy factions.
+       {0} = relation word, typically "Hostile". -->
+  <RimWorldAccess.Factions.RelationPermanentEnemy>{0}, вечный враг</RimWorldAccess.Factions.RelationPermanentEnemy>
+
+  <!-- Ongoing goodwill situations (GoodwillSituationManager).
+       EntryMaxSuffix: {0} = situation label, {1} = max goodwill cap with sign.
+       OngoingSummary: {0} = comma-joined entries. -->
+  <RimWorldAccess.Factions.Ongoing.EntryMaxSuffix>{0} {1} макс.</RimWorldAccess.Factions.Ongoing.EntryMaxSuffix>
+  <RimWorldAccess.Factions.Ongoing.Summary>Текущее: {0}</RimWorldAccess.Factions.Ongoing.Summary>
+
+  <!-- Recent goodwill events (HistoryEventsManager, ~60 in-game days).
+       EntryCountSuffix: {0} = event label, {1} = occurrence count (>=2).
+       EntrySignedSuffix: {0} = (preceding) entry text, {1} = total goodwill
+         delta with sign.
+       RecentSummary: {0} = comma-joined entries. -->
+  <RimWorldAccess.Factions.Recent.EntryCountSuffix>{0} x{1}</RimWorldAccess.Factions.Recent.EntryCountSuffix>
+  <RimWorldAccess.Factions.Recent.EntrySignedSuffix>{0} {1}</RimWorldAccess.Factions.Recent.EntrySignedSuffix>
+  <RimWorldAccess.Factions.Recent.Summary>Недавнее: {0}</RimWorldAccess.Factions.Recent.Summary>
+
+  <!-- Ideology section (Ideology DLC, non-classic mode).
+       Primary: {0} = primary ideology name.
+       Minor: {0} = comma-joined minor ideology names. -->
+  <RimWorldAccess.Factions.Ideology.Primary>Идеология: {0}</RimWorldAccess.Factions.Ideology.Primary>
+  <RimWorldAccess.Factions.Ideology.Minor>Второстепенные идеологии: {0}</RimWorldAccess.Factions.Ideology.Minor>
+
+  <!-- Hostile-relations list. {0} = comma-joined enemy faction names. -->
+  <RimWorldAccess.Factions.EnemyOf>Враг: {0}</RimWorldAccess.Factions.EnemyOf>
+</LanguageData>

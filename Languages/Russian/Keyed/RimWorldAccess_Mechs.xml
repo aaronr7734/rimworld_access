@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Mechs module strings (src/Mechs/). Two source files contribute:
+      - MechsMenuState.cs   (mechanoid management tab navigation + paint)
+      - MechsMenuHelper.cs  (cell value / column fallbacks)
+
+    This tab is the Biotech mechanoid manager. Like the Animals and Wildlife
+    tabs it is built on TabularMenuHelper<Pawn>, so its sort feedback, paint
+    feedback, and submenu phrasing run parallel to the Animals module. The
+    placeholder patterns mirror RimWorldAccess_Animals.xml deliberately so
+    translators can keep the families consistent.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Game-supplied DATA is
+    never translated here and is passed in as arguments instead:
+      - mech names (pawn.LabelShort), area labels, work-mode LabelCaps,
+        control-group indices, column header text, and the game's own draft
+        reason text all come from RimWorld and stay in the player's language
+        via the game's own translation system.
+
+    Shared phrases delegated to RimWorldAccess_Common.xml (NOT redefined here):
+      - position suffix ("{0} of {1}"), cannot-paint-column, edge announcements
+      - typeahead search scaffolding, info-card-unavailable, jumped-to
+    Vanilla keys reused directly in C# (NOT redefined here):
+      - "Biotech", "Gestating", "None", "Unrestricted", "On", "Off",
+        "ManageAreas", "Name", "AllowedArea", "CommandDraftLabel",
+        "CommandUndraftLabel", and similar.
+  -->
+
+  <!-- =================================================================
+       Shared cell fallbacks (MechsMenuHelper). "Unknown" is the out-of-range
+       fallback; "N/A" is spoken for cells that don't apply to a given mech
+       (e.g. no energy need, no repair comp, no control group). -->
+  <RimWorldAccess.Mechs.Value.Unknown>Неизвестно</RimWorldAccess.Mechs.Value.Unknown>
+  <RimWorldAccess.Mechs.Value.NotApplicable>Неприменимо</RimWorldAccess.Mechs.Value.NotApplicable>
+
+  <!-- Paint value labels for checkbox columns whose specific column has no
+       dedicated wording (the Draft/AutoRepair columns supply their own via
+       vanilla keys; this is the generic fallback). -->
+  <RimWorldAccess.Mechs.Paint.Checked>отмечено</RimWorldAccess.Mechs.Paint.Checked>
+  <RimWorldAccess.Mechs.Paint.Unchecked>не отмечено</RimWorldAccess.Mechs.Paint.Unchecked>
+
+  <!-- =================================================================
+       MechsMenuState lifecycle and navigation announcements.
+       OpeningTitle: {0} = mech count. -->
+  <RimWorldAccess.Mechs.Menu.BiotechRequired>Требуется DLC Biotech</RimWorldAccess.Mechs.Menu.BiotechRequired>
+  <RimWorldAccess.Mechs.Menu.NoMechsFound>Механоиды не найдены</RimWorldAccess.Mechs.Menu.NoMechsFound>
+  <RimWorldAccess.Mechs.Menu.OpeningTitle>Меню механоидов, {0_numCase ? механоид : механоида : механоидов}</RimWorldAccess.Mechs.Menu.OpeningTitle>
+  <RimWorldAccess.Mechs.Menu.Closed>Меню механоидов закрыто</RimWorldAccess.Mechs.Menu.Closed>
+  <RimWorldAccess.Mechs.Menu.NoMechs>Нет механоидов</RimWorldAccess.Mechs.Menu.NoMechs>
+  <RimWorldAccess.Mechs.Menu.NotOnMap>Механоид не на карте</RimWorldAccess.Mechs.Menu.NotOnMap>
+
+  <!-- =================================================================
+       Draft column interaction (Enter on Draft cell). CannotDraft is the
+       fallback spoken only when the game supplies no reason of its own;
+       the game's own reason text is spoken verbatim when present. -->
+  <RimWorldAccess.Mechs.Draft.CannotDraftThisMech>Нельзя призвать к бою этого механоида</RimWorldAccess.Mechs.Draft.CannotDraftThisMech>
+  <RimWorldAccess.Mechs.Draft.CannotDraft>Нельзя призвать к бою</RimWorldAccess.Mechs.Draft.CannotDraft>
+
+  <!-- Auto-repair column interaction. -->
+  <RimWorldAccess.Mechs.AutoRepair.NoComponent>Нет компонента автопочинки</RimWorldAccess.Mechs.AutoRepair.NoComponent>
+
+  <!-- =================================================================
+       Submenu (Control Group / Work Mode / Allowed Area).
+       Open-time errors first, then the option-row phrasing.
+       CurrentMarker: {0} = the option label; marks the mech's current value.
+       Option: {0} = option label, {1} = position suffix (typeahead variant).
+       OptionAnnounce: {0} = option label, {1} = position suffix.
+       OptionWithDesc: {0} = option label, {1} = work-mode description,
+         {2} = position suffix. -->
+  <RimWorldAccess.Mechs.Submenu.NoOverseer>Нет оператора</RimWorldAccess.Mechs.Submenu.NoOverseer>
+  <RimWorldAccess.Mechs.Submenu.NoControlGroup>Нет группы управления</RimWorldAccess.Mechs.Submenu.NoControlGroup>
+  <RimWorldAccess.Mechs.Submenu.CurrentMarker>{0} (текущее)</RimWorldAccess.Mechs.Submenu.CurrentMarker>
+  <RimWorldAccess.Mechs.Submenu.Option>{0}. {1}</RimWorldAccess.Mechs.Submenu.Option>
+  <RimWorldAccess.Mechs.Submenu.OptionAnnounce>{0} ({1})</RimWorldAccess.Mechs.Submenu.OptionAnnounce>
+  <RimWorldAccess.Mechs.Submenu.OptionWithDesc>{0}. {1} ({2})</RimWorldAccess.Mechs.Submenu.OptionWithDesc>
+
+  <!-- Control-group submenu apply feedback. -->
+  <RimWorldAccess.Mechs.ControlGroup.AlreadyInGroup>Уже в этой группе</RimWorldAccess.Mechs.ControlGroup.AlreadyInGroup>
+
+  <!-- Work-mode submenu apply feedback. SetForGroup: {0} = work-mode label,
+       {1} = control-group index. -->
+  <RimWorldAccess.Mechs.WorkMode.AlreadySet>Уже установлен этот режим</RimWorldAccess.Mechs.WorkMode.AlreadySet>
+  <RimWorldAccess.Mechs.WorkMode.SetForGroup>Режим работы установлен на {0} для группы управления {1}</RimWorldAccess.Mechs.WorkMode.SetForGroup>
+
+  <!-- =================================================================
+       Sort feedback (Alt+S). Mirrors the Animals sort vocabulary.
+       CannotSort/SortedBy: {0} = column name, {1} = direction word.
+       NowAt: {0} = the rebuilt cell announcement after a resort. -->
+  <RimWorldAccess.Mechs.Sort.CannotSort>{0}: сортировка невозможна</RimWorldAccess.Mechs.Sort.CannotSort>
+  <RimWorldAccess.Mechs.Sort.Cleared>Сортировка сброшена, порядок по умолчанию</RimWorldAccess.Mechs.Sort.Cleared>
+  <RimWorldAccess.Mechs.Sort.SortedBy>Сортировка по {0} ({1})</RimWorldAccess.Mechs.Sort.SortedBy>
+  <RimWorldAccess.Mechs.Sort.NowAt>Теперь на {0}</RimWorldAccess.Mechs.Sort.NowAt>
+
+  <!-- =================================================================
+       Single-step paint (Shift+Down / Shift+Up).
+       Allowed Area: {0} = mech name, {1} = area label, {2} = position. -->
+  <RimWorldAccess.Mechs.Paint.Single.AreaAlreadySet>{0}: уже установлено {1}. {2}</RimWorldAccess.Mechs.Paint.Single.AreaAlreadySet>
+  <RimWorldAccess.Mechs.Paint.Single.AreaApplied>{0}: {1} применено. {2}</RimWorldAccess.Mechs.Paint.Single.AreaApplied>
+
+  <!-- Single-step paint for Draft / Auto Repair checkbox columns.
+       {0} = mech name, {1} = column name, {2} = value label, {3} = position.
+       CannotApply: {0} = mech name, {1} = column name, {2} = position. -->
+  <RimWorldAccess.Mechs.Paint.Single.CellAlready>{0}: {1} уже {2}. {3}</RimWorldAccess.Mechs.Paint.Single.CellAlready>
+  <RimWorldAccess.Mechs.Paint.Single.CellApplied>{0}: {1} {2}. {3}</RimWorldAccess.Mechs.Paint.Single.CellApplied>
+  <RimWorldAccess.Mechs.Paint.Single.CannotApply>{0}: невозможно применить {1}. {2}</RimWorldAccess.Mechs.Paint.Single.CannotApply>
+
+  <!-- Single-step paint for the Control Group column. {0} = mech name,
+       {1} = control-group index (where applicable), {2} = position. The
+       "no source group" case takes no mech name (the source has nothing to
+       copy), so it is a bare phrase. -->
+  <RimWorldAccess.Mechs.Paint.ControlGroup.NoGroupToPaint>Нет группы управления для копирования</RimWorldAccess.Mechs.Paint.ControlGroup.NoGroupToPaint>
+  <RimWorldAccess.Mechs.Paint.ControlGroup.GestatingCannotAssign>{0}: в гестации, назначение невозможно. {1}</RimWorldAccess.Mechs.Paint.ControlGroup.GestatingCannotAssign>
+  <RimWorldAccess.Mechs.Paint.ControlGroup.DifferentOverseer>{0}: другой оператор, копирование невозможно. {1}</RimWorldAccess.Mechs.Paint.ControlGroup.DifferentOverseer>
+  <RimWorldAccess.Mechs.Paint.ControlGroup.AlreadyInGroup>{0}: уже в группе {1}. {2}</RimWorldAccess.Mechs.Paint.ControlGroup.AlreadyInGroup>
+  <RimWorldAccess.Mechs.Paint.ControlGroup.AssignedToGroup>{0}: назначено в группу {1}. {2}</RimWorldAccess.Mechs.Paint.ControlGroup.AssignedToGroup>
+
+  <!-- =================================================================
+       Bulk paint summaries (Shift+Home / Shift+End / Ctrl+Shift+...).
+       Allowed Area: {0} = column name, {1} = area label, {2} = name list.
+       AreaAlreadyAll: {0} = area label.
+       Group: {0} = column name, {1} = group index, {2} = name list.
+       GroupAlreadyAll: {0} = group index (covers "or different overseer").
+       Checkbox columns: {0} = column name, {1} = value label, {2} = list.
+       CellAlreadyAll: {0} = column name, {1} = value label. -->
+  <RimWorldAccess.Mechs.Paint.Bulk.AreaApplied>{0}: {1} применено для {2}</RimWorldAccess.Mechs.Paint.Bulk.AreaApplied>
+  <RimWorldAccess.Mechs.Paint.Bulk.AreaAlreadyAll>Для всех уже установлено {0}</RimWorldAccess.Mechs.Paint.Bulk.AreaAlreadyAll>
+  <RimWorldAccess.Mechs.Paint.Bulk.GroupApplied>{0}: группа {1} применена для {2}</RimWorldAccess.Mechs.Paint.Bulk.GroupApplied>
+  <RimWorldAccess.Mechs.Paint.Bulk.GroupAlreadyAll>Все уже в группе {0} (или другой оператор)</RimWorldAccess.Mechs.Paint.Bulk.GroupAlreadyAll>
+  <RimWorldAccess.Mechs.Paint.Bulk.CellApplied>{0}: {1} применено для {2}</RimWorldAccess.Mechs.Paint.Bulk.CellApplied>
+  <RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>Для всех уже {1}</RimWorldAccess.Mechs.Paint.Bulk.CellAlreadyAll>
+
+
+  <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
+  <RimWorldAccess.Mechs.PercentRange>от {0} до {1}</RimWorldAccess.Mechs.PercentRange>
+</LanguageData>

@@ -1,0 +1,1498 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Inspection module strings (src/Inspection/InspectionInfoHelper.cs and
+    consumers in InspectionTreeBuilder). Covers object summaries, category
+    fallback messages, pawn overview / character info / mood readout, the
+    GeneSetHolder overview, and the dynamic-tab fallback path.
+
+    Phrasing decisions:
+
+    - Each line in a multi-line readout is a complete tree-item label.
+      The consumer (BuildDetailedInfoChildren) splits on newlines into
+      one tree item per line, so each value below should be a clean
+      stand-alone phrase, not a fragment glued onto another line.
+
+    - Object-summary status suffixes ("Dead" / "Downed" / "Drafted") are
+      whole-phrase keys per status × pawn-type combination so the noun
+      and the parenthetical can vary per language.
+
+    - "Description" reuses the vanilla key of the same name; trait /
+      backstory body text comes from the game and is not duplicated.
+
+    Shared phrases delegated elsewhere:
+      - Vanilla Friend / Rival / Acquaintance for relations -> vanilla
+      - Vanilla Description / Genes / Overridden / Etc -> vanilla keys
+  -->
+
+  <!-- =================================================================
+       Object summary (InspectionInfoHelper.GetObjectSummary). Each
+       phrase is the entire summary line for one object kind, with the
+       game-provided label substituted in. Status variants exist so the
+       parenthetical reads naturally across languages.
+       Pawn / Animal: {0} = pawn label.
+       Building / Plant / Item: {0} = thing label.
+       Zone: {0} = zone label, {1} = zone-type noun.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Summary.Unknown>Неизвестный объект</RimWorldAccess.Inspection.Summary.Unknown>
+  <RimWorldAccess.Inspection.Summary.Pawn>Персонаж: {0}</RimWorldAccess.Inspection.Summary.Pawn>
+  <RimWorldAccess.Inspection.Summary.Zone>{0} ({1})</RimWorldAccess.Inspection.Summary.Zone>
+  <!-- Master-merge additions: pawn summary now uses KindLabel prefix and
+       a generic status suffix rather than per-kind×status whole phrases.
+       KindWithLabel: {0} = kind label (e.g. "Colonist"), {1} = pawn name.
+       WithStatus: {0} = display name, {1} = status word.
+       PawnStatus*: bare status words used as {1} in WithStatus. -->
+  <RimWorldAccess.Inspection.Summary.KindWithLabel>{0}: {1}</RimWorldAccess.Inspection.Summary.KindWithLabel>
+  <RimWorldAccess.Inspection.Summary.WithStatus>{0} ({1})</RimWorldAccess.Inspection.Summary.WithStatus>
+  <RimWorldAccess.Inspection.Summary.PawnStatusDead>Мёртв</RimWorldAccess.Inspection.Summary.PawnStatusDead>
+  <RimWorldAccess.Inspection.Summary.PawnStatusDowned>Без сознания</RimWorldAccess.Inspection.Summary.PawnStatusDowned>
+  <RimWorldAccess.Inspection.Summary.PawnStatusDrafted>К бою</RimWorldAccess.Inspection.Summary.PawnStatusDrafted>
+
+  <!-- =================================================================
+       Category-level fallbacks (InspectionInfoHelper.GetCategoryInfo,
+       GetDynamicTabInfo, GetPawnCategoryInfo, the per-type switches).
+       NoInfo: no object given.
+       NoCategoryInfo: no info for the requested category.
+       Error: {0} = category, {1} = exception message.
+       NoFallback: {0} = category. NotFound: per-type "category not found".
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Category.NoInfo>Информация недоступна.</RimWorldAccess.Inspection.Category.NoInfo>
+  <RimWorldAccess.Inspection.Category.NoCategoryInfo>Для этой категории нет информации.</RimWorldAccess.Inspection.Category.NoCategoryInfo>
+  <RimWorldAccess.Inspection.Category.Error>Ошибка при получении информации о категории {0}: {1}</RimWorldAccess.Inspection.Category.Error>
+  <RimWorldAccess.Inspection.Category.NoFallback>Нет информации для «{0}».</RimWorldAccess.Inspection.Category.NoFallback>
+  <RimWorldAccess.Inspection.Category.NotFound>Категория не найдена.</RimWorldAccess.Inspection.Category.NotFound>
+
+  <!-- =================================================================
+       Pawn overview / mood / character / gene-holder readouts.
+       Each value is one tree-item line. {0} placeholders are described
+       per key.
+       ================================================================= -->
+  <!-- Mood case (GetPawnCategoryInfo / GetPawnMoodInfo).
+       MoodHeader: {0} = mood percentage.
+       ThoughtEntry: {0} = thought label, {1} = signed mood offset. -->
+  <RimWorldAccess.Inspection.Pawn.NoMood>Информация о настроении недоступна.</RimWorldAccess.Inspection.Pawn.NoMood>
+  <RimWorldAccess.Inspection.Pawn.MoodHeader>Настроение: {0}</RimWorldAccess.Inspection.Pawn.MoodHeader>
+  <RimWorldAccess.Inspection.Pawn.RecentThoughtsHeader>Недавние мысли:</RimWorldAccess.Inspection.Pawn.RecentThoughtsHeader>
+  <RimWorldAccess.Inspection.Pawn.ThoughtEntry>{0}: {1}</RimWorldAccess.Inspection.Pawn.ThoughtEntry>
+  <RimWorldAccess.Inspection.Pawn.NoThoughts>Значимых мыслей нет.</RimWorldAccess.Inspection.Pawn.NoThoughts>
+  <RimWorldAccess.Inspection.Pawn.NotPrisonerOrSlave>Не пленник и не раб.</RimWorldAccess.Inspection.Pawn.NotPrisonerOrSlave>
+
+  <!-- Description header (animal overview, building overview, plant
+       overview, item overview). Reuses the vanilla "Description" key
+       and appends the colon ourselves. -->
+  <RimWorldAccess.Inspection.DescriptionHeader>{0}:</RimWorldAccess.Inspection.DescriptionHeader>
+
+  <!-- Character info (GetPawnCharacterInfo).
+       NameLabel: {0} = full name.
+       TraitOnly: {0} = trait label.
+       TraitWithDesc: {0} = trait label, {1} = trait description sentence.
+       TraitWithDescAndEffects: {0} = label, {1} = description, {2} =
+       comma-joined effect bullets.
+       Childhood / Adulthood: {0} = title.
+       ChildhoodWithDesc / AdulthoodWithDesc: {0} = title, {1} =
+       cleaned full description sentence. -->
+  <RimWorldAccess.Inspection.Pawn.NameLabel>Имя: {0}</RimWorldAccess.Inspection.Pawn.NameLabel>
+  <RimWorldAccess.Inspection.Pawn.TraitsHeader>Черты характера:</RimWorldAccess.Inspection.Pawn.TraitsHeader>
+  <RimWorldAccess.Inspection.Pawn.TraitOnly>{0}</RimWorldAccess.Inspection.Pawn.TraitOnly>
+  <RimWorldAccess.Inspection.Pawn.TraitWithDesc>{0}: {1}</RimWorldAccess.Inspection.Pawn.TraitWithDesc>
+  <RimWorldAccess.Inspection.Pawn.TraitWithDescAndEffects>{0}: {1}: {2}</RimWorldAccess.Inspection.Pawn.TraitWithDescAndEffects>
+  <RimWorldAccess.Inspection.Pawn.Childhood>Детство: {0}</RimWorldAccess.Inspection.Pawn.Childhood>
+  <RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc>Детство: {0}: {1}</RimWorldAccess.Inspection.Pawn.ChildhoodWithDesc>
+  <RimWorldAccess.Inspection.Pawn.Adulthood>Взрослая жизнь: {0}</RimWorldAccess.Inspection.Pawn.Adulthood>
+  <RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc>Взрослая жизнь: {0}: {1}</RimWorldAccess.Inspection.Pawn.AdulthoodWithDesc>
+  <RimWorldAccess.Inspection.Pawn.Age>Возраст: {0}</RimWorldAccess.Inspection.Pawn.Age>
+  <RimWorldAccess.Inspection.Pawn.LabeledList>{0}: {1}</RimWorldAccess.Inspection.Pawn.LabeledList>
+
+  <!-- GeneSetHolder overview (GetGeneSetHolderOverview).
+       GeneEntry: {0} = gene display label (already shade-aware).
+       GeneEntryOverridden: {0} = gene label, {1} = vanilla "Overridden".
+       Etc: {0} = vanilla "Etc". -->
+  <RimWorldAccess.Inspection.GeneHolder.GeneEntry>  - {0}.</RimWorldAccess.Inspection.GeneHolder.GeneEntry>
+  <RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden>  - {0} ({1}).</RimWorldAccess.Inspection.GeneHolder.GeneEntryOverridden>
+  <RimWorldAccess.Inspection.GeneHolder.Etc>  - {0}...</RimWorldAccess.Inspection.GeneHolder.Etc>
+
+  <!-- =================================================================
+       Building readouts. Each value is one tree-item line composed by
+       the building helpers (GetBuildingOverview / Bills / Storage /
+       Power / BedAssignment / OwnerAssignment / MeditationFocus /
+       Temperature). Vanilla nouns reused: Health, Priority, Power,
+       Temperature, Suspended, On, Off.
+       ================================================================= -->
+  <!-- Overview. Health: {0} = percent, {1} = current HP, {2} = max HP.
+       The vanilla "Health" noun is used as the leading label; the
+       composition lives in C# so the Description: header keeps reusing
+       the shared DescriptionHeader key. -->
+  <RimWorldAccess.Inspection.Building.Health>Здоровье: {0} ({1} / {2})</RimWorldAccess.Inspection.Building.Health>
+
+  <!-- Bills. BillsHeader: {0} = count. BillEntry: {0} = index, {1} = bill
+       label. BillTarget / BillMode: {0} = value. BillSuspended: {0} =
+       vanilla "Suspended" word. -->
+  <RimWorldAccess.Inspection.Building.NoBills>Нет заданий в очереди.</RimWorldAccess.Inspection.Building.NoBills>
+  <RimWorldAccess.Inspection.Building.BillsHeader>Задания ({0}):</RimWorldAccess.Inspection.Building.BillsHeader>
+  <RimWorldAccess.Inspection.Building.BillEntry>{0}. {1}</RimWorldAccess.Inspection.Building.BillEntry>
+  <RimWorldAccess.Inspection.Building.BillTarget>Цель: {0}</RimWorldAccess.Inspection.Building.BillTarget>
+  <RimWorldAccess.Inspection.Building.BillMode>Режим: {0}</RimWorldAccess.Inspection.Building.BillMode>
+  <RimWorldAccess.Inspection.Building.BillSuspended>({0})</RimWorldAccess.Inspection.Building.BillSuspended>
+  <RimWorldAccess.Inspection.Building.NoBillsCapability>У этой постройки нет заданий.</RimWorldAccess.Inspection.Building.NoBillsCapability>
+
+  <!-- Storage. PriorityLine: {0} = vanilla "Priority", {1} = value. -->
+  <RimWorldAccess.Inspection.Building.PriorityLine>{0}: {1}</RimWorldAccess.Inspection.Building.PriorityLine>
+  <RimWorldAccess.Inspection.Building.AllowedItemsHeader>Разрешённые предметы:</RimWorldAccess.Inspection.Building.AllowedItemsHeader>
+  <RimWorldAccess.Inspection.Building.NoItemsAllowed>Нет разрешённых предметов.</RimWorldAccess.Inspection.Building.NoItemsAllowed>
+  <RimWorldAccess.Inspection.Building.NoStorageSettings>У этой постройки нет настроек хранения.</RimWorldAccess.Inspection.Building.NoStorageSettings>
+
+  <!-- Storage settings menu (StorageSettingsMenuState +
+       StorageSettingsMenuPatch) and the parallel ThingFilterMenuState
+       (used by BillConfigState ingredient filters and the storage
+       sub-states in InspectionTreeBuilder). Both states render the
+       same filter-tree shape and share these keys: top-level menu
+       item labels and the summaries spoken as the user navigates the
+       filter tree, plus the result announcements after editing the
+       range submenu and after expand-all-siblings. Vanilla
+       StoragePriority labels and category labels come from the game
+       and are used as data placeholders. The "expanded" / "collapsed"
+       tree state words and the "Expanded N item(s)" announcements
+       after * delegate to Common.Tree.* keys. The "Already at top
+       level" boundary announcement delegates to Common.Edge.TopLevel
+       via MenuHelper.SpeakAlreadyAtEdge. -->
+  <!-- Top-level menu rows. PriorityLabel: {0} = capitalized priority
+       label. RangeLabel.HitPoints: {0} = min %, {1} = max %.
+       RangeLabel.Quality: {0} = min QualityCategory, {1} = max
+       QualityCategory. -->
+
+  <!-- Toggle result. {0} = item / category label; the state words are
+       split into one whole-phrase key per (state, capitalization) so
+       word order can vary per language. CategoryWithSummary is spoken
+       on category navigation: {0} = label, {1} = summary text built by
+       ThingFilterHelper.FormatCategorySummary, {2} = expand state
+       (Common.Tree.StateExpanded / StateCollapsed). LabelWithExpandState
+       handles categories whose summary cannot be computed; {0} = label,
+       {1} = expand state. ItemAllowState applies to ThingDef and
+       SpecialFilter rows; {0} = label, {1} = the lowercase state. -->
+  <RimWorldAccess.Inspection.Storage.ToggleResultAllowed>{0}: разрешено</RimWorldAccess.Inspection.Storage.ToggleResultAllowed>
+  <RimWorldAccess.Inspection.Storage.ToggleResultDisallowed>{0}: запрещено</RimWorldAccess.Inspection.Storage.ToggleResultDisallowed>
+  <RimWorldAccess.Inspection.Storage.CategoryWithSummary>{0}. {1}, {2}</RimWorldAccess.Inspection.Storage.CategoryWithSummary>
+  <RimWorldAccess.Inspection.Storage.LabelWithExpandState>{0} {1}</RimWorldAccess.Inspection.Storage.LabelWithExpandState>
+  <RimWorldAccess.Inspection.Storage.ItemAllowed>{0}. разрешено</RimWorldAccess.Inspection.Storage.ItemAllowed>
+  <RimWorldAccess.Inspection.Storage.ItemDisallowed>{0}. запрещено</RimWorldAccess.Inspection.Storage.ItemDisallowed>
+
+  <!-- Category summary phrases (ThingFilterHelper.FormatCategorySummary).
+       Spoken as the {1} placeholder of CategoryWithSummary above and
+       composed into the search-context announcement. The summary
+       reports from the minority perspective: AllAllowed / AllDisallowed
+       cover the trivial cases; the four except-* forms cover mixed
+       categories where a few items diverge from the majority.
+       AllowedExceptList: {0} = comma-joined names of disallowed items.
+       DisallowedExceptList: {0} = comma-joined names of allowed items.
+       AllowedExceptCount: {0} = count of disallowed items (always > 10
+       in practice). DisallowedExceptCount: {0} = count of allowed items
+       (also always > 10). Each except-* form is one whole-phrase key
+       so the comma + "except: " glue can vary per language and the
+       except-list / except-count distinction does not have to share
+       wording. -->
+  <RimWorldAccess.Inspection.Storage.Summary.AllAllowed>разрешено</RimWorldAccess.Inspection.Storage.Summary.AllAllowed>
+  <RimWorldAccess.Inspection.Storage.Summary.AllDisallowed>запрещено</RimWorldAccess.Inspection.Storage.Summary.AllDisallowed>
+  <RimWorldAccess.Inspection.Storage.Summary.AllowedExceptList>разрешено, кроме: {0}</RimWorldAccess.Inspection.Storage.Summary.AllowedExceptList>
+  <RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptList>запрещено, кроме: {0}</RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptList>
+  <RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount>разрешено, кроме {0_numCase ? предмета : предметов : предметов}</RimWorldAccess.Inspection.Storage.Summary.AllowedExceptCount>
+  <RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount>запрещено, кроме {0_numCase ? предмета : предметов : предметов}</RimWorldAccess.Inspection.Storage.Summary.DisallowedExceptCount>
+
+  <!-- No info card available for the selected item. -->
+  <RimWorldAccess.Inspection.Storage.NoInfoCard>Окно информации недоступно</RimWorldAccess.Inspection.Storage.NoInfoCard>
+
+  <!-- Bulk action results. -->
+
+  <!-- Expand-all-siblings results when * is pressed. AllAlreadyExpanded /
+       NoneToExpand cover the edge cases where the action is a no-op. -->
+
+  <!-- Range editing announcements (StorageSettingsMenuPatch). Spoken
+       after Enter applies the new range or Escape discards it.
+       PressEnterEditRange is spoken by ThingFilterMenuState when the
+       user presses Right/Left on a range row (instead of expanding
+       since ranges have no children). -->
+  <RimWorldAccess.Inspection.Storage.RangeApplied>Диапазон изменён</RimWorldAccess.Inspection.Storage.RangeApplied>
+  <RimWorldAccess.Inspection.Storage.RangeCancelled>Изменение диапазона отменено</RimWorldAccess.Inspection.Storage.RangeCancelled>
+  <!-- Spoken when Right is pressed on a range row (ranges have no children
+       to expand; Enter opens the range editor). -->
+  <RimWorldAccess.Inspection.Storage.PressEnterEditRange>Нажмите Enter, чтобы изменить диапазон</RimWorldAccess.Inspection.Storage.PressEnterEditRange>
+
+  <!-- Submenu close fallbacks (used by InspectionReturnHelper when no
+       parent inspection menu is active). -->
+  <RimWorldAccess.Inspection.Storage.MenuClosed>Меню настроек хранения закрыто</RimWorldAccess.Inspection.Storage.MenuClosed>
+  <RimWorldAccess.Inspection.Storage.PlantSelectionClosed>Меню выбора растения закрыто</RimWorldAccess.Inspection.Storage.PlantSelectionClosed>
+
+  <!-- =================================================================
+       ThingFilter tree-navigation state (ThingFilterNavigationState).
+       The newer tree-based filter UI used by ReadingPolicyEditorState
+       (and others wired during D.7 follow-ups) shares the Storage.*
+       keys above for navigation and toggle announcements; only the
+       slider-edit mode is unique. Pressing Enter on a HitPoints or
+       Quality row enters edit mode where Left/Right adjusts the active
+       part (Min or Max) and Up/Down swaps parts.
+
+       SliderPart.Min / SliderPart.Max are the bare part-name nouns,
+       composed into the edit-mode announcement and the per-part value
+       readout. SliderEdit.Announcement: {0} = slider name (vanilla
+       "Quality" or "HitPointsBasic"), {1} = part name, {2} = value.
+       Spoken once on entering edit mode; the keyboard-hint sentence
+       is part of the key so word order can vary per language.
+       SliderEdit.PartWithValue: {0} = part name, {1} = value. Spoken
+       when switching parts via Up/Down.
+       ================================================================= -->
+  <!-- Cannot-expand rejection (ThingFilterNavigationState). -->
+  <RimWorldAccess.Inspection.ThingFilter.CannotExpand>Этот элемент нельзя развернуть.</RimWorldAccess.Inspection.ThingFilter.CannotExpand>
+
+  <RimWorldAccess.Inspection.ThingFilter.SliderPart.Min>Минимум</RimWorldAccess.Inspection.ThingFilter.SliderPart.Min>
+  <RimWorldAccess.Inspection.ThingFilter.SliderPart.Max>Максимум</RimWorldAccess.Inspection.ThingFilter.SliderPart.Max>
+  <RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>{0} - {1}: {2}. Стрелки влево и вправо — изменить, вверх и вниз — переключить минимум и максимум, Enter — подтвердить.</RimWorldAccess.Inspection.ThingFilter.SliderEdit.Announcement>
+  <RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue>{0}: {1}</RimWorldAccess.Inspection.ThingFilter.SliderEdit.PartWithValue>
+
+  <!-- =================================================================
+       Colony inventory menu (WindowlessInventoryState). Triggered with
+       the I shortcut. Builds a hierarchical tree of every item on the
+       map, grouped by category / def-group / material / stack. The
+       state announces top-level open / close, recursive expand-all
+       results, the contextual drop / jump / install actions, and
+       composes display labels for each tree row from English fragments
+       (carried-by-colonists parenthetical, material lists, tainted /
+       forbidden flag suffixes, ViewItemDetails sentence list).
+
+       Open.SummaryOne / SummaryMany: {0} = item-type count, {1} =
+       category count. Split by item-type count since "1 item type" vs
+       "N item types" needs subject-verb agreement. Categories are
+       always many in practice (the empty case takes the OpenedEmpty
+       branch).
+
+       Drop.Dropped: {0} = quantity, {1} = carrier short name.
+       Drop.Failed: {0} = item label.
+
+       Jump.JumpedToAt: {0} = subject (carrier label or location
+       label), {1} = grid coords.
+
+       Detail.* are the sentences ViewItemDetails joins with ". "; each
+       value below is one stand-alone phrase with no trailing period.
+       MarketValue: {0} = per-item value, {1} = total value (both
+       formatted with "F2"). Mass: {0} = kg value (formatted with
+       "F2"; the "kg" unit can be translated per locale).
+
+       Label.GroupHead: {0} = head label, {1} = total count. The "x"
+       glyph is RimWorld's standard count separator. Label.GroupHeadCarried
+       extends with the carried-by-colonists parenthetical: {2} = carried
+       count. MaterialEntry: {0} = count, {1} = stuff label - one entry
+       in the comma-joined materials list. MaterialAndOne: {0} = count,
+       {1} = stuff label. MaterialAndOther: {0} = count of additional
+       materials (always > 1).
+
+       Label.StackTaintedSuffix / StackForbiddenSuffix: leading space
+       is part of the value. Label.StackLine: {0} = name, {1} =
+       quantity, {2} = location, {3} = optional flag suffix.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Inventory.OpenedEmpty>Меню инвентаря открыто. На складах поселения и у персонажей нет предметов.</RimWorldAccess.Inspection.Inventory.OpenedEmpty>
+  <RimWorldAccess.Inspection.Inventory.OpenedSummaryOne>Инвентарь поселения открыт. {0_numCase ? тип предмета : типа предметов : типов предметов}. {1_numCase ? категория : категории : категорий}.</RimWorldAccess.Inspection.Inventory.OpenedSummaryOne>
+  <RimWorldAccess.Inspection.Inventory.OpenedSummaryMany>Инвентарь поселения открыт. {0_numCase ? тип предмета : типа предметов : типов предметов}. {1_numCase ? категория : категории : категорий}.</RimWorldAccess.Inspection.Inventory.OpenedSummaryMany>
+  <RimWorldAccess.Inspection.Inventory.Closed>Меню инвентаря закрыто.</RimWorldAccess.Inspection.Inventory.Closed>
+
+  <RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand>Нет категорий для разворачивания.</RimWorldAccess.Inspection.Inventory.Expand.NoneToExpand>
+  <RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded>Все категории уже развёрнуты.</RimWorldAccess.Inspection.Inventory.Expand.AllAlreadyExpanded>
+
+  <RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem>Выберите переносимый предмет, чтобы бросить его.</RimWorldAccess.Inspection.Inventory.Drop.SelectCarriedItem>
+  <RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack>Этот предмет находится на складе, а не переносится персонажем.</RimWorldAccess.Inspection.Inventory.Drop.NotCarriedStack>
+  <RimWorldAccess.Inspection.Inventory.Drop.ExpandToSelectStack>Разверните этот предмет, чтобы выбрать конкретную стопку для сброса.</RimWorldAccess.Inspection.Inventory.Drop.ExpandToSelectStack>
+  <RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack>Разверните эту группу и выберите конкретную стопку для сброса.</RimWorldAccess.Inspection.Inventory.Drop.ExpandGroupToSelectStack>
+  <RimWorldAccess.Inspection.Inventory.Drop.NoItem>Нет предмета для сброса.</RimWorldAccess.Inspection.Inventory.Drop.NoItem>
+  <RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable>Несущий персонаж больше недоступен.</RimWorldAccess.Inspection.Inventory.Drop.CarrierUnavailable>
+  <RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory>Нет доступа к инвентарю носителя.</RimWorldAccess.Inspection.Inventory.Drop.CannotAccessInventory>
+  <RimWorldAccess.Inspection.Inventory.Drop.Dropped>Сброшено x{0} от: {1}.</RimWorldAccess.Inspection.Inventory.Drop.Dropped>
+  <RimWorldAccess.Inspection.Inventory.Drop.Failed>Не удалось сбросить: {0}.</RimWorldAccess.Inspection.Inventory.Drop.Failed>
+
+  <RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable>Контекстное меню недоступно</RimWorldAccess.Inspection.Inventory.Context.NoMenuAvailable>
+  <RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable>Нет доступных действий</RimWorldAccess.Inspection.Inventory.Context.NoActionsAvailable>
+
+  <RimWorldAccess.Inspection.Inventory.Action.JumpToPawn>Перейти к персонажу (Alt+J)</RimWorldAccess.Inspection.Inventory.Action.JumpToPawn>
+  <RimWorldAccess.Inspection.Inventory.Action.JumpToLocation>Перейти к месту (Alt+J)</RimWorldAccess.Inspection.Inventory.Action.JumpToLocation>
+  <RimWorldAccess.Inspection.Inventory.Action.JumpToFirstLocation>Перейти к первому месту (Alt+J)</RimWorldAccess.Inspection.Inventory.Action.JumpToFirstLocation>
+  <RimWorldAccess.Inspection.Inventory.Action.Drop>Бросить (Delete)</RimWorldAccess.Inspection.Inventory.Action.Drop>
+  <RimWorldAccess.Inspection.Inventory.Action.Install>Установить в</RimWorldAccess.Inspection.Inventory.Action.Install>
+  <RimWorldAccess.Inspection.Inventory.Action.ShowInfo>Показать сведения (Alt+I)</RimWorldAccess.Inspection.Inventory.Action.ShowInfo>
+  <RimWorldAccess.Inspection.Inventory.Action.ViewDetails>Просмотреть подробности</RimWorldAccess.Inspection.Inventory.Action.ViewDetails>
+
+  <RimWorldAccess.Inspection.Inventory.Jump.SelectItem>Выберите предмет, к которому нужно перейти.</RimWorldAccess.Inspection.Inventory.Jump.SelectItem>
+  <RimWorldAccess.Inspection.Inventory.Jump.NoLocation>Место не найдено.</RimWorldAccess.Inspection.Inventory.Jump.NoLocation>
+  <RimWorldAccess.Inspection.Inventory.Jump.JumpedToAt>Переход к: {0}, координаты {1}.</RimWorldAccess.Inspection.Inventory.Jump.JumpedToAt>
+
+  <RimWorldAccess.Inspection.Inventory.Install.NoItem>Устанавливаемый предмет не найден.</RimWorldAccess.Inspection.Inventory.Install.NoItem>
+
+  <RimWorldAccess.Inspection.Inventory.Detail.Item>Предмет: {0}</RimWorldAccess.Inspection.Inventory.Detail.Item>
+  <RimWorldAccess.Inspection.Inventory.Detail.TotalQuantity>Всего количество: {0}</RimWorldAccess.Inspection.Inventory.Detail.TotalQuantity>
+  <RimWorldAccess.Inspection.Inventory.Detail.Description>Описание: {0}</RimWorldAccess.Inspection.Inventory.Detail.Description>
+  <RimWorldAccess.Inspection.Inventory.Detail.StackLimit>Лимит стопки: {0}</RimWorldAccess.Inspection.Inventory.Detail.StackLimit>
+  <RimWorldAccess.Inspection.Inventory.Detail.MarketValue>Рыночная стоимость: ${0} за штуку, ${1} всего</RimWorldAccess.Inspection.Inventory.Detail.MarketValue>
+  <RimWorldAccess.Inspection.Inventory.Detail.Mass>Масса: {0} кг</RimWorldAccess.Inspection.Inventory.Detail.Mass>
+  <RimWorldAccess.Inspection.Inventory.Detail.Stacks>Стопки: {0}</RimWorldAccess.Inspection.Inventory.Detail.Stacks>
+  <RimWorldAccess.Inspection.Inventory.Detail.CarriedByColonists>Переносится поселенцами: {0}</RimWorldAccess.Inspection.Inventory.Detail.CarriedByColonists>
+
+  <RimWorldAccess.Inspection.Inventory.Label.GroupHead>{0} x{1}</RimWorldAccess.Inspection.Inventory.Label.GroupHead>
+  <RimWorldAccess.Inspection.Inventory.Label.GroupHeadCarried>{0} x{1} ({2} переносится поселенцами)</RimWorldAccess.Inspection.Inventory.Label.GroupHeadCarried>
+  <RimWorldAccess.Inspection.Inventory.Label.MaterialEntry>{0} {1}</RimWorldAccess.Inspection.Inventory.Label.MaterialEntry>
+  <RimWorldAccess.Inspection.Inventory.Label.MaterialAndOne>, и {0} {1}</RimWorldAccess.Inspection.Inventory.Label.MaterialAndOne>
+  <RimWorldAccess.Inspection.Inventory.Label.MaterialAndOther>, и ещё {0_numCase ? материал : материала : материалов}</RimWorldAccess.Inspection.Inventory.Label.MaterialAndOther>
+  <RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix> (заражённое)</RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix>
+  <RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix> (запрещено)</RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix>
+  <RimWorldAccess.Inspection.Inventory.Label.StackLine>{0} x{1}, {2}{3}</RimWorldAccess.Inspection.Inventory.Label.StackLine>
+
+  <!-- =================================================================
+       Fishing zone configuration menu (FishingZoneMenuState).
+       Odyssey-DLC fishing zones; the menu is opened by pressing Enter
+       on a Zone_Fishing tile. Reflection reads the zone fields and
+       presents them as a flat keyboard-navigable list with
+       allow/forbid toggle, repeat-mode cycle, count steppers, and an
+       expandable fish-species list.
+
+       Vanilla nouns reused: "FishPopulationDesc" and
+       "MinimumPopulationDesc" tooltips, "Yes" / "No" for boolean
+       toggles. The repeat-mode / population-status / Unknown nouns
+       below are dedicated keys because RimWorld doesn't expose
+       single-word translations for them.
+
+       SearchLabel.* are stable typeahead lookup keys (separate from
+       the spoken row label so translators can localize each
+       independently). Status.Detail: {0} = fish-type label, {1} =
+       current population, {2} = max population, {3} = status word.
+       Label.MinimumPopulation: {0} = pct, {1} = fish-at-threshold.
+       Label.FishSpecies: {0} = count, {1} = expanded/collapsed word.
+       Action.ExpandedFishSpecies*: {0} = species count (One/Many
+       split for subject-verb agreement). Action.OpeningInfoCard: {0}
+       = fish label. Numeric.* govern the numeric-input overlay.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Fishing.NotAvailable>Настройки зоны рыбалки недоступны — возможно, не установлено дополнение Odyssey</RimWorldAccess.Inspection.Fishing.NotAvailable>
+
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>Состояние зоны</RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing>Разрешить рыбалку</RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode>Режим повтора</RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount>Число повторов</RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.TargetCount>Целевое количество</RimWorldAccess.Inspection.Fishing.SearchLabel.TargetCount>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.CurrentlyHave>Сейчас в наличии</RimWorldAccess.Inspection.Fishing.SearchLabel.CurrentlyHave>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.PauseWhenSatisfied>Пауза при достижении</RimWorldAccess.Inspection.Fishing.SearchLabel.PauseWhenSatisfied>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.UnpauseAt>Возобновить при</RimWorldAccess.Inspection.Fishing.SearchLabel.UnpauseAt>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.MinimumPopulation>Минимальная популяция</RimWorldAccess.Inspection.Fishing.SearchLabel.MinimumPopulation>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.FishSpecies>Виды рыб</RimWorldAccess.Inspection.Fishing.SearchLabel.FishSpecies>
+
+  <RimWorldAccess.Inspection.Fishing.Status.NoWaterBody>Сведения о зоне: водоём не найден</RimWorldAccess.Inspection.Fishing.Status.NoWaterBody>
+  <RimWorldAccess.Inspection.Fishing.Status.UnableToRead>Сведения о зоне: не удалось прочитать</RimWorldAccess.Inspection.Fishing.Status.UnableToRead>
+  <RimWorldAccess.Inspection.Fishing.Status.Detail>Сведения о зоне: {0}, {1}/{2} рыбы ({3})</RimWorldAccess.Inspection.Fishing.Status.Detail>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationVeryLow>очень низкая</RimWorldAccess.Inspection.Fishing.Status.PopulationVeryLow>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationLow>низкая</RimWorldAccess.Inspection.Fishing.Status.PopulationLow>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationModerate>средняя</RimWorldAccess.Inspection.Fishing.Status.PopulationModerate>
+  <RimWorldAccess.Inspection.Fishing.Status.PopulationHealthy>здоровая</RimWorldAccess.Inspection.Fishing.Status.PopulationHealthy>
+  <RimWorldAccess.Inspection.Fishing.Status.UnknownFishType>Неизвестно</RimWorldAccess.Inspection.Fishing.Status.UnknownFishType>
+
+  <RimWorldAccess.Inspection.Fishing.Label.AllowFishing>Разрешить рыбалку: {0}</RimWorldAccess.Inspection.Fishing.Label.AllowFishing>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatMode>Режим повтора: {0}</RimWorldAccess.Inspection.Fishing.Label.RepeatMode>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeDoForever>Бесконечно</RimWorldAccess.Inspection.Fishing.Label.RepeatModeDoForever>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeRepeatCount>Число повторов</RimWorldAccess.Inspection.Fishing.Label.RepeatModeRepeatCount>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeTargetCount>Целевое количество</RimWorldAccess.Inspection.Fishing.Label.RepeatModeTargetCount>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatModeUnknown>Неизвестно</RimWorldAccess.Inspection.Fishing.Label.RepeatModeUnknown>
+  <RimWorldAccess.Inspection.Fishing.Label.RepeatCount>Число повторов: {0}</RimWorldAccess.Inspection.Fishing.Label.RepeatCount>
+  <RimWorldAccess.Inspection.Fishing.Label.TargetCount>Целевое количество: {0}</RimWorldAccess.Inspection.Fishing.Label.TargetCount>
+  <RimWorldAccess.Inspection.Fishing.Label.CurrentlyHave>Сейчас в наличии: {0}</RimWorldAccess.Inspection.Fishing.Label.CurrentlyHave>
+  <RimWorldAccess.Inspection.Fishing.Label.PauseWhenSatisfied>Пауза при достижении: {0}</RimWorldAccess.Inspection.Fishing.Label.PauseWhenSatisfied>
+  <RimWorldAccess.Inspection.Fishing.Label.UnpauseAt>Возобновить при: {0}</RimWorldAccess.Inspection.Fishing.Label.UnpauseAt>
+  <RimWorldAccess.Inspection.Fishing.Label.MinimumPopulation>Минимальная популяция: {0}% ({1} рыбы)</RimWorldAccess.Inspection.Fishing.Label.MinimumPopulation>
+  <RimWorldAccess.Inspection.Fishing.Label.MinimumPopulationValue>{0}% ({1} рыбы)</RimWorldAccess.Inspection.Fishing.Label.MinimumPopulationValue>
+  <RimWorldAccess.Inspection.Fishing.Label.FishSpecies>Виды рыб ({0}), {1}</RimWorldAccess.Inspection.Fishing.Label.FishSpecies>
+  <RimWorldAccess.Inspection.Fishing.Label.UncommonSuffix> (редкий)</RimWorldAccess.Inspection.Fishing.Label.UncommonSuffix>
+
+  <RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded>Уже развёрнуто</RimWorldAccess.Inspection.Fishing.Action.AlreadyExpanded>
+  <RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed>Уже свёрнуто</RimWorldAccess.Inspection.Fishing.Action.AlreadyCollapsed>
+  <RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo>Нажмите Alt+I, чтобы посмотреть сведения о рыбе</RimWorldAccess.Inspection.Fishing.Action.PressAltIToViewFishInfo>
+  <RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate>Нажмите Enter для активации</RimWorldAccess.Inspection.Fishing.Action.UseEnterToActivate>
+  <RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesOne>Развёрнуто, {0_numCase ? вид рыбы : вида рыб : видов рыб}</RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesOne>
+  <RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesMany>Развёрнуто, {0_numCase ? вид рыбы : вида рыб : видов рыб}</RimWorldAccess.Inspection.Fishing.Action.ExpandedFishSpeciesMany>
+  <RimWorldAccess.Inspection.Fishing.Action.Collapsed>Свёрнуто</RimWorldAccess.Inspection.Fishing.Action.Collapsed>
+  <RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand>Стрелка вправо — развернуть, влево — свернуть</RimWorldAccess.Inspection.Fishing.Action.UseRightLeftToExpand>
+  <RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust>Стрелки влево и вправо — для изменения</RimWorldAccess.Inspection.Fishing.Action.UseLeftRightToAdjust>
+  <RimWorldAccess.Inspection.Fishing.Action.NotAdjustable>Этот элемент нельзя изменить</RimWorldAccess.Inspection.Fishing.Action.NotAdjustable>
+  <RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable>Это поле нельзя изменить</RimWorldAccess.Inspection.Fishing.Action.FieldNotAdjustable>
+  <RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit>Без верхнего предела. Для больших значений используйте числовой ввод.</RimWorldAccess.Inspection.Fishing.Action.NoMaximumLimit>
+  <RimWorldAccess.Inspection.Fishing.Action.FishingAllowed>Рыбалка разрешена</RimWorldAccess.Inspection.Fishing.Action.FishingAllowed>
+  <RimWorldAccess.Inspection.Fishing.Action.FishingForbidden>Рыбалка запрещена</RimWorldAccess.Inspection.Fishing.Action.FishingForbidden>
+  <RimWorldAccess.Inspection.Fishing.Action.PauseEnabled>Пауза при достижении включена</RimWorldAccess.Inspection.Fishing.Action.PauseEnabled>
+  <RimWorldAccess.Inspection.Fishing.Action.PauseDisabled>Пауза при достижении отключена</RimWorldAccess.Inspection.Fishing.Action.PauseDisabled>
+  <RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst>Сначала выберите вид рыбы</RimWorldAccess.Inspection.Fishing.Action.SelectFishSpeciesFirst>
+  <RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard>Открывается окно информации: {0}</RimWorldAccess.Inspection.Fishing.Action.OpeningInfoCard>
+
+  <RimWorldAccess.Inspection.Fishing.Numeric.Prompt>Введите число, затем нажмите Enter для подтверждения или Escape для отмены</RimWorldAccess.Inspection.Fishing.Numeric.Prompt>
+  <RimWorldAccess.Inspection.Fishing.Numeric.Empty>Пусто</RimWorldAccess.Inspection.Fishing.Numeric.Empty>
+  <RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber>Неверное число</RimWorldAccess.Inspection.Fishing.Numeric.InvalidNumber>
+  <RimWorldAccess.Inspection.Fishing.Numeric.Cancelled>Отменено</RimWorldAccess.Inspection.Fishing.Numeric.Cancelled>
+  <RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable>Числовое значение к этому полю неприменимо</RimWorldAccess.Inspection.Fishing.Numeric.NotApplicable>
+
+  <!-- =================================================================
+       Bill configuration menu (BillConfigState). Opened from
+       BillsMenuState when the user presses Enter on a bill row.
+       Provides keyboard navigation through every bill field
+       (recipe info, repeat mode, target/repeat counts, ingredient
+       filter, skill range, store mode, pawn restriction, rename
+       and delete).
+
+       Vanilla nouns reused as `{0}` / `{1}` placeholders or as
+       complete keys: WorkAmount, MinimumSkills, WearableBy,
+       GestationCycles, Bandwidth, ThingsProduced, RepeatCount,
+       Suspended, NotSuspended, Unpause, Quality, HitPointsBasic,
+       Infinite, Unlimited, On / Off, IncludeEquipped, IncludeTainted,
+       IncludeFromAll, IncludeSpecific, LimitToAllowedStuff,
+       PauseWhenSatisfied, UnpauseWhenYouHave, IngredientSearchRadius,
+       AllowedSkillRange, AnyWorker, AnySlave, AnyMech, AnyNonMech,
+       AnyMechanitor, IncompatibleLower, UseGlobalStyle, Rename,
+       Stat_Thing_StyleLabel, DeleteBillTip, CountingProducts,
+       Filter, Ingredients.
+
+       Recipe.* phrases compose the long recipe-info row. Each form
+       embeds the vanilla label as {0} so the colon glue stays in
+       the key (typographic punctuation, not a translatable particle)
+       and the per-language word order can vary within one line.
+
+       Label.LabelWithRangePercent: {0} = vanilla noun, {1}/{2} =
+       percent strings. Label.LabelWithRangeQuality: same shape but
+       {1}/{2} are QualityCategory enum values. Label.LabelWithValue
+       is the plain "{0}: {1}" composition shared by IncludeEquipped /
+       IncludeTainted / LimitToAllowedStuff / PauseWhenSatisfied /
+       UnpauseAt / IngredientRadius / Style.
+
+       Worker.LabelWith*: {0} = pawn / mech short label. The leading
+       "Worker: " prefix is its own key per restriction class so
+       word order can vary; English happens to share the prefix.
+       SkillRange.MinLine / MaxLine: {0} = "AllowedSkillRange"
+       template (already translated with skill name substituted),
+       {1} = numeric value. The "Minimum"/"Maximum" word inside
+       reuses Stepper.Minimum / Stepper.Maximum (Common.xml).
+
+       PawnRestrictionWithSkill: {0} = pawn label, {1} = skill level.
+       Numeric.* govern the typed-input overlay; behavior parallels
+       the FishingZoneMenuState numeric overlay.
+
+       TargetCount.Infinite: vanilla "Infinite" is reused for the
+       value side; the "Target count: " prefix gets its own
+       Label.TargetCountInfinite key for word-order flexibility.
+
+       Action.* phrases are top-level menu chrome announcements
+       (rename confirmed/cancelled, bill deleted, range applied).
+       ================================================================= -->
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.Recipe>Рецепт</RimWorldAccess.Inspection.BillConfig.SearchLabel.Recipe>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatMode>Режим повтора</RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatMode>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatCount>Число повторов</RimWorldAccess.Inspection.BillConfig.SearchLabel.RepeatCount>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.TargetCount>Целевое количество</RimWorldAccess.Inspection.BillConfig.SearchLabel.TargetCount>
+  <RimWorldAccess.Inspection.BillConfig.SearchLabel.CurrentlyHave>Сейчас в наличии</RimWorldAccess.Inspection.BillConfig.SearchLabel.CurrentlyHave>
+
+  <RimWorldAccess.Inspection.BillConfig.Recipe.Title>Рецепт: {0}</RimWorldAccess.Inspection.BillConfig.Recipe.Title>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WorkAmountSuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.WorkAmountSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.SkillRequirement>{0} {1}</RimWorldAccess.Inspection.BillConfig.Recipe.SkillRequirement>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.MinSkillsSuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.MinSkillsSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WorkSkillSuffix>. {0}</RimWorldAccess.Inspection.BillConfig.Recipe.WorkSkillSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WearableBySuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.WearableBySuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.GestationCyclesSuffix>. {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.GestationCyclesSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.BandwidthSuffix>, {0}: {1}</RimWorldAccess.Inspection.BillConfig.Recipe.BandwidthSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Recipe.WastepacksSuffix>, {0} {1}: {2}</RimWorldAccess.Inspection.BillConfig.Recipe.WastepacksSuffix>
+
+  <RimWorldAccess.Inspection.BillConfig.Label.RepeatMode>Режим повтора: {0}</RimWorldAccess.Inspection.BillConfig.Label.RepeatMode>
+  <RimWorldAccess.Inspection.BillConfig.Label.TargetCount>Целевое количество: {0}</RimWorldAccess.Inspection.BillConfig.Label.TargetCount>
+  <RimWorldAccess.Inspection.BillConfig.Label.TargetCountInfinite>Целевое количество: {0}</RimWorldAccess.Inspection.BillConfig.Label.TargetCountInfinite>
+  <RimWorldAccess.Inspection.BillConfig.Label.CurrentlyHave>{0}: {1} / {2}</RimWorldAccess.Inspection.BillConfig.Label.CurrentlyHave>
+  <RimWorldAccess.Inspection.BillConfig.Label.CountingProductsSuffix>, {0}: {1}</RimWorldAccess.Inspection.BillConfig.Label.CountingProductsSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue>{0}: {1}</RimWorldAccess.Inspection.BillConfig.Label.LabelWithValue>
+  <RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangePercent>{0}: {1} - {2}</RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangePercent>
+  <RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangeQuality>{0}: {1} - {2}</RimWorldAccess.Inspection.BillConfig.Label.LabelWithRangeQuality>
+  <RimWorldAccess.Inspection.BillConfig.Label.IncompatibleSuffix> ({0})</RimWorldAccess.Inspection.BillConfig.Label.IncompatibleSuffix>
+  <RimWorldAccess.Inspection.BillConfig.Label.WorkerWithLabel>Работник: {0}</RimWorldAccess.Inspection.BillConfig.Label.WorkerWithLabel>
+  <RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMin>{0}: {1} {2}</RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMin>
+  <RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMax>{0}: {1} {2}</RimWorldAccess.Inspection.BillConfig.Label.SkillRangeMax>
+  <RimWorldAccess.Inspection.BillConfig.Label.RenameWithCustom>{0}: {1} (исходное: {2})</RimWorldAccess.Inspection.BillConfig.Label.RenameWithCustom>
+  <RimWorldAccess.Inspection.BillConfig.Label.PawnWithSkillSuffix>{0} (Навык: {1})</RimWorldAccess.Inspection.BillConfig.Label.PawnWithSkillSuffix>
+
+  <RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst>Сначала завершите изменение (нажмите Enter или Escape)</RimWorldAccess.Inspection.BillConfig.Action.FinishEditingFirst>
+  <RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable>Этот элемент нельзя изменить</RimWorldAccess.Inspection.BillConfig.Action.NotAdjustable>
+  <RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu>Нажмите Enter, чтобы открыть подменю</RimWorldAccess.Inspection.BillConfig.Action.UseEnterToOpenSubmenu>
+  <RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust>Стрелки влево и вправо — для изменения</RimWorldAccess.Inspection.BillConfig.Action.UseLeftRightToAdjust>
+  <RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit>Без верхнего предела. Для больших значений используйте числовой ввод.</RimWorldAccess.Inspection.BillConfig.Action.NoMaximumLimit>
+  <RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable>Это поле нельзя изменить</RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable>
+  <RimWorldAccess.Inspection.BillConfig.Action.RenamedTo>Задание переименовано: {0}</RimWorldAccess.Inspection.BillConfig.Action.RenamedTo>
+  <RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled>Переименование отменено</RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled>
+  <RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied>Прочность: от {0} до {1}</RimWorldAccess.Inspection.BillConfig.Action.HitPointsApplied>
+  <RimWorldAccess.Inspection.BillConfig.Action.QualityApplied>Качество: от {0} до {1}</RimWorldAccess.Inspection.BillConfig.Action.QualityApplied>
+  <RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>Задание удалено: {0}</RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>
+
+  <RimWorldAccess.Inspection.BillConfig.Numeric.Prompt>Введите число, затем нажмите Enter для подтверждения или Escape для отмены</RimWorldAccess.Inspection.BillConfig.Numeric.Prompt>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.Empty>Пусто</RimWorldAccess.Inspection.BillConfig.Numeric.Empty>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber>Неверное число</RimWorldAccess.Inspection.BillConfig.Numeric.InvalidNumber>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled>Отменено</RimWorldAccess.Inspection.BillConfig.Numeric.Cancelled>
+  <RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable>Числовое значение к этому полю неприменимо</RimWorldAccess.Inspection.BillConfig.Numeric.NotApplicable>
+
+  <!-- IngredientFilter window title (passed to ThingFilterMenuState.Open). -->
+  <RimWorldAccess.Inspection.BillConfig.IngredientFilterTitle>Фильтр ингредиентов</RimWorldAccess.Inspection.BillConfig.IngredientFilterTitle>
+  <!-- "Basic" style choice in OpenStyleMenu. -->
+  <RimWorldAccess.Inspection.BillConfig.Style.Basic>Базовый</RimWorldAccess.Inspection.BillConfig.Style.Basic>
+
+  <!-- =================================================================
+       Gizmo navigation (GizmoNavigationState). Keyboard-driven access
+       to the action bar (G key when an object is selected, the
+       cursor-based opening from inspection, and the world-map
+       version). Covers selection-empty messages, generic execution
+       errors, the Command_Toggle ON/OFF state suffixes, the disabled
+       suffix, and the slider edit-mode help text. The deeper
+       gizmo-type-specific labels and ability info compositions stay
+       English for now (follow-up PR); this PR moves the
+       general-purpose announcements off hardcoded strings so the
+       common navigation paths are localizable.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.NoCommandsAvailable>Нет доступных команд</RimWorldAccess.Inspection.Gizmo.NoCommandsAvailable>
+  <RimWorldAccess.Inspection.Gizmo.NoCommandsAtCursor>В позиции курсора нет доступных команд</RimWorldAccess.Inspection.Gizmo.NoCommandsAtCursor>
+  <RimWorldAccess.Inspection.Gizmo.NoWorldObject>На этой клетке нет объекта мира</RimWorldAccess.Inspection.Gizmo.NoWorldObject>
+  <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>Нет доступных команд для: {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
+  <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>объект мира</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
+  <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Дополнительных вариантов нет</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+
+  <!-- Disabled status. {0} = the disabledReason from the game (already
+       translated by RimWorld). The DisabledNotAvailable* fallbacks fire
+       when the gizmo doesn't supply a reason; ExecuteFallback varies
+       slightly because Command_Action sometimes uses "Command not
+       available" while the gizmo nav uses "Not available". -->
+  <RimWorldAccess.Inspection.Gizmo.DisabledSuffix>Недоступно: {0}</RimWorldAccess.Inspection.Gizmo.DisabledSuffix>
+  <RimWorldAccess.Inspection.Gizmo.DisabledNotAvailable>Недоступно</RimWorldAccess.Inspection.Gizmo.DisabledNotAvailable>
+  <RimWorldAccess.Inspection.Gizmo.DisabledExecuteFallback>Команда недоступна</RimWorldAccess.Inspection.Gizmo.DisabledExecuteFallback>
+
+  <!-- Generic execution error pattern. {0} = gizmo label, {1} = exception
+       message. ErrorActivationFailed: {0} = label (used for Designator
+       activation when DesignatorManager.SelectedDesignator is still null
+       afterward). -->
+  <RimWorldAccess.Inspection.Gizmo.ErrorExecuting>Ошибка при выполнении {0}: {1}</RimWorldAccess.Inspection.Gizmo.ErrorExecuting>
+  <RimWorldAccess.Inspection.Gizmo.ErrorActivationFailed>Ошибка: не удалось активировать {0}. Проверьте, можно ли разместить этот элемент.</RimWorldAccess.Inspection.Gizmo.ErrorActivationFailed>
+  <RimWorldAccess.Inspection.Gizmo.ErrorWithMessage>Ошибка: {0}</RimWorldAccess.Inspection.Gizmo.ErrorWithMessage>
+
+  <!-- Command_Toggle / state-bearing gizmos. ON/OFF suffix: {0} should be
+       picked from StateOn/StateOff (separate keys so word order can vary
+       per language). LabelWithState: {0} = label, {1} = state phrase. -->
+  <RimWorldAccess.Inspection.Gizmo.StateOn>: вкл.</RimWorldAccess.Inspection.Gizmo.StateOn>
+  <RimWorldAccess.Inspection.Gizmo.StateOff>: выкл.</RimWorldAccess.Inspection.Gizmo.StateOff>
+  <RimWorldAccess.Inspection.Gizmo.LabelWithState>{0}: {1}</RimWorldAccess.Inspection.Gizmo.LabelWithState>
+  <RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>Ограничитель нейронного нагрева: {0}</RimWorldAccess.Inspection.Gizmo.NeuralHeatLimiter>
+  <RimWorldAccess.Inspection.Gizmo.LimiterStateOn>вкл.</RimWorldAccess.Inspection.Gizmo.LimiterStateOn>
+  <RimWorldAccess.Inspection.Gizmo.LimiterStateOff>выкл.</RimWorldAccess.Inspection.Gizmo.LimiterStateOff>
+  <!-- ActivityGizmo (Anomaly) auto-suppression toggle. {0} = state phrase
+       (LimiterStateOn/Off). -->
+  <RimWorldAccess.Inspection.Gizmo.AutoSuppression>Автоподавление: {0}</RimWorldAccess.Inspection.Gizmo.AutoSuppression>
+
+  <!-- Targeting prompts when activating a gizmo that needs a target.
+       {0} = gizmo / weapon label. AnimalTargetingWithRange: {0} =
+       gizmo label, {1} = range in tiles. UseMapNavigationToTarget is
+       the standard fallback. CastingAbility: {0} = ability label. -->
+  <RimWorldAccess.Inspection.Gizmo.AnimalTargetingWithRange>{0}: выбор цели. Дальность: {1} клеток от хозяина. Нажмите R, чтобы проверить расстояние.</RimWorldAccess.Inspection.Gizmo.AnimalTargetingWithRange>
+  <RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget>{0} — навигацией по карте выберите цель, затем нажмите Enter</RimWorldAccess.Inspection.Gizmo.UseMapNavigationToTarget>
+  <RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting>{0} {1} — навигацией по карте выберите цель, затем нажмите Enter</RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting>
+  <RimWorldAccess.Inspection.Gizmo.CastingAbility>Применение: {0}</RimWorldAccess.Inspection.Gizmo.CastingAbility>
+
+  <!-- Material selection (Designator_Build). NoMaterials: {0} = buildable
+       label. SelectMaterialPrompt: {0} = buildable label.
+       MaterialSelected: {0} = material label. -->
+  <RimWorldAccess.Inspection.Gizmo.NoMaterialsForBuildable>Нет доступных материалов для: {0}</RimWorldAccess.Inspection.Gizmo.NoMaterialsForBuildable>
+  <RimWorldAccess.Inspection.Gizmo.SelectMaterialFor>Выберите материал для: {0}</RimWorldAccess.Inspection.Gizmo.SelectMaterialFor>
+  <RimWorldAccess.Inspection.Gizmo.MaterialSelected>Выбрано: {0}</RimWorldAccess.Inspection.Gizmo.MaterialSelected>
+
+  <!-- Slider adjustment overlay. EnterPrompt: {0} = slider title, {1} =
+       current value (already formatted as percent). Read* and
+       CouldNotAdjust are the rare fallbacks fired when reflection
+       can't reach the underlying field. -->
+  <RimWorldAccess.Inspection.Gizmo.SliderEnterPrompt>Изменение: {0}. Текущая цель: {1}. Влево и вправо — изменить, Shift — для крупных шагов, Escape — завершить.</RimWorldAccess.Inspection.Gizmo.SliderEnterPrompt>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadSliderValue>Не удалось прочитать значение регулятора</RimWorldAccess.Inspection.Gizmo.CouldNotReadSliderValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadPsyfocusValue>Не удалось прочитать значение пси-концентрации</RimWorldAccess.Inspection.Gizmo.CouldNotReadPsyfocusValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue>Не удалось прочитать значение обрезки</RimWorldAccess.Inspection.Gizmo.CouldNotReadPruningValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue>Не удалось прочитать значение носителя</RimWorldAccess.Inspection.Gizmo.CouldNotReadCarrierValue>
+  <RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>Не удалось изменить этот элемент управления</RimWorldAccess.Inspection.Gizmo.CouldNotAdjustControl>
+  <!-- Hemogen toggle failure (GeneGizmo_ResourceHemogen). -->
+  <RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>Не удалось переключить настройку гемогеновых пакетов</RimWorldAccess.Inspection.Gizmo.CouldNotToggleHemogen>
+  <!-- Activity suppression toggle failure (ActivityGizmo). -->
+  <RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>Не удалось переключить автоподавление</RimWorldAccess.Inspection.Gizmo.CouldNotToggleSuppression>
+  <!-- Shift+key with no matching command. {0} = key name. -->
+  <RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>Нет команды для Shift плюс {0}</RimWorldAccess.Inspection.Gizmo.NoCommandForShiftPlus>
+
+  <!-- Hint suffixes appended to AnnounceCurrentGizmo for interactive
+       gizmos. RightClickHint and EnterAdjustHint are the standard
+       cases; PsychicEntropyHints describes both actions for that
+       specific gizmo (Enter toggles limiter, ] adjusts psyfocus). -->
+  <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>. Нажмите правую квадратную скобку, чтобы открыть дополнительные варианты</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
+  <RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>. Нажмите Enter, чтобы изменить</RimWorldAccess.Inspection.Gizmo.HintEnterToAdjust>
+  <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>. Нажмите Enter, чтобы переключить ограничитель, правую квадратную скобку — чтобы задать цель пси-концентрации</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropy>
+  <!-- GeneGizmo_ResourceHemogen mirrors PsychicEntropy: Enter toggles hemogen packs allowed, ] sets the target. -->
+  <RimWorldAccess.Inspection.Gizmo.HintHemogen>. Нажмите Enter, чтобы переключить разрешение гемогеновых пакетов, правую квадратную скобку — чтобы задать цель</RimWorldAccess.Inspection.Gizmo.HintHemogen>
+  <!-- ActivityGizmo (Anomaly) mirrors PsychicEntropy: Enter toggles auto-suppression, ] sets the suppression threshold. -->
+  <RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>. Нажмите Enter, чтобы переключить автоподавление, правую квадратную скобку — чтобы задать порог подавления</RimWorldAccess.Inspection.Gizmo.HintActivitySuppression>
+
+  <!-- =================================================================
+       Gizmo type labels (GetNonCommandGizmoLabel and helpers). These
+       are the friendly names shown for gizmos that don't have a
+       standard Label property (status displays, slider gizmos with no
+       reachable Title, fallback names). The C# code identifies the
+       gizmo by its runtime type name and picks the matching key.
+       Energy shield: ApparelSuffix takes {0} = parent thing label
+       (e.g., "Shield Belt") and is used when the shield is worn.
+       Inbuilt is used when the shield is built into a turret/etc.
+       EnergyShieldFallback fires when the shield component cannot be
+       reached at all.
+       Growth tier: WithLevel takes {0} = tier index (0..3); the bare
+       GrowthTier key is the fallback when the child's age tracker is
+       not reachable.
+       Mech carrier: WithIngredient takes {0} = ingredient label
+       (capitalized); MechCarrier is the fallback. CarrierFallback is
+       a last-resort label for the slider title.
+       StatusDisplayFallback is used when CleanupGizmoTypeName produces
+       an empty string after stripping prefixes/suffixes.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Type.PsychicEntropy>Нейронный нагрев и пси-концентрация</RimWorldAccess.Inspection.Gizmo.Type.PsychicEntropy>
+  <RimWorldAccess.Inspection.Gizmo.Type.MechanitorBandwidth>Пропускная способность механовода</RimWorldAccess.Inspection.Gizmo.Type.MechanitorBandwidth>
+  <RimWorldAccess.Inspection.Gizmo.Type.MechPowerCell>Энергоячейка механоида</RimWorldAccess.Inspection.Gizmo.Type.MechPowerCell>
+  <RimWorldAccess.Inspection.Gizmo.Type.ResurrectionCharges>Заряды воскрешения</RimWorldAccess.Inspection.Gizmo.Type.ResurrectionCharges>
+  <RimWorldAccess.Inspection.Gizmo.Type.ShieldHitPoints>Прочность щита</RimWorldAccess.Inspection.Gizmo.Type.ShieldHitPoints>
+  <RimWorldAccess.Inspection.Gizmo.Type.PruningConfig>Настройка обрезки</RimWorldAccess.Inspection.Gizmo.Type.PruningConfig>
+  <RimWorldAccess.Inspection.Gizmo.Type.GuardianShip>Корабль-страж</RimWorldAccess.Inspection.Gizmo.Type.GuardianShip>
+  <RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo>Сведения о караване</RimWorldAccess.Inspection.Gizmo.Type.CaravanInfo>
+  <RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity>Запас смертельного отдыха</RimWorldAccess.Inspection.Gizmo.Type.DeathrestCapacity>
+  <RimWorldAccess.Inspection.Gizmo.Type.Activity>Активность</RimWorldAccess.Inspection.Gizmo.Type.Activity>
+  <RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback>Характеристики помещения</RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback>
+  <RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>Отображение состояния</RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>
+
+  <RimWorldAccess.Inspection.Gizmo.Type.EnergyShield>Энергощит</RimWorldAccess.Inspection.Gizmo.Type.EnergyShield>
+  <RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel>Щит: {0}</RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel>
+  <RimWorldAccess.Inspection.Gizmo.Type.ShieldInbuilt>Щит (встроенный)</RimWorldAccess.Inspection.Gizmo.Type.ShieldInbuilt>
+
+  <RimWorldAccess.Inspection.Gizmo.Type.GrowthTier>Ступень роста</RimWorldAccess.Inspection.Gizmo.Type.GrowthTier>
+  <RimWorldAccess.Inspection.Gizmo.Type.GrowthTierWithLevel>Ступень роста {0}</RimWorldAccess.Inspection.Gizmo.Type.GrowthTierWithLevel>
+
+  <RimWorldAccess.Inspection.Gizmo.Type.MechCarrier>Носитель механоидов</RimWorldAccess.Inspection.Gizmo.Type.MechCarrier>
+  <RimWorldAccess.Inspection.Gizmo.Type.MechCarrierWithIngredient>Носитель механоидов: {0}</RimWorldAccess.Inspection.Gizmo.Type.MechCarrierWithIngredient>
+  <RimWorldAccess.Inspection.Gizmo.Type.CarrierFallback>Носитель</RimWorldAccess.Inspection.Gizmo.Type.CarrierFallback>
+
+  <!-- =================================================================
+       Gizmo status values (GetGizmoStatusValue and helpers). These are
+       the at-a-glance numbers spoken alongside non-Command gizmo
+       labels (bandwidth meters, shield energy, mech power, etc.).
+       Common compositions:
+       - UsedTotal: {0} = used count, {1} = total count. Used by
+         bandwidth and mech-carrier helpers.
+       - PercentEnergy: {0} = percent (F0), {1} = current (F0 or F1),
+         {2} = max (F0 or F1). Used by shield and mech power cell.
+       - HitPoints: {0} = current HP, {1} = max HP.
+       - Charges: {0} = remaining charges, {1} = max charges.
+       - Percent: {0} = formatted percent (F0). Slider gizmos.
+       Slider announcements (slider edit-mode after a value change):
+       - SliderTargetWithLabel: {0} = percent, {1} = BarLabel
+         (game-provided rich text e.g. "75 / 200 fuel").
+       - SliderTargetCount: {0} = target count, {1} = max count
+         (mech carrier).
+       - SliderTargetPercent: {0} = percent fallback when no richer
+         info is available.
+       - SliderTargetPercentWith: {0} = percent, {1} = trailing label
+         (pruning hours).
+       - PruningHoursValue: {0} = hours (F1), {1} = vanilla
+         PruningHoursToMaintain header (already translated). The
+         pruning slider announces "Target: X%, N.N <hours-to-maintain
+         label>" so this key composes the trailing fragment in a
+         language-neutral way.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Status.UsedTotal>{0} / {1}</RimWorldAccess.Inspection.Gizmo.Status.UsedTotal>
+  <RimWorldAccess.Inspection.Gizmo.Status.PercentEnergy>{0}% ({1} / {2})</RimWorldAccess.Inspection.Gizmo.Status.PercentEnergy>
+  <RimWorldAccess.Inspection.Gizmo.Status.HitPoints>{0} / {1} HP</RimWorldAccess.Inspection.Gizmo.Status.HitPoints>
+  <RimWorldAccess.Inspection.Gizmo.Status.Charges>{0} / {1} зарядов</RimWorldAccess.Inspection.Gizmo.Status.Charges>
+  <RimWorldAccess.Inspection.Gizmo.Status.Percent>{0}%</RimWorldAccess.Inspection.Gizmo.Status.Percent>
+
+  <RimWorldAccess.Inspection.Gizmo.Status.SliderTargetWithLabel>Цель: {0}%, {1}</RimWorldAccess.Inspection.Gizmo.Status.SliderTargetWithLabel>
+  <RimWorldAccess.Inspection.Gizmo.Status.SliderTargetCount>Цель: {0} / {1}</RimWorldAccess.Inspection.Gizmo.Status.SliderTargetCount>
+  <RimWorldAccess.Inspection.Gizmo.Status.SliderTargetPercent>{0}%</RimWorldAccess.Inspection.Gizmo.Status.SliderTargetPercent>
+  <RimWorldAccess.Inspection.Gizmo.Status.PruningHoursValue>{0} {1}</RimWorldAccess.Inspection.Gizmo.Status.PruningHoursValue>
+
+  <!-- Psychic entropy status (GetPsychicEntropyStatus). The C# code
+       composes the readout from individual fragments so word order can
+       vary per language. Header takes neural heat (F0) / max neural
+       heat (F0); Psyfocus takes percent (F0); TargetPsyfocus takes
+       percent (F0); LimiterStatus takes the localized On/Off word.
+       Joins use the period+space separator added in C#. -->
+  <RimWorldAccess.Inspection.Gizmo.Status.NeuralHeat>Нейронный нагрев: {0} / {1}</RimWorldAccess.Inspection.Gizmo.Status.NeuralHeat>
+  <RimWorldAccess.Inspection.Gizmo.Status.PsyfocusValue>Пси-концентрация: {0}%</RimWorldAccess.Inspection.Gizmo.Status.PsyfocusValue>
+  <RimWorldAccess.Inspection.Gizmo.Status.PsyfocusTarget>Цель: {0}%</RimWorldAccess.Inspection.Gizmo.Status.PsyfocusTarget>
+  <RimWorldAccess.Inspection.Gizmo.Status.LimiterStatus>Ограничитель: {0}</RimWorldAccess.Inspection.Gizmo.Status.LimiterStatus>
+
+  <!-- =================================================================
+       Growth tier rich status (GetGrowthTierStatus / FormatTierRewards).
+       PointsMaxTier: {0} = max growth points (already an integer or
+       F0). Spoken when the child has reached the highest tier.
+       PointsCurrentOfNext: {0} = current points (int), {1} = points
+       required for the next tier (F0).
+       PointsPerDaySuffix: {0} = vanilla PerDay key already resolved
+       (e.g., "1.5 per day"); appended to the points readout when the
+       child is currently gaining points.
+       LearningProgress: {0} = vanilla learning percent string.
+       NextGrowthMomentLine: {0} = vanilla NextGrowthMomentAt header
+       (already translated), {1} = age in years.
+       NextTierHeader: {0} = next tier index. The vanilla
+       NextGrowthTier key reads "Next growth tier" without a level
+       number, so we interpolate it ourselves to make the announcement
+       clearer for screen reader users.
+       TierRewardsLine: {0} = header (current/next tier), {1} = list
+       of rewards joined by RewardsAnd.
+       RewardsAnd: connective used between two rewards in
+       FormatTierRewards (matches the game's tooltip wording).
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsMaxTier>{0} из {0} очков, высшая ступень</RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsMaxTier>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsCurrentOfNext>{0} из {1} очков</RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsCurrentOfNext>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsPerDaySuffix> (+{0})</RimWorldAccess.Inspection.Gizmo.Status.GrowthPointsPerDaySuffix>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthLearningProgress>Обучение {0}</RimWorldAccess.Inspection.Gizmo.Status.GrowthLearningProgress>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthNextMomentLine>{0}: {1}</RimWorldAccess.Inspection.Gizmo.Status.GrowthNextMomentLine>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthNextTierHeader>При достижении ступени роста {0}</RimWorldAccess.Inspection.Gizmo.Status.GrowthNextTierHeader>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthTierRewardsLine>{0}: {1}</RimWorldAccess.Inspection.Gizmo.Status.GrowthTierRewardsLine>
+  <RimWorldAccess.Inspection.Gizmo.Status.GrowthRewardsAnd> и </RimWorldAccess.Inspection.Gizmo.Status.GrowthRewardsAnd>
+
+  <!-- =================================================================
+       Ability cost / range / cooldown info (GetAbilityCostInfo,
+       GetAbilityRangeInfo, GetAbilityCooldownInfo). These compose the
+       short, screen-reader-friendly fragments appended after an
+       ability's name when the user is browsing gizmos.
+       Cost compositions: each takes a percent value (F0). When both a
+       cost and a minimum required psyfocus exist, PsyfocusCostAndMin
+       reads them together; otherwise only one of PsyfocusCost or
+       PsyfocusMinRequired fires. NeuralHeatGain takes entropy gain
+       (F0).
+       Range compositions: RangeSelf / RangeWorldMap / RangeTouch are
+       whole-phrase keys (no parameter) since each describes the entire
+       reach. RangeTiles takes range in tiles (F0). EffectRadiusSuffix
+       is appended when the ability has an area-of-effect; {0} = radius
+       in tiles (F0).
+       Cooldown: takes {0} = vanilla StatsReport_Cooldown ("Cooldown")
+       and {1} = pre-formatted duration (the game's
+       ToStringTicksToPeriod output). One key serves both the
+       on-cooldown remaining-time form and the base-cooldown form.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCostAndMin>Стоит {0}% пси-концентрации, требует {1}%</RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCostAndMin>
+  <RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCost>Стоит {0}% пси-концентрации</RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusCost>
+  <RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusMinRequired>Требует {0}% пси-концентрации</RimWorldAccess.Inspection.Gizmo.Ability.PsyfocusMinRequired>
+  <RimWorldAccess.Inspection.Gizmo.Ability.NeuralHeatGain>Нейронный нагрев: {0}</RimWorldAccess.Inspection.Gizmo.Ability.NeuralHeatGain>
+
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf>Дальность: на себя</RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf>
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap>Дальность: карта мира</RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap>
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch>Дальность: касание</RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch>
+  <RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles>Дальность: {0} клеток</RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles>
+  <RimWorldAccess.Inspection.Gizmo.Ability.EffectRadiusSuffix>, радиус {0} клеток</RimWorldAccess.Inspection.Gizmo.Ability.EffectRadiusSuffix>
+
+  <RimWorldAccess.Inspection.Gizmo.Ability.CooldownLine>{0}: {1}</RimWorldAccess.Inspection.Gizmo.Ability.CooldownLine>
+
+  <!-- =================================================================
+       Disabled-launch context (GetDisabledGizmoContext for transport
+       pods). Spoken after the standard Disabled suffix when a Launch
+       gizmo is rejected for individual mass capacity but the group as
+       a whole has alternatives. The C# code sequences the lines with
+       periods so each fragment is a stand-alone phrase.
+       GroupTotal: {0} = current group mass (F0), {1} = group capacity
+       (F0). Always the first fragment.
+       PodsCanLaunch: {0} = pods that can launch, {1} = total pods in
+       group. Spoken when the user can salvage the launch by selecting
+       a different pod.
+       SelectAnotherPod: standalone hint following PodsCanLaunch.
+       OverCapacity: {0} = overage in kg (F0). Spoken when no pod in
+       the group can launch.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Gizmo.Launch.GroupTotal>Всего у группы: {0} / {1} кг</RimWorldAccess.Inspection.Gizmo.Launch.GroupTotal>
+  <RimWorldAccess.Inspection.Gizmo.Launch.PodsCanLaunch>{0} из {1} капсул могут запустить группу.</RimWorldAccess.Inspection.Gizmo.Launch.PodsCanLaunch>
+  <RimWorldAccess.Inspection.Gizmo.Launch.SelectAnotherPod>Выберите другую капсулу для запуска.</RimWorldAccess.Inspection.Gizmo.Launch.SelectAnotherPod>
+  <RimWorldAccess.Inspection.Gizmo.Launch.OverCapacity>Группа превышает грузоподъёмность на {0} кг.</RimWorldAccess.Inspection.Gizmo.Launch.OverCapacity>
+
+  <!-- Power. PowerStatus: {0} = vanilla "Power", {1} = vanilla "On"/"Off".
+       PowerConsumption: {0} = wattage. -->
+  <RimWorldAccess.Inspection.Building.PowerStatus>{0}: {1}</RimWorldAccess.Inspection.Building.PowerStatus>
+
+  <!-- Bed assignment. -->
+  <RimWorldAccess.Inspection.Building.PrisonBed>Тип: тюремная кровать</RimWorldAccess.Inspection.Building.PrisonBed>
+  <RimWorldAccess.Inspection.Building.MedicalBed>Тип: медицинская кровать</RimWorldAccess.Inspection.Building.MedicalBed>
+  <RimWorldAccess.Inspection.Building.ColonistBed>Тип: кровать поселенца</RimWorldAccess.Inspection.Building.ColonistBed>
+  <RimWorldAccess.Inspection.Building.AssignedToHeader>Назначено:</RimWorldAccess.Inspection.Building.AssignedToHeader>
+  <RimWorldAccess.Inspection.Building.OwnerEntry>  {0}</RimWorldAccess.Inspection.Building.OwnerEntry>
+  <RimWorldAccess.Inspection.Building.NotAssigned>Никому не назначено</RimWorldAccess.Inspection.Building.NotAssigned>
+  <RimWorldAccess.Inspection.Building.PressEnterAssign>Нажмите Enter, чтобы изменить назначения</RimWorldAccess.Inspection.Building.PressEnterAssign>
+  <RimWorldAccess.Inspection.Building.NotABed>Эта постройка не является кроватью.</RimWorldAccess.Inspection.Building.NotABed>
+
+  <!-- Owner assignment (non-bed CompAssignableToPawn). -->
+  <RimWorldAccess.Inspection.Building.NoOwnerAssignment>Эта постройка не поддерживает назначение владельца.</RimWorldAccess.Inspection.Building.NoOwnerAssignment>
+
+  <!-- BuildingOwnerAssignmentState: keyboard-driven assign/unassign menu
+       for non-bed CompAssignableToPawn (thrones, graves, meditation
+       spots, etc.). MainMenu.* are the three top-level menu options;
+       the C# code dispatches on an enum so the labels can vary per
+       language. {0} = building label, {1} = comma-joined assigned names,
+       {2} = currently-highlighted option label.
+       AssignReason.* are short parenthetical hints that describe why a
+       candidate cannot be assigned right now. ResultAssigned /
+       ResultUnassigned: {0} = pawn short-name, {1} = building label.
+       Failure forms cover the cases where TryAssignPawn /
+       TryUnassignPawn does not actually move the pawn into / out of the
+       owner list. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.MainMenu.AssignOwner>Назначить владельца</RimWorldAccess.Inspection.OwnerAssignment.MainMenu.AssignOwner>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainMenu.UnassignOwner>Снять владельца</RimWorldAccess.Inspection.OwnerAssignment.MainMenu.UnassignOwner>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainMenu.CloseMenu>Закрыть меню</RimWorldAccess.Inspection.OwnerAssignment.MainMenu.CloseMenu>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Assigned>{0}. Назначено: {1}. {2}</RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Assigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Unassigned>{0}. Не назначено. {1}</RimWorldAccess.Inspection.OwnerAssignment.MainAnnouncement.Unassigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.MenuClosed>Меню назначения закрыто</RimWorldAccess.Inspection.OwnerAssignment.MenuClosed>
+
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignBuilding>Нельзя назначить владельцев для этой постройки</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignBuilding>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignBuilding>Нельзя снять владельцев с этой постройки</RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignBuilding>
+  <RimWorldAccess.Inspection.OwnerAssignment.NoCandidates>Нет персонажей, доступных для назначения</RimWorldAccess.Inspection.OwnerAssignment.NoCandidates>
+  <RimWorldAccess.Inspection.OwnerAssignment.NoneAssigned>На эту постройку не назначен ни один персонаж</RimWorldAccess.Inspection.OwnerAssignment.NoneAssigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignOwner>Не удалось назначить владельца</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignOwner>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignOwner>Не удалось снять владельца</RimWorldAccess.Inspection.OwnerAssignment.CannotUnassignOwner>
+
+  <!-- AssignReason suffixes are appended to the candidate row label.
+       The leading space is part of the value. CannotAssignWithReason:
+       {0} = StripTags(report.Reason). -->
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssign> (нельзя назначить)</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssign>
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssignWithReason> ({0})</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.CannotAssignWithReason>
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.IdeologyForbids> (вера запрещает)</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.IdeologyForbids>
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignReason.HasOtherAssignment> (есть другое назначение)</RimWorldAccess.Inspection.OwnerAssignment.AssignReason.HasOtherAssignment>
+
+  <!-- Submenu announcements ("Assign owner - first option"). The first
+       form lists the picker's first option immediately so screen reader
+       users know the submenu opened. {0} = first candidate / first
+       assigned pawn label. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Announce>Назначить владельца — {0}</RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Announce>
+  <RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Announce>Снять владельца — {0}</RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Announce>
+  <!-- Item announcements while inside the submenus. {0} = pawn label. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Item>Назначить: {0}</RimWorldAccess.Inspection.OwnerAssignment.AssignSubmenu.Item>
+  <RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Item>Снять: {0}</RimWorldAccess.Inspection.OwnerAssignment.UnassignSubmenu.Item>
+
+  <!-- Cannot-assign rejection messages (when the user actually tries to
+       assign a flagged candidate). {0} = pawn label, {1} = stripped
+       reason. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawn>Нельзя назначить {0} на эту постройку</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawn>
+  <RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawnWithReason>Нельзя назначить {0}: {1}</RimWorldAccess.Inspection.OwnerAssignment.CannotAssignPawnWithReason>
+  <RimWorldAccess.Inspection.OwnerAssignment.IdeologyForbidsPawn>Вера запрещает {0} пользоваться этой постройкой</RimWorldAccess.Inspection.OwnerAssignment.IdeologyForbidsPawn>
+
+  <!-- Result announcements after the assignment actually changed (or
+       failed to change). {0} = pawn label, {1} = building label. -->
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultAssigned>{0} назначен на {1}</RimWorldAccess.Inspection.OwnerAssignment.ResultAssigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultUnassigned>{0} снят с {1}</RimWorldAccess.Inspection.OwnerAssignment.ResultUnassigned>
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultAssignFailed>Не удалось назначить {0}</RimWorldAccess.Inspection.OwnerAssignment.ResultAssignFailed>
+  <RimWorldAccess.Inspection.OwnerAssignment.ResultUnassignFailed>Не удалось снять {0}</RimWorldAccess.Inspection.OwnerAssignment.ResultUnassignFailed>
+
+  <!-- Meditation focus. NoMeditationFocus: {0} = search-radius cells. -->
+  <RimWorldAccess.Inspection.Building.NoMeditationInfo>Информация об объектах для медитации недоступна.</RimWorldAccess.Inspection.Building.NoMeditationInfo>
+  <RimWorldAccess.Inspection.Building.NoMeditationFocus>Поблизости нет объектов для медитации. Разместите объекты для медитации в пределах {0} клеток.</RimWorldAccess.Inspection.Building.NoMeditationFocus>
+
+  <!-- Temperature. TargetTemperature: {0} = formatted temperature. -->
+  <RimWorldAccess.Inspection.Building.TargetTemperature>Целевая температура: {0}</RimWorldAccess.Inspection.Building.TargetTemperature>
+  <RimWorldAccess.Inspection.Building.PressEnterTemperature>Нажмите Enter, чтобы изменить температуру</RimWorldAccess.Inspection.Building.PressEnterTemperature>
+  <RimWorldAccess.Inspection.Building.NoTempControl>Эта постройка не управляет температурой.</RimWorldAccess.Inspection.Building.NoTempControl>
+
+  <!-- Linked facilities fallback (when FacilityLinkHelper returns null). -->
+  <RimWorldAccess.Inspection.Building.NoFacilityInfo>Нет информации о связанных постройках.</RimWorldAccess.Inspection.Building.NoFacilityInfo>
+
+  <!-- =================================================================
+       Plant readouts (GetPlantOverview / GetPlantGrowthInfo).
+       Growth: {0} = percent. Lifespan: {0} = current age in days
+       (already formatted), {1} = lifespan in days. Status keys are
+       whole-phrase per state.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Plant.Growth>Рост: {0}</RimWorldAccess.Inspection.Plant.Growth>
+  <RimWorldAccess.Inspection.Plant.Lifespan>Срок жизни: {0} / {1} дней</RimWorldAccess.Inspection.Plant.Lifespan>
+  <RimWorldAccess.Inspection.Plant.StatusBlighted>Состояние: поражено болезнью</RimWorldAccess.Inspection.Plant.StatusBlighted>
+  <RimWorldAccess.Inspection.Plant.StatusDying>Состояние: гибнет</RimWorldAccess.Inspection.Plant.StatusDying>
+  <RimWorldAccess.Inspection.Plant.ReadyHarvest>Готово к сбору урожая!</RimWorldAccess.Inspection.Plant.ReadyHarvest>
+
+  <!-- =================================================================
+       Zone readouts (GetZoneTypeName / GetZoneCategoryInfo /
+       GetGrowingZonePlantInfo). Type names are whole-phrase nouns
+       used to label generic zones in GetObjectSummary; the real zone
+       name comes from RimWorld. Allow-sow / allow-cut split into one
+       key per Yes/No state (vanilla "Yes"/"No" supplied as {0}).
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Zone.TypeStockpile>Склад</RimWorldAccess.Inspection.Zone.TypeStockpile>
+  <RimWorldAccess.Inspection.Zone.TypeGrowing>Посадки</RimWorldAccess.Inspection.Zone.TypeGrowing>
+  <RimWorldAccess.Inspection.Zone.TypeGeneric>Область</RimWorldAccess.Inspection.Zone.TypeGeneric>
+  <RimWorldAccess.Inspection.Zone.NoPlantInfo>Информация о растении недоступна.</RimWorldAccess.Inspection.Zone.NoPlantInfo>
+  <RimWorldAccess.Inspection.Zone.PlantLabel>Растение: {0}</RimWorldAccess.Inspection.Zone.PlantLabel>
+  <RimWorldAccess.Inspection.Zone.GrowthTime>Время роста: {0} дней</RimWorldAccess.Inspection.Zone.GrowthTime>
+  <RimWorldAccess.Inspection.Zone.HarvestLabel>Урожай: {0}</RimWorldAccess.Inspection.Zone.HarvestLabel>
+  <RimWorldAccess.Inspection.Zone.NoPlantSelected>Растение не выбрано</RimWorldAccess.Inspection.Zone.NoPlantSelected>
+  <RimWorldAccess.Inspection.Zone.AllowSow>Разрешить посев: {0}</RimWorldAccess.Inspection.Zone.AllowSow>
+  <RimWorldAccess.Inspection.Zone.AllowCut>Разрешить срубку: {0}</RimWorldAccess.Inspection.Zone.AllowCut>
+
+  <!-- =================================================================
+       Generic Thing overview (GetThingOverview). Stack: {0} = count. -->
+  <RimWorldAccess.Inspection.Thing.Stack>Стопка: {0}</RimWorldAccess.Inspection.Thing.Stack>
+
+  <!-- =================================================================
+       Bills menu (BillsMenuState). Announcements spoken when navigating
+       the bills list at a workbench, adding/deleting/reordering bills,
+       and viewing recipe metadata. Vanilla AddBill / Paused / RecipeMake
+       / WorkAmount / MinimumSkills / PasteBillTip / ClipboardBillNotAvailableHere
+       are reused as-is and not duplicated here.
+       ================================================================= -->
+  <!-- Empty list. The parens are deliberate — the placeholder appears as
+       a single inert row beneath the "Add bill..." entry. -->
+  <RimWorldAccess.Inspection.Bills.Empty>(Нет заданий)</RimWorldAccess.Inspection.Bills.Empty>
+  <!-- Suffix appended to a row's label when the entry is disabled.
+       Includes the leading space so it joins onto whatever label
+       precedes it. -->
+  <RimWorldAccess.Inspection.Bills.UnavailableSuffix> (недоступно)</RimWorldAccess.Inspection.Bills.UnavailableSuffix>
+
+  <!-- Action result announcements. {0} = bill or recipe label, {1} =
+       new position (MovedUp / MovedDown only). Each verb gets its own
+       whole-phrase key so word order can vary per language. -->
+  <RimWorldAccess.Inspection.Bills.OptionNotAvailable>Вариант недоступен</RimWorldAccess.Inspection.Bills.OptionNotAvailable>
+  <RimWorldAccess.Inspection.Bills.CannotDelete>Этот элемент нельзя удалить</RimWorldAccess.Inspection.Bills.CannotDelete>
+  <RimWorldAccess.Inspection.Bills.CannotReorder>Этот элемент нельзя переместить</RimWorldAccess.Inspection.Bills.CannotReorder>
+  <RimWorldAccess.Inspection.Bills.CannotCopy>Этот элемент нельзя скопировать</RimWorldAccess.Inspection.Bills.CannotCopy>
+  <RimWorldAccess.Inspection.Bills.CannotAddBills>Нельзя добавить задания к этому объекту</RimWorldAccess.Inspection.Bills.CannotAddBills>
+  <RimWorldAccess.Inspection.Bills.NoRecipes>Нет доступных рецептов</RimWorldAccess.Inspection.Bills.NoRecipes>
+  <RimWorldAccess.Inspection.Bills.NoBillSelected>Задание не выбрано</RimWorldAccess.Inspection.Bills.NoBillSelected>
+  <RimWorldAccess.Inspection.Bills.ClipboardEmpty>Буфер обмена пуст</RimWorldAccess.Inspection.Bills.ClipboardEmpty>
+  <RimWorldAccess.Inspection.Bills.Deleted>Удалено: {0}</RimWorldAccess.Inspection.Bills.Deleted>
+  <RimWorldAccess.Inspection.Bills.MovedUp>Перемещено вверх: {0}, теперь позиция {1}</RimWorldAccess.Inspection.Bills.MovedUp>
+  <RimWorldAccess.Inspection.Bills.MovedDown>Перемещено вниз: {0}, теперь позиция {1}</RimWorldAccess.Inspection.Bills.MovedDown>
+  <RimWorldAccess.Inspection.Bills.CopiedToClipboard>Скопировано в буфер обмена: {0}</RimWorldAccess.Inspection.Bills.CopiedToClipboard>
+  <RimWorldAccess.Inspection.Bills.AddedBill>Добавлено задание: {0}</RimWorldAccess.Inspection.Bills.AddedBill>
+  <RimWorldAccess.Inspection.Bills.PastedBill>Вставлено задание: {0}</RimWorldAccess.Inspection.Bills.PastedBill>
+  <RimWorldAccess.Inspection.Bills.RecipeRequiresMechanitor>Рецепт требует механовода: {0}</RimWorldAccess.Inspection.Bills.RecipeRequiresMechanitor>
+  <RimWorldAccess.Inspection.Bills.RecipeRequiresSkills>Ни у одного персонажа нет нужных навыков для: {0}</RimWorldAccess.Inspection.Bills.RecipeRequiresSkills>
+  <!-- {0} = full type name of the unsupported Bill subclass. -->
+  <RimWorldAccess.Inspection.Bills.UnsupportedType>Тип задания {0} пока не поддерживается</RimWorldAccess.Inspection.Bills.UnsupportedType>
+
+  <!-- Recipe / bill description fragments composed by GetRecipeDescription
+       and GetBillDescription. The two "Makes …" forms are split by the
+       presence of an explicit count: MakesCount uses {0} = count and
+       {1} = product label, MakesProduct just uses {0} = product label.
+       SkillRequirement is the per-skill format inside the comma-joined
+       MinimumSkills list ({0} = skill label, {1} = level). -->
+  <RimWorldAccess.Inspection.Bills.MakesCount>Производит {0} {1}</RimWorldAccess.Inspection.Bills.MakesCount>
+  <RimWorldAccess.Inspection.Bills.MakesProduct>Производит {0}</RimWorldAccess.Inspection.Bills.MakesProduct>
+  <RimWorldAccess.Inspection.Bills.SkillRequirement>{0} {1}</RimWorldAccess.Inspection.Bills.SkillRequirement>
+
+  <!-- =================================================================
+       Inspection panel (WindowlessInspectionState). Top-level
+       open/close announcements and the rejection messages spoken when
+       a tree action cannot run on the current item. The "expanded" /
+       "collapsed" state suffix used inside FormatItemAnnouncement and
+       FormatSearchAnnouncement reuses Common.Tree.StateExpanded /
+       StateCollapsed; the leading period+space is composed in C# since
+       it is typographic punctuation, not a translatable particle.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Panel.NoItems>Здесь нет предметов для осмотра.</RimWorldAccess.Inspection.Panel.NoItems>
+  <RimWorldAccess.Inspection.Panel.NoObject>Нет объекта для осмотра.</RimWorldAccess.Inspection.Panel.NoObject>
+  <RimWorldAccess.Inspection.Panel.PanelClosed>Панель осмотра закрыта.</RimWorldAccess.Inspection.Panel.PanelClosed>
+  <RimWorldAccess.Inspection.Panel.NoAction>Для этого элемента нет доступного действия.</RimWorldAccess.Inspection.Panel.NoAction>
+  <RimWorldAccess.Inspection.Panel.CannotExpand>Этот элемент нельзя развернуть.</RimWorldAccess.Inspection.Panel.CannotExpand>
+  <RimWorldAccess.Inspection.Panel.NoItemsToShow>Нет элементов для отображения.</RimWorldAccess.Inspection.Panel.NoItemsToShow>
+
+  <!-- =================================================================
+       Info Card dialog (InfoCardState). Announcements spoken when the
+       Dialog_InfoCard accessibility state opens, navigates between
+       sections, rejects an action, or closes (including the nested
+       float-menu cancel path). Vanilla "InfoCard" / "Description" / hyperlink
+       labels come from the game.
+       Opening announcements: {0} = root label, {1} = count. Split into
+       One/Many per the established plural pattern even though counts of
+       1 are unusual in practice. The keyboard-hint sentence is part of
+       each whole-phrase key so word order can vary per language.
+       SectionPrefix: {0} = section name, {1} = the rest of the
+       per-item announcement built by FormatItemAnnouncement.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.InfoCard.OpeningWithTabsOne>{0}. Доступна {1_numCase ? вкладка : вкладки : вкладок}. Вверх и вниз — навигация, вправо — развернуть, влево — свернуть.</RimWorldAccess.Inspection.InfoCard.OpeningWithTabsOne>
+  <RimWorldAccess.Inspection.InfoCard.OpeningWithTabsMany>{0}. Доступно {1_numCase ? вкладка : вкладки : вкладок}. Вверх и вниз — навигация, вправо — развернуть, влево — свернуть.</RimWorldAccess.Inspection.InfoCard.OpeningWithTabsMany>
+  <RimWorldAccess.Inspection.InfoCard.OpeningFlatOne>{0}. {1_numCase ? элемент : элемента : элементов}. Вверх и вниз — навигация, Page Up и Page Down — переход между категориями.</RimWorldAccess.Inspection.InfoCard.OpeningFlatOne>
+  <RimWorldAccess.Inspection.InfoCard.OpeningFlatMany>{0}. {1_numCase ? элемент : элемента : элементов}. Вверх и вниз — навигация, Page Up и Page Down — переход между категориями.</RimWorldAccess.Inspection.InfoCard.OpeningFlatMany>
+  <RimWorldAccess.Inspection.InfoCard.SectionPrefix>Раздел: {0}. {1}</RimWorldAccess.Inspection.InfoCard.SectionPrefix>
+  <RimWorldAccess.Inspection.InfoCard.AlreadyExpanded>Уже развёрнуто.</RimWorldAccess.Inspection.InfoCard.AlreadyExpanded>
+  <RimWorldAccess.Inspection.InfoCard.NoAction>Для этого элемента нет доступного действия.</RimWorldAccess.Inspection.InfoCard.NoAction>
+  <RimWorldAccess.Inspection.InfoCard.CannotExpand>Этот элемент нельзя развернуть.</RimWorldAccess.Inspection.InfoCard.CannotExpand>
+  <RimWorldAccess.Inspection.InfoCard.MenuClosed>Меню закрыто</RimWorldAccess.Inspection.InfoCard.MenuClosed>
+  <RimWorldAccess.Inspection.InfoCard.InfoCardClosed>Окно информации закрыто.</RimWorldAccess.Inspection.InfoCard.InfoCardClosed>
+
+  <!-- =================================================================
+       Info Card tree builder (InfoCardTreeBuilder). Section names
+       (the InspectionTreeItem.Description value spoken as
+       "{section} section." via InfoCard.SectionPrefix), empty-state
+       fallback messages, status / passion / met-prerequisite suffixes,
+       permit announcements, and the misc Actions / Rename / Gene
+       labels. Vanilla nouns reused: Backstory, Traits, Skills,
+       IncapableOf, Abilities, Disabled, None, Rename, Xenotype
+       (Biotech), TabGenes (Biotech), and the existing royal-permit
+       keys (NoPermitsToReturn, NotEnoughFavor, ReturnAllPermits,
+       UnusedPermits, AcceptPermit, RequiresTitle, UpgradeFrom,
+       Cooldown, PeriodDays, CooldownUseFavorCost, CurrentTitle).
+       ================================================================= -->
+
+  <!-- Section names not covered by a vanilla translation key. Each is
+       passed as InspectionTreeItem.Description, used both for grouping
+       logic and for the "{section} section." boundary announcement
+       composed by InfoCardState.FormatItemAnnouncement. -->
+  <RimWorldAccess.Inspection.InfoCardTree.Section.RoyalTitles>Королевские титулы</RimWorldAccess.Inspection.InfoCardTree.Section.RoyalTitles>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.IdeologyRole>Роль в вере</RimWorldAccess.Inspection.InfoCardTree.Section.IdeologyRole>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.FavoriteColor>Любимый цвет</RimWorldAccess.Inspection.InfoCardTree.Section.FavoriteColor>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.Capacities>Способности тела</RimWorldAccess.Inspection.InfoCardTree.Section.Capacities>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.Conditions>Состояния</RimWorldAccess.Inspection.InfoCardTree.Section.Conditions>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.TimeRecords>Записи о времени</RimWorldAccess.Inspection.InfoCardTree.Section.TimeRecords>
+  <RimWorldAccess.Inspection.InfoCardTree.Section.Miscellaneous>Разное</RimWorldAccess.Inspection.InfoCardTree.Section.Miscellaneous>
+
+  <!-- Empty-state messages emitted via CreateInfoItem when an extractor
+       returns no data. -->
+  <RimWorldAccess.Inspection.InfoCardTree.NoStats>Нет доступных характеристик</RimWorldAccess.Inspection.InfoCardTree.NoStats>
+  <RimWorldAccess.Inspection.InfoCardTree.UnableToLoadDetails>Не удалось загрузить подробности</RimWorldAccess.Inspection.InfoCardTree.UnableToLoadDetails>
+  <RimWorldAccess.Inspection.InfoCardTree.NoGenes>Нет генов</RimWorldAccess.Inspection.InfoCardTree.NoGenes>
+  <RimWorldAccess.Inspection.InfoCardTree.NoCharacterData>Нет данных о персонаже</RimWorldAccess.Inspection.InfoCardTree.NoCharacterData>
+  <RimWorldAccess.Inspection.InfoCardTree.NoHealthData>Нет данных о здоровье</RimWorldAccess.Inspection.InfoCardTree.NoHealthData>
+  <RimWorldAccess.Inspection.InfoCardTree.NoHealthConditions>Нет состояний здоровья</RimWorldAccess.Inspection.InfoCardTree.NoHealthConditions>
+  <RimWorldAccess.Inspection.InfoCardTree.NoRecordsAvailable>Нет доступных записей</RimWorldAccess.Inspection.InfoCardTree.NoRecordsAvailable>
+  <RimWorldAccess.Inspection.InfoCardTree.NoRecordsYet>Записей пока нет</RimWorldAccess.Inspection.InfoCardTree.NoRecordsYet>
+  <RimWorldAccess.Inspection.InfoCardTree.NoPermitsAvailable>Нет доступных разрешений</RimWorldAccess.Inspection.InfoCardTree.NoPermitsAvailable>
+
+  <!-- Inline status suffixes. The leading space is part of the value so
+       the suffix joins onto whatever label precedes it. Whole-phrase
+       per status because the parenthetical wrapping varies per
+       language. -->
+  <RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix> (подавлено)</RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix> (средний интерес)</RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix> (горячий интерес)</RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix> (не выполнено)</RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>
+
+  <!-- Skill rows. Disabled form: {0} = skill label, {1} = vanilla
+       "Disabled" word. Leveled form: {0} = skill label, {1} = level
+       integer, {2} = passion suffix (may be empty), {3} = level
+       description ("Awful" / "Great" etc., from the game). -->
+  <RimWorldAccess.Inspection.InfoCardTree.SkillLabelDisabled>{0}: {1}</RimWorldAccess.Inspection.InfoCardTree.SkillLabelDisabled>
+  <RimWorldAccess.Inspection.InfoCardTree.SkillLabelLeveled>{0}: {1}{2} ({3})</RimWorldAccess.Inspection.InfoCardTree.SkillLabelLeveled>
+
+  <!-- Misc labels. ActionsTab is the synthetic Actions tab inserted at
+       the top level when a pawn has at least one available action.
+       GeneEntry is the per-gene row label in the xenotype card.
+       FavorFallback is the dim "favor" word substituted when a faction
+       definition leaves royalFavorLabel empty (extremely rare in
+       vanilla). -->
+  <RimWorldAccess.Inspection.InfoCardTree.ActionsTab>Действия</RimWorldAccess.Inspection.InfoCardTree.ActionsTab>
+  <RimWorldAccess.Inspection.InfoCardTree.GeneEntry>Ген: {0}</RimWorldAccess.Inspection.InfoCardTree.GeneEntry>
+  <RimWorldAccess.Inspection.InfoCardTree.FavorFallback>почёт</RimWorldAccess.Inspection.InfoCardTree.FavorFallback>
+
+  <!-- Permit announcements. PermitNoLongerAvailable fires when the
+       Accept button is activated after the permit became unavailable
+       between rendering and click. PermitReturnAllResult is spoken
+       after refunding all permits: {0} = vanilla "ReturnAllPermits"
+       string, {1} = vanilla "UnusedPermits" string, {2} = remaining
+       points. PermitGranted is spoken after accepting a permit: {0} =
+       permit label, {1} = vanilla "UnusedPermits", {2} = remaining
+       points. -->
+  <RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable>Разрешение больше недоступно.</RimWorldAccess.Inspection.InfoCardTree.PermitNoLongerAvailable>
+  <RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult>{0}. {1}: {2}</RimWorldAccess.Inspection.InfoCardTree.PermitReturnAllResult>
+  <RimWorldAccess.Inspection.InfoCardTree.PermitGranted>{0} получено. {1}: {2}</RimWorldAccess.Inspection.InfoCardTree.PermitGranted>
+
+  <!-- =================================================================
+       BuildingInspectPatch fallback announcements. Each phrase is the
+       message spoken by InspectionReturnHelper.AnnounceParentOrFallback
+       when a submenu closes and there is no active parent menu to
+       re-announce (which happens when the submenu was opened outside
+       the inspection flow, e.g. from the scanner). One whole-phrase
+       key per submenu so the verb (Closed / Cancelled) and the menu
+       noun can vary per language without sentence-templating.
+       AppliedRangeChanges is announced after the user confirms the
+       hit-points / quality range editor; it is a TolkHelper.Speak
+       (not a fallback) since the user always lands back in the thing
+       filter menu after applying.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Patch.ClosedTemperatureControl>Меню управления температурой закрыто</RimWorldAccess.Inspection.Patch.ClosedTemperatureControl>
+  <RimWorldAccess.Inspection.Patch.ClosedBillsMenu>Меню заданий закрыто</RimWorldAccess.Inspection.Patch.ClosedBillsMenu>
+  <RimWorldAccess.Inspection.Patch.ClosedBillConfiguration>Настройка задания закрыта</RimWorldAccess.Inspection.Patch.ClosedBillConfiguration>
+  <RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>Меню фильтра предметов закрыто</RimWorldAccess.Inspection.Patch.ClosedThingFilterMenu>
+  <RimWorldAccess.Inspection.Patch.CancelledRangeEditing>Изменение диапазона отменено</RimWorldAccess.Inspection.Patch.CancelledRangeEditing>
+  <RimWorldAccess.Inspection.Patch.AppliedRangeChanges>Диапазон изменён</RimWorldAccess.Inspection.Patch.AppliedRangeChanges>
+  <RimWorldAccess.Inspection.Patch.ClosedFuelSettings>Меню настроек топлива закрыто</RimWorldAccess.Inspection.Patch.ClosedFuelSettings>
+  <RimWorldAccess.Inspection.Patch.ClosedDoorControls>Управление дверью закрыто</RimWorldAccess.Inspection.Patch.ClosedDoorControls>
+  <RimWorldAccess.Inspection.Patch.ClosedForbidControls>Управление запретом закрыто</RimWorldAccess.Inspection.Patch.ClosedForbidControls>
+  <RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>Меню зоны рыбалки закрыто</RimWorldAccess.Inspection.Patch.ClosedFishingZoneMenu>
+
+  <!-- =================================================================
+       InspectionTreeBuilder action announcements. Spoken when the user
+       activates (Enter) or deletes (Delete) a tree item that mutates
+       game state from inside the inspection panel.
+
+       Job queue (BuildJobQueueChildren):
+       - JobCancelled: {0} = job report. Spoken at SpeechPriority.High
+         when the user deletes a queued job from the Jobs tab.
+
+       Pen marker (BuildPenMarkerChildren):
+       - PenRemovedExample / PenAddedExample: {0} = animal label
+         (capitalized). Spoken after the user removes / adds an animal
+         from the Example Animals list.
+       - PenAutoCutToggleAnnouncement: {0} = vanilla Enabled / Disabled
+         word. Spoken when the user toggles the pen's auto-cut flag.
+       - PenDesignatedPlantsForCutting: standalone phrase spoken when
+         the Cut Now action successfully designates plants.
+
+       Bookcase (BuildContentsBooksChildren):
+       - BookEjected: {0} = vanilla EjectBookTooltip header,
+         {1} = book label (capitalized). Spoken after a book is
+         dropped onto an adjacent walkable cell.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.JobCancelled>Отменено: {0}</RimWorldAccess.Inspection.Tree.JobCancelled>
+  <RimWorldAccess.Inspection.Tree.PenRemovedExample>Удалён пример: {0}</RimWorldAccess.Inspection.Tree.PenRemovedExample>
+  <RimWorldAccess.Inspection.Tree.PenAddedExample>Добавлен пример: {0}</RimWorldAccess.Inspection.Tree.PenAddedExample>
+  <RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement>Автосрубка: {0}</RimWorldAccess.Inspection.Tree.PenAutoCutToggleAnnouncement>
+  <RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting>Растения помечены для срубки</RimWorldAccess.Inspection.Tree.PenDesignatedPlantsForCutting>
+  <RimWorldAccess.Inspection.Tree.BookEjected>{0}. {1}</RimWorldAccess.Inspection.Tree.BookEjected>
+
+  <!-- =================================================================
+       InspectionTreeBuilder tree-item labels paired with the actions
+       above. Spoken when the user navigates onto these items (so a
+       sighted screen reader user reads the same wording as the
+       post-action announcement).
+
+       Pen marker labels:
+       - PenAutoCutPlantsLabel: {0} = vanilla Enabled / Disabled word,
+         {1} = optional unenclosed suffix (PenNotEnclosedSuffix or
+         empty).
+       - PenNotEnclosedSuffix: appended to Auto-Cut and Cut Now labels
+         when the pen is not enclosed; the leading space is part of
+         the value.
+       - PenCutNow / PenCutNowUnenclosed: vanilla AutoCutNow ("Cut
+         now") is spoken with the unenclosed suffix when applicable.
+         CutNow itself is left to the vanilla key.
+       - PenPlantFilter: standalone "Plant Filter" header label.
+       - PenAutoCutMenuTitle: passed to ThingFilterMenuState.Open() as
+         the menu title for the pen's auto-cut filter.
+       - PenNotEnclosedDescription: the read-only fallback row label
+         when the pen state is not enclosed (replaces the earlier
+         "Not Enclosed - pen must be fully enclosed to function"
+         English string with vanilla AutocutUnenclosedPen + a brief
+         mod-side suffix that explains the consequence).
+
+       Pen examples (Example Animals subtree):
+       - PenExamplesHeader / PenAddExamplesHeader: subcategory titles.
+       - PenExamplesHeaderWithCount: {0} = count of types. Replaces
+         the bare PenExamplesHeader once the section has been
+         rebuilt.
+       - PenExampleEntry: {0} = animal label, {1} = capacity (F0),
+         {2} = nutrition consumption per day (F2). Whole-phrase key
+         per row including the "Enter to remove" affordance.
+       - PenNoMoreAnimalsAvailable: empty-state row when the user has
+         already added every grazing animal.
+       - PenUnknownAnimal: per-callsite fallback when an animal def
+         lacks a label.
+
+       Job queue labels:
+       - JobCurrent: {0} = job report. The currently-executing job
+         row.
+       - JobCurrentIdle: standalone phrase when no job is current.
+       - JobQueued: {0} = 1-based queue index, {1} = job report.
+       - JobUnknown: fallback when the job's GetReport throws or
+         returns null.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.PenAutoCutPlantsLabel>Автосрубка растений: {0}{1}</RimWorldAccess.Inspection.Tree.PenAutoCutPlantsLabel>
+  <RimWorldAccess.Inspection.Tree.PenNotEnclosedSuffix> (загон не огорожен)</RimWorldAccess.Inspection.Tree.PenNotEnclosedSuffix>
+  <RimWorldAccess.Inspection.Tree.PenCutNowLabel>{0}{1}</RimWorldAccess.Inspection.Tree.PenCutNowLabel>
+  <RimWorldAccess.Inspection.Tree.PenPlantFilter>Фильтр растений</RimWorldAccess.Inspection.Tree.PenPlantFilter>
+  <RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle>Автосрубка растений в загоне</RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle>
+  <RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>{0} — загон должен быть полностью огорожен, чтобы работать</RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>
+
+  <RimWorldAccess.Inspection.Tree.PenExamplesHeader>Примеры животных</RimWorldAccess.Inspection.Tree.PenExamplesHeader>
+  <RimWorldAccess.Inspection.Tree.PenAddExamplesHeader>Добавить пример животного</RimWorldAccess.Inspection.Tree.PenAddExamplesHeader>
+  <RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount>Примеры животных ({0} видов)</RimWorldAccess.Inspection.Tree.PenExamplesHeaderWithCount>
+  <RimWorldAccess.Inspection.Tree.PenExampleEntry>{0}: макс. {1}, потребляет {2}/день (Enter — убрать)</RimWorldAccess.Inspection.Tree.PenExampleEntry>
+  <RimWorldAccess.Inspection.Tree.PenNoMoreAnimalsAvailable>Больше нет доступных животных</RimWorldAccess.Inspection.Tree.PenNoMoreAnimalsAvailable>
+  <RimWorldAccess.Inspection.Tree.PenUnknownAnimal>Неизвестно</RimWorldAccess.Inspection.Tree.PenUnknownAnimal>
+
+  <RimWorldAccess.Inspection.Tree.JobCurrent>Текущее: {0}</RimWorldAccess.Inspection.Tree.JobCurrent>
+  <RimWorldAccess.Inspection.Tree.JobCurrentIdle>Текущее: бездействие</RimWorldAccess.Inspection.Tree.JobCurrentIdle>
+  <RimWorldAccess.Inspection.Tree.JobQueued>В очереди {0}: {1}</RimWorldAccess.Inspection.Tree.JobQueued>
+  <RimWorldAccess.Inspection.Tree.JobUnknown>Неизвестное задание</RimWorldAccess.Inspection.Tree.JobUnknown>
+
+  <!-- =================================================================
+       InspectionTreeBuilder section / heading labels. These are the
+       headings and empty-state messages shown by category builders.
+       Each is a stand-alone phrase (no parameter unless noted).
+
+       Top-level / dynamic-tab fallbacks:
+       - Root: hidden parent of the inspection tree (rarely spoken).
+       - MeditationFocusNoFocus: replaces the expandable Meditation
+         Focus tab when no focus objects are nearby.
+       - NoTabInfo: empty-state when a dynamic tab returns no
+         keyboard-accessible content. TabNoKeyboardContent: {0} =
+         tab category name (already game-localized).
+       - UnrecognizedTab: hint added below TabNoKeyboardContent when
+         the tab is not in our known registry.
+       - NoFacilityInfo: empty-state for the Linked Facilities
+         category fallback.
+
+       Pawn category empty states:
+       - NoNeedsToDisplay: pawn has no visible needs.
+       - NoTrainableSkills: pawn has no trainable skills (animal
+         tab).
+       - NoGeneInfo: shared between BuildGenesChildren and
+         BuildGeneSetHolderGenesChildren when biotech is inactive or
+         the gene set is empty.
+       - NoMoodInfo: pawn has no mood need.
+       - NoThoughts: pawn has no thoughts affecting mood.
+       - NoCombatEntries / NoSocialEntries: log subcategories.
+
+       Headings (subcategories):
+       - SkillsSubcategory: animal-tab Skills heading.
+       - HealthSettings: Action that opens the medical-care settings
+         menu.
+       - Capacities: Health-tab Capacities subtree heading.
+       - BreakThresholds: Mood-tab Break Thresholds subtree heading.
+       - CombatLog / SocialLog: Log-tab subcategories.
+
+       Break thresholds (BuildBreakThresholdsChildren). The vanilla
+       MentalBreakIntensityMinor / Major / Extreme keys give the
+       lowercase intensity word; Capitalize is applied client-side.
+       BreakThresholdLine: {0} = capitalized intensity word, {1} =
+       threshold percent (F0).
+
+       Combat / social log entries:
+       - LogEntryFormat: {0} = timestamp ("4 hours" etc, already
+         translated by the game), {1} = entry text.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.Root>Осмотр</RimWorldAccess.Inspection.Tree.Root>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusNoFocus>Объект для медитации — нет объектов в радиусе досягаемости</RimWorldAccess.Inspection.Tree.MeditationFocusNoFocus>
+  <RimWorldAccess.Inspection.Tree.NoTabInfo>Для этой вкладки нет информации.</RimWorldAccess.Inspection.Tree.NoTabInfo>
+  <RimWorldAccess.Inspection.Tree.TabNoKeyboardContent>Вкладка «{0}» не содержит доступного с клавиатуры содержимого.</RimWorldAccess.Inspection.Tree.TabNoKeyboardContent>
+  <RimWorldAccess.Inspection.Tree.UnrecognizedTab>Это нераспознанная вкладка из мода или дополнения.</RimWorldAccess.Inspection.Tree.UnrecognizedTab>
+  <RimWorldAccess.Inspection.Tree.NoFacilityInfo>Нет информации о связанных постройках.</RimWorldAccess.Inspection.Tree.NoFacilityInfo>
+
+  <RimWorldAccess.Inspection.Tree.NoNeedsToDisplay>Нет нужд для отображения.</RimWorldAccess.Inspection.Tree.NoNeedsToDisplay>
+  <RimWorldAccess.Inspection.Tree.NoTrainableSkills>Нет обучаемых навыков</RimWorldAccess.Inspection.Tree.NoTrainableSkills>
+  <RimWorldAccess.Inspection.Tree.NoGeneInfo>Информация о генах недоступна</RimWorldAccess.Inspection.Tree.NoGeneInfo>
+  <RimWorldAccess.Inspection.Tree.NoMoodInfo>Информация о настроении недоступна</RimWorldAccess.Inspection.Tree.NoMoodInfo>
+  <RimWorldAccess.Inspection.Tree.NoThoughts>Нет мыслей, влияющих на настроение</RimWorldAccess.Inspection.Tree.NoThoughts>
+  <RimWorldAccess.Inspection.Tree.NoCombatEntries>Боевых записей не найдено</RimWorldAccess.Inspection.Tree.NoCombatEntries>
+  <RimWorldAccess.Inspection.Tree.NoSocialEntries>Социальных записей не найдено</RimWorldAccess.Inspection.Tree.NoSocialEntries>
+
+  <RimWorldAccess.Inspection.Tree.SkillsSubcategory>Навыки</RimWorldAccess.Inspection.Tree.SkillsSubcategory>
+  <RimWorldAccess.Inspection.Tree.HealthSettings>Настройки здоровья</RimWorldAccess.Inspection.Tree.HealthSettings>
+  <RimWorldAccess.Inspection.Tree.Capacities>Способности тела</RimWorldAccess.Inspection.Tree.Capacities>
+  <RimWorldAccess.Inspection.Tree.BreakThresholds>Пороги срыва</RimWorldAccess.Inspection.Tree.BreakThresholds>
+  <RimWorldAccess.Inspection.Tree.CombatLog>Журнал боя</RimWorldAccess.Inspection.Tree.CombatLog>
+  <RimWorldAccess.Inspection.Tree.SocialLog>Социальный журнал</RimWorldAccess.Inspection.Tree.SocialLog>
+
+  <RimWorldAccess.Inspection.Tree.BreakThresholdLine>{0}: {1}%</RimWorldAccess.Inspection.Tree.BreakThresholdLine>
+  <RimWorldAccess.Inspection.Tree.LogEntryFormat>{0} назад — {1}</RimWorldAccess.Inspection.Tree.LogEntryFormat>
+
+  <!-- =================================================================
+       Pen marker (BuildPenMarkerChildren) details. These are the
+       heading and per-row labels for the pen-summary subtree, paired
+       with the action announcements above.
+
+       PenSize: {0} = vanilla pen size description (already
+       translated). PenBalance: {0} = signed balance string (already
+       formatted, includes leading + or -), {1} = growth (F1),
+       {2} = consumption (F1).
+       PenStockpiled: {0} = stockpile nutrition (F1).
+       PenStockpileLasts: {0} = days remaining (F1).
+       PenAnimalsHeader: {0} = species count.
+       PenAnimalRow: {0} = animal label (capitalized), {1} = head
+         count, {2} = consumption per day (F2). The leading minus is
+         part of the value.
+       PenStockpiledItemsHeader: {0} = item-type count.
+       PenStockpiledItemRow: {0} = food label (capitalized),
+         {1} = nutrition (F1).
+       PenMeditationNoFocusObjects: {0} = search radius (F0).
+
+       Meditation focus row (BuildMeditationFocusChildren):
+       MeditationFocusEntry composes one row from the focus thing's
+       label, focus types (joined with ", "), strength percent,
+       distance, and an optional "no LOS" marker. Each fragment is a
+       separate key so the dash separators stay client-side and word
+       order can vary per language.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Tree.PenSize>Размер загона: {0}</RimWorldAccess.Inspection.Tree.PenSize>
+  <RimWorldAccess.Inspection.Tree.PenBalance>Баланс: {0} питательности/день (прирост: {1}, потребление: {2})</RimWorldAccess.Inspection.Tree.PenBalance>
+  <RimWorldAccess.Inspection.Tree.PenStockpiled>Запасено: {0} питательности</RimWorldAccess.Inspection.Tree.PenStockpiled>
+  <RimWorldAccess.Inspection.Tree.PenStockpileLasts>Запаса хватит на: {0} дней</RimWorldAccess.Inspection.Tree.PenStockpileLasts>
+  <RimWorldAccess.Inspection.Tree.PenAnimalsHeader>Животные ({0} видов)</RimWorldAccess.Inspection.Tree.PenAnimalsHeader>
+  <RimWorldAccess.Inspection.Tree.PenAnimalRow>{0} ({1}): -{2}/день</RimWorldAccess.Inspection.Tree.PenAnimalRow>
+  <RimWorldAccess.Inspection.Tree.PenStockpiledItemsHeader>Запасённые предметы ({0} видов)</RimWorldAccess.Inspection.Tree.PenStockpiledItemsHeader>
+  <RimWorldAccess.Inspection.Tree.PenStockpiledItemRow>{0}: {1} питательности</RimWorldAccess.Inspection.Tree.PenStockpiledItemRow>
+  <RimWorldAccess.Inspection.Tree.PenMeditationNoFocusObjects>В пределах {0} клеток нет объектов для медитации.</RimWorldAccess.Inspection.Tree.PenMeditationNoFocusObjects>
+
+  <RimWorldAccess.Inspection.Tree.MeditationFocusTypesSuffix> - {0}</RimWorldAccess.Inspection.Tree.MeditationFocusTypesSuffix>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusStrengthSuffix> - Сила: {0}</RimWorldAccess.Inspection.Tree.MeditationFocusStrengthSuffix>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix> - {0} клеток</RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix>
+  <RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix> - Нет прямой видимости</RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix>
+
+  <!-- Skill XP progress row (BuildSkillChildren). {0} = XP since last
+       level (F0), {1} = XP required for next level (F0). The "XP"
+       prefix is mod-side because the vanilla Skills.xml exposes only
+       the long-form "Experience" word and we want a compact row. -->
+  <RimWorldAccess.Inspection.Tree.SkillXpProgress>Опыт: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
+
+  <!-- =================================================================
+       RangeEditMenuState announcements. Spoken when the user
+       navigates between the min / max sliders and as values change.
+       MinOption / MaxOption: standalone words used as the {0}
+       parameter of the line keys (Hit Points / Quality). Vanilla has
+       no Minimum / Maximum keys so we keep them mod-side.
+       HitPointsLine: {0} = vanilla HitPointsBasic capitalized
+       (placeholder noun), {1} = MinOption / MaxOption, {2} = current
+       value (already P0-formatted), {3} = range minimum (P0),
+       {4} = range maximum (P0).
+       QualityLine: {0} = vanilla Quality, {1} = MinOption /
+       MaxOption, {2} = current value (already game-translated quality
+       label), {3} / {4} = range bounds (also game-translated).
+       The two compositions share the trailing "Range: {min} to {max}"
+       structure so a translator can keep word order consistent
+       between them.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.RangeEdit.MinOption>Минимум</RimWorldAccess.Inspection.RangeEdit.MinOption>
+  <RimWorldAccess.Inspection.RangeEdit.MaxOption>Максимум</RimWorldAccess.Inspection.RangeEdit.MaxOption>
+  <RimWorldAccess.Inspection.RangeEdit.HitPointsLine>{0} {1}: {2}. Диапазон: от {3} до {4}</RimWorldAccess.Inspection.RangeEdit.HitPointsLine>
+  <RimWorldAccess.Inspection.RangeEdit.QualityLine>{0} {1}: {2}. Диапазон: от {3} до {4}</RimWorldAccess.Inspection.RangeEdit.QualityLine>
+
+  <!-- InventoryHelper category labels (CategoryNode.GetDisplayLabel).
+       UncategorizedFallback is spoken when a thing has no
+       ThingCategoryDef. CategoryWithCount: {0} = capitalized category
+       label, {1} = item type count. -->
+  <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Без категории</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} видов)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
+
+  <!-- =================================================================
+       Power status (PowerInfoHelper). Spoken via the tile readout for
+       batteries, generators, power traders, transmitters, and the power
+       network summary. Composed as a comma-separated status string; the
+       ", " separators live in code. Reason words (BrokenDown, OutOfFuel,
+       SwitchedOff, StunnedByEmp) are reused for both the ", X" and the
+       " (X)" parenthetical forms. W = watts, Wd = watt-days.
+       ================================================================= -->
+  <RimWorldAccess.Inspection.Power.Charged>заряд {0}%</RimWorldAccess.Inspection.Power.Charged>
+  <RimWorldAccess.Inspection.Power.StoredDetail>({0} / {1} Вт·дн)</RimWorldAccess.Inspection.Power.StoredDetail>
+  <RimWorldAccess.Inspection.Power.Efficiency>КПД {0}%</RimWorldAccess.Inspection.Power.Efficiency>
+  <RimWorldAccess.Inspection.Power.StunnedByEmp>Оглушено ЭМИ</RimWorldAccess.Inspection.Power.StunnedByEmp>
+  <RimWorldAccess.Inspection.Power.NotConnected>Не подключено к энергосети</RimWorldAccess.Inspection.Power.NotConnected>
+  <RimWorldAccess.Inspection.Power.Connected>Подключено к энергии</RimWorldAccess.Inspection.Power.Connected>
+  <RimWorldAccess.Inspection.Power.Generating>Вырабатывает {0} Вт</RimWorldAccess.Inspection.Power.Generating>
+  <RimWorldAccess.Inspection.Power.NotGenerating>Не вырабатывает</RimWorldAccess.Inspection.Power.NotGenerating>
+  <RimWorldAccess.Inspection.Power.BrokenDown>Сломано</RimWorldAccess.Inspection.Power.BrokenDown>
+  <RimWorldAccess.Inspection.Power.OutOfFuel>Нет топлива</RimWorldAccess.Inspection.Power.OutOfFuel>
+  <RimWorldAccess.Inspection.Power.SwitchedOff>Выключено</RimWorldAccess.Inspection.Power.SwitchedOff>
+  <RimWorldAccess.Inspection.Power.Consuming>Потребляет {0} Вт</RimWorldAccess.Inspection.Power.Consuming>
+  <RimWorldAccess.Inspection.Power.Requires>Требует {0} Вт</RimWorldAccess.Inspection.Power.Requires>
+  <RimWorldAccess.Inspection.Power.Producing>Производит {0} Вт</RimWorldAccess.Inspection.Power.Producing>
+  <RimWorldAccess.Inspection.Power.PoweredOn>Под напряжением</RimWorldAccess.Inspection.Power.PoweredOn>
+  <RimWorldAccess.Inspection.Power.PoweredOff>Обесточено</RimWorldAccess.Inspection.Power.PoweredOff>
+  <RimWorldAccess.Inspection.Power.NoPowerUsage>Не потребляет энергию</RimWorldAccess.Inspection.Power.NoPowerUsage>
+  <RimWorldAccess.Inspection.Power.Transmitting>Передаёт энергию</RimWorldAccess.Inspection.Power.Transmitting>
+  <RimWorldAccess.Inspection.Power.NotTransmitting>Не передаёт энергию</RimWorldAccess.Inspection.Power.NotTransmitting>
+  <RimWorldAccess.Inspection.Power.NetworkSurplus>Сеть: избыток +{0} Вт</RimWorldAccess.Inspection.Power.NetworkSurplus>
+  <RimWorldAccess.Inspection.Power.NetworkDeficit>Сеть: нехватка {0} Вт</RimWorldAccess.Inspection.Power.NetworkDeficit>
+  <RimWorldAccess.Inspection.Power.NetworkBalanced>Сеть: сбалансирована</RimWorldAccess.Inspection.Power.NetworkBalanced>
+  <RimWorldAccess.Inspection.Power.Stored>Запасено {0} Вт·дн</RimWorldAccess.Inspection.Power.Stored>
+  <RimWorldAccess.Inspection.Power.GeneratorsOne>1 генератор, вырабатывает {0} Вт</RimWorldAccess.Inspection.Power.GeneratorsOne>
+  <RimWorldAccess.Inspection.Power.GeneratorsMany>{0_numCase ? генератор : генератора : генераторов}, вырабатывают {1} Вт</RimWorldAccess.Inspection.Power.GeneratorsMany>
+  <RimWorldAccess.Inspection.Power.ConsumersOne>1 потребитель, использует {0} Вт</RimWorldAccess.Inspection.Power.ConsumersOne>
+  <RimWorldAccess.Inspection.Power.ConsumersMany>{0_numCase ? потребитель : потребителя : потребителей}, используют {1} Вт</RimWorldAccess.Inspection.Power.ConsumersMany>
+  <RimWorldAccess.Inspection.Power.BatteriesOne>1 батарея</RimWorldAccess.Inspection.Power.BatteriesOne>
+  <RimWorldAccess.Inspection.Power.BatteriesMany>{0_numCase ? батарея : батареи : батарей}</RimWorldAccess.Inspection.Power.BatteriesMany>
+  <RimWorldAccess.Inspection.Power.ConnectedLabel>Подключено: {0}</RimWorldAccess.Inspection.Power.ConnectedLabel>
+
+  <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
+  <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Дальность: {0} клеток от хозяина</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
+  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>оружие</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
+  <RimWorldAccess.Inspection.Gizmo.AttackFallback>атака</RimWorldAccess.Inspection.Gizmo.AttackFallback>
+  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Неизвестное оружие</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
+  <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
+  <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Неизвестная команда</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
+
+  <!-- Info Card skin-color shade descriptors (src/Inspection/InfoCardDataExtractor.cs), keyed off luminance. -->
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.VeryLight>очень светлый</RimWorldAccess.Inspection.InfoCard.SkinShade.VeryLight>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Light>светлый</RimWorldAccess.Inspection.InfoCard.SkinShade.Light>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Fair>светло-бежевый</RimWorldAccess.Inspection.InfoCard.SkinShade.Fair>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Medium>средний</RimWorldAccess.Inspection.InfoCard.SkinShade.Medium>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Tan>смуглый</RimWorldAccess.Inspection.InfoCard.SkinShade.Tan>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.Brown>коричневый</RimWorldAccess.Inspection.InfoCard.SkinShade.Brown>
+  <RimWorldAccess.Inspection.InfoCard.SkinShade.DarkBrown>тёмно-коричневый</RimWorldAccess.Inspection.InfoCard.SkinShade.DarkBrown>
+  <RimWorldAccess.Inspection.InfoCard.SkinColorShade>Цвет кожи ({0})</RimWorldAccess.Inspection.InfoCard.SkinColorShade>
+
+  <!-- Training tab status words for tree labels (src/Inspection/InspectionTreeBuilder.cs). -->
+  <RimWorldAccess.Inspection.Training.CannotTrain>Нельзя обучить</RimWorldAccess.Inspection.Training.CannotTrain>
+  <RimWorldAccess.Inspection.Training.StatusLearned>Изучено</RimWorldAccess.Inspection.Training.StatusLearned>
+  <RimWorldAccess.Inspection.Training.StatusWanted>Желаемое</RimWorldAccess.Inspection.Training.StatusWanted>
+  <RimWorldAccess.Inspection.Training.StatusNotWanted>Не желаемое</RimWorldAccess.Inspection.Training.StatusNotWanted>
+
+  <!-- Tab fallback messages (src/Inspection/TabRegistry.cs). -->
+  <RimWorldAccess.Inspection.Tree.TabNoTextContent>Вкладка «{0}» доступна, но не содержит доступного с клавиатуры текстового содержимого.</RimWorldAccess.Inspection.Tree.TabNoTextContent>
+  <RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo>Ошибка при получении информации.</RimWorldAccess.Inspection.Tree.ErrorRetrievingInfo>
+
+  <!-- Inspection category display names (src/Inspection/InspectionCategoryLocalizer.cs).
+       English identifiers stay as internal dispatch keys; these are display only. -->
+  <RimWorldAccess.Inspection.CategoryName.Overview>Обзор</RimWorldAccess.Inspection.CategoryName.Overview>
+  <RimWorldAccess.Inspection.CategoryName.Health>Здоровье</RimWorldAccess.Inspection.CategoryName.Health>
+  <RimWorldAccess.Inspection.CategoryName.Needs>Нужды</RimWorldAccess.Inspection.CategoryName.Needs>
+  <RimWorldAccess.Inspection.CategoryName.Mood>Настроение</RimWorldAccess.Inspection.CategoryName.Mood>
+  <RimWorldAccess.Inspection.CategoryName.Gear>Снаряжение</RimWorldAccess.Inspection.CategoryName.Gear>
+  <RimWorldAccess.Inspection.CategoryName.Skills>Навыки</RimWorldAccess.Inspection.CategoryName.Skills>
+  <RimWorldAccess.Inspection.CategoryName.Social>Отношения</RimWorldAccess.Inspection.CategoryName.Social>
+  <RimWorldAccess.Inspection.CategoryName.Character>Личность</RimWorldAccess.Inspection.CategoryName.Character>
+  <RimWorldAccess.Inspection.CategoryName.WorkPriorities>Приоритеты работы</RimWorldAccess.Inspection.CategoryName.WorkPriorities>
+  <RimWorldAccess.Inspection.CategoryName.Log>Журнал</RimWorldAccess.Inspection.CategoryName.Log>
+  <RimWorldAccess.Inspection.CategoryName.JobQueue>Очередь заданий</RimWorldAccess.Inspection.CategoryName.JobQueue>
+  <RimWorldAccess.Inspection.CategoryName.Prisoner>Пленник</RimWorldAccess.Inspection.CategoryName.Prisoner>
+  <RimWorldAccess.Inspection.CategoryName.Slave>Раб</RimWorldAccess.Inspection.CategoryName.Slave>
+  <RimWorldAccess.Inspection.CategoryName.Guest>Гость</RimWorldAccess.Inspection.CategoryName.Guest>
+  <RimWorldAccess.Inspection.CategoryName.Feeding>Кормление</RimWorldAccess.Inspection.CategoryName.Feeding>
+  <RimWorldAccess.Inspection.CategoryName.FormingCaravan>Формирование каравана</RimWorldAccess.Inspection.CategoryName.FormingCaravan>
+  <RimWorldAccess.Inspection.CategoryName.Training>Дрессировка</RimWorldAccess.Inspection.CategoryName.Training>
+  <RimWorldAccess.Inspection.CategoryName.Bills>Задания</RimWorldAccess.Inspection.CategoryName.Bills>
+  <RimWorldAccess.Inspection.CategoryName.BedAssignment>Назначение кровати</RimWorldAccess.Inspection.CategoryName.BedAssignment>
+  <RimWorldAccess.Inspection.CategoryName.OwnerAssignment>Назначение владельца</RimWorldAccess.Inspection.CategoryName.OwnerAssignment>
+  <RimWorldAccess.Inspection.CategoryName.MeditationFocus>Объект для медитации</RimWorldAccess.Inspection.CategoryName.MeditationFocus>
+  <RimWorldAccess.Inspection.CategoryName.Temperature>Температура</RimWorldAccess.Inspection.CategoryName.Temperature>
+  <RimWorldAccess.Inspection.CategoryName.Storage>Хранение</RimWorldAccess.Inspection.CategoryName.Storage>
+  <RimWorldAccess.Inspection.CategoryName.NutritionStorage>Хранение питательности</RimWorldAccess.Inspection.CategoryName.NutritionStorage>
+  <RimWorldAccess.Inspection.CategoryName.AutoCutPlants>Автосрубка растений</RimWorldAccess.Inspection.CategoryName.AutoCutPlants>
+  <RimWorldAccess.Inspection.CategoryName.Shells>Снаряды</RimWorldAccess.Inspection.CategoryName.Shells>
+  <RimWorldAccess.Inspection.CategoryName.PlantSelection>Выбор растения</RimWorldAccess.Inspection.CategoryName.PlantSelection>
+  <RimWorldAccess.Inspection.CategoryName.Power>Энергия</RimWorldAccess.Inspection.CategoryName.Power>
+  <RimWorldAccess.Inspection.CategoryName.Art>Искусство</RimWorldAccess.Inspection.CategoryName.Art>
+  <RimWorldAccess.Inspection.CategoryName.Contents>Содержимое</RimWorldAccess.Inspection.CategoryName.Contents>
+  <RimWorldAccess.Inspection.CategoryName.Books>Книги</RimWorldAccess.Inspection.CategoryName.Books>
+  <RimWorldAccess.Inspection.CategoryName.Book>Книга</RimWorldAccess.Inspection.CategoryName.Book>
+  <RimWorldAccess.Inspection.CategoryName.Genepacks>Генопакеты</RimWorldAccess.Inspection.CategoryName.Genepacks>
+  <RimWorldAccess.Inspection.CategoryName.Genes>Гены</RimWorldAccess.Inspection.CategoryName.Genes>
+  <RimWorldAccess.Inspection.CategoryName.PregnancyGenes>Гены беременности</RimWorldAccess.Inspection.CategoryName.PregnancyGenes>
+  <RimWorldAccess.Inspection.CategoryName.Entity>Сущность</RimWorldAccess.Inspection.CategoryName.Entity>
+  <RimWorldAccess.Inspection.CategoryName.StudyNotes>Заметки об изучении</RimWorldAccess.Inspection.CategoryName.StudyNotes>
+  <RimWorldAccess.Inspection.CategoryName.Fishing>Рыбалка</RimWorldAccess.Inspection.CategoryName.Fishing>
+  <RimWorldAccess.Inspection.CategoryName.Pen>Загон</RimWorldAccess.Inspection.CategoryName.Pen>
+  <RimWorldAccess.Inspection.CategoryName.PenAnimals>Животные загона</RimWorldAccess.Inspection.CategoryName.PenAnimals>
+  <RimWorldAccess.Inspection.CategoryName.PenFood>Корм загона</RimWorldAccess.Inspection.CategoryName.PenFood>
+  <RimWorldAccess.Inspection.CategoryName.PenAutoCut>Автосрубка загона</RimWorldAccess.Inspection.CategoryName.PenAutoCut>
+  <RimWorldAccess.Inspection.CategoryName.LinkedFacilities>Связанные постройки</RimWorldAccess.Inspection.CategoryName.LinkedFacilities>
+  <RimWorldAccess.Inspection.CategoryName.Rename>Переименовать</RimWorldAccess.Inspection.CategoryName.Rename>
+  <RimWorldAccess.Inspection.CategoryName.GrowthInfo>Сведения о росте</RimWorldAccess.Inspection.CategoryName.GrowthInfo>
+  <RimWorldAccess.Inspection.CategoryName.PlantInfo>Сведения о растении</RimWorldAccess.Inspection.CategoryName.PlantInfo>
+  <RimWorldAccess.Inspection.CategoryName.PowerControl>Управление энергией</RimWorldAccess.Inspection.CategoryName.PowerControl>
+  <RimWorldAccess.Inspection.CategoryName.BreakdownStatus>Состояние поломки</RimWorldAccess.Inspection.CategoryName.BreakdownStatus>
+  <RimWorldAccess.Inspection.CategoryName.DoorControls>Управление дверью</RimWorldAccess.Inspection.CategoryName.DoorControls>
+  <RimWorldAccess.Inspection.CategoryName.ForbidControls>Управление запретом</RimWorldAccess.Inspection.CategoryName.ForbidControls>
+  <RimWorldAccess.Inspection.CategoryName.Unknown>Неизвестно</RimWorldAccess.Inspection.CategoryName.Unknown>
+  <RimWorldAccess.Inspection.CategoryName.MoodLabel>{0}: {1}% ({2})</RimWorldAccess.Inspection.CategoryName.MoodLabel>
+  <RimWorldAccess.Inspection.CategoryName.JobQueueLabel>{0} ({1} в очереди)</RimWorldAccess.Inspection.CategoryName.JobQueueLabel>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Inspection.Inventory.CarriedByColonists>{0} x{1} ({2} переносится поселенцами)</RimWorldAccess.Inspection.Inventory.CarriedByColonists>
+
+  <!-- Pregnancy approach options: marker for the active approach. {0} = approach description. -->
+  <RimWorldAccess.Inspection.CurrentMarker>Текущее: {0}</RimWorldAccess.Inspection.CurrentMarker>
+  <!-- Mood thought expiry suffixes. {0}/{1} = localized time periods. -->
+  <RimWorldAccess.Inspection.Thought.ExpiresIn>(истекает через {0})</RimWorldAccess.Inspection.Thought.ExpiresIn>
+  <RimWorldAccess.Inspection.Thought.ExpiresInRange>(истекает через {0} — {1})</RimWorldAccess.Inspection.Thought.ExpiresInRange>
+
+  <!-- Hemogen-pack auto-ingest gizmo toggle. {0} = localized on/off state. -->
+  <RimWorldAccess.Inspection.Gizmo.HemogenPacks>Гемогеновые пакеты разрешены: {0}</RimWorldAccess.Inspection.Gizmo.HemogenPacks>
+
+  <!-- Royal permit statuses in the Info Card permits section.
+       AvailableWithPoints: {0} = permit point cost.
+       LockedWithReason: {0} = localized prerequisite/title requirement. -->
+  <RimWorldAccess.Inspection.Permit.Granted>Получено</RimWorldAccess.Inspection.Permit.Granted>
+  <RimWorldAccess.Inspection.Permit.GrantedOnCooldown>Получено (перезарядка)</RimWorldAccess.Inspection.Permit.GrantedOnCooldown>
+  <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Доступно ({0} очков)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
+  <RimWorldAccess.Inspection.Permit.LockedWithReason>Заблокировано ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
+  <RimWorldAccess.Inspection.Permit.Locked>Заблокировано</RimWorldAccess.Inspection.Permit.Locked>
+</LanguageData>

@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.TextInput.LabelDefault>поле</RimWorldAccess.TextInput.LabelDefault>
+  <RimWorldAccess.TextInput.LabelFaction>название фракции</RimWorldAccess.TextInput.LabelFaction>
+  <RimWorldAccess.TextInput.LabelSettlement>название поселения</RimWorldAccess.TextInput.LabelSettlement>
+  <RimWorldAccess.TextInput.LabelZone>название области</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelStorage>название склада</RimWorldAccess.TextInput.LabelStorage>
+  <RimWorldAccess.TextInput.LabelPen>название загона</RimWorldAccess.TextInput.LabelPen>
+  <RimWorldAccess.TextInput.LabelScenarioTitle>название сценария</RimWorldAccess.TextInput.LabelScenarioTitle>
+  <RimWorldAccess.TextInput.LabelScenarioSummary>краткое описание сценария</RimWorldAccess.TextInput.LabelScenarioSummary>
+  <RimWorldAccess.TextInput.LabelScenarioDescription>описание сценария</RimWorldAccess.TextInput.LabelScenarioDescription>
+  <RimWorldAccess.TextInput.LabelFilename>имя файла</RimWorldAccess.TextInput.LabelFilename>
+  <RimWorldAccess.TextInput.LabelXenotype>название ксенотипа</RimWorldAccess.TextInput.LabelXenotype>
+  <RimWorldAccess.TextInput.LabelXenogerm>название ксеногерма</RimWorldAccess.TextInput.LabelXenogerm>
+  <RimWorldAccess.TextInput.LabelWorldSeed>зерно мира</RimWorldAccess.TextInput.LabelWorldSeed>
+
+  <RimWorldAccess.TextInput.EditingField>Редактирование {0}: {1}. Введите новое значение, Enter — подтвердить, Escape — отменить.</RimWorldAccess.TextInput.EditingField>
+  <RimWorldAccess.TextInput.EditingMultiLineField>Редактирование многострочного поля {0}: {1}. Введите текст, Shift+Enter — новая строка, Вверх/Вниз — переход по строкам, Enter — подтвердить, Escape — отменить.</RimWorldAccess.TextInput.EditingMultiLineField>
+  <RimWorldAccess.TextInput.Empty>пусто</RimWorldAccess.TextInput.Empty>
+  <RimWorldAccess.TextInput.Deleted>Удалено: {0}</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.FieldSet>{0}: установлено значение {1}</RimWorldAccess.TextInput.FieldSet>
+  <RimWorldAccess.TextInput.FieldUnchanged>{0}: без изменений</RimWorldAccess.TextInput.FieldUnchanged>
+  <RimWorldAccess.TextInput.NewLine>Новая строка</RimWorldAccess.TextInput.NewLine>
+  <RimWorldAccess.TextInput.BlankLine>пустая строка</RimWorldAccess.TextInput.BlankLine>
+
+  <RimWorldAccess.TextInput.Copied>Скопировано</RimWorldAccess.TextInput.Copied>
+  <RimWorldAccess.TextInput.Cut>Вырезано</RimWorldAccess.TextInput.Cut>
+  <RimWorldAccess.TextInput.SelectedAll>Выделено всё: {0}</RimWorldAccess.TextInput.SelectedAll>
+  <RimWorldAccess.TextInput.SelectedAllLong>Выделено всё, {0} {0_numCase ? символ : символа : символов}</RimWorldAccess.TextInput.SelectedAllLong>
+  <RimWorldAccess.TextInput.ClipboardEmpty>Буфер обмена пуст</RimWorldAccess.TextInput.ClipboardEmpty>
+  <RimWorldAccess.TextInput.PastedShort>Вставлено: {0}</RimWorldAccess.TextInput.PastedShort>
+  <RimWorldAccess.TextInput.PastedWords>Вставлено {0} {0_numCase ? слово : слова : слов}</RimWorldAccess.TextInput.PastedWords>
+  <RimWorldAccess.TextInput.PastedLines>Вставлено {0} {0_numCase ? строка : строки : строк}, {1} {1_numCase ? слово : слова : слов}</RimWorldAccess.TextInput.PastedLines>
+
+  <RimWorldAccess.TextInput.RejectedEmpty>Нельзя принять пустое значение</RimWorldAccess.TextInput.RejectedEmpty>
+  <RimWorldAccess.TextInput.RejectedTooLong>Нельзя вставить, превышен максимум в {0} {0_numCase ? символ : символа : символов}</RimWorldAccess.TextInput.RejectedTooLong>
+  <RimWorldAccess.TextInput.RejectedTooShort>Нельзя вставить, требуется минимум {0} {0_numCase ? символ : символа : символов}</RimWorldAccess.TextInput.RejectedTooShort>
+  <RimWorldAccess.TextInput.RejectedDisallowed>Нельзя вставить, содержатся недопустимые символы: {0}</RimWorldAccess.TextInput.RejectedDisallowed>
+  <RimWorldAccess.TextInput.RejectedSpecial>Нельзя вставить, содержатся запрещённые грамматические символы</RimWorldAccess.TextInput.RejectedSpecial>
+  <RimWorldAccess.TextInput.RejectedFilename>Нельзя вставить, содержатся символы, недопустимые в именах файлов</RimWorldAccess.TextInput.RejectedFilename>
+  <RimWorldAccess.TextInput.RejectedCustom>Нельзя принять значение: {0}</RimWorldAccess.TextInput.RejectedCustom>
+</LanguageData>
