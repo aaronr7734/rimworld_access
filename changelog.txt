@@ -1,4 +1,10 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/17/2026
+
+CHANGES
+-------
+- Fixed one more English leak reported by a Chinese player: the "X available"
+  count on items in the form-caravan list now speaks in your language.
 06/16/2026
 
 CHANGES
