@@ -7,6 +7,10 @@ CHANGES
   and then jumping the cursor elsewhere (Home, or a scanner jump) now makes G
   show the gizmos for the tile you landed on, just like moving there with the
   arrow keys would. Before, G kept showing the previously selected pawn's gizmos.
+- Fixed the work priorities menu opening in a broken state when a mech was
+  selected. Selecting a mech and pressing F1 (or Alt+W) now opens on a real
+  colonist, the same way the table view already did, instead of letting you edit
+  a mech's single bogus job priority.
 06/16/2026
 
 CHANGES
