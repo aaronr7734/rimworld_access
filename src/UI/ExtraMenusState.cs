@@ -306,6 +306,14 @@ namespace RimWorldAccess
                 }));
             }
 
+            if (ModsConfig.AnomalyActive)
+            {
+                options.Add(new MenuOption("ViewEntityCodex".Translate().ToString(), () =>
+                {
+                    Find.WindowStack.Add(new Dialog_EntityCodex());
+                }));
+            }
+
             return options;
         }
 
