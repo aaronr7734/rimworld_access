@@ -307,11 +307,12 @@ namespace RimWorldAccess
                 }
             }
 
-            if (objectsToUse.Count == 0)
-            {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoWorldObject".Loc());
-                return;
-            }
+            // Note: we intentionally do NOT bail when there are no world objects here. Some
+            // world-view commands (notably Form caravan / Send caravan) are global, context-
+            // sensitive gizmos with no owning world object — a sighted player sees them in the
+            // world command bar regardless of selection. Those are collected below in
+            // TryAddGlobalWorldGizmos, so an empty tile can still surface them. The final
+            // empty-list check at the end handles the genuinely-nothing-to-show case.
 
             // Check multi-selection - only use it if ALL multi-selected caravans are on the cursor tile
             // This allows merge when caravans are together, but shows single caravan gizmos when apart
@@ -395,6 +396,16 @@ namespace RimWorldAccess
                 }
             }
 
+            // Add the global, owner-less world-view gizmos that vanilla's WorldUIOnGUI draws
+            // alongside the selected objects' gizmos: the context caravan command (Form/Send
+            // caravan), world-grid commands, and the cursor tile's own gizmos. Skipped while a
+            // multi-caravan merge selection is active (the caravan command suppresses itself then
+            // anyway, and we must not disturb that selection).
+            if (!hasMultiSelection)
+            {
+                TryAddGlobalWorldGizmos();
+            }
+
             // Sort by Order property (lower values appear first)
             availableGizmos = availableGizmos
                 .OrderBy(g => g.Order)
@@ -402,9 +413,16 @@ namespace RimWorldAccess
 
             if (availableGizmos.Count == 0)
             {
-                string objName = objectsToUse.FirstOrDefault()?.LabelCap
-                    ?? "RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName".Translate().ToString();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsForObject".Loc(objName));
+                if (objectsToUse.Count == 0)
+                {
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoWorldObject".Loc());
+                }
+                else
+                {
+                    string objName = objectsToUse.FirstOrDefault()?.LabelCap
+                        ?? "RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName".Translate().ToString();
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoCommandsForObject".Loc(objName));
+                }
                 return;
             }
 
@@ -416,6 +434,72 @@ namespace RimWorldAccess
 
             // Announce the first gizmo (will include object name as prefix)
             AnnounceCurrentGizmo();
+        }
+
+        /// <summary>
+        /// Collects the global, owner-less world-view gizmos that vanilla draws in the world
+        /// command bar (<see cref="WorldGizmoUtility.WorldUIOnGUI"/>): the single context-sensitive
+        /// caravan command (Form caravan when a player base is at the cursor/selected, Send caravan
+        /// for a reachable tile), any world-grid commands, and the cursor tile's own gizmos. These
+        /// have no owning <see cref="WorldObject"/>, so they are appended directly to the list and
+        /// execute via their own action delegate. The caravan command returns nothing when a
+        /// reformable object is selected (its own Reform gizmo is already collected from the object).
+        /// </summary>
+        private static void TryAddGlobalWorldGizmos()
+        {
+            // Use the navigation cursor tile when available, else fall back to the game selection.
+            PlanetTile tile = (WorldNavigationState.IsActive && WorldNavigationState.CurrentSelectedTile.Valid)
+                ? WorldNavigationState.CurrentSelectedTile
+                : (Find.WorldSelector?.SelectedTile ?? PlanetTile.Invalid);
+
+            // Sync the game's selected tile to the cursor so the context caravan command is computed
+            // for where the user actually is (Form vs Send depends on the tile/selection).
+            if (Find.WorldSelector != null && tile.Valid)
+            {
+                Find.WorldSelector.SelectedTile = tile;
+            }
+
+            // The single context caravan command (Form caravan / Send caravan).
+            if (WorldGizmoUtility.TryGetCaravanGizmo(out Gizmo caravanGizmo))
+            {
+                AddGlobalWorldGizmoIfNew(caravanGizmo);
+            }
+
+            // World-grid commands.
+            if (Find.WorldGrid != null)
+            {
+                foreach (Gizmo gizmo in Find.WorldGrid.GetGizmos())
+                {
+                    AddGlobalWorldGizmoIfNew(gizmo);
+                }
+            }
+
+            // Gizmos owned by the cursor tile itself (planet-layer / landmark actions).
+            if (tile.Valid)
+            {
+                foreach (Gizmo gizmo in tile.Tile.GetGizmos())
+                {
+                    AddGlobalWorldGizmoIfNew(gizmo);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds a global (owner-less) world gizmo to the list if it is visible, not filtered, and
+        /// not already present (deduped by label). No <see cref="gizmoOwners"/> entry is recorded —
+        /// these commands carry their own action and need no owning object selected to execute.
+        /// </summary>
+        private static void AddGlobalWorldGizmoIfNew(Gizmo gizmo)
+        {
+            if (gizmo == null || !gizmo.Visible || ShouldSkipGizmo(gizmo))
+                return;
+
+            string label = (gizmo as Command)?.Label ?? gizmo.GetType().Name;
+            bool isDuplicate = availableGizmos.Any(g =>
+                ((g as Command)?.Label ?? g.GetType().Name) == label);
+
+            if (!isDuplicate)
+                availableGizmos.Add(gizmo);
         }
 
         /// <summary>
@@ -511,6 +595,11 @@ namespace RimWorldAccess
                 return;
 
             Gizmo selectedGizmo = availableGizmos[selectedGizmoIndex];
+
+            // Capture the selected planet layer so we can detect a world "View layer" gizmo, whose
+            // action only sets PlanetLayer.Selected. After execution we follow it like our Tab cycle
+            // (move the cursor onto the new layer and announce) — otherwise it appears to do nothing.
+            PlanetLayer layerBeforeExecute = PlanetLayer.Selected;
 
             // Resolve lazy properties (Label, Disabled, disabledReason) with the owner
             // selected so they don't read stale Find.Selector state.
@@ -907,8 +996,17 @@ namespace RimWorldAccess
                 // change the world object list, so selection context is no longer valid
                 WorldNavigationState.ClearMultiSelection();
 
+                // Detect a planet-layer switch (e.g. the world "View orbit" gizmo, whose action only
+                // sets PlanetLayer.Selected) so we can follow it after closing.
+                bool layerChanged = PlanetLayer.Selected != layerBeforeExecute;
+
                 // Always close after executing (per user requirement)
                 Close();
+
+                // Follow a layer switch the same way Tab does: cursor onto the new layer + announce.
+                // Done after Close() so world navigation is active and this is the final announcement.
+                if (layerChanged)
+                    WorldNavigationState.OnSelectedLayerChanged();
             }
             finally
             {

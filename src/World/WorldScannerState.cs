@@ -334,7 +334,7 @@ namespace RimWorldAccess
         /// <paramref name="targetTile"/>. Shared by the instance-based <see cref="GetDirectionFrom"/>
         /// and the closest-tile announcements that point at a region's nearest edge tile.
         /// </summary>
-        public string GetDirectionFromTile(PlanetTile fromTile, PlanetTile targetTile)
+        public static string GetDirectionFromTile(PlanetTile fromTile, PlanetTile targetTile)
         {
             if (!fromTile.Valid || !targetTile.Valid || Find.WorldGrid == null)
                 return "";
@@ -351,7 +351,7 @@ namespace RimWorldAccess
             return GetCompassDirection(fromPos, direction);
         }
 
-        private string GetCompassDirection(Vector3 fromPos, Vector3 direction)
+        private static string GetCompassDirection(Vector3 fromPos, Vector3 direction)
         {
             Vector3 up = fromPos.normalized;
             Vector3 north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
@@ -373,7 +373,7 @@ namespace RimWorldAccess
             return "RimWorldAccess.Map.Direction.Northwest".Translate();
         }
 
-        private string GetRelativeDirection(Vector3 fromPos, Vector3 direction)
+        private static string GetRelativeDirection(Vector3 fromPos, Vector3 direction)
         {
             Vector3 up = fromPos.normalized;
             Vector3 north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
@@ -2318,7 +2318,7 @@ namespace RimWorldAccess
                 // then announce the destination tile in the same utterance — the world has no
                 // terrain sound, so the spoken tile is what confirms you arrived.
                 float dist = Find.WorldGrid.ApproxDistanceInTiles(originTile, targetTile);
-                string dir = item.GetDirectionFromTile(originTile, targetTile);
+                string dir = WorldScannerItem.GetDirectionFromTile(originTile, targetTile);
                 string prefix = !string.IsNullOrEmpty(dir)
                     ? "RimWorldAccess.WorldScanner.JumpedTilesToCenter".Translate(dist.ToString("F0"), dir).ToString()
                     : "RimWorldAccess.WorldScanner.JumpedToCenter".Translate().ToString();
@@ -2357,7 +2357,7 @@ namespace RimWorldAccess
                 target = new PlanetTile(ClumpNav.NearestMember(members, originTile.tileId, WorldTileMetric, out _), -1);
 
             float distance = item.GetDistance(originTile, currentInstanceIndex);
-            string direction = item.GetDirectionFromTile(originTile, target);
+            string direction = WorldScannerItem.GetDirectionFromTile(originTile, target);
 
             TolkHelper.Speak("RimWorldAccess.WorldScanner.DirectionDistance".Loc(direction, distance.ToString("F0")), SpeechPriority.Normal);
         }
@@ -2447,7 +2447,7 @@ namespace RimWorldAccess
                     announceTile = new PlanetTile(nearestId, -1);
                 }
 
-                direction = item.GetDirectionFromTile(originTile, announceTile);
+                direction = WorldScannerItem.GetDirectionFromTile(originTile, announceTile);
 
                 // Use a capped + memoized traversal distance for the announcement so rapid
                 // Page Up/Down stays responsive on big worlds. Fuel / launch range are
@@ -2587,7 +2587,7 @@ namespace RimWorldAccess
                 announceTile = new PlanetTile(nearestId, -1);
             }
 
-            string direction = item.GetDirectionFromTile(originTile, announceTile);
+            string direction = WorldScannerItem.GetDirectionFromTile(originTile, announceTile);
 
             // Capped + memoized traversal distance for responsive instance navigation.
             bool distanceCapped = false;

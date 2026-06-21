@@ -4,6 +4,7 @@ using System.Reflection;
 using Verse;
 using Verse.Sound;
 using RimWorld;
+using RimWorld.Planet;
 using UnityEngine;
 
 namespace RimWorldAccess
@@ -48,6 +49,11 @@ namespace RimWorldAccess
             selectedIndex = System.Math.Max(0, System.Math.Min(startIndex, options.Count - 1));
             isActive = true;
             givesColonistOrders = colonistOrders;
+            // The context-menu lesson is taught earlier (on first colonist selection), before the
+            // player would think to press ]; here we only teach generic menu navigation, and only
+            // for non-order menus, so it lands on a screen the lesson actually describes.
+            if (!colonistOrders)
+                DocsTeacher.Teach("RWA_MenuNavigation");
             announceOnExecute = announceSelection;
             typeahead.ClearSearch();
 
@@ -120,6 +126,13 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Capture the world cursor BEFORE running the option. A world "Jump to..." option moves
+            // the cursor to the destination during its action (via CameraJumperPatch), so we need the
+            // pre-jump tile to compute and announce the move delta afterward.
+            PlanetTile worldJumpOrigin = WorldNavigationState.IsActive
+                ? WorldNavigationState.CurrentSelectedTile
+                : PlanetTile.Invalid;
+
             // Restore saved selection before executing - some actions check Find.Selector.SelectedObjects
             // Find.Selector throws during chargen (no map), so guard with CurrentMap check
             if (savedSelection != null && Find.CurrentMap != null)
@@ -165,7 +178,14 @@ namespace RimWorldAccess
             // already announced the same label as part of "<label>. Navigate with arrow keys...".
             // Without this guard the user hears the option label twice back-to-back.
             bool targetingStarted = Find.Targeter?.IsTargeting == true;
-            if (!ArchitectState.IsInPlacementMode && announceOnExecute && !targetingStarted)
+
+            // If this menu was the world "Jump to..." menu (or any world action that relocated the
+            // selection/camera), follow it with our navigation cursor and announce the move distance,
+            // direction, and full tile info as if the user had arrowed there. No-op otherwise; when
+            // it announces, suppress the generic "Selected" announcement to avoid speaking twice.
+            bool worldJumpAnnounced = WorldNavigationState.FollowExternalJumpAndAnnounce(worldJumpOrigin);
+
+            if (!ArchitectState.IsInPlacementMode && announceOnExecute && !targetingStarted && !worldJumpAnnounced)
             {
                 if (shiftHeld && givesColonistOrders)
                     TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.SelectedQueued".Loc(selectedOption.Label, "Queued".Translate()));

@@ -500,9 +500,24 @@ namespace RimWorldAccess
             }
 
             PlanetLayer.Selected = nextLayer;
+            OnSelectedLayerChanged();
+        }
+
+        /// <summary>
+        /// Follows a planet-layer change: moves the navigation cursor onto the newly selected layer
+        /// (closest tile to where we were) and announces the switch. Call this after
+        /// <see cref="PlanetLayer.Selected"/> has been changed, whether by our own Tab cycle
+        /// (<see cref="CyclePlanetLayer"/>) or by executing a world "View layer" gizmo from the
+        /// gizmo browser, whose action only sets the selected layer and would otherwise leave our
+        /// cursor stranded on the old layer with no announcement.
+        /// </summary>
+        public static void OnSelectedLayerChanged()
+        {
+            var newLayer = PlanetLayer.Selected;
+            if (newLayer == null) return;
 
             // Find the closest tile on the new layer to maintain position
-            var closestTile = nextLayer.GetClosestTile_NewTemp(currentSelectedTile);
+            var closestTile = newLayer.GetClosestTile_NewTemp(currentSelectedTile);
             if (closestTile.Valid)
             {
                 currentSelectedTile = closestTile;
@@ -513,12 +528,64 @@ namespace RimWorldAccess
                 currentSelectedTile = PlanetTile.Invalid;
             }
 
-            string layerName = nextLayer.Def.LabelCap;
-            bool isSpace = nextLayer.Def.isSpace;
+            string layerName = newLayer.Def.LabelCap;
+            bool isSpace = newLayer.Def.isSpace;
             TolkHelper.Speak(isSpace
                 ? "RimWorldAccess.World.SwitchedToLayerSpace".Loc(layerName)
                 : "RimWorldAccess.World.SwitchedToLayer".Loc(layerName));
             AnnounceTile();
+        }
+
+        /// <summary>
+        /// Follows an external world jump — e.g. the game's "Jump to..." menu surfaced through the
+        /// gizmo browser — and announces the move distance, direction, and full tile info, exactly as
+        /// if the user had arrowed there. The cursor itself is already moved to the destination by
+        /// <c>CameraJumperPatch</c> (which runs during the jump), so this only needs the pre-jump
+        /// <paramref name="origin"/> — captured by the caller before triggering the jump — to compute
+        /// the delta. Returns true when it announced, so the caller can suppress its own generic
+        /// selection announcement. No-op (returns false) when navigation is inactive, a dialog opened
+        /// (e.g. the caravan form dialog from a Send caravan pick), or the cursor did not move.
+        /// </summary>
+        public static bool FollowExternalJumpAndAnnounce(PlanetTile origin)
+        {
+            if (!isInitialized || !IsActive)
+                return false;
+
+            // A window that blocks camera motion (e.g. the caravan form dialog) means this was an
+            // action, not a jump — don't hijack it with a "jumped" announcement.
+            if (Find.WindowStack != null && Find.WindowStack.WindowsPreventCameraMotion)
+                return false;
+
+            // The destination is wherever the cursor now sits (CameraJumperPatch synced it during the
+            // jump). If it did not move from the captured origin, this was not a jump.
+            PlanetTile dest = currentSelectedTile;
+            if (!dest.Valid || !origin.Valid || dest == origin)
+                return false;
+
+            // The jump may cross planet layers (e.g. surface to orbit); keep the selected layer in
+            // sync, and reset camera rotation so arrow-key compass directions stay correct.
+            if (dest.Layer != PlanetLayer.Selected)
+                PlanetLayer.Selected = dest.Layer;
+            if (Find.WorldCameraDriver != null)
+                Find.WorldCameraDriver.RotateSoNorthIsUp();
+
+            // Lead with the move delta, then the full destination tile in the same utterance — the
+            // world has no terrain sound, so the spoken tile is what confirms arrival. Distance and
+            // direction are only meaningful within a single layer.
+            string prefix = null;
+            if (Find.WorldGrid != null && origin.Layer == dest.Layer)
+            {
+                float dist = Find.WorldGrid.ApproxDistanceInTiles(origin, dest);
+                if (dist >= 0.5f)
+                {
+                    string dir = WorldScannerItem.GetDirectionFromTile(origin, dest);
+                    prefix = !string.IsNullOrEmpty(dir)
+                        ? "RimWorldAccess.World.JumpedTilesDirection".Translate(dir, dist.ToString("F0")).ToString()
+                        : "RimWorldAccess.World.JumpedTiles".Translate(dist.ToString("F0")).ToString();
+                }
+            }
+            AnnounceTile(prefix);
+            return true;
         }
 
         /// <summary>

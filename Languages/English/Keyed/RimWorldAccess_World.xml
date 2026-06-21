@@ -72,6 +72,9 @@
   <RimWorldAccess.World.MultiSelectDifferentTiles>You can't be in two places at once! Selected caravans are on different tiles.</RimWorldAccess.World.MultiSelectDifferentTiles>
   <RimWorldAccess.World.JumpedToMultipleCaravans>Jumped to {0} selected caravans. {1}</RimWorldAccess.World.JumpedToMultipleCaravans>
   <RimWorldAccess.World.JumpedToCaravan>Jumped to {0}. {1}</RimWorldAccess.World.JumpedToCaravan>
+  <!-- Lead-in spoken when the world "Jump to..." menu moves the cursor. {0} = direction, {1} = tile count. -->
+  <RimWorldAccess.World.JumpedTilesDirection>Jumped {0} {1} tiles</RimWorldAccess.World.JumpedTilesDirection>
+  <RimWorldAccess.World.JumpedTiles>Jumped {0} tiles</RimWorldAccess.World.JumpedTiles>
   <RimWorldAccess.World.NoCaravanSelectedHint>No caravan selected. Use comma or period to cycle through caravans first.</RimWorldAccess.World.NoCaravanSelectedHint>
   <RimWorldAccess.World.CycleCaravanSelected>{0}, {1}, selected, {2} of {3}</RimWorldAccess.World.CycleCaravanSelected>
   <RimWorldAccess.World.CycleCaravanNotSelected>{0}, {1}, {2} of {3}</RimWorldAccess.World.CycleCaravanNotSelected>
