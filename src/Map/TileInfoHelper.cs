@@ -239,7 +239,8 @@ namespace RimWorldAccess
 
             List<Thing> things = position.GetThingList(map);
             var pawns = things.OfType<Pawn>().ToList();
-            var items = things.Where(t => !(t is Pawn) && !(t is Building) && !(t is Plant)).ToList();
+            var items = things.Where(t => !(t is Pawn) && !(t is Building) && !(t is Plant)
+                && !(t is Mote) && t.def.category != ThingCategory.Mote).ToList();
 
             if (pawns.Count == 0 && items.Count == 0)
                 return "RimWorldAccess.Map.Tile.Items.None".Translate();
@@ -266,7 +267,25 @@ namespace RimWorldAccess
             if (items.Count > displayLimit)
                 builder.Add("RimWorldAccess.Map.Tile.Items.MoreSuffix".Translate(items.Count - displayLimit));
 
-            return builder.Build();
+            string result = builder.Build();
+
+            // When a drafted shooter is selected, follow the tile contents with the
+            // same ranged hit-chance breakdown a sighted player sees on mouse-over.
+            // Each report names its own target, so it stays clear with several pawns
+            // on the tile. Returns null unless the game's gating applies (drafted,
+            // ranged weapon, target is not the shooter), leaving other readouts
+            // untouched. Placed last so it never runs into the item list.
+            var reports = new List<string>();
+            foreach (var pawn in pawns)
+            {
+                string shotReport = ShotReportHelper.GetShotReportFor(pawn);
+                if (shotReport != null)
+                    reports.Add(shotReport);
+            }
+            if (reports.Count > 0)
+                result += ". " + string.Join(". ", reports);
+
+            return result;
         }
 
         /// <summary>

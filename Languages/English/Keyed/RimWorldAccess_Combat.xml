@@ -57,6 +57,17 @@
   <RimWorldAccess.Combat.Target.SelectDestination>Now select destination</RimWorldAccess.Combat.Target.SelectDestination>
   <RimWorldAccess.Combat.Target.SelectDestinationInRange>Now select destination within {0} tiles</RimWorldAccess.Combat.Target.SelectDestinationInRange>
 
+  <!-- Ranged shot report: press 1 over a target with a drafted shooter
+       selected. The contributing-factor breakdown is RimWorld's own localized
+       ShotReport.GetTextReadout() text; we only supply the headline that
+       replaces vanilla's awkward "Shot by X:" line, and the cannot-hit line.
+       Headline: {0} = target label, {1} = total hit-chance percent.
+       HeadlineGeneric is the fallback for miss-radius weapons (e.g. grenades)
+       whose readout does not lead with a single hit-chance figure. -->
+  <RimWorldAccess.Combat.ShotReport.Headline>{0}, {1} chance to hit</RimWorldAccess.Combat.ShotReport.Headline>
+  <RimWorldAccess.Combat.ShotReport.HeadlineGeneric>{0}</RimWorldAccess.Combat.ShotReport.HeadlineGeneric>
+  <RimWorldAccess.Combat.ShotReport.CannotHit>{0}: cannot hit</RimWorldAccess.Combat.ShotReport.CannotHit>
+
   <!-- Multi-select attack feedback. Whole-phrase keys per semantic case so
        word order and subject-verb agreement can be localized naturally.
          Everyone:  all selected pawns accepted the order.
