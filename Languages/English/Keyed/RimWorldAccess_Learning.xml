@@ -64,4 +64,12 @@
   <!-- Patch announcement: fires when the game auto-activates a new concept.
        {0} = vanilla "LearningHelper" title, {1} = the concept's LabelCap. -->
   <RimWorldAccess.Learning.NewLessonAnnouncement>{0}: {1}</RimWorldAccess.Learning.NewLessonAnnouncement>
+
+  <!-- Hint appended to the FIRST few new-lesson announcements (up to 3, across a
+       player's onboarding) so they learn how to actually read the lessons being
+       announced. Shift Slash opens the Learning Helper MENU (where lessons are
+       chosen), not the announced lesson directly — hence "this and other lessons".
+       The Learning Helper chapter can't teach this itself (you'd have to open it
+       to read that). -->
+  <RimWorldAccess.Learning.HelperHint>Press Shift Slash, the question mark, to read this and other lessons.</RimWorldAccess.Learning.HelperHint>
 </LanguageData>

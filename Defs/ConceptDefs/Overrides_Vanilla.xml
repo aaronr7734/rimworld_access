@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Defs>
+
+  <!--
+    RimWorld Access read-time help-text corrections for base-game / DLC concepts.
+
+    Each entry replaces a vanilla ConceptDef's help text when the Learning Helper
+    reads it (see src/Learning/ConceptHelpOverrides.cs). RimWorld Access is the only
+    way our users experience the game, so the mod's documentation is authoritative:
+    where vanilla help text is wrong or incomplete for keyboard / screen-reader play,
+    we correct it here rather than duplicating the concept as a new chapter.
+
+    <concept> is the target defName as a plain string, so overrides for DLC concepts
+    cause no load error when that DLC is absent - the override simply never matches.
+    Paragraphs are separated by literal \n\n (converted to newlines at XML load).
+
+    This file is the source of truth for these overrides. English lives here;
+    translations go in
+    Languages/<Lang>/DefInjected/RimWorldAccess.ConceptHelpOverrideDef/.
+  -->
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_CameraDolly</defName>
+    <concept>CameraDolly</concept>
+    <label>Map navigation</label>
+    <helpText>The map is a grid of square tiles, and a cursor marks where you are. The camera follows the cursor as it moves.\n\nMove the cursor one tile at a time with the arrow keys. Each move tells you the tile you land on: its terrain, and anything on it such as a colonist, plant, item, or building.\n\nFor more about a tile, press a number key from 1 to 7. To find something in particular, press Z to search the map by name, then use the scanner to step through the matches and jump to one.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_CameraZoom</defName>
+    <concept>CameraZoom</concept>
+    <helpText>Adjusting the game's zoom level is not supported by Rimworld Access, because the zoom level has a significant impact on the game's audio and stereo field.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_TimeControls</defName>
+    <concept>TimeControls</concept>
+    <helpText>RimWorld runs in real time, but you are in control of the clock. You can pause whenever you like and let time run again when you are ready, and you are meant to do this often. When a fight breaks out or things feel hectic, do not hesitate to pause, take stock, and give your orders with all the time you need.\n\nPress Space to pause or unpause. Press Shift 1 for normal speed, Shift 2 for fast, and Shift 3 for super fast; any of these also unpauses. Press T to hear the date, time, and weather, or Alt T to hear the current speed and whether the game is paused.\n\nThe game begins paused. At the very start your colonists have not landed yet, so press Space to unpause and you will hear their drop ships coming down. Once those sounds stop, your colonists are on the ground, and you can press Space again to pause and explore your surroundings at your own pace.\n\nOnce everyone has landed, a few new lessons will appear here in the Learning Helper for you to read through.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Pause</defName>
+    <concept>Pause</concept>
+    <helpText>Press Space to pause or unpause the game. You can give orders while paused.\n\nRemember this: if things get hectic, just press Space.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Stockpiles</defName>
+    <concept>Stockpiles</concept>
+    <helpText>Your colonists need somewhere to store items.\n\nPress Tab to open the Architect menu, type 'stock' to jump to the stockpile zone, and press Enter. Set one corner with Space, move to the opposite corner, Space again, then Enter to create it.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Forbidding</defName>
+    <concept>Forbidding</concept>
+    <helpText>Colonists will not interact with items marked forbidden, and everything you arrive with starts forbidden.\n\nTo free everything at once, press Alt F on the map; the mod says how many items were unforbidden. To toggle a single item, put the cursor on it and press F.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_GrowingFood</defName>
+    <concept>GrowingFood</concept>
+    <helpText>To grow food, place a growing zone. Press Tab to open the Architect menu, type 'grow' to jump to the growing-zone designator, and press Enter.\n\nPlace it like a stockpile: Space on one corner, Space on the opposite corner, then Enter to confirm. Growing zones can only go on fertile ground.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Alerts</defName>
+    <concept>Alerts</concept>
+    <helpText>Alerts tell you about issues that need your attention, such as a colonist starving or a fire.\n\nPress L to open the list of current letters and alerts. Arrow through them and press Enter to read one in full.\n\nPress Delete to dismiss a letter or message once you are done with it. Alerts cannot be dismissed by hand; they clear on their own once you deal with what caused them.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Mining</defName>
+    <concept>Mining</concept>
+    <helpText>You can designate rock and ore to be mined. Press Tab to open the Architect menu, start typing 'mine', and arrow to the Mine designator, then press Enter.\n\nTo mine a single tile, press Shift Tab to enter manual placement mode, move the cursor onto the rock, and press Space. To mine more, mark out a shape over the area with Space and Enter. Some ore deposits also offer a 'Mine vein' gizmo that designates the whole connected body of ore at once.\n\nMined rock can yield steel, gold, plasteel, and other useful materials.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_WorkTab</defName>
+    <concept>WorkTab</concept>
+    <helpText>You set each colonist's work in the Work tab. Press F1 to open it.\n\nColonists always do the highest-priority work they can find. If nobody has a work type enabled, or everyone is busy with higher-priority tasks, that work never gets done.\n</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ForbiddingDoors</defName>
+    <concept>ForbiddingDoors</concept>
+    <helpText>You can forbid doors so colonists and tame animals will not go through them. Put the cursor on the door and press F to toggle it forbidden.\n\nThis is not a door lock. Doors are always locked to enemies. Forbidding just tells your colonists not to use the door. A colonist in a mental break might use it anyway.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_FormCaravan</defName>
+    <concept>FormCaravan</concept>
+    <helpText>You can form a caravan to send colonists traveling across the planet.\n\nOpen the world map with F8, then press G to browse the commands for the tile you are on. On your own colony's tile you will find Form caravan. On a destination tile your colonists can reach, you will instead find Send caravan, which forms a caravan and routes it there. Choose either to begin picking who and what travels.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ReformCaravan</defName>
+    <concept>ReformCaravan</concept>
+    <helpText>After an encounter, such as a fight at an ambush site or a visit to another location, you can gather your colonists back into a caravan and move on.\n\nOpen the world map with F8, move to the tile you are camped on, and press G to browse its commands. Choose Reform caravan, then pick who and what comes along. You cannot reform while enemies are still active on the map.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_AnimalTaming</defName>
+    <concept>AnimalTaming</concept>
+    <helpText>You can mark a wild animal to be tamed. The quick way is on the map: put the cursor on the animal and press Shift N for the Tame gizmo. To mark it for hunting instead, press Shift O.\n\nYou can also press F5 to open the Wildlife tab and toggle the animal's Tame box with Enter or Space. Either way a handler approaches and offers it food. Check the revenge chance first: some animals respond violently to a failed taming attempt.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_AnimalTraining</defName>
+    <concept>AnimalTraining</concept>
+    <helpText>You can train a tame animal in specific skills. Press F4 to open the Animals tab.\n\nEach animal is a row, and trainable skills such as Tameness, Guard, and Attack are checkbox columns. Toggle one with Enter or Space to tell your handlers to begin. Animals need time between training sessions.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_InfoCard</defName>
+    <concept>InfoCard</concept>
+    <helpText>The info card shows detailed statistics about any item, person, or building.\n\nPut the cursor on it and press Alt I to open its info card. To open the card for the colonist selected on the bar, press Ctrl Alt I.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_StorageTab</defName>
+    <concept>StorageTab</concept>
+    <helpText>You configure stockpiles and storage buildings through their storage settings.\n\nPut the cursor on the stockpile and press Enter to open its inspect view, then choose 'Storage settings'. Expand item categories with the Right arrow to allow or forbid specific items, and set the storage priority. Colonists fill higher-priority storage first.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_HomeArea</defName>
+    <concept>HomeArea</concept>
+    <helpText>The home area tells your colonists which part of the map to clean, repair, and put out fires in.\n\nTo extend it, press Tab to open the Architect menu, start typing 'expand', and arrow to 'Expand home area' in the results, then press Enter. Mark it like a zone with Space and Enter. With the cursor inside a finished building, Ctrl A selects that whole room.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_HostilityResponse</defName>
+    <concept>HostilityResponse</concept>
+    <helpText>You can set how each colonist automatically responds to threats like predators: Flee, Attack, or Ignore.\n\nPress F3 to open the Assign tab, find the colonist in the table, and move with Left and Right to the Hostility Response column. Press Enter there to open a menu, then choose the response you want.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_AllowedAreas</defName>
+    <concept>AllowedAreas</concept>
+    <helpText>Colonists and colony animals can be confined to an allowed area, which keeps them out of everywhere else, for example keeping colonists indoors.\n\nThe quickest way is Alt A on the map, which assigns an area to the selected pawn. You can also press F2 for the Schedule tab and then Tab to its Allowed Areas section, where you set each colonist's area and paint the same area onto others by holding Shift with the arrow keys.\n\nTo draw or clear the areas themselves, press Tab to open the Architect menu, start typing 'allowed', and arrow to the Expand or Clear Allowed Area designator.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_MedicalOperations</defName>
+    <concept>MedicalOperations</concept>
+    <helpText>To schedule a medical operation, such as harvesting an organ or installing a prosthetic, open the colonist's inspection tree: put the cursor on them and press Enter, or press Ctrl Alt Enter when they are selected.\n\nExpand the Health category, open Operations with Enter, then choose 'Add operation' to pick from everything available for that pawn.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_TimeAssignments</defName>
+    <concept>TimeAssignments</concept>
+    <helpText>You can set what time of day each colonist works, rests, and sleeps. Press F2 to open the Schedule tab.\n\nPick a brush with a number key, move to an hour, and press Space or Enter to apply it. Hold Shift with Left or Right to paint across several hours.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ManualWorkPriorities</defName>
+    <concept>ManualWorkPriorities</concept>
+    <helpText>Choosing good work settings is one of the most important parts of RimWorld.\n\nPress F1 to open the Work tab, then press Alt M to switch to manual priority mode. Each colonist gets a number from 1 to 4 for each job; set it with the number keys, or 0 to turn a job off. The game runs all priority-1 jobs, then priority-2, and so on.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_TileInspector</defName>
+    <concept>TileInspector</concept>
+    <label>Tile information</label>
+    <helpText>As you move the cursor, the mod names what is on each tile. For a deeper look, press a number key to hear one kind of detail about the tile you are on.\n\n1 lists items and pawns. 2 describes the terrain. 3 covers plants and other harvestable resources. 4 gives light and temperature. 5 gives room stats. 6 gives power, and 7 gives areas.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Outfits</defName>
+    <concept>Outfits</concept>
+    <helpText>Colonists automatically wear the newest, highest-quality apparel they are allowed. You do not have to assign each piece by hand.\n\nTo restrict how a pawn dresses, press F3 to open the Assign tab, move to the Apparel column, and press the right bracket to create or edit an apparel policy. Editing opens a tree view where you allow or forbid clothing, then set each pawn's policy in that column.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_HistoryTab</defName>
+    <concept>HistoryTab</concept>
+    <helpText>You can see a record of your colony's fortunes over time. Press F9 to open the History screen, then arrow through the statistics and records.\n\nFrom there, Tab switches to the Messages archive of past letters and notifications. It lists only letters by default; press Alt M to include messages too.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ClickingMessages</defName>
+    <concept>ClickingMessages</concept>
+    <label>Messages</label>
+    <helpText>Press L to open the list of current letters and notifications. Arrow through them and press Enter to open one; from its detail view you can move to a 'Jump to' button and press Enter to go where it points.\n\nIn the History Messages archive, reached with F9 then Tab, press Alt J to jump straight to a message's location.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ShotAccuracyTooltip</defName>
+    <concept>ShotAccuracyTooltip</concept>
+    <helpText>Before you fire, you can hear your chance to hit a target. Select a drafted colonist who has a ranged weapon, move the cursor onto the target, and press 1.\n\nAlong with who is on that tile, you will hear the full shot report: your estimated hit chance and every factor behind it, such as shooting ability, the weapon, range, weather, and any cover protecting the target.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Rescuing</defName>
+    <concept>Rescuing</concept>
+    <helpText>To rescue a wounded person, first select a healthy colonist on the colonist bar. Then put the cursor on the wounded one, press the right bracket to open the context menu, and choose Rescue.\n\nIf you rescue a non-colonist, they will not necessarily join you. They may simply leave once healed. To make them join, capture and recruit them instead.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Capturing</defName>
+    <concept>Capturing</concept>
+    <helpText>When an enemy is downed but not dead, you can capture them.\n\nSelect a colonist, put the cursor on the incapacitated enemy, press the right bracket for the context menu, and choose Capture. You will need a spare bed marked for prisoner use.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_InteractingWithTraders</defName>
+    <concept>InteractingWithTraders</concept>
+    <helpText>Some visitors, such as trade caravans, can be interacted with.\n\nSelect a colonist, put the cursor on the visitor, press the right bracket for the context menu, and choose the trade option. Your colonist will walk over and the window will open once they arrive.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Drafting</defName>
+    <concept>Drafting</concept>
+    <helpText>To control colonists directly for combat, draft them: select the colonist and press R. Press R again to undraft.\n\nA drafted colonist does only what you tell them and can only take combat actions; those with weapons use them when possible. Do not leave colonists drafted forever, or they will starve and become unhappy.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_GroupGotoHereDragging</defName>
+    <concept>GroupGotoHereDragging</concept>
+    <helpText>You can spread drafted fighters into a line instead of bunching them on one tile.\n\nFirst multi-select the colonists you want, as covered in the multi-select lesson. Then press the right bracket and choose the formation option, shown as 'Go here' with '(formation)' after it. Set the line's two end points on the map with Space, then press Enter. Spreading out matters: bunched-up targets are easy to hit.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_BillsTab</defName>
+    <concept>BillsTab</concept>
+    <helpText>To make colonists work at a table, put the cursor on the workbench and press Enter to open its inspect screen, then go to the Bills tab.\n\nThere you say what meals to cook, what things to craft, and what creatures to butcher.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_OpeningComms</defName>
+    <concept>OpeningComms</concept>
+    <helpText>To communicate with other factions, select a colonist, put the cursor on the comms console, and press the right bracket for the context menu, then choose who to contact.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_DrugPolicies</defName>
+    <concept>DrugPolicies</concept>
+    <helpText>You can assign colonists to take specific drugs on a schedule, such as infection-blocking drugs regularly or a daily beer to stay happy.\n\nPress F3 to open the Assign tab, move to the Drugs column, and press right bracket to create or edit a drug policy, then assign that policy to colonists in the same column. Colonists may still take drugs outside their policy.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_SetGrowingZonePlant</defName>
+    <concept>SetGrowingZonePlant</concept>
+    <helpText>You can set what a growing zone grows, even trees.\n\nPut the cursor on the growing zone and press G to open its gizmo menu. Find the Plant gizmo, which reads 'Plant:' followed by the current crop, such as 'Plant: rice'. Press Enter on it, or use its Shift P shortcut, then choose the plant you want from the list.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Shelves</defName>
+    <concept>Shelves</concept>
+    <helpText>Shelves store more than open ground, and items on them never deteriorate.\n\nYou can link shelves into a group so they share one set of storage settings. With a shelf selected, press G to open its gizmo menu. Two of them link shelves: one links every shelf in the current room automatically, and the other lets you pick shelves anywhere on the map, marking each one with Space, then links them together.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Books</defName>
+    <concept>Books</concept>
+    <helpText>Colonists read books for recreation, skills, research, and more. To see a book's effects, put the cursor on it, press Enter to inspect it, and go to its Details tab.\n\nTo choose what colonists read, press F3 to open the Assign tab and set up reading policies on the Reading column. Store books in bookcases to boost nearby reading and research.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_MeditationSchedule</defName>
+    <concept>MeditationSchedule</concept>
+    <helpText>You can assign colonists to meditate on a schedule.\n\nPress F2 to open the Schedule tab. Meditate is usually the fifth brush, so press 5 to pick it; the mod names each brush as you press its number, so listen for Meditate in case a mod or DLC has shifted the order. Move to the hours you want and apply it with Space or Enter, or hold Shift with Left or Right to paint a range.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_MeditationDesiredPsyfocus</defName>
+    <concept>MeditationDesiredPsyfocus</concept>
+    <helpText>Colonists with a psylink have a desired psyfocus level. When their psyfocus drops below it, they meditate on their own during 'Anything' time.\n\nTo set the level, select the colonist, press G to open their gizmo menu, move to the psyfocus gizmo, and press the right bracket to raise or lower the desired level.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_WorldCameraMovement</defName>
+    <concept>WorldCameraMovement</concept>
+    <label>The world map</label>
+    <helpText>The world map is the planet you travel and settle on, and you first meet it when choosing where to land. The cursor and arrow keys work as on the colony map, and each tile announces its biome and a short summary of conditions.\n\nThe number keys read tile details: 1 gives growing conditions, 2 gives movement and travel cost, 3 gives disease frequency, 4 gives the time zone and global coordinates, and 5 gives the region and any landmarks.\n\nTo reach a kind of land without arrowing across the planet, use the scanner. On the world map it sorts the map into biomes, roads, and settlements. Hold Ctrl with Page Up or Page Down to switch between those categories, press Page Up or Page Down to step through the entries, and press Home to move the cursor to one. So to settle in temperate forest, switch to biomes, step to temperate forest, and press Home to land on the nearest patch.\n\nThe settlements category is not a list of places to settle; you cannot build on a tile a faction already owns, and settling within a few tiles of one costs goodwill. It is there to find the factions already on the map, reading each one's name and whether it is friendly or hostile, so you know who your neighbors will be.\n\nTo search by name instead, press Z, type, and press Enter; your matches feed the scanner, so step through them with the scanner keys and press Home to jump to one. To explore by hand, press R to jump to a random valid tile, or hold Ctrl with an arrow key to jump to the next biome boundary.\n\nWhen the cursor is on a tile you want, press Enter to settle there.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_EditingMemes</defName>
+    <concept>EditingMemes</concept>
+    <helpText>Memes are the broad ideas that shape an ideoligion, and you choose them when designing or reforming one.\n\nYou edit memes in the ideoligion builder. You meet it when setting up an ideoligion at the start of a game, and you can reform one later: press F12, open Ideology, and choose to reform.\n\nInside the builder the memes are a list. Arrow through them and press Enter to choose one; the builder names each meme and its effects as you go.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_EditingPrecepts</defName>
+    <concept>EditingPrecepts</concept>
+    <helpText>Precepts are an ideoligion's specific beliefs, such as how it views drugs, nudity, or slavery, and they are set in the ideoligion builder.\n\nReach the builder by designing an ideoligion at the start of a game, or reform an existing one in-game: press F12, open Ideology, and choose to reform.\n\nThe precepts are a list you move through with the arrow keys. Press Enter on one to change it; some precepts then open a further list of choices, such as which relic or ritual to use.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_PollutedTerrain</defName>
+    <concept>PollutedTerrain</concept>
+    <helpText>Polluted terrain gives your colonists toxic buildup whenever they stand on it, which is eventually lethal. The tile readout names polluted ground as you move the cursor, or press 2 to hear the terrain. To find it across the map, scan to the Terrain category, step to the Polluted group, and press Home to jump to the nearest polluted patch.\n\nTo clean it, place a pollution removal area: press Tab to open the Architect menu, start typing 'pollution', arrow to the Pollution removal area designator, and press Enter, then mark the area like a zone with Space and Enter. Colonists turn the pollution into toxic wastepacks, which must be kept frozen.\n\nNormal crops will not grow on polluted ground. Certain apparel, implants, and genes protect against toxic buildup.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Babies</defName>
+    <concept>Babies</concept>
+    <helpText>Babies cannot walk and must be cared for. Press F1 to open the Work tab and make sure someone has Childcare enabled; those colonists feed and tend babies.\n\nTo choose specific feeders, put the cursor on the baby, press Enter to inspect it, and go to its Feeding tab. Babies eat baby food, milk, and insect jelly; you can cook baby food at a stove or campfire.\n\nBabies sleep in beds or cribs, and a high-quality crib keeps them happy. They become children at age 3.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Children</defName>
+    <concept>Children</concept>
+    <helpText>As children grow they gain traits and passions and can take on more kinds of work. A child has a learning need, heard with Alt N or on its Needs tab, that fills during Recreation or Anything time on the schedule; the fuller it stays, the faster the child grows. Select the child and press G to read its growth gizmo, which reports the current growth tier, progress toward the next tier, the learning need, and what the next tier will offer.\n\nAt ages 7, 10, and 13 a child reaches a growth moment and a letter arrives. Open it to make your choices. It is a multi-tab screen: press Tab and Shift Tab to move between its sections. You always choose one trait; depending on the growth tier the child has reached, you may also choose one or more passions, though at the lowest tiers there are no passions to pick. Arrow through the options in a section, press Enter or Space to choose, and press Alt S to confirm. A well-fed learning need carries the child to a higher tier, which means more to choose from.\n\nChildren can only wear child-sized apparel, and they become adults at age 13.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Deathrest</defName>
+    <concept>Deathrest</concept>
+    <helpText>Colonists with the deathrest gene must periodically enter a deep coma called deathrest, lasting several days, inside a deathrest casket.\n\nBuild a deathrest casket from the Architect menu. A colonist with the gene enters deathrest on their own when their deathrest need runs low. To send one in yourself, select the colonist, put the cursor on the casket, press the right bracket for its context menu, and choose Start deathrest.\n\nWhile a colonist deathrests, the casket automatically links to compatible machines in the same room, granting bonuses such as extra hemogen or faster deathrest. A colonist can connect to only so many buildings at once, starting at one; deathrest capacity serums, bought from traders, raise that limit. The colonist also carries a deathrest gizmo, read with G, that reports how far along the deathrest is and which buildings are connected.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_GenesAndXenotypes</defName>
+    <concept>GenesAndXenotypes</concept>
+    <helpText>A xenotype is a set of genes defining a kind of alternate human, and most colonists are plain Baseliners. Genes come in two kinds: germline genes pass to children, while xenogenes do not and must be implanted with a xenogerm.\n\nDuring character creation you set each colonist's xenotype through their context menu. Put the cursor on the colonist and press the right bracket; one entry shows their current xenotype, usually 'Xenotype: Baseliner'. Press Enter on it to open a list where you pick a different xenotype, or choose the xenotype editor to build a custom one.\n\nTo create your own xenotype in-game, research xenogenetics, build a gene assembler, put the cursor on it, press G, and run the Recombine gizmo. In the editor, combine genepacks with the arrow keys and Tab, then press Alt S to begin.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Mechanitors</defName>
+    <concept>Mechanitors</concept>
+    <helpText>A mechanitor uses a mechlink implant to control mechanoids, which are organized into control groups. Select the mechanitor or one of its mechs and press G; each control group has its own gizmo. Open it to set the group's behavior mode and members, pressing Tab to move between the group's settings and its list of mechs.\n\nA mechanitor can only control so many mechs at once, limited by bandwidth, which special gear and band-node buildings raise.\n\nPress F4 to open the Mechs tab for an overview of every mechanoid, where you draft them, change their control group, set work modes, and assign allowed areas, much like the Animals tab.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_MechsInCaravans</defName>
+    <concept>MechsInCaravans</concept>
+    <helpText>When a mechanitor joins a caravan, their mechanoids travel along and enter a semi-dormant long-travel state to save power, so they can cross long distances without losing energy. On arrival they automatically return to their previous work mode.\n\nForm a caravan from the world map, covered in the caravan lesson: press F8, put the cursor on your colony, and press C.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_CapturingEntities</defName>
+    <concept>CapturingEntities</concept>
+    <helpText>When an entity is downed but still alive, you can capture it. Select a colonist, put the cursor on the entity, press the right bracket for the context menu, and choose Capture. You need an empty holding platform or holding spot, built from the Architect menu.\n\nOnce the entity is on a platform you can study it for Anomaly research. Tend its wounds so it survives.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ContainingEntities</defName>
+    <concept>ContainingEntities</concept>
+    <helpText>Entities try to escape, so hold them where containment strength is high. Strength rises with strong walls and doors, a fully roofed room, good lighting, electric inhibitors, and bioferrite plate floors; some of these need research.\n\nTo control how colonists handle an entity, put the cursor on its holding platform and press Enter to inspect it, then open the Entity tab. It is a single list of settings and readings. Move through the rows with Up and Down. On a setting row, Left and Right cycle the value: the Allow medicine level, and the containment mode, which runs from maintain only, to study, to release, to execute. Enter or Space toggles Extract bioferrite. The tab also reads the containment strength and the chance the entity escapes.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_StudyingEntities</defName>
+    <concept>StudyingEntities</concept>
+    <helpText>Colonists assigned to Dark study work will study entities and structures to earn Anomaly research. Press F1 to open the Work tab and enable Dark study for someone.\n\nTo study a structure such as the void monolith, put the cursor on it, press G, and toggle its Study gizmo; some entities must first be captured to a holding platform.\n\nStudying advances Anomaly research projects. Press F6 to open the Research menu; Anomaly projects appear as their own category in the research tree, which you expand with the Right arrow and then navigate like any other project.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_SuppressingEntities</defName>
+    <concept>SuppressingEntities</concept>
+    <helpText>Some entities grow more active over time, even while contained. If an entity's activity fills completely, it does something very dangerous, so it must be suppressed periodically. Wardens carry this out.\n\nWhether colonists suppress an entity is governed by its containment settings. Put the cursor on its holding platform, press Enter, and open the Entity tab to set the containment mode and check how active the entity has become.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_EntityCodex</defName>
+    <concept>EntityCodex</concept>
+    <helpText>The entity codex tracks which entities you have discovered. Discovering new ones reveals hidden Anomaly research, and once enough are found you can raise the void monolith's level.\n\nPress F12 and choose View entity codex to open it, alongside the factions and ideology menus. Arrow through your entries, start typing to jump to one, press Alt I to drill into a linked thing or research project, and press Escape to close.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_AnomalyResearch</defName>
+    <concept>AnomalyResearch</concept>
+    <helpText>Anomaly research advances by studying unnatural entities, not by ordinary research-bench work alone. It comes in two kinds: basic projects progress when you study any entity, while advanced projects need advanced entities.\n\nYou can have one basic and one advanced project active at once. Press F6 to open the Research tab and switch to the Anomaly tree to choose them. If no advanced project is set, advanced study feeds a basic one instead.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_ColonyGhouls</defName>
+    <concept>ColonyGhouls</concept>
+    <helpText>Ghouls are humans twisted by bioferrite. They regenerate injuries quickly, which makes them strong melee fighters, but they cannot do work.\n\nA ghoul cannot take normal jobs, but you can draft it and then command it in combat like any other pawn: select it and press R to draft, then order it to move and attack.\n\nGhouls eat only corpses and raw meat. If they go hungry, they can turn hostile.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_VoidProvocation</defName>
+    <concept>VoidProvocation</concept>
+    <helpText>Void provocation is a psychic ritual that discovers and captures new entities, letting you raise the void monolith and unlock research.\n\nPlace a psychic ritual spot from the Architect menu. Put the cursor on it, press G, and start the void provocation ritual. In the ritual dialog, assign the roles, then press Alt S to begin.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Gravship</defName>
+    <concept>Gravship</concept>
+    <helpText>A gravship is a built structure that flies, carrying everything on its substructure to a new map. Build gravship parts around a grav engine from the Architect menu; you need a pilot console, fuel tanks, and thrusters, unlocked by researching basic gravtech.\n\nTo launch, put the cursor on the grav engine or pilot console, press G, and run the launch gizmo. Pick a destination on the world map, with the scanner and a fuel readout, press F, to help; then a ritual dialog crews and starts the flight.\n\nLaunching destroys the current map unless you build a grav anchor. Substructure is limited; raise the limit with gravcores and gravlite panels, and remove it with the Remove foundation designator.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Orbit</defName>
+    <concept>Orbit</concept>
+    <helpText>From the world map you can switch between the planet's surface and orbit. Press Tab to cycle between the planet view and the orbital view; the mod names which view you land on.\n\nReach orbital locations with transport pods, shuttles, or gravships. Colonists need vacsuits or sealed armor to survive the vacuum of space.\n\nIf you travel by gravship, keep it well heated, enclose it with airtight walls and doors, and build oxygen pumps for breathable air. Avoid wood or stone for the outer shell. Plan your return before you launch: living in orbit is hard, and getting stranded is deadly.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+  <RimWorldAccess.ConceptHelpOverrideDef>
+    <defName>RWA_Ovr_Fishing</defName>
+    <concept>Fishing</concept>
+    <helpText>Colonists catch fish from a fishing zone. Press Tab to open the Architect menu, start typing 'fishing', arrow to the Fishing zone, and press Enter, then mark the zone over water like any other zone with Space and Enter.\n\nCreating the zone is not enough; you set its fishing order in its inspect screen, much like a bill at a workbench. Put the cursor on the zone, press Enter to inspect it, and open its fishing settings, where you set how much to catch and the lowest fish population to leave behind.\n\nLarger bodies of water hold more fish and fish better. Avoid overfishing: once a body of water drops under 300 fish, your colonists catch fewer. Colonists with a high Animals skill fish faster.</helpText>
+  </RimWorldAccess.ConceptHelpOverrideDef>
+
+</Defs>

@@ -80,7 +80,8 @@ namespace RimWorldAccess
             if (WindowlessInventoryState.IsActive
                 || GizmoNavigationState.IsActive
                 || WindowlessInspectionState.IsActive
-                || WindowlessFloatMenuState.IsActive)
+                || WindowlessFloatMenuState.IsActive
+                || LearningHelperState.IsActive)
                 return;
 
             if (ViewingModeState.IsActive && !ShapePlacementState.IsActive)

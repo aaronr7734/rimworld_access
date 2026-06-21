@@ -358,6 +358,8 @@ namespace RimWorldAccess
             if (newPosition != CurrentCursorPosition)
             {
                 CurrentCursorPosition = newPosition;
+                DocsTeacher.NotifyCursorMoved();        // tile-by-tile counter (jump-modes lesson)
+                DocsTeacher.NotifyCursorLanded(newPosition, map);
                 return true;
             }
 

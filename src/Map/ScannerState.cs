@@ -1202,6 +1202,11 @@ namespace RimWorldAccess
                 scannerDrivenJumpInProgress = false;
             }
 
+            // Fire cursor-landing contextual lessons (inspecting things / context menu) for a
+            // scanner Home jump, just as arrow movement does — otherwise jumping straight to a
+            // pawn or item via the scanner never triggered them.
+            DocsTeacher.NotifyCursorLanded(targetPosition, Find.CurrentMap);
+
             // Jump camera to position
             Find.CameraDriver.JumpToCurrentMapLoc(targetPosition);
 

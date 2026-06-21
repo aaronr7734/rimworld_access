@@ -75,6 +75,152 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Routes a key to the Learning Helper overlay while it is open. The Learning Helper is a
+        /// modal overlay: it consumes every key (Escape flows detail -> list -> close). Hoisted to
+        /// high priority (see the early dispatch in <see cref="Prefix"/>) so it wins navigation keys
+        /// over world/map handlers when opened on the site-selection or colony map.
+        /// </summary>
+        private static void HandleLearningHelperInput(KeyCode key)
+        {
+            bool handled = false;
+            var typeahead = LearningHelperState.Typeahead;
+
+            // Handle Home - jump to start of detail view or first item in list
+            if (key == KeyCode.Home)
+            {
+                if (LearningHelperState.IsInDetailView)
+                    LearningHelperState.JumpToDetailStart();
+                else
+                    LearningHelperState.JumpToFirst();
+                handled = true;
+            }
+            // Handle End - jump to end of detail view (buttons) or last item in list
+            else if (key == KeyCode.End)
+            {
+                if (LearningHelperState.IsInDetailView)
+                    LearningHelperState.JumpToDetailEnd();
+                else
+                    LearningHelperState.JumpToLast();
+                handled = true;
+            }
+            // Handle Escape - clear search FIRST, then go back (detail->list) or close menu.
+            // Stamp the frame so the underlying setup page's OnCancelKeyPressed can't also close
+            // it on this same press (IsActive may flip false mid-frame on the closing Escape).
+            else if (key == KeyCode.Escape)
+            {
+                LearningHelperState.NotifyEscapeConsumed();
+                if (typeahead.HasActiveSearch)
+                {
+                    typeahead.ClearSearchAndAnnounce();
+                    LearningHelperState.AnnounceWithSearch();
+                    handled = true;
+                }
+                else
+                {
+                    LearningHelperState.HandleEscape();
+                    handled = true;
+                }
+            }
+            // Handle Tab - toggle between active/all modes
+            else if (key == KeyCode.Tab)
+            {
+                LearningHelperState.ToggleMode();
+                handled = true;
+            }
+            // Handle Backspace for search (list view, either mode)
+            else if (key == KeyCode.Backspace && !LearningHelperState.IsInDetailView)
+            {
+                LearningHelperState.HandleBackspace();
+                handled = true;
+            }
+            // Handle Down arrow - navigate list or detail view
+            else if (key == KeyCode.DownArrow)
+            {
+                if (!LearningHelperState.IsInDetailView &&
+                    typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int newIndex = typeahead.GetNextMatch(LearningHelperState.CurrentIndex);
+                    if (newIndex >= 0)
+                    {
+                        LearningHelperState.SetCurrentIndex(newIndex);
+                        LearningHelperState.AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    LearningHelperState.SelectNext();
+                }
+                handled = true;
+            }
+            // Handle Up arrow - navigate list or detail view
+            else if (key == KeyCode.UpArrow)
+            {
+                if (!LearningHelperState.IsInDetailView &&
+                    typeahead.HasActiveSearch && !typeahead.HasNoMatches)
+                {
+                    int newIndex = typeahead.GetPreviousMatch(LearningHelperState.CurrentIndex);
+                    if (newIndex >= 0)
+                    {
+                        LearningHelperState.SetCurrentIndex(newIndex);
+                        LearningHelperState.AnnounceWithSearch();
+                    }
+                }
+                else
+                {
+                    LearningHelperState.SelectPrevious();
+                }
+                handled = true;
+            }
+            // Handle Left arrow - navigate to previous button
+            else if (key == KeyCode.LeftArrow)
+            {
+                LearningHelperState.SelectPreviousButton();
+                handled = true;
+            }
+            // Handle Right arrow - navigate to next button
+            else if (key == KeyCode.RightArrow)
+            {
+                LearningHelperState.SelectNextButton();
+                handled = true;
+            }
+            // Handle Enter - open detail view or activate button
+            else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
+            {
+                if (!LearningHelperState.IsInDetailView)
+                {
+                    LearningHelperState.EnterDetailView();
+                }
+                else if (LearningHelperState.IsInButtonsSection)
+                {
+                    LearningHelperState.ActivateCurrentButton();
+                }
+                handled = true;
+            }
+
+            if (handled)
+            {
+                Event.current.Use();
+                return;
+            }
+
+            // Handle typeahead characters for search (only in list view, all mode)
+            if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode)
+            {
+                bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
+                bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
+
+                if ((isLetter || isNumber) && !Event.current.alt)
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // Consume all other keys to prevent leakage
+            Event.current.Use();
+        }
+
+        /// <summary>
         /// Prefix patch that intercepts keyboard input for all accessibility features.
         /// </summary>
         [HarmonyPrefix]
@@ -82,6 +228,16 @@ namespace RimWorldAccess
         {
             // Process per-frame sound queue for bulk painting operations
             BulkSoundQueue.Update();
+
+            // Flush any coalesced new-lesson announcement. Runs every OnGUI pass (before the
+            // KeyDown early-return below) so same-frame concept activations combine into one
+            // utterance spoken on the following frame.
+            LearningHelperPatch.FlushPending();
+
+            // Resolve deferred contextual teaches that wait on world state (e.g. teach "selecting
+            // colonists" once the starting drop pods have actually landed). Runs every frame so it
+            // catches the change even while the game is otherwise idle.
+            DocsTeacher.PollDeferred();
 
             // Re-open seed-planting placement if a building-proximity confirmation dialog was
             // cancelled (must run every frame, not just on key events, to detect the close).
@@ -341,6 +497,20 @@ namespace RimWorldAccess
             // Skip if no actual key (Unity IMGUI quirk)
             if (key == KeyCode.None)
                 return;
+
+            // ===== PRIORITY -1.45: Learning Helper overlay owns all navigation keys =====
+            // The Learning Helper (Shift+Slash) opens over the world/site-selection map and the
+            // colony map. It is a modal overlay that must win arrows/Tab/Enter/Escape over world
+            // navigation, scanner search (the 'z' key), and other map handlers — so it is routed
+            // here, high in the chain. Crucially this sits AFTER the priority -1.5 character handler,
+            // so typeahead characters (including 'z') are dispatched to LearningHelperState.HandleTypeahead
+            // first; only non-character navigation keys reach here, where the catch-all consumes them
+            // so nothing leaks to the world map or the scanner.
+            if (LearningHelperState.IsActive)
+            {
+                HandleLearningHelperInput(key);
+                return;
+            }
 
             // ===== PRIORITY -1.1: Block ALL keys during pawn filter reroll =====
             // Only Escape is allowed (to cancel the reroll)
@@ -1388,7 +1558,11 @@ namespace RimWorldAccess
             // Route planner needs to handle Space (add waypoint), Delete (remove), E (ETA), Escape (close)
             // Space must be consumed to prevent pause/unpause
             // Note: Must check ProgramState first - Find.WorldRoutePlanner access crashes on main menu
-            if (Current.ProgramState == ProgramState.Playing && RoutePlannerState.IsActive)
+            // Yield while the gizmo menu (opened with G over the route planner) or its float menu is
+            // up, so Enter/Escape reach that overlay instead of being eaten here — same "parent yields
+            // to the child overlay it can spawn" rule as the page-below-dialog case.
+            if (Current.ProgramState == ProgramState.Playing && RoutePlannerState.IsActive
+                && !GizmoNavigationState.IsActive && !WindowlessFloatMenuState.IsActive)
             {
                 bool shift = Event.current.shift;
                 bool ctrl = Event.current.control;
@@ -4480,145 +4654,6 @@ namespace RimWorldAccess
                 }
             }
 
-            // ===== PRIORITY 4.772: Handle learning helper menu if active =====
-            if (LearningHelperState.IsActive)
-            {
-                bool handled = false;
-                var typeahead = LearningHelperState.Typeahead;
-
-                // Handle Home - jump to start of detail view or first item in list
-                if (key == KeyCode.Home)
-                {
-                    if (LearningHelperState.IsInDetailView)
-                        LearningHelperState.JumpToDetailStart();
-                    else
-                        LearningHelperState.JumpToFirst();
-                    handled = true;
-                }
-                // Handle End - jump to end of detail view (buttons) or last item in list
-                else if (key == KeyCode.End)
-                {
-                    if (LearningHelperState.IsInDetailView)
-                        LearningHelperState.JumpToDetailEnd();
-                    else
-                        LearningHelperState.JumpToLast();
-                    handled = true;
-                }
-                // Handle Escape - clear search FIRST, then go back (detail->list) or close menu
-                else if (key == KeyCode.Escape)
-                {
-                    if (typeahead.HasActiveSearch)
-                    {
-                        typeahead.ClearSearchAndAnnounce();
-                        LearningHelperState.AnnounceWithSearch();
-                        handled = true;
-                    }
-                    else
-                    {
-                        LearningHelperState.HandleEscape();
-                        handled = true;
-                    }
-                }
-                // Handle Tab - toggle between active/all modes
-                else if (key == KeyCode.Tab)
-                {
-                    LearningHelperState.ToggleMode();
-                    handled = true;
-                }
-                // Handle Backspace for search (only in list view, all mode only)
-                else if (key == KeyCode.Backspace && !LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode)
-                {
-                    LearningHelperState.HandleBackspace();
-                    handled = true;
-                }
-                // Handle Down arrow - navigate list or detail view
-                else if (key == KeyCode.DownArrow)
-                {
-                    if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode &&
-                        typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                    {
-                        int newIndex = typeahead.GetNextMatch(LearningHelperState.CurrentIndex);
-                        if (newIndex >= 0)
-                        {
-                            LearningHelperState.SetCurrentIndex(newIndex);
-                            LearningHelperState.AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        LearningHelperState.SelectNext();
-                    }
-                    handled = true;
-                }
-                // Handle Up arrow - navigate list or detail view
-                else if (key == KeyCode.UpArrow)
-                {
-                    if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode &&
-                        typeahead.HasActiveSearch && !typeahead.HasNoMatches)
-                    {
-                        int newIndex = typeahead.GetPreviousMatch(LearningHelperState.CurrentIndex);
-                        if (newIndex >= 0)
-                        {
-                            LearningHelperState.SetCurrentIndex(newIndex);
-                            LearningHelperState.AnnounceWithSearch();
-                        }
-                    }
-                    else
-                    {
-                        LearningHelperState.SelectPrevious();
-                    }
-                    handled = true;
-                }
-                // Handle Left arrow - navigate to previous button
-                else if (key == KeyCode.LeftArrow)
-                {
-                    LearningHelperState.SelectPreviousButton();
-                    handled = true;
-                }
-                // Handle Right arrow - navigate to next button
-                else if (key == KeyCode.RightArrow)
-                {
-                    LearningHelperState.SelectNextButton();
-                    handled = true;
-                }
-                // Handle Enter - open detail view or activate button
-                else if (key == KeyCode.Return || key == KeyCode.KeypadEnter)
-                {
-                    if (!LearningHelperState.IsInDetailView)
-                    {
-                        LearningHelperState.EnterDetailView();
-                    }
-                    else if (LearningHelperState.IsInButtonsSection)
-                    {
-                        LearningHelperState.ActivateCurrentButton();
-                    }
-                    handled = true;
-                }
-
-                if (handled)
-                {
-                    Event.current.Use();
-                    return;
-                }
-
-                // Handle typeahead characters for search (only in list view, all mode)
-                if (!LearningHelperState.IsInDetailView && LearningHelperState.ShowAllMode)
-                {
-                    bool isLetter = key >= KeyCode.A && key <= KeyCode.Z;
-                    bool isNumber = key >= KeyCode.Alpha0 && key <= KeyCode.Alpha9;
-
-                    if ((isLetter || isNumber) && !Event.current.alt)
-                    {
-                        Event.current.Use();
-                        return;
-                    }
-                }
-
-                // Consume all other keys to prevent leakage
-                Event.current.Use();
-                return;
-            }
-
             // ===== PRIORITY 4.776: Handle policy content editor if active =====
             if (PolicyEditorState.IsActive && !WindowlessDialogState.IsActive)
             {
@@ -6400,8 +6435,12 @@ namespace RimWorldAccess
             // ===== PRIORITY 7.15: Open learning helper with ? key (Shift+/ on US, remapped on non-US) =====
             if (key == KeyCode.Slash && (Event.current.shift || KeyboardHelper.WasCharacterRemapped))
             {
-                if (Current.ProgramState == ProgramState.Playing &&
-                    Find.CurrentMap != null &&
+                // Reachable both in-game (Playing, on a map) AND during world/site selection
+                // (Entry, world present, no map): the tutor runs in Entry too (UIRoot_Entry drives
+                // it), so a player choosing a landing site can read the lessons taught there.
+                bool inGame = Current.ProgramState == ProgramState.Playing && Find.CurrentMap != null;
+                bool inWorldSetup = Current.ProgramState == ProgramState.Entry && Find.World != null && Find.Tutor != null;
+                if ((inGame || inWorldSetup) &&
                     !TutorSystem.TutorialMode &&
                     TutorSystem.AdaptiveTrainingEnabled &&
                     (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
@@ -7045,6 +7084,12 @@ namespace RimWorldAccess
             }
 
             Log.Message($"Unforbid all: {unforbiddenCount} items unforbidden");
+
+            // Freeing the starting items is the natural lead-in to building: the player now has
+            // materials to work with and will want somewhere to store them. Teach the building
+            // concept (rooms vs. buildings, the Architect menu) before they go looking for it.
+            if (unforbiddenCount > 0)
+                DocsTeacher.Teach("RWA_BuildingBasics");
         }
 
         #region Info Card at Cursor

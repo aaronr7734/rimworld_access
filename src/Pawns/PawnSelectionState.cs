@@ -97,6 +97,11 @@ namespace RimWorldAccess
             if (colonistList.Count == 0)
                 return null;
 
+            // Selecting is taught up front (first map load). Now that a colonist is actually
+            // selected, prime the player on the quick status reads — Alt H, N, and M — for
+            // hearing how the selected colonist is doing.
+            DocsTeacher.Teach("RWA_CheckingColonists");
+
             // Find the index of the last pawn we selected
             int foundIndex = -1;
             if (lastSelectedPawn != null)
@@ -147,6 +152,11 @@ namespace RimWorldAccess
 
             if (colonistList.Count == 0)
                 return null;
+
+            // Selecting is taught up front (first map load). Now that a colonist is actually
+            // selected, prime the player on the quick status reads — Alt H, N, and M — for
+            // hearing how the selected colonist is doing.
+            DocsTeacher.Teach("RWA_CheckingColonists");
 
             // Find the index of the last pawn we selected
             int foundIndex = -1;

@@ -52,8 +52,10 @@ namespace RimWorldAccess
                     hasAnnouncedTitle = true;
                 }
 
-                // Handle keyboard input
-                if (Event.current.type == EventType.KeyDown && !WindowlessDialogState.IsActive)
+                // Handle keyboard input. Yield entirely while the Learning Helper overlay is open —
+                // it owns navigation keys and is routed first by UnifiedKeyboardPatch.
+                if (Event.current.type == EventType.KeyDown && !WindowlessDialogState.IsActive
+                    && !LearningHelperState.IsActive)
                 {
                     KeyCode keyCode = Event.current.keyCode;
                     bool shift = Event.current.shift;
@@ -244,6 +246,14 @@ namespace RimWorldAccess
             }
             hasAnnouncedTitle = false;
             patchActive = false;
+
+            // Choosing a landing site is the player's first time on the world map, so teach the
+            // world-map chapter (our corrected WorldCameraMovement) here. It already covers using
+            // the scanner to find a spot, so the dedicated scanner lesson is deferred to game start
+            // (see GameStartPatch) to avoid doubling up. Going through DocsTeacher (rather than
+            // relying on the game's own PostOpen teach) also clears a veteran player's stale
+            // completion of the vanilla concept so our re-authored version actually surfaces.
+            DocsTeacher.Teach("WorldCameraMovement");
         }
 
         // Clean up when page is closed
@@ -270,6 +280,12 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         static bool OnAcceptKeyPressed_Prefix(Page_SelectStartingSite __instance)
         {
+            // Block Enter from advancing the page while the Learning Helper overlay is open
+            // (Enter there opens a lesson / activates a button). This override does not call base,
+            // so the base Page.OnAcceptKeyPressed patch can't cover it.
+            if (LearningHelperState.IsActive)
+                return false;
+
             // Block Enter when a windowless dialog is active or was just closed this frame.
             // Prevents settlement validation from re-triggering when confirming a Dialog_MessageBox.
             if (WindowlessDialogState.IsActive || WindowlessDialogState.WasClosedThisFrame)

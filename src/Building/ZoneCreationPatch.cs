@@ -27,6 +27,11 @@ namespace RimWorldAccess
             if (!ZoneCreationState.IsInCreationMode)
                 return;
 
+            // Yield entirely to the Learning Helper overlay so it can be navigated (Tab toggles its
+            // mode, etc.) during zone placement instead of zone creation stealing those keys.
+            if (LearningHelperState.IsActive)
+                return;
+
             // Only process keyboard events
             if (Event.current.type != EventType.KeyDown)
                 return;

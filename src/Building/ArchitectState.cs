@@ -219,6 +219,10 @@ namespace RimWorldAccess
             string toolName = designator.Label;
             Log.Message($"Entered placement mode with designator: {toolName}");
 
+            // First time the player reaches placement mode, teach how it works (two corners with
+            // Space, Tab to change shape, etc.). Once-per-session + knowledge guards keep it quiet after.
+            DocsTeacher.Teach("RWA_PlacementMode");
+
             // Set the designator as selected in the game's DesignatorManager
             // The DesignatorManagerPatch.Postfix will handle entering accessible placement mode
             if (Find.DesignatorManager != null)

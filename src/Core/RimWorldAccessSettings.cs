@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -68,6 +69,24 @@ namespace RimWorldAccess
         /// </summary>
         public bool AnnounceForcedSlowdowns = false;
 
+        /// <summary>
+        /// How many times the "press Shift Slash to open the Learning Helper" hint has been
+        /// appended to a new-lesson announcement. The hint rides the first few lessons a player
+        /// ever sees (up to 3, across their onboarding) so a missed one still lands, then stops.
+        /// Persists per-player; not surfaced in the settings UI.
+        /// </summary>
+        public int LearningHintShownCount = 0;
+
+        /// <summary>
+        /// Concept defNames whose knowledge we have reset once so our re-authored documentation
+        /// gets taught. A vanilla concept the player completed long ago (e.g. WorldCameraMovement)
+        /// keeps its "learned" flag, which would suppress our overridden version forever. The first
+        /// time we contextually teach such an overridden concept, DocsTeacher clears that one
+        /// concept's knowledge and records it here so the reset happens exactly once per player —
+        /// our version is then taught, re-learned, and respected normally thereafter.
+        /// </summary>
+        public List<string> RetaughtOverriddenConcepts = new List<string>();
+
         public override void ExposeData()
         {
             Scribe_Values.Look(ref WrapNavigation, "WrapNavigation", false);
@@ -79,6 +98,10 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref AnnounceTerrain, "AnnounceTerrain", true);
             Scribe_Values.Look(ref DefaultWorkMenuView, "DefaultWorkMenuView", WorkMenuView.Focused);
             Scribe_Values.Look(ref AnnounceForcedSlowdowns, "AnnounceForcedSlowdowns", false);
+            Scribe_Values.Look(ref LearningHintShownCount, "LearningHintShownCount", 0);
+            Scribe_Collections.Look(ref RetaughtOverriddenConcepts, "RetaughtOverriddenConcepts", LookMode.Value);
+            if (Scribe.mode == LoadSaveMode.LoadingVars && RetaughtOverriddenConcepts == null)
+                RetaughtOverriddenConcepts = new List<string>();
             base.ExposeData();
         }
     }

@@ -1,4 +1,5 @@
 using HarmonyLib;
+using RimWorld;
 using RimWorld.Planet;
 using Verse;
 
@@ -18,6 +19,7 @@ namespace RimWorldAccess
         public static void Postfix()
         {
             MultiSelectState.Reset();
+            DocsTeacher.ResetSession();
 
             // Loading a save from in-game never passes through the main menu or a
             // CurrentMap == null frame, so no other reset path fires. The old session's
@@ -42,6 +44,25 @@ namespace RimWorldAccess
                     {
                         WorldNavigationState.Close();
                     }
+
+                    // Selecting a colonist is the prerequisite for every order, but at game start the
+                    // starting colonists are still descending in drop pods — the map has no spawned
+                    // colonists yet. Arm the lesson to fire the moment one actually lands.
+                    DocsTeacher.RequestSelectingColonistsWhenPresent();
+
+                    // Controlling time (speed up, pause, read the clock) is one of the first things a
+                    // new player needs — they must speed up time just to let the drop pods land. The
+                    // vanilla concept is normally surfaced by the desire engine, but our onboarding
+                    // lessons crowd out its slot while paused, so teach it explicitly here.
+                    DocsTeacher.Teach("TimeControls");
+
+                    // The scanner and forbid/allow lessons both wait until every starting colonist
+                    // has landed (all pod cargo down). The scanner surveys the whole map, so it is
+                    // most useful once everything is on the ground; forbidding likewise lets the
+                    // player free the map after the forbidden items arrive, not before. Firing in the
+                    // same poll frame coalesces them into one announcement, matching the time lesson's
+                    // promise that a few new lessons appear once everyone has landed.
+                    DocsTeacher.RequestMapBasicsWhenAllColonistsPresent();
                 }
             });
         }

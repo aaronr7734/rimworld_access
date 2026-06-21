@@ -40,7 +40,19 @@ namespace RimWorldAccess
         private static HashSet<int> visitedLines = new HashSet<int>();
         private static int totalContentLines = 0;
 
+        // Frame on which the Learning Helper last consumed an Escape. Used by
+        // LearningHelperPageInputPatch: on the final Escape that closes the menu, IsActive has
+        // already flipped to false by the time the WindowStack calls Page.OnCancelKeyPressed, so
+        // the instant-state check alone would let the underlying setup page close on that same
+        // press. This frame stamp keeps the page from closing on the menu-closing Escape.
+        private static int lastEscapeFrame = -1;
+
         public static bool IsActive => isActive;
+        public static bool EscapeConsumedThisFrame => lastEscapeFrame == Time.frameCount;
+
+        /// <summary>Records that the Learning Helper handled an Escape this frame.</summary>
+        public static void NotifyEscapeConsumed() => lastEscapeFrame = Time.frameCount;
+
         public static bool IsInDetailView => detailHelper?.IsInDetailView ?? false;
         public static bool IsInButtonsSection => detailHelper?.IsInButtonsSection ?? false;
         public static TypeaheadSearchHelper Typeahead => typeahead;
@@ -315,7 +327,7 @@ namespace RimWorldAccess
         /// </summary>
         public static void HandleBackspace()
         {
-            if (!showAllMode || detailHelper.IsInDetailView)
+            if (detailHelper.IsInDetailView)
                 return;
 
             if (typeahead.ProcessBackspace(GetItemLabels(), out int newIndex))
@@ -445,7 +457,7 @@ namespace RimWorldAccess
                 return;
 
             ConceptDef conc = concepts[currentIndex];
-            string label = conc.LabelCap;
+            string label = ConceptHelpOverrides.DisplayLabel(conc);
             string knowledge = GetKnowledgeText(conc);
             string position = MenuHelper.FormatPosition(currentIndex, concepts.Count);
             string searchInfo = typeahead.HasActiveSearch ? "RimWorldAccess.Learning.SearchSuffix".Translate(typeahead.SearchBuffer).ToString() : "";
@@ -553,7 +565,7 @@ namespace RimWorldAccess
                     if (concepts == null || currentIndex < 0 || currentIndex >= concepts.Count)
                         return "";
                     ConceptDef conc = concepts[currentIndex];
-                    return $"{conc.LabelCap}, {GetKnowledgeText(conc)}";
+                    return $"{ConceptHelpOverrides.DisplayLabel(conc)}, {GetKnowledgeText(conc)}";
                 },
                 getContentLineAnnouncement: (idx) =>
                 {
@@ -617,7 +629,7 @@ namespace RimWorldAccess
             }
 
             ConceptDef conc = concepts[currentIndex];
-            string label = conc.LabelCap;
+            string label = ConceptHelpOverrides.DisplayLabel(conc);
             string knowledge = GetKnowledgeText(conc);
             string position = MenuHelper.FormatPosition(currentIndex, concepts.Count);
 
@@ -626,7 +638,10 @@ namespace RimWorldAccess
 
         private static string[] SplitHelpText(ConceptDef conc)
         {
-            string text = conc.HelpTextAdjusted;
+            // RimWorld Access's corrected documentation is authoritative for our users, so
+            // prefer our read-time override (vanilla/DLC concepts we re-documented) and fall
+            // back to the game's own help text only when we have not overridden it.
+            string text = ConceptHelpOverrides.GetHelpText(conc) ?? conc.HelpTextAdjusted;
             if (string.IsNullOrEmpty(text))
                 return new string[] { "RimWorldAccess.Learning.NoHelpText".Translate().ToString() };
 
@@ -649,7 +664,7 @@ namespace RimWorldAccess
             if (concepts != null)
             {
                 foreach (var conc in concepts)
-                    labels.Add(conc.LabelCap);
+                    labels.Add(ConceptHelpOverrides.DisplayLabel(conc));
             }
             return labels;
         }
