@@ -54,6 +54,11 @@
     <LanguageFiles Include="Languages\**\*.xml" />
   </ItemGroup>
 
+  <!-- Def XML files (RimWorld Access documentation concepts, etc.) -->
+  <ItemGroup>
+    <DefFiles Include="Defs\**\*.xml" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Harmony reference - reference-only package (runtime provided by Harmony mod) -->
     <PackageReference Include="Lib.Harmony" Version="2.3.3">
@@ -62,6 +67,14 @@
 
     <!-- RimWorld reference assemblies (includes game and Unity references) -->
     <PackageReference Include="Krafs.Rimworld.Ref" Version="1.6.4633" />
+  </ItemGroup>
+
+  <!-- DEBUG-ONLY: Roslyn scripting for the in-game dev bridge (src/DevBridge).
+       Lets external tooling eval C# against the live game. The package and all its
+       runtime DLLs are confined to Debug builds (matching the #if DEBUG guards on the
+       source) and are NEVER deployed to the Release package, so players never get them. -->
+  <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0" />
   </ItemGroup>
 
   <!-- Post-build: verify translation-key integrity. Fails the build on "fake"
@@ -92,6 +105,28 @@
     <Copy
       SourceFiles="$(TargetPath)"
       DestinationFolder="$(ModOutputDir)\Assemblies\"
+    />
+
+    <!-- DEBUG-ONLY: deploy the Roslyn scripting runtime that the dev bridge (src/DevBridge)
+         needs to eval C# in-game. These DLLs exist only in the Debug output (the package is
+         Debug-conditioned above), so this copy is a no-op for Release and the Release target
+         never includes them - players never receive them. Everything in the output dir except
+         our own DLL is the Roslyn dependency set. -->
+    <ItemGroup Condition="'$(Configuration)' == 'Debug'">
+      <_DevBridgeDlls Include="$(OutDir)*.dll" Exclude="$(OutDir)$(TargetFileName)" />
+    </ItemGroup>
+    <Copy
+      Condition="'$(Configuration)' == 'Debug'"
+      SourceFiles="@(_DevBridgeDlls)"
+      DestinationFolder="$(ModOutputDir)\Assemblies\"
+    />
+
+    <!-- Copy Defs folder, preserving subdirectory structure. Wipe first so a
+         removed/renamed Def does not linger in the deployed mod. -->
+    <RemoveDir Directories="$(ModOutputDir)\Defs" />
+    <Copy
+      SourceFiles="@(DefFiles)"
+      DestinationFiles="@(DefFiles->'$(ModOutputDir)\Defs\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
     <!-- Bundle each language into a .tar exactly as the Release package does, so the
@@ -169,6 +204,12 @@
     <Copy
       SourceFiles="$(TargetPath)"
       DestinationFolder="$(ReleaseFolderPath)Assemblies\"
+    />
+
+    <!-- Copy Defs folder, preserving subdirectory structure -->
+    <Copy
+      SourceFiles="@(DefFiles)"
+      DestinationFiles="@(DefFiles->'$(ReleaseFolderPath)Defs\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
     <!-- Copy Languages folder, preserving subdirectory structure -->
