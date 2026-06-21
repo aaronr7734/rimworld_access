@@ -659,4 +659,6 @@
   <RimWorldAccess.Map.Scanner.PressHomeForCenter>按 Home 键定位到中心</RimWorldAccess.Map.Scanner.PressHomeForCenter>
   <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>向中心{1}跳转了 {0} 格</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
   <RimWorldAccess.Map.Scanner.JumpedToCenter>已跳转到中心</RimWorldAccess.Map.Scanner.JumpedToCenter>
+  <RimWorldAccess.Map.Scanner.SubName.Polluted>受污染</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.PollutedArea>受污染区域</RimWorldAccess.Map.Scanner.PollutedArea>
 </LanguageData>

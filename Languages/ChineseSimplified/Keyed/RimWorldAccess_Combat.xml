@@ -75,4 +75,7 @@
   <RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks>{0}中除{1}外攻击{2}</RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks>
   <RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks>仅{0}攻击{1}</RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks>
   <RimWorldAccess.Combat.MultiSelect.OnlyManyAttack>仅{0}攻击{1}</RimWorldAccess.Combat.MultiSelect.OnlyManyAttack>
+  <RimWorldAccess.Combat.ShotReport.Headline>{0}, 命中几率 {1}</RimWorldAccess.Combat.ShotReport.Headline>
+  <RimWorldAccess.Combat.ShotReport.HeadlineGeneric>{0}</RimWorldAccess.Combat.ShotReport.HeadlineGeneric>
+  <RimWorldAccess.Combat.ShotReport.CannotHit>{0}: 无法命中</RimWorldAccess.Combat.ShotReport.CannotHit>
 </LanguageData>

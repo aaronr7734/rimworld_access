@@ -64,4 +64,5 @@
   <!-- Patch announcement: fires when the game auto-activates a new concept.
        {0} = vanilla "LearningHelper" title, {1} = the concept's LabelCap. -->
   <RimWorldAccess.Learning.NewLessonAnnouncement>{0}: {1}</RimWorldAccess.Learning.NewLessonAnnouncement>
+  <RimWorldAccess.Learning.HelperHint>按 Shift+斜杠，也就是问号键，阅读本课和其他课程。</RimWorldAccess.Learning.HelperHint>
 </LanguageData>

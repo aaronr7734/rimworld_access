@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- RimWorld Access documentation chapters. Translate the inner text only; keep keys and \n\n paragraph breaks intact. -->
+
+  <RWA_InspectingThings.label>查看物体</RWA_InspectingThings.label>
+  <RWA_InspectingThings.helpText>想详细了解光标所在处的东西，按回车。这会打开一个树形视图，列出全部细节：殖民者的健康和装备、建筑的内容物、植物的生长情况等等。\n\n用方向键在树中移动，按 Esc 返回地图。\n\n你也可以按斜杠键（/）打开搜索，然后输入文字，跳转到你想找的内容。对于一名受伤的殖民者，按斜杠键（/）打开搜索，输入「leg」可听到其腿部的伤情，或输入「inf」查找感染。</RWA_InspectingThings.helpText>
+
+  <RWA_JumpModes.label>快速穿越地图</RWA_JumpModes.label>
+  <RWA_JumpModes.helpText>一次只移动一格地穿越地图很慢。按住 Ctrl 再按方向键，即可朝该方向在地图上跳跃前进。\n\n有两种跳跃模式。按住 Shift 再按上或下键可在两者间切换：固定距离，或跳到墙边的下一格。按住 Shift 再按左或右键可调整固定距离。</RWA_JumpModes.helpText>
+
+  <RWA_CoordinateJump.label>跳转到坐标</RWA_CoordinateJump.label>
+  <RWA_CoordinateJump.helpText>要让光标直接移到一个已知位置，按住 Ctrl 再按 G。\n\n输入 X 坐标，按空格移到 Z 字段，输入 Z 坐标，按回车跳转。按 Esc 取消。</RWA_CoordinateJump.helpText>
+
+  <RWA_Scanner.label>扫描器</RWA_Scanner.label>
+  <RWA_Scanner.helpText>扫描器能在地图上找到东西并跳过去，无需一格一格地移动光标。\n\n按 Page Up 和 Page Down 逐个浏览附近的各类东西，由近到远。按住 Ctrl 配合它们，可在地形、物品、植物等大类之间切换。按住 Alt 配合它们，可逐一浏览当前类别的每一处集群。\n\n找到你想要的东西后，按 Home 让光标直接跳过去。\n\n要直接指名你想找的东西，而非逐个浏览，按 Z 搜索地图，输入名称，再按回车关闭搜索字段。你的匹配结果会传给扫描器，因此可用扫描器按键逐个浏览，再按 Home 跳转到其中之一。</RWA_Scanner.helpText>
+
+  <RWA_TabbedInterfaces.label>带选项卡和面板的界面</RWA_TabbedInterfaces.label>
+  <RWA_TabbedInterfaces.helpText>许多界面分成多个面板。按 Tab 移到下一个面板，按 Shift+Tab 返回。这是在整块区域之间移动，而非单个字段。\n\n进入某个面板后，方向键在其内部导航。面板可能是一个简单列表，一棵用右键展开、左键折叠的树，或一个用上下键切换行、左右键切换列的表格。\n\n在任何一种里，你都可以按斜杠键（/）打开搜索，然后输入文字以跳转到某一项，按 Esc 退出。</RWA_TabbedInterfaces.helpText>
+
+  <RWA_MenuNavigation.label>在菜单中移动</RWA_MenuNavigation.label>
+  <RWA_MenuNavigation.helpText>大多数菜单的用法相同。用上下方向键在选项之间移动，按回车选择其一。\n\n按 Home 或 End 跳到第一项或最后一项。在长列表中，按斜杠键（/）打开搜索框，然后输入名称即可搜索。按 Esc 清除搜索，或关闭菜单。</RWA_MenuNavigation.helpText>
+
+  <RWA_LearningHelper.label>学习助手</RWA_LearningHelper.label>
+  <RWA_LearningHelper.helpText>如果你正在读这段话，那你显然已经弄明白了如何打开学习助手。但为了完整起见还是说一下：随时按 Shift+斜杠，也就是问号键，即可打开它，阅读像这样的课程。\n\n用上下键在列表中移动，按回车打开一节课。按 Tab 在你进行中的课程和完整列表之间切换。按 Esc 返回，或关闭助手。</RWA_LearningHelper.helpText>
+
+  <RWA_SelectingColonists.label>选择殖民者</RWA_SelectingColonists.label>
+  <RWA_SelectingColonists.helpText>要对一名殖民者下令，先选中他。按句号键选中下一名殖民者，按逗号键选中上一名。每按一次都会念出你选中的殖民者。\n\n你也可以按位置选择：按住 Alt 再按 1 到 0 的数字，从顶部的栏中挑选那名殖民者。同一组 Alt 加数字连按两次，还会把光标移到他身上。\n\n殖民者超过十名时，该栏会分页：按住 Alt 再按上或下键在页面间移动。按住 Ctrl 和 Alt 再按左或右键可重排该栏。</RWA_SelectingColonists.helpText>
+
+  <RWA_MultiSelect.label>同时指挥多人</RWA_MultiSelect.label>
+  <RWA_MultiSelect.helpText>要同时指挥多名殖民者，按住 Alt 再按空格，把光标下的那一名加入一个编组。再做一次可将其移出。\n\n你随后下达的任何命令都会作用于整个编组，这主要在战斗中有用。按住 Ctrl 和 Alt 再按空格，可一次选中所有殖民者，或清空编组。</RWA_MultiSelect.helpText>
+
+  <RWA_CheckingColonists.label>查看一名殖民者的情况</RWA_CheckingColonists.label>
+  <RWA_CheckingColonists.helpText>选中一名殖民者后，无需打开选项卡即可听到他的近况。\n\n按住 Alt 再按 H 听健康，按 N 听需求，按 M 听心情。Alt 加 K 念出他最高的三项技能，Alt 加 G 念出他所穿戴和手持的东西。</RWA_CheckingColonists.helpText>
+
+  <RWA_Gizmos.label>命令按钮</RWA_Gizmos.label>
+  <RWA_Gizmos.helpText>命令按钮是你在 RimWorld 中指挥事物的方式。选中对象几乎能做的每个操作都是一个命令按钮：殖民者的征召按钮、墙的拆除、床的重新安置、远行队的编组按钮。学会命令按钮，就学会了如何下令。\n\n把光标放在某物上，按 G 打开它的命令按钮。用方向键浏览，按回车执行其一。你看到什么，完全取决于光标下是什么。\n\n当一个命令按钮有自己的字母快捷键时，本模组使用 Shift 加那个字母，这样无需打开菜单即可执行。</RWA_Gizmos.helpText>
+
+  <RWA_ContextMenu.label>右键菜单</RWA_ContextMenu.label>
+  <RWA_ContextMenu.helpText>选中一名殖民者后，把光标指向一格地块或一个物体，按右方括号键，看看他在那里能做什么。\n\n用方向键浏览选项，按回车下令。例如，指向地上的一把武器，菜单会提供装备它的选项。\n\n按左方括号键可立即执行最上面的选项，无需打开菜单。这会跳过先听一遍选项的步骤，因此最好留给那些已经完全清楚某处右键菜单提供什么的玩家。</RWA_ContextMenu.helpText>
+
+  <RWA_BuildingBasics.label>建造房间</RWA_BuildingBasics.label>
+  <RWA_BuildingBasics.helpText>在许多游戏里，你放置的是建好的建筑，像一整块地放下一座农场或一间厨房。RimWorld 不是这样运作的。没有现成的建筑可以直接放下。\n\n相反，你要自己建造房间。房间是你用墙围起来的空间，至少有一扇门供殖民者通行。你立起墙壁，游戏会自动加上屋顶，你再往里面放家具和机器。游戏会根据你放进去的东西判断一个房间是什么：放一张床，它就成了卧室；放一个炉灶，它就成了厨房。\n\n有一点要知道：在 RimWorld 里，你放置的几乎一切都叫建筑。墙、门、床、桌子和机器都是建筑。房间则是你用这些建筑围出的空间。\n\n这一切都从建筑菜单放置。按 Tab 打开它。它是一个树形视图，你可以用方向键浏览类别，但通常更快的做法是按斜杠键（/）打开搜索，然后输入你想要的东西，比如「wall」或「stockpile」，再按回车开始放置。\n\n一个不错的初次建造是储存区，给你的殖民者一个存放东西的地方。第一次开始划区域或建建筑时，会出现一节课程，带你了解放置的具体运作方式。</RWA_BuildingBasics.helpText>
+
+  <RWA_PlacementMode.label>在地图上放置东西</RWA_PlacementMode.label>
+  <RWA_PlacementMode.helpText>选好要建造的东西后，你会进入放置模式，把它放到地图上。\n\n大多数东西以两个角之间的一个形状来放置。把光标移到一个角按空格，再移到对角按一次空格。按回车确认，或按 Esc 取消。\n\n形状决定了两个角之间放什么。实心矩形填满整个区域，适合区域或地板。空心矩形只放置轮廓，适合房间的墙壁。手动模式一次放置一格，适合像门这样的单个东西。\n\n按 Tab 更换形状。每样东西按游戏规则允许不同的形状，所以选项会随你放置的东西而变化。\n\n几个额外操作：按 Shift+空格撤销你放置的上一个角。当你建造像墙这样的实体时，你要先选材料，再画形状。要精确确定尺寸，按住 Ctrl 再按方向键跳过固定的格数，按住 Shift 配合左或右键调整该距离。\n\n确认后，本模组会告诉你放置了什么。如果有东西挡路，扫描器会向你显示是什么挡住了它。按减号键删除你刚建好的形状，或按 Esc 关闭建造器，到别处重新开始。</RWA_PlacementMode.helpText>
+
+</LanguageData>

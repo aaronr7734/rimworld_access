@@ -1,4 +1,16 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/21/2026
+
+CHANGES
+-------
+- The in-game Learning Helper now speaks your language in Chinese, Ukrainian,
+  and Russian. This covers both the mod's own accessibility lessons (inspecting
+  things, the scanner, selecting colonists, building, and so on) and the
+  rewritten help for the base-game and DLC concepts, so the lessons you read
+  with the ? key are no longer in English on those languages.
+- A few newer lines now translate as well: the shot report you hear when aiming
+  a drafted colonist, the scanner's polluted-area results, and the world-map
+  "jumped N tiles" announcement.
 06/18/2026
 
 CHANGES

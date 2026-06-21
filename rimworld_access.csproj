@@ -153,6 +153,17 @@
       Condition="$([MSBuild]::IsOSPlatform('Windows'))"
       Command="tar -cf &quot;%(_DeployLangDir.Identity).tar&quot; -C &quot;%(_DeployLangDir.Identity)&quot; Keyed"
     />
+    <!-- Append DefInjected/ when a language ships it (chapters + concept overrides live
+         there, not in Keyed/). Only some languages have it, so guard on existence or tar
+         errors on the languages that don't. Keyed/ stays the archive root for the guard. -->
+    <Exec
+      Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="if test -d &quot;%(_DeployLangDir.Identity)/DefInjected&quot;; then COPYFILE_DISABLE=1 tar --no-xattrs -rf &quot;%(_DeployLangDir.Identity).tar&quot; -C &quot;%(_DeployLangDir.Identity)&quot; DefInjected; fi"
+    />
+    <Exec
+      Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="if exist &quot;%(_DeployLangDir.Identity)\DefInjected&quot; tar -rf &quot;%(_DeployLangDir.Identity).tar&quot; -C &quot;%(_DeployLangDir.Identity)&quot; DefInjected"
+    />
     <RemoveDir Directories="@(_DeployLangDir)" />
     <!-- Guard the silent-fallback gotcha: a mis-rooted archive (entries not at Keyed/)
          makes RimWorld quietly fall back to English, which is invisible while testing
@@ -235,6 +246,21 @@
     <Exec
       Condition="$([MSBuild]::IsOSPlatform('Windows'))"
       Command="tar -cf &quot;%(_ReleaseLangDir.Identity).tar&quot; -C &quot;%(_ReleaseLangDir.Identity)&quot; Keyed"
+    />
+    <!-- Append DefInjected/ for languages that ship it (doc chapters + concept overrides).
+         Guard on existence: not every language has it, and tar errors on a missing member. -->
+    <Exec
+      Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="if test -d &quot;%(_ReleaseLangDir.Identity)/DefInjected&quot;; then COPYFILE_DISABLE=1 tar --no-xattrs -rf &quot;%(_ReleaseLangDir.Identity).tar&quot; -C &quot;%(_ReleaseLangDir.Identity)&quot; DefInjected; fi"
+    />
+    <Exec
+      Condition="$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="if exist &quot;%(_ReleaseLangDir.Identity)\DefInjected&quot; tar -rf &quot;%(_ReleaseLangDir.Identity).tar&quot; -C &quot;%(_ReleaseLangDir.Identity)&quot; DefInjected"
+    />
+    <!-- Guard the silent-fallback gotcha: fail the build if any .tar is not rooted at Keyed/. -->
+    <Exec
+      Condition="!$([MSBuild]::IsOSPlatform('Windows'))"
+      Command="tar -tf &quot;%(_ReleaseLangDir.Identity).tar&quot; | grep -q '^Keyed/'"
     />
     <RemoveDir Directories="@(_ReleaseLangDir)" />
 

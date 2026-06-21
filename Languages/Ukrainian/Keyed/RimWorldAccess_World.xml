@@ -761,4 +761,6 @@
   <RimWorldAccess.Stat.FoodUnknown>Їжа: невідомо</RimWorldAccess.Stat.FoodUnknown>
   <RimWorldAccess.Stat.ForagingUnknown>Збір їжі: невідомо</RimWorldAccess.Stat.ForagingUnknown>
   <RimWorldAccess.Stat.VisibilityUnknown>Помітність: невідомо</RimWorldAccess.Stat.VisibilityUnknown>
+  <RimWorldAccess.World.JumpedTilesDirection>Перейдено на {0} плиток {1}</RimWorldAccess.World.JumpedTilesDirection>
+  <RimWorldAccess.World.JumpedTiles>Перейдено на {0} плиток</RimWorldAccess.World.JumpedTiles>
 </LanguageData>

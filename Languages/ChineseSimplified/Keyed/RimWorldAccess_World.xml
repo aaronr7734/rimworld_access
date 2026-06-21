@@ -764,4 +764,6 @@
   <RimWorldAccess.Stat.FoodUnknown>食物: 未知</RimWorldAccess.Stat.FoodUnknown>
   <RimWorldAccess.Stat.ForagingUnknown>远行采集量: 未知</RimWorldAccess.Stat.ForagingUnknown>
   <RimWorldAccess.Stat.VisibilityUnknown>可见度: 未知</RimWorldAccess.Stat.VisibilityUnknown>
+  <RimWorldAccess.World.JumpedTilesDirection>向{1}跳转了 {0} 格</RimWorldAccess.World.JumpedTilesDirection>
+  <RimWorldAccess.World.JumpedTiles>跳转了 {0} 格</RimWorldAccess.World.JumpedTiles>
 </LanguageData>

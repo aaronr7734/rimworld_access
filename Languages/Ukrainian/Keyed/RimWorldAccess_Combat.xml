@@ -75,4 +75,7 @@
   <RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks>{0}, окрім {1}, атакує: {2}</RimWorldAccess.Combat.MultiSelect.EveryoneExceptAttacks>
   <RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks>Тільки {0} атакує: {1}</RimWorldAccess.Combat.MultiSelect.OnlyOneAttacks>
   <RimWorldAccess.Combat.MultiSelect.OnlyManyAttack>Тільки {0} атакують: {1}</RimWorldAccess.Combat.MultiSelect.OnlyManyAttack>
+  <RimWorldAccess.Combat.ShotReport.Headline>{0}, {1} шанс влучити</RimWorldAccess.Combat.ShotReport.Headline>
+  <RimWorldAccess.Combat.ShotReport.HeadlineGeneric>{0}</RimWorldAccess.Combat.ShotReport.HeadlineGeneric>
+  <RimWorldAccess.Combat.ShotReport.CannotHit>{0}: влучити неможливо</RimWorldAccess.Combat.ShotReport.CannotHit>
 </LanguageData>

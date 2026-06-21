@@ -16,6 +16,18 @@ namespace RimWorldAccess
         private static Dictionary<string, string> overridesByConcept;
         // concept defName -> corrected label (only for overrides that set one).
         private static Dictionary<string, string> labelsByConcept;
+        // The language the cache was built for. Override text is read from the defs' (already
+        // DefInjected-translated) helpText, so the cache must be rebuilt when the player changes
+        // language in-game (Options reloads defs but leaves this static cache untouched), or it
+        // would keep serving the previous language's text.
+        private static LoadedLanguage builtForLanguage;
+
+        // Rebuild the cache on first use and whenever the active language has changed since.
+        private static void EnsureBuilt()
+        {
+            if (overridesByConcept == null || builtForLanguage != LanguageDatabase.activeLanguage)
+                Build();
+        }
 
         /// <summary>
         /// Returns the corrected help text for <paramref name="concept"/>, or null if no
@@ -26,8 +38,7 @@ namespace RimWorldAccess
             if (concept == null)
                 return null;
 
-            if (overridesByConcept == null)
-                Build();
+            EnsureBuilt();
 
             return overridesByConcept.TryGetValue(concept.defName, out string text) ? text : null;
         }
@@ -41,8 +52,7 @@ namespace RimWorldAccess
             if (concept == null)
                 return null;
 
-            if (overridesByConcept == null)
-                Build();
+            EnsureBuilt();
 
             return labelsByConcept.TryGetValue(concept.defName, out string label) ? label : null;
         }
@@ -64,6 +74,7 @@ namespace RimWorldAccess
         {
             overridesByConcept = new Dictionary<string, string>();
             labelsByConcept = new Dictionary<string, string>();
+            builtForLanguage = LanguageDatabase.activeLanguage;
 
             foreach (ConceptHelpOverrideDef def in DefDatabase<ConceptHelpOverrideDef>.AllDefsListForReading)
             {

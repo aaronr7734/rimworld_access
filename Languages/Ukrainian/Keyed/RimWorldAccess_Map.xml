@@ -655,4 +655,6 @@
   <RimWorldAccess.Map.Scanner.PressHomeForCenter>Натисніть Home для центру</RimWorldAccess.Map.Scanner.PressHomeForCenter>
   <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>Перейдено на {0} клітинок {1} до центру</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
   <RimWorldAccess.Map.Scanner.JumpedToCenter>Перейдено до центру</RimWorldAccess.Map.Scanner.JumpedToCenter>
+  <RimWorldAccess.Map.Scanner.SubName.Polluted>Забруднені</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.PollutedArea>забруднена область</RimWorldAccess.Map.Scanner.PollutedArea>
 </LanguageData>

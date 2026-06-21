@@ -764,4 +764,6 @@
   <RimWorldAccess.Stat.FoodUnknown>Еда: неизвестно</RimWorldAccess.Stat.FoodUnknown>
   <RimWorldAccess.Stat.ForagingUnknown>Собирательство: неизвестно</RimWorldAccess.Stat.ForagingUnknown>
   <RimWorldAccess.Stat.VisibilityUnknown>Заметность: неизвестно</RimWorldAccess.Stat.VisibilityUnknown>
+  <RimWorldAccess.World.JumpedTilesDirection>Переход на {0} {0_numCase ? клетку : клетки : клеток} на {1}</RimWorldAccess.World.JumpedTilesDirection>
+  <RimWorldAccess.World.JumpedTiles>Переход на {0} {0_numCase ? клетку : клетки : клеток}</RimWorldAccess.World.JumpedTiles>
 </LanguageData>

@@ -4,8 +4,12 @@
   <!--
     RimWorld Access documentation chapters.
 
-    Authored as AccessibilityConceptDef so the Learning Helper menu can present
-    them in their own dedicated section. Each chapter:
+    Plain ConceptDefs (identified by their RWA_ defName prefix; see DocsTeacher).
+    They must be plain ConceptDef, NOT a subclass: RimWorld translates the private
+    ConceptDef.helpText field via DefInjected only when reflection over the def's
+    runtime type can see it, and Type.GetFields on a subclass does NOT expose a
+    base class's private field — so a ConceptDef subclass silently loses helpText
+    translation (label still translates). Each chapter:
       - uses priority > 0 so it is browsable (priority <= 0 would be a hidden
         "triggered direct" modal concept) and sorts in the list;
       - sets needsOpportunity=true so the desire engine never adds it on its own.
@@ -14,7 +18,8 @@
 
     Text matches vanilla's Learning Helper voice: terse, second person, goal
     first, paragraphs separated by literal \n\n. English lives here; translations
-    go in Languages/<Lang>/DefInjected/ConceptDef/.
+    go in Languages/<Lang>/DefInjected/ConceptDef/ (helpText key, matching the
+    base ConceptDef field).
 
     ONLY mod-unique features get a chapter here. Features the base game already
     has a ConceptDef for are corrected in place via the read-time override
@@ -25,114 +30,100 @@
     This file is the source of truth for these chapters.
   -->
 
-  <ConceptDef Abstract="True" Name="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef Abstract="True" Name="RWA_DocBase">
     <priority>50</priority>
     <needsOpportunity>true</needsOpportunity>
   </ConceptDef>
 
   <!-- ===================== Getting around ===================== -->
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_InspectingThings</defName>
     <label>Inspecting things</label>
-    <category>Getting around</category>
     <helpText>To learn more about whatever the cursor is on, press Enter. This opens a tree view with the full details: a colonist's health and gear, a building's contents, a plant's growth, and more.\n\nMove through the tree with the arrow keys, and press Escape to return to the map.\n\nYou can also just start typing to jump to what you want. On a wounded colonist, type 'leg' to hear what is wrong with their leg, or 'inf' to find an infection.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_JumpModes</defName>
     <label>Crossing the map quickly</label>
-    <category>Getting around</category>
     <helpText>Crossing the map one tile at a time is slow. Hold Ctrl and press an arrow key to leap across the map in that direction instead.\n\nTwo jump modes are available. Hold Shift and press Up or Down to switch between them: a preset distance, or a jump to the next tile beside a wall. Hold Shift and press Left or Right to change the preset distance.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_CoordinateJump</defName>
     <label>Jumping to coordinates</label>
-    <category>Getting around</category>
     <helpText>To move the cursor straight to a known location, hold Ctrl and press G.\n\nType the X coordinate, press Space to move to the Z field, type the Z coordinate, and press Enter to jump. Press Escape to cancel.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_Scanner</defName>
     <label>The scanner</label>
-    <category>Getting around</category>
     <helpText>The scanner finds things on the map and jumps to them, without walking the cursor tile by tile.\n\nPress Page Up and Page Down to step through nearby kinds of thing, nearest first. Hold Ctrl with them to move between broad categories like terrain, items, or plants. Hold Alt with them to step through each clump of the current kind, one at a time.\n\nWhen you reach what you want, press Home to jump the cursor straight to it.\n\nTo name what you want instead of browsing, press Z to search the map, type it, and press Enter to close the search field. Your matches feed the scanner, so step through them with the scanner keys and press Home to jump to one.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_TabbedInterfaces</defName>
     <label>Screens with tabs and panels</label>
-    <category>Getting around</category>
     <helpText>Many screens are split into panels. Press Tab to move to the next panel and Shift plus Tab to move back. This moves between whole sections, not single fields.\n\nOnce you are on a panel, the arrow keys navigate inside it. A panel may be a simple list, a tree you expand with Right and collapse with Left, or a table where Up and Down change rows and Left and Right change columns.\n\nIn any of them you can start typing to jump to an item, and press Escape to back out.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_MenuNavigation</defName>
     <label>Moving through menus</label>
-    <category>Getting around</category>
     <helpText>Most menus work the same way. Use the up and down arrows to move through the choices, and Enter to select one.\n\nPress Home or End to jump to the first or last item. In a long list, just start typing a name to search for it. Press Escape to clear a search, or to close the menu.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_LearningHelper</defName>
     <label>The Learning Helper</label>
-    <category>Getting around</category>
     <helpText>If you are reading this, you have clearly already worked out how to open the Learning Helper. But for the record: press Shift Slash, the question mark, at any time to open it and read lessons like this one.\n\nUse Up and Down to move through the list and Enter to open a lesson. Press Tab to switch between your active lessons and the full list. Press Escape to go back, or to close the helper.</helpText>
   </ConceptDef>
 
   <!-- ===================== Colonists ===================== -->
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_SelectingColonists</defName>
     <label>Selecting colonists</label>
-    <category>Colonists</category>
     <helpText>To act on a colonist, first select them. Press period to select the next colonist and comma to select the previous one. Each press names the colonist you landed on.\n\nYou can also select by position: hold Alt and press a number from 1 to 0 to pick that colonist from the bar at the top. Press the same Alt and number twice to move the cursor to them as well.\n\nWith more than ten colonists the bar splits into pages: hold Alt and press Up or Down to move between them. Hold Ctrl and Alt with Left or Right to reorder the bar.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_MultiSelect</defName>
     <label>Commanding several at once</label>
-    <category>Colonists</category>
     <helpText>To command several colonists at once, hold Alt and press Space to add the one under the cursor to a group. Do it again to remove them.\n\nAny order you then give applies to the whole group, which is mainly useful in combat. Hold Ctrl and Alt and press Space to select every colonist at once, or to clear the group.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_CheckingColonists</defName>
     <label>Checking on a colonist</label>
-    <category>Colonists</category>
     <helpText>Once a colonist is selected, you can hear how they are doing without opening a tab.\n\nHold Alt and press H for their health, N for their needs, or M for their mood. Alt and K names their top three skills, and Alt and G names what they are wearing and wielding.</helpText>
   </ConceptDef>
 
   <!-- ===================== Commands ===================== -->
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_Gizmos</defName>
     <label>Gizmos and commands</label>
-    <category>Commands</category>
     <helpText>Gizmos are how you command things in RimWorld. Almost every action a selected object can take is a gizmo: a colonist's draft button, a wall's deconstruct, a bed's reinstall, a caravan's form button. Learning gizmos is learning how to give orders.\n\nPlace the cursor on something and press G to open its gizmos. Arrow through them and press Enter to run one. What you see depends entirely on what is under the cursor.\n\nWhen a gizmo has its own letter shortcut, the mod uses Shift plus that letter, so you can run it without opening the menu.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_ContextMenu</defName>
     <label>The context menu</label>
-    <category>Commands</category>
     <helpText>With a colonist selected, point the cursor at a tile or object and press the right bracket key to see what they can do there.\n\nArrow through the options and press Enter to give the order. For example, point at a weapon on the ground and the menu offers to equip it.\n\nPress the left bracket key to run the top option right away, without opening the menu. This skips hearing the choices first, so it is best left to players who already know exactly what the context menu offers in a given spot.</helpText>
   </ConceptDef>
 
   <!-- ===================== Building ===================== -->
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_BuildingBasics</defName>
     <label>Building rooms</label>
-    <category>Building</category>
     <helpText>In many games you place a finished building, like dropping down a farm or a kitchen in one piece. RimWorld does not work that way. There are no ready-made buildings to drop down.\n\nInstead, you build rooms yourself. A room is a space you wall in, with at least one door for colonists to pass through. You put up the walls, the game adds a roof on its own, and you fill the inside with furniture and machines. The game works out what a room is from what you put in it: add a bed and it becomes a bedroom; add a stove and it becomes a kitchen.\n\nIt helps to know that in RimWorld almost everything you place is called a building. Walls, doors, beds, tables, and machines are all buildings. Rooms are the spaces you make out of those buildings.\n\nYou place all of it from the Architect menu. Press Tab to open it. It is a tree view, so you can arrow through the categories, but it is usually quicker to start typing what you want, such as 'wall' or 'stockpile', then press Enter to begin placing it.\n\nA good first build is a stockpile zone, somewhere for your colonists to store things. The first time you start making a zone or a building, a lesson will appear to walk you through exactly how placement works.</helpText>
   </ConceptDef>
 
-  <ConceptDef ParentName="RWA_DocBase" Class="RimWorldAccess.AccessibilityConceptDef">
+  <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_PlacementMode</defName>
     <label>Placing things on the map</label>
-    <category>Building</category>
     <helpText>After you choose something to build, you enter placement mode to put it on the map.\n\nMost things are placed as a shape between two corners. Move the cursor to one corner and press Space, then move to the opposite corner and press Space again. Press Enter to confirm, or Escape to cancel.\n\nThe shape decides what goes between the two corners. A filled rectangle fills the whole area, which is what you want for a zone or a floor. An empty rectangle places only the outline, which is what you want for the walls of a room. Manual places one tile at a time, which is right for a single thing like a door.\n\nPress Tab to change the shape. Each thing allows different shapes, based on the game's rules, so the choices change depending on what you are placing.\n\nA few extras: press Shift Space to undo the last corner you placed. When you build something physical like a wall, you choose its material first, before you draw the shape. To size things exactly, hold Ctrl and press an arrow to jump a set number of tiles, and hold Shift with Left or Right to change that distance.\n\nAfter you confirm, the mod tells you what was placed. If anything was in the way, the scanner will show you what blocked it. Press the minus key to delete the shape you just built, or press Escape to close the builder and start again somewhere else.</helpText>
   </ConceptDef>
 

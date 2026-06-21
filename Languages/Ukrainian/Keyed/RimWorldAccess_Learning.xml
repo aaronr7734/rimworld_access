@@ -64,4 +64,5 @@
   <!-- Patch announcement: fires when the game auto-activates a new concept.
        {0} = vanilla "LearningHelper" title, {1} = the concept's LabelCap. -->
   <RimWorldAccess.Learning.NewLessonAnnouncement>{0}: {1}</RimWorldAccess.Learning.NewLessonAnnouncement>
+  <RimWorldAccess.Learning.HelperHint>Натисніть Shift і косу риску, тобто знак питання, щоб прочитати цей та інші уроки.</RimWorldAccess.Learning.HelperHint>
 </LanguageData>

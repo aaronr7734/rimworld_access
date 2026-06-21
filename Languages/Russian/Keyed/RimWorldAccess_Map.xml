@@ -660,4 +660,6 @@
   <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>Переход на {0} {0_numCase ? клетку : клетки : клеток} {1} к центру</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
   <RimWorldAccess.Map.Scanner.JumpedToCenter>Переход к центру</RimWorldAccess.Map.Scanner.JumpedToCenter>
 
+  <RimWorldAccess.Map.Scanner.SubName.Polluted>Загрязнённая</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.PollutedArea>загрязнённый участок</RimWorldAccess.Map.Scanner.PollutedArea>
 </LanguageData>
