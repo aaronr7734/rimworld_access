@@ -484,6 +484,7 @@ namespace RimWorldAccess
         // filter so they stay in sync. Returned as a localized property so comparisons in
         // ScannerSearchState remain correct across all languages.
         public static string UnexploredAreaLabel => (string)"RimWorldAccess.Map.Scanner.UnexploredArea".Translate();
+        public static string PollutedAreaLabel => (string)"RimWorldAccess.Map.Scanner.PollutedArea".Translate();
 
         /// <summary>
         /// Adds a ScannerItem to both its specialized subcategory AND the category's "All"
@@ -561,6 +562,7 @@ namespace RimWorldAccess
             var terrainCategory = buckets.Cat("Terrain");
             var terrainNaturalSubcat = buckets.Sub("Terrain-Natural");
             var terrainConstructedSubcat = buckets.Sub("Terrain-Constructed");
+            var terrainPollutedSubcat = buckets.Sub("Terrain-Polluted");
 
             var mineableCategory = buckets.Cat("Mineable");
             var mineableRareSubcat = buckets.Sub("Mineable-Rare");
@@ -856,12 +858,20 @@ namespace RimWorldAccess
             // refresh together.
             int currentCellHash = map.listerThings.StateHashOfGroup(ThingRequestGroup.BuildingArtificial);
 
-            if (cachedTerrainNatural != null && currentCellHash == lastCellHash && !fogDirty)
+            // Pollution (Biotech) is a per-cell grid overlay, not a TerrainDef, and changes
+            // independently of building/fog state. TotalPollution (BoolGrid.TrueCount) is an
+            // O(1) counter, so fold it into the cache key to refresh polluted patches without
+            // forcing rescans for non-Biotech maps (count stays 0).
+            int currentPollutionCount = ModsConfig.BiotechActive ? map.pollutionGrid.TotalPollution : 0;
+
+            if (cachedTerrainNatural != null && currentCellHash == lastCellHash && !fogDirty
+                && currentPollutionCount == lastPollutionCount)
             {
                 // Reuse cached cell data — skip 60K+ cell iteration entirely.
                 // Also mirror every cached item into the category's "All" subcategory.
                 terrainNaturalSubcat.Items.AddRange(cachedTerrainNatural);
                 terrainConstructedSubcat.Items.AddRange(cachedTerrainConstructed);
+                terrainPollutedSubcat.Items.AddRange(cachedPollutedItems);
                 mineableRareSubcat.Items.AddRange(cachedMineableRare);
                 mineableStoneSubcat.Items.AddRange(cachedMineableStone);
                 mineableScannedSubcat.Items.AddRange(cachedMineableScanned);
@@ -869,6 +879,7 @@ namespace RimWorldAccess
 
                 terrainCategory.Subcategories[0].Items.AddRange(cachedTerrainNatural);
                 terrainCategory.Subcategories[0].Items.AddRange(cachedTerrainConstructed);
+                terrainCategory.Subcategories[0].Items.AddRange(cachedPollutedItems);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableRare);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableStone);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableScanned);
@@ -883,6 +894,7 @@ namespace RimWorldAccess
                 var mineableRareByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
                 var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
                 var fogPositions = new List<IntVec3>();
+                var pollutedPositions = new List<IntVec3>();
 
                 foreach (var cell in allCells)
                 {
@@ -890,6 +902,12 @@ namespace RimWorldAccess
                     if (!fogGrid.IsFogged(cell))
                     {
                         var terrain = map.terrainGrid.TerrainAt(cell);
+
+                        // Polluted cells (Biotech) — a per-cell overlay independent of the
+                        // terrain def, gathered here for adjacency grouping below so the
+                        // player can jump to each contaminated patch and clean it.
+                        if (ModsConfig.BiotechActive && map.pollutionGrid.IsPolluted(cell))
+                            pollutedPositions.Add(cell);
 
                         // Check for mineable rocks (both ore and plain stone)
                         var edifice = cell.GetEdifice(map);
@@ -1030,9 +1048,20 @@ namespace RimWorldAccess
                     unexploredCategory.Subcategories[0].Items.Add(fogItem);
                 }
 
+                // Group polluted cells into contiguous patches (Biotech). Each patch becomes a
+                // navigable item under Terrain > Polluted so the player can jump to it and place
+                // a pollution removal area. pollutedPositions is empty without Biotech.
+                foreach (var region in GroupTerrainByAdjacency(pollutedPositions, cursorPosition))
+                {
+                    var pollutedItem = new ScannerItem(
+                        new List<TerrainRegion> { region }, PollutedAreaLabel, cursorPosition);
+                    AddTo(terrainCategory, terrainPollutedSubcat, pollutedItem);
+                }
+
                 // Save results to cell cache
                 cachedTerrainNatural = new List<ScannerItem>(terrainNaturalSubcat.Items);
                 cachedTerrainConstructed = new List<ScannerItem>(terrainConstructedSubcat.Items);
+                cachedPollutedItems = new List<ScannerItem>(terrainPollutedSubcat.Items);
                 cachedMineableRare = new List<ScannerItem>(mineableRareSubcat.Items);
                 cachedMineableStone = new List<ScannerItem>(mineableStoneSubcat.Items);
                 cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
@@ -1040,6 +1069,7 @@ namespace RimWorldAccess
                 fogDirty = false;
 
                 lastCellHash = currentCellHash;
+                lastPollutionCount = currentPollutionCount;
             }
 
             // Collect all designations/orders
@@ -1537,8 +1567,10 @@ namespace RimWorldAccess
         private static List<ScannerItem> cachedMineableStone = null;
         private static List<ScannerItem> cachedMineableScanned = null;
         private static List<ScannerItem> cachedFogItems = null;
+        private static List<ScannerItem> cachedPollutedItems = null;
         private static bool fogDirty = true;
         private static int lastCellHash = 0;
+        private static int lastPollutionCount = 0;
 
         /// <summary>
         /// Invalidates the fog portion of the cell-walk cache. Called by FogChangePatch
@@ -1560,8 +1592,10 @@ namespace RimWorldAccess
             cachedMineableStone = null;
             cachedMineableScanned = null;
             cachedFogItems = null;
+            cachedPollutedItems = null;
             fogDirty = true;
             lastCellHash = 0;
+            lastPollutionCount = 0;
             designatorLabelCache = null;
         }
 

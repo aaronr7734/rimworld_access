@@ -437,6 +437,7 @@
   <RimWorldAccess.Map.Scanner.SubName.Forbidden>Forbidden</RimWorldAccess.Map.Scanner.SubName.Forbidden>
   <RimWorldAccess.Map.Scanner.SubName.Natural>Natural</RimWorldAccess.Map.Scanner.SubName.Natural>
   <RimWorldAccess.Map.Scanner.SubName.Constructed>Constructed</RimWorldAccess.Map.Scanner.SubName.Constructed>
+  <RimWorldAccess.Map.Scanner.SubName.Polluted>Polluted</RimWorldAccess.Map.Scanner.SubName.Polluted>
   <RimWorldAccess.Map.Scanner.SubName.Rare>Rare</RimWorldAccess.Map.Scanner.SubName.Rare>
   <RimWorldAccess.Map.Scanner.SubName.Stone>Stone</RimWorldAccess.Map.Scanner.SubName.Stone>
   <RimWorldAccess.Map.Scanner.SubName.Chunks>Chunks</RimWorldAccess.Map.Scanner.SubName.Chunks>
@@ -652,6 +653,7 @@
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Map.Scanner.Region.SizeTiles>{0} tiles</RimWorldAccess.Map.Scanner.Region.SizeTiles>
   <RimWorldAccess.Map.Scanner.UnexploredArea>unexplored area</RimWorldAccess.Map.Scanner.UnexploredArea>
+  <RimWorldAccess.Map.Scanner.PollutedArea>polluted area</RimWorldAccess.Map.Scanner.PollutedArea>
 
   <!-- Scanner patch-position cues. PressHomeForCenter teaches the second
        Home press; JumpedTilesToCenter: {0} = tile count, {1} = compass

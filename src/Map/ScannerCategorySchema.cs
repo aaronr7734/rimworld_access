@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using Verse;
 
 namespace RimWorldAccess
@@ -71,6 +70,7 @@ namespace RimWorldAccess
             ["Forbidden"] = "Forbidden",
             ["Natural"] = "Natural",
             ["Constructed"] = "Constructed",
+            ["Polluted"] = "Polluted",
             ["Rare"] = "Rare",
             ["Stone"] = "Stone",
             ["Chunks"] = "Chunks",
@@ -286,7 +286,7 @@ namespace RimWorldAccess
             new ScannerCategorySchema("Trees", "Harvestable", "NonHarvestable"),
             new ScannerCategorySchema("Plants", "Harvestable", "Debris"),
             new ScannerCategorySchema("Items", "Stored", "Furniture", "Scattered", "Forbidden"),
-            new ScannerCategorySchema("Terrain", "Natural", "Constructed"),
+            new ScannerCategorySchema("Terrain", "Natural", "Constructed", "Polluted"),
             new ScannerCategorySchema("Mineable", "Rare", "Stone", "Chunks", "Scanned Ore"),
             new ScannerCategorySchema("Orders",
                 "Construction", "Haul", "Hunt", "Mine", "Deconstruct", "Uninstall",
