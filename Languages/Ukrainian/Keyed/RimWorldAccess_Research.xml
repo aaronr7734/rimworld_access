@@ -87,7 +87,7 @@
   <RimWorldAccess.Research.Detail.BenchAvailable>Доступно</RimWorldAccess.Research.Detail.BenchAvailable>
   <RimWorldAccess.Research.Detail.BenchNotAvailable>Недоступно</RimWorldAccess.Research.Detail.BenchNotAvailable>
   <RimWorldAccess.Research.Detail.RequiresBench>Потрібен стіл: {0} - {1}</RimWorldAccess.Research.Detail.RequiresBench>
-  <RimWorldAccess.Research.Detail.RequiresFacility>Потрібне обладнання: {0}</RimWorldAccess.Research.Detail.RequiresFacility>
+  <RimWorldAccess.Research.Detail.RequiresFacility>Потрібне обладнання: {0} - {1}</RimWorldAccess.Research.Detail.RequiresFacility>
 
   <RimWorldAccess.Research.Detail.TechprintsComplete>Завершено</RimWorldAccess.Research.Detail.TechprintsComplete>
   <RimWorldAccess.Research.Detail.TechprintsProgress>{0}/{1}</RimWorldAccess.Research.Detail.TechprintsProgress>

@@ -404,11 +404,16 @@ namespace RimWorldAccess
                 });
             }
 
-            // Required research building
+            // Required research building. Availability here means the physical bench is BUILT on
+            // some colony map - it must NOT be conflated with the facility requirement below.
+            // (PlayerHasAnyAppropriateResearchBench returns false when a required facility like the
+            // multi-analyzer is missing, which made a present bench wrongly report "Not available".)
             if (project.requiredResearchBuilding != null)
             {
-                bool hasBench = project.PlayerHasAnyAppropriateResearchBench;
-                string benchStatus = hasBench
+                bool benchPresent = Find.Maps.Any(map =>
+                    map.listerBuildings.allBuildingsColonist.Find(
+                        b => b.def == project.requiredResearchBuilding) != null);
+                string benchStatus = benchPresent
                     ? "RimWorldAccess.Research.Detail.BenchAvailable".Translate().ToString()
                     : "RimWorldAccess.Research.Detail.BenchNotAvailable".Translate().ToString();
                 children.Add(new InspectionTreeItem
@@ -422,15 +427,38 @@ namespace RimWorldAccess
                 });
             }
 
-            // Required research facilities
+            // Required research facilities. Mirror vanilla: pick the best-matching built bench and
+            // report each facility relative to it - active, present-but-inactive, or absent.
             if (project.requiredResearchFacilities != null && project.requiredResearchFacilities.Count > 0)
             {
+                CompAffectedByFacilities bestBenchComp = FindBenchFulfillingMostRequirements(
+                    project.requiredResearchBuilding, project.requiredResearchFacilities)
+                    ?.TryGetComp<CompAffectedByFacilities>();
+
                 foreach (var facility in project.requiredResearchFacilities)
                 {
+                    Thing present = null;
+                    Thing active = null;
+                    if (bestBenchComp != null)
+                    {
+                        var linked = bestBenchComp.LinkedFacilitiesListForReading;
+                        present = linked.Find(x => x.def == facility);
+                        active = linked.Find(x => x.def == facility && bestBenchComp.IsFacilityActive(x));
+                    }
+
+                    string facilityStatus;
+                    if (active != null)
+                        facilityStatus = "RimWorldAccess.Research.Detail.BenchAvailable".Translate().ToString();
+                    else if (present != null)
+                        facilityStatus = "InactiveFacility".Translate().ToString();
+                    else
+                        facilityStatus = "RimWorldAccess.Research.Detail.BenchNotAvailable".Translate().ToString();
+
                     children.Add(new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.DetailText,
-                        Label = "RimWorldAccess.Research.Detail.RequiresFacility".Translate(facility.LabelCap),
+                        Label = "RimWorldAccess.Research.Detail.RequiresFacility".Translate(
+                            facility.LabelCap, facilityStatus),
                         Data = DetailNodeType.Info,
                         IndentLevel = 1,
                         IsExpandable = false
@@ -990,6 +1018,59 @@ namespace RimWorldAccess
             }
 
             return parts.Count > 0 ? string.Join(", ", parts) : "RimWorldAccess.Research.MissingPrereqs.Unknown".Translate().ToString();
+        }
+
+        /// <summary>
+        /// Finds the built colony research bench that best fulfils the project's facility
+        /// requirements, mirroring vanilla MainTabWindow_Research.FindBenchFulfillingMostRequirements.
+        /// Facility availability is then reported relative to this single bench.
+        /// </summary>
+        private static Building_ResearchBench FindBenchFulfillingMostRequirements(
+            ThingDef requiredBench, List<ThingDef> requiredFacilities)
+        {
+            Building_ResearchBench best = null;
+            float bestScore = 0f;
+            foreach (Map map in Find.Maps)
+            {
+                foreach (Building building in map.listerBuildings.allBuildingsColonist)
+                {
+                    if (building is Building_ResearchBench bench &&
+                        (requiredBench == null || bench.def == requiredBench))
+                    {
+                        float score = GetResearchBenchRequirementsScore(bench, requiredFacilities);
+                        if (best == null || score > bestScore)
+                        {
+                            bestScore = score;
+                            best = bench;
+                        }
+                    }
+                }
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// Scores a bench by how many required facilities it has linked - 1 point for an active
+        /// facility, 0.6 for one present but inactive. Mirrors vanilla's scoring exactly.
+        /// </summary>
+        private static float GetResearchBenchRequirementsScore(
+            Building_ResearchBench bench, List<ThingDef> requiredFacilities)
+        {
+            float num = 0f;
+            CompAffectedByFacilities comp = bench.GetComp<CompAffectedByFacilities>();
+            if (comp == null)
+                return 0f;
+
+            var linked = comp.LinkedFacilitiesListForReading;
+            for (int i = 0; i < requiredFacilities.Count; i++)
+            {
+                ThingDef facility = requiredFacilities[i];
+                if (linked.Find(x => x.def == facility && comp.IsFacilityActive(x)) != null)
+                    num += 1f;
+                else if (linked.Find(x => x.def == facility) != null)
+                    num += 0.6f;
+            }
+            return num;
         }
 
         #endregion

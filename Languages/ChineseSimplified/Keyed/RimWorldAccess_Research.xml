@@ -87,7 +87,7 @@
   <RimWorldAccess.Research.Detail.BenchAvailable>可用</RimWorldAccess.Research.Detail.BenchAvailable>
   <RimWorldAccess.Research.Detail.BenchNotAvailable>不可用</RimWorldAccess.Research.Detail.BenchNotAvailable>
   <RimWorldAccess.Research.Detail.RequiresBench>需要工作台: {0} - {1}</RimWorldAccess.Research.Detail.RequiresBench>
-  <RimWorldAccess.Research.Detail.RequiresFacility>需要设施: {0}</RimWorldAccess.Research.Detail.RequiresFacility>
+  <RimWorldAccess.Research.Detail.RequiresFacility>需要设施: {0} - {1}</RimWorldAccess.Research.Detail.RequiresFacility>
 
   <RimWorldAccess.Research.Detail.TechprintsComplete>已完成</RimWorldAccess.Research.Detail.TechprintsComplete>
   <RimWorldAccess.Research.Detail.TechprintsProgress>{0}/{1}</RimWorldAccess.Research.Detail.TechprintsProgress>

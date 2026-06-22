@@ -87,7 +87,7 @@
   <RimWorldAccess.Research.Detail.BenchAvailable>Available</RimWorldAccess.Research.Detail.BenchAvailable>
   <RimWorldAccess.Research.Detail.BenchNotAvailable>Not available</RimWorldAccess.Research.Detail.BenchNotAvailable>
   <RimWorldAccess.Research.Detail.RequiresBench>Requires bench: {0} - {1}</RimWorldAccess.Research.Detail.RequiresBench>
-  <RimWorldAccess.Research.Detail.RequiresFacility>Requires facility: {0}</RimWorldAccess.Research.Detail.RequiresFacility>
+  <RimWorldAccess.Research.Detail.RequiresFacility>Requires facility: {0} - {1}</RimWorldAccess.Research.Detail.RequiresFacility>
 
   <RimWorldAccess.Research.Detail.TechprintsComplete>Complete</RimWorldAccess.Research.Detail.TechprintsComplete>
   <RimWorldAccess.Research.Detail.TechprintsProgress>{0}/{1}</RimWorldAccess.Research.Detail.TechprintsProgress>
