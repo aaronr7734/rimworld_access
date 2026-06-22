@@ -3,6 +3,13 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- The mod is now available in Latin American Spanish (Espanol Latinoamerica).
+  Every menu, announcement, and tooltip is translated, along with the Learning
+  Helper documentation chapters and the written hair, beard, and tattoo style
+  descriptions. Choose it from the language list and RimWorld Access speaks
+  Spanish throughout. As with our other community translations, this is a machine
+  translation anchored to RimWorld's own official Spanish wording, so corrections
+  from native speakers are very welcome.
 - Styling stations are now fully accessible. When a colonist uses "Change
   style" at a styling station, a keyboard menu opens. Press Tab to move between
   the hair, beard, face tattoo, body tattoo, and apparel color sections, and use

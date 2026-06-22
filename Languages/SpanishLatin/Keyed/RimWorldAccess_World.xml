@@ -1,0 +1,770 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    World module strings (src/World/). Covers the world map, settlements,
+    caravan formation/split, route planning (waypoint editor for caravan
+    travel), gear-equip menu (pawn-side equip/swap from Caravan Inspect),
+    settlement and quest browsers, world scanner (mirrors Map.Scanner's
+    category structure), caravan multi-select, layer switching, and the
+    stat-breakdown overlay.
+
+    Files contributing strings:
+      - WorldNavigationState.cs        (main world map + caravan focus)
+      - CaravanFormationState.cs       (Dialog_FormCaravan)
+      - SplitCaravanState.cs           (Dialog_SplitCaravan)
+      - CaravanInspectState.cs         (windowless caravan inspect tree)
+      - CaravanInputHelper.cs          (Alt+H/M/N/G/K caravan tab dispatch)
+      - CaravanUIHelper.cs             (transferable check/uncheck)
+      - CaravanQuantityHelper.cs       (per-stack quantity adjust feedback)
+      - CaravanFormationPatch.cs / SplitCaravanPatch.cs / CaravanAnnouncementHelper.cs
+      - GearEquipMenuState.cs          (equip-this-item picker)
+      - QuestLocationsBrowserState.cs / SettlementBrowserState.cs
+      - StatBreakdownState.cs          (Alt+I breakdown overlay)
+      - RoutePlannerState.cs           (caravan waypoint planner)
+      - WorldNavigationPatch.cs / WorldObjectSelectionState.cs
+      - WorldScannerState.cs           (PgUp/PgDn world map scanner)
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / Stepper / Map.JumpedTo -> Common.xml
+      - "Cancelled"                                       -> UI.Cancelled
+      - World/scanner direction nouns                     -> Map.Direction.*
+      - Pawn quick-info hotkeys ("No pawn selected")      -> Common.Guard
+      - vanilla labels: caravan/settlement names, faction relations,
+        biome names, pawn labels, item labels, days/hours, layer
+        labels (LabelCap from LayerDef) - all from game.
+
+    Data such as caravan names, settlement labels, pawn names, item
+    labels, faction names, biome descriptions, ETA strings ("X days"),
+    speed-source nouns from the game, and stat values come from the
+    game's translation system and are NOT duplicated here.
+  -->
+
+  <!-- =================================================================
+       World map shell + caravan navigation (WorldNavigationState).
+       Covers tile read-out, caravan multi-select, layer switching,
+       pole compass mode, jump-to-home / jump-to-caravan.
+       {0} = caravan label, {1} = count, {2} = pole name, {3} = layer name.
+       ================================================================= -->
+  <RimWorldAccess.World.NotAvailable>Mundo no disponible</RimWorldAccess.World.NotAvailable>
+  <RimWorldAccess.World.OpenWithRoute>Mapa del mundo. Planificador de rutas activo con {0} puntos de ruta. {1}</RimWorldAccess.World.OpenWithRoute>
+  <RimWorldAccess.World.OpenRoutePlannerActive>Mapa del mundo. Planificador de rutas activo. {0}</RimWorldAccess.World.OpenRoutePlannerActive>
+  <RimWorldAccess.World.OpenInstructions>Mapa del mundo. {0}</RimWorldAccess.World.OpenInstructions>
+  <RimWorldAccess.World.NearPole>Cerca del polo {0} - usando direcciones relativas</RimWorldAccess.World.NearPole>
+  <RimWorldAccess.World.LeavingPole>Saliendo de la zona polar - usando direcciones de brújula</RimWorldAccess.World.LeavingPole>
+  <RimWorldAccess.World.LayerSwitchFailed>No se puede cambiar a {0}: {1}</RimWorldAccess.World.LayerSwitchFailed>
+  <RimWorldAccess.World.NoOtherLayers>No hay otras capas disponibles</RimWorldAccess.World.NoOtherLayers>
+  <RimWorldAccess.World.SwitchedToLayer>Cambiaste a la capa {0}.</RimWorldAccess.World.SwitchedToLayer>
+  <RimWorldAccess.World.SwitchedToLayerSpace>Cambiaste a la capa {0}. Capa del espacio.</RimWorldAccess.World.SwitchedToLayerSpace>
+  <RimWorldAccess.World.NoHomeSettlement>No se encontró un asentamiento base</RimWorldAccess.World.NoHomeSettlement>
+  <RimWorldAccess.World.NoPlayerCaravans>No se encontraron caravanas del jugador</RimWorldAccess.World.NoPlayerCaravans>
+  <RimWorldAccess.World.NoCaravansAtAll>No se encontraron caravanas</RimWorldAccess.World.NoCaravansAtAll>
+  <RimWorldAccess.World.NoTileSelected>Ningún cuadro seleccionado</RimWorldAccess.World.NoTileSelected>
+  <RimWorldAccess.World.NoSettlementAtTile>No hay asentamiento en el cuadro actual</RimWorldAccess.World.NoSettlementAtTile>
+  <RimWorldAccess.World.OnlyPlayerSettlements>Solo puedes formar caravanas desde asentamientos del jugador</RimWorldAccess.World.OnlyPlayerSettlements>
+  <RimWorldAccess.World.SettlementHasNoMap>El asentamiento no tiene mapa</RimWorldAccess.World.SettlementHasNoMap>
+  <RimWorldAccess.World.NoCaravanSelected>Ninguna caravana seleccionada</RimWorldAccess.World.NoCaravanSelected>
+  <RimWorldAccess.World.CaravanTraveling>{0} viajando hacia el destino</RimWorldAccess.World.CaravanTraveling>
+  <RimWorldAccess.World.NoOrdersAlreadyHere>No hay órdenes disponibles - ya en esta ubicación</RimWorldAccess.World.NoOrdersAlreadyHere>
+  <RimWorldAccess.World.CaravanOrders>Órdenes de {0}: {1} opciones disponibles</RimWorldAccess.World.CaravanOrders>
+  <RimWorldAccess.World.NoCaravanFocused>Ninguna caravana enfocada. Usa coma o punto para alternar entre caravanas primero.</RimWorldAccess.World.NoCaravanFocused>
+  <RimWorldAccess.World.CaravanDeselected>{0} deseleccionada. {1} caravanas seleccionadas.</RimWorldAccess.World.CaravanDeselected>
+  <RimWorldAccess.World.CaravanSelected>{0} seleccionada. {1} caravanas seleccionadas.</RimWorldAccess.World.CaravanSelected>
+  <RimWorldAccess.World.MultiSelectDifferentTiles>¡No puedes estar en dos lugares a la vez! Las caravanas seleccionadas están en cuadros diferentes.</RimWorldAccess.World.MultiSelectDifferentTiles>
+  <RimWorldAccess.World.JumpedToMultipleCaravans>Ir a {0} caravanas seleccionadas. {1}</RimWorldAccess.World.JumpedToMultipleCaravans>
+  <RimWorldAccess.World.JumpedToCaravan>Ir a {0}. {1}</RimWorldAccess.World.JumpedToCaravan>
+  <!-- Lead-in spoken when the world "Jump to..." menu moves the cursor. {0} = direction, {1} = tile count. -->
+  <RimWorldAccess.World.JumpedTilesDirection>Saltaste {1} cuadros al {0}</RimWorldAccess.World.JumpedTilesDirection>
+  <RimWorldAccess.World.JumpedTiles>Saltaste {0} cuadros</RimWorldAccess.World.JumpedTiles>
+  <RimWorldAccess.World.NoCaravanSelectedHint>Ninguna caravana seleccionada. Usa coma o punto para alternar entre caravanas primero.</RimWorldAccess.World.NoCaravanSelectedHint>
+  <RimWorldAccess.World.CycleCaravanSelected>{0}, {1}, seleccionada, {2} de {3}</RimWorldAccess.World.CycleCaravanSelected>
+  <RimWorldAccess.World.CycleCaravanNotSelected>{0}, {1}, {2} de {3}</RimWorldAccess.World.CycleCaravanNotSelected>
+  <RimWorldAccess.World.TravelToTile>Viajar a este cuadro</RimWorldAccess.World.TravelToTile>
+
+  <!-- =================================================================
+       Caravan formation dialog (CaravanFormationState).
+       Uses Dialog_FormCaravan with tabs (Pawns / Items / Animals /
+       Travel Supplies). Tab-summary view is split off; many block
+       reasons are user-facing.
+       {0} = tab name, {1} = item count, {2} = error message,
+       {3} = stat / item / position label.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Form.CannotReformFromHome>No se puede reformar la caravana desde el asentamiento base. Usa el mapa del mundo para formar nuevas caravanas.</RimWorldAccess.Caravan.Form.CannotReformFromHome>
+  <RimWorldAccess.Caravan.Form.MapHasNoParent>El mapa no tiene un objeto del mundo padre</RimWorldAccess.Caravan.Form.MapHasNoParent>
+  <RimWorldAccess.Caravan.Form.MapDoesNotSupport>Este mapa no admite la reformación de caravanas</RimWorldAccess.Caravan.Form.MapDoesNotSupport>
+  <RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent>No se puede reformar la caravana mientras haya enemigos presentes</RimWorldAccess.Caravan.Form.CannotReformEnemiesPresent>
+  <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>No se puede reformar la caravana en este momento</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
+  <RimWorldAccess.Caravan.Form.OpeningReformation>Abriendo el cuadro de diálogo de reformación de caravana</RimWorldAccess.Caravan.Form.OpeningReformation>
+  <RimWorldAccess.Caravan.Form.NoFormationDialog>No hay cuadro de diálogo de formación de caravana disponible</RimWorldAccess.Caravan.Form.NoFormationDialog>
+  <RimWorldAccess.Caravan.Form.OpenInstructions>Cuadro de diálogo de formar caravana abierto. Tab para el resumen, Alt+I para inspeccionar, Alt+S para enviar.</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <RimWorldAccess.Caravan.Form.TabHeader>Pestaña {0}, {1} elementos</RimWorldAccess.Caravan.Form.TabHeader>
+  <RimWorldAccess.Caravan.Form.NoItemsInTab>No hay elementos en esta pestaña</RimWorldAccess.Caravan.Form.NoItemsInTab>
+  <RimWorldAccess.Caravan.Form.ReturnedToTab>De vuelta a la pestaña {0}</RimWorldAccess.Caravan.Form.ReturnedToTab>
+  <RimWorldAccess.Caravan.Form.SummaryViewWithHint>Vista de resumen. Arriba/Abajo navega las estadísticas, Alt+I para el desglose. Tab para volver.</RimWorldAccess.Caravan.Form.SummaryViewWithHint>
+  <RimWorldAccess.Caravan.Form.SummaryView>Vista de resumen.</RimWorldAccess.Caravan.Form.SummaryView>
+  <RimWorldAccess.Caravan.Form.NoSummaryData>No hay datos de resumen</RimWorldAccess.Caravan.Form.NoSummaryData>
+  <RimWorldAccess.Caravan.Form.SummaryNoCaravanData>No hay datos de caravana disponibles</RimWorldAccess.Caravan.Form.SummaryNoCaravanData>
+  <RimWorldAccess.Caravan.Form.SummaryDestination>Destino: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>
+  <RimWorldAccess.Caravan.Form.SummaryDestinationWithEta>Destino: {0}, tiempo estimado de llegada: {1} días</RimWorldAccess.Caravan.Form.SummaryDestinationWithEta>
+  <RimWorldAccess.Caravan.Form.SummaryDestinationNotSet>Destino: Sin establecer</RimWorldAccess.Caravan.Form.SummaryDestinationNotSet>
+  <RimWorldAccess.Caravan.Form.SummaryStatsUnavailable>Estadísticas no disponibles</RimWorldAccess.Caravan.Form.SummaryStatsUnavailable>
+
+  <!-- =================================================================
+       Caravan stat formatter (CaravanStatFormatter).
+       Shared formatter used by formation/split summary views and the
+       transport pod loader. Tooltip descriptions come from game keys
+       (CaravanMovementSpeedTip, DaysWorthOfFoodTooltip, etc.).
+       {0} = primary value, {1} = secondary value, {2} = description.
+       ================================================================= -->
+  <RimWorldAccess.Stat.Mass>Masa: {0} de {1} kg</RimWorldAccess.Stat.Mass>
+  <RimWorldAccess.Stat.MassOverloaded>Masa: {0} de {1} kg - SOBRECARGADA</RimWorldAccess.Stat.MassOverloaded>
+  <RimWorldAccess.Stat.SpeedImmobile>Velocidad: {0}</RimWorldAccess.Stat.SpeedImmobile>
+  <RimWorldAccess.Stat.SpeedImmobileWithDesc>Velocidad: {0}. {1}</RimWorldAccess.Stat.SpeedImmobileWithDesc>
+  <RimWorldAccess.Stat.SpeedTilesPerDay>Velocidad: {0} cuadros por día</RimWorldAccess.Stat.SpeedTilesPerDay>
+  <RimWorldAccess.Stat.SpeedTilesPerDayWithDesc>Velocidad: {0} cuadros por día. {1}</RimWorldAccess.Stat.SpeedTilesPerDayWithDesc>
+  <RimWorldAccess.Stat.SpeedCannotMove>Velocidad: No puede moverse</RimWorldAccess.Stat.SpeedCannotMove>
+  <RimWorldAccess.Stat.SpeedCannotMoveWithDesc>Velocidad: No puede moverse. {0}</RimWorldAccess.Stat.SpeedCannotMoveWithDesc>
+  <RimWorldAccess.Stat.FoodInfinite>Alimentación: {0}</RimWorldAccess.Stat.FoodInfinite>
+  <RimWorldAccess.Stat.FoodInfiniteWithDesc>Alimentación: {0}. {1}</RimWorldAccess.Stat.FoodInfiniteWithDesc>
+  <RimWorldAccess.Stat.FoodNone>Alimentación: Ninguna</RimWorldAccess.Stat.FoodNone>
+  <RimWorldAccess.Stat.FoodNoneWithDesc>Alimentación: Ninguna. {0}</RimWorldAccess.Stat.FoodNoneWithDesc>
+  <RimWorldAccess.Stat.FoodDays>Alimentación: {0} días</RimWorldAccess.Stat.FoodDays>
+  <RimWorldAccess.Stat.FoodDaysWithDesc>Alimentación: {0} días. {1}</RimWorldAccess.Stat.FoodDaysWithDesc>
+  <RimWorldAccess.Stat.FoodDaysWithSpoil>Alimentación: {0} días, se echa a perder en {1} días</RimWorldAccess.Stat.FoodDaysWithSpoil>
+  <RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc>Alimentación: {0} días, se echa a perder en {1} días. {2}</RimWorldAccess.Stat.FoodDaysWithSpoilWithDesc>
+  <RimWorldAccess.Stat.ForagingPerDay>Recolección: {0} por día</RimWorldAccess.Stat.ForagingPerDay>
+  <RimWorldAccess.Stat.ForagingPerDayWithDesc>Recolección: {0} por día. {1}</RimWorldAccess.Stat.ForagingPerDayWithDesc>
+  <RimWorldAccess.Stat.ForagingPerDayWithType>Recolección: {0} ({1}) por día</RimWorldAccess.Stat.ForagingPerDayWithType>
+  <RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc>Recolección: {0} ({1}) por día. {2}</RimWorldAccess.Stat.ForagingPerDayWithTypeWithDesc>
+  <RimWorldAccess.Stat.Visibility>Visibilidad: {0}</RimWorldAccess.Stat.Visibility>
+  <RimWorldAccess.Stat.VisibilityWithDesc>Visibilidad: {0}. {1}</RimWorldAccess.Stat.VisibilityWithDesc>
+  <RimWorldAccess.Caravan.Form.ItemPosition>{0}. {1}</RimWorldAccess.Caravan.Form.ItemPosition>
+  <RimWorldAccess.Caravan.Form.NoDialog>No hay cuadro de diálogo disponible</RimWorldAccess.Caravan.Form.NoDialog>
+  <RimWorldAccess.Caravan.Form.ChoosingDestination>Eligiendo el destino de la caravana. Usa las teclas de flecha para navegar el mapa del mundo, Enter para seleccionar el destino, o Escape para cancelar.</RimWorldAccess.Caravan.Form.ChoosingDestination>
+  <RimWorldAccess.Caravan.Form.FailedRoutePlanner>No se pudo abrir el planificador de rutas: {0}</RimWorldAccess.Caravan.Form.FailedRoutePlanner>
+  <RimWorldAccess.Caravan.Form.InvalidDestination>Cuadro de destino inválido</RimWorldAccess.Caravan.Form.InvalidDestination>
+  <RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute>No se pudo acceder al método Notify_ChoseRoute</RimWorldAccess.Caravan.Form.FailedAccessNotifyChoseRoute>
+  <RimWorldAccess.Caravan.Form.DestinationSet>Destino establecido en {0}.</RimWorldAccess.Caravan.Form.DestinationSet>
+  <RimWorldAccess.Caravan.Form.FailedSetDestination>No se pudo establecer el destino: {0}</RimWorldAccess.Caravan.Form.FailedSetDestination>
+  <RimWorldAccess.Caravan.Form.DestinationCancelled>Selección de destino cancelada. Volviendo al cuadro de diálogo de formación de caravana.</RimWorldAccess.Caravan.Form.DestinationCancelled>
+  <RimWorldAccess.Caravan.Form.FailedCancelDestination>No se pudo cancelar la selección de destino: {0}</RimWorldAccess.Caravan.Form.FailedCancelDestination>
+  <RimWorldAccess.Caravan.Form.FailedSendCaravan>No se pudo enviar la caravana: {0}</RimWorldAccess.Caravan.Form.FailedSendCaravan>
+  <RimWorldAccess.Caravan.Form.SelectionsReset>Selecciones restablecidas</RimWorldAccess.Caravan.Form.SelectionsReset>
+  <RimWorldAccess.Caravan.Form.FailedReset>No se pudo restablecer: {0}</RimWorldAccess.Caravan.Form.FailedReset>
+  <RimWorldAccess.Caravan.Form.AutoProvisionOff>Aprovisionamiento automático desactivado. Selección manual restaurada.</RimWorldAccess.Caravan.Form.AutoProvisionOff>
+  <RimWorldAccess.Caravan.Form.AutoProvisionOn>Aprovisionamiento automático activado. Pestaña de suministros bloqueada. Presiona Alt+A de nuevo para desactivar.</RimWorldAccess.Caravan.Form.AutoProvisionOn>
+  <RimWorldAccess.Caravan.Form.FailedToggleAutoProvision>No se pudo alternar el aprovisionamiento automático: {0}</RimWorldAccess.Caravan.Form.FailedToggleAutoProvision>
+  <RimWorldAccess.Caravan.Form.ReformationCancelled>Reformación de caravana cancelada</RimWorldAccess.Caravan.Form.ReformationCancelled>
+  <RimWorldAccess.Caravan.Form.SuppliesTabLocked>Pestaña de suministros bloqueada. Presiona Alt+A para desactivar el aprovisionamiento automático.</RimWorldAccess.Caravan.Form.SuppliesTabLocked>
+  <RimWorldAccess.Caravan.Form.NoBreakdownForItem>No hay desglose disponible para este elemento</RimWorldAccess.Caravan.Form.NoBreakdownForItem>
+  <RimWorldAccess.Caravan.Form.FormationCancelled>Formación de caravana cancelada</RimWorldAccess.Caravan.Form.FormationCancelled>
+  <!-- On-screen visual aids drawn over the dialog for sighted observers
+       (not spoken). The instructions string uses \n line breaks. -->
+  <RimWorldAccess.Caravan.Form.KeyboardModeActive>Modo de teclado activo</RimWorldAccess.Caravan.Form.KeyboardModeActive>
+  <RimWorldAccess.Caravan.Form.KeyboardInstructions>Pestañas: Personajes, Objetos, Suministros de viaje | Espacio/Enter: Alternar/Cantidad\nShift+Enter: Máximo | Supr: Quitar | Tab: Resumen | Alt+I: Inspeccionar/Desglose\nAlt+A: Aprovisionamiento automático | Alt+D: Destino | Alt+S: Enviar | Alt+R: Restablecer</RimWorldAccess.Caravan.Form.KeyboardInstructions>
+
+  <!-- =================================================================
+       Split caravan dialog (SplitCaravanState).
+       Same shape as form-caravan but the two-caravan summary view
+       has a Left/Right swap to switch between source and split-target.
+       {0} = tab name, {1} = item count, {2} = stat value,
+       {3} = caravan name, {4} = position fragment.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Split.NoDialog>No hay cuadro de diálogo de dividir caravana disponible</RimWorldAccess.Caravan.Split.NoDialog>
+  <RimWorldAccess.Caravan.Split.OpenInstructions>Cuadro de diálogo de dividir caravana abierto. Tab para el resumen, Alt+I para inspeccionar, Alt+S para dividir.</RimWorldAccess.Caravan.Split.OpenInstructions>
+  <RimWorldAccess.Caravan.Split.TabHeader>Pestaña {0}, {1} elementos</RimWorldAccess.Caravan.Split.TabHeader>
+  <RimWorldAccess.Caravan.Split.BottomEdge>Final. {0}. {1} de {2}</RimWorldAccess.Caravan.Split.BottomEdge>
+  <RimWorldAccess.Caravan.Split.TopEdge>Principio. {0}. {1} de {2}</RimWorldAccess.Caravan.Split.TopEdge>
+  <RimWorldAccess.Caravan.Split.NoItemsInTab>No hay elementos en esta pestaña</RimWorldAccess.Caravan.Split.NoItemsInTab>
+  <RimWorldAccess.Caravan.Split.ReturnedToTab>De vuelta a la pestaña {0}</RimWorldAccess.Caravan.Split.ReturnedToTab>
+  <RimWorldAccess.Caravan.Split.SummaryViewWithHint>Vista de resumen. Arriba/Abajo navega las estadísticas, Izquierda/Derecha cambia entre caravanas, Alt+I para el desglose. Tab para volver.</RimWorldAccess.Caravan.Split.SummaryViewWithHint>
+  <RimWorldAccess.Caravan.Split.SummaryView>Vista de resumen.</RimWorldAccess.Caravan.Split.SummaryView>
+  <RimWorldAccess.Caravan.Split.NoCaravanData>No hay datos de caravana disponibles</RimWorldAccess.Caravan.Split.NoCaravanData>
+  <RimWorldAccess.Caravan.Split.NewCaravanLabel>Caravana nueva</RimWorldAccess.Caravan.Split.NewCaravanLabel>
+  <RimWorldAccess.Caravan.Split.OriginalCaravanLabel>Caravana original</RimWorldAccess.Caravan.Split.OriginalCaravanLabel>
+  <RimWorldAccess.Caravan.Split.UnknownStatValue>Desconocido</RimWorldAccess.Caravan.Split.UnknownStatValue>
+  <RimWorldAccess.Caravan.Split.StatPosition>{0}. {1} de {2}</RimWorldAccess.Caravan.Split.StatPosition>
+  <RimWorldAccess.Caravan.Split.StatCaravanPosition>{0}. {1}, {2} de {3}</RimWorldAccess.Caravan.Split.StatCaravanPosition>
+  <RimWorldAccess.Caravan.Split.NoDialogAvailable>No hay cuadro de diálogo disponible</RimWorldAccess.Caravan.Split.NoDialogAvailable>
+  <RimWorldAccess.Caravan.Split.SplitSuccessfully>Caravana dividida con éxito</RimWorldAccess.Caravan.Split.SplitSuccessfully>
+  <RimWorldAccess.Caravan.Split.FailedToSplit>No se pudo dividir la caravana: {0}</RimWorldAccess.Caravan.Split.FailedToSplit>
+  <RimWorldAccess.Caravan.Split.SelectionsReset>Selecciones restablecidas</RimWorldAccess.Caravan.Split.SelectionsReset>
+  <RimWorldAccess.Caravan.Split.FailedReset>No se pudo restablecer: {0}</RimWorldAccess.Caravan.Split.FailedReset>
+  <RimWorldAccess.Caravan.Split.NoBreakdownForStat>No hay desglose disponible para esta estadística</RimWorldAccess.Caravan.Split.NoBreakdownForStat>
+  <RimWorldAccess.Caravan.Split.SplitCancelled>División de caravana cancelada</RimWorldAccess.Caravan.Split.SplitCancelled>
+
+  <!-- =================================================================
+       Caravan inspect (CaravanInspectState).
+       Windowless inspection of a single caravan. Per-tab readouts
+       reuse PawnInfoHelper output.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Inspect.NoCaravanSpecified>No se especificó ninguna caravana</RimWorldAccess.Caravan.Inspect.NoCaravanSpecified>
+  <RimWorldAccess.Caravan.Inspect.Closed>Inspección de caravana cerrada</RimWorldAccess.Caravan.Inspect.Closed>
+  <RimWorldAccess.Caravan.Inspect.CannotAbandon>No se puede abandonar este elemento</RimWorldAccess.Caravan.Inspect.CannotAbandon>
+  <RimWorldAccess.Caravan.Inspect.NoMoodForItem>No hay información de humor disponible para este elemento</RimWorldAccess.Caravan.Inspect.NoMoodForItem>
+  <RimWorldAccess.Caravan.Inspect.NoNeedsForItem>No hay información de necesidades disponible para este elemento</RimWorldAccess.Caravan.Inspect.NoNeedsForItem>
+  <RimWorldAccess.Caravan.Inspect.NoHealthForItem>No hay información de salud disponible para este elemento</RimWorldAccess.Caravan.Inspect.NoHealthForItem>
+  <RimWorldAccess.Caravan.Inspect.NoGearForItem>No hay información de equipo disponible para este elemento</RimWorldAccess.Caravan.Inspect.NoGearForItem>
+  <RimWorldAccess.Caravan.Inspect.NoSkillsForItem>No hay información de habilidades disponible para este elemento</RimWorldAccess.Caravan.Inspect.NoSkillsForItem>
+  <RimWorldAccess.Caravan.Inspect.NoActionAvailable>No hay acción disponible</RimWorldAccess.Caravan.Inspect.NoActionAvailable>
+  <RimWorldAccess.Caravan.Inspect.NoBreakdown>No hay desglose disponible</RimWorldAccess.Caravan.Inspect.NoBreakdown>
+
+  <!-- Caravan inspect treeview (CaravanInspectState): category labels, stat
+       labels, stat values, and Alt+I stat-breakdown tooltips. Spoken while
+       navigating the tree. Units reuse vanilla keys where available
+       (PeriodDays, PeriodHours, Infinite, None, TilesPerDay).
+       In the tooltip strings, a leading "- " marks a sub-item and a trailing
+       ":" marks a section header for the breakdown parser; preserve them. -->
+  <RimWorldAccess.Caravan.Inspect.StatLabelValue>{0}: {1}</RimWorldAccess.Caravan.Inspect.StatLabelValue>
+  <RimWorldAccess.Caravan.Inspect.Unknown>Desconocido</RimWorldAccess.Caravan.Inspect.Unknown>
+  <RimWorldAccess.Caravan.Inspect.NotAvailable>N/D</RimWorldAccess.Caravan.Inspect.NotAvailable>
+  <RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus>Estado de la caravana</RimWorldAccess.Caravan.Inspect.CategoryCaravanStatus>
+  <RimWorldAccess.Caravan.Inspect.CategoryPawns>Personajes ({0})</RimWorldAccess.Caravan.Inspect.CategoryPawns>
+  <RimWorldAccess.Caravan.Inspect.CategoryColonists>Colonos ({0})</RimWorldAccess.Caravan.Inspect.CategoryColonists>
+  <RimWorldAccess.Caravan.Inspect.CategoryPrisoners>Prisioneros ({0})</RimWorldAccess.Caravan.Inspect.CategoryPrisoners>
+  <RimWorldAccess.Caravan.Inspect.CategoryAnimals>Animales ({0})</RimWorldAccess.Caravan.Inspect.CategoryAnimals>
+  <RimWorldAccess.Caravan.Inspect.CategoryGear>Equipo ({0} elementos)</RimWorldAccess.Caravan.Inspect.CategoryGear>
+  <RimWorldAccess.Caravan.Inspect.CategoryItems>Objetos ({0})</RimWorldAccess.Caravan.Inspect.CategoryItems>
+  <RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty>Objetos (vacío)</RimWorldAccess.Caravan.Inspect.CategoryItemsEmpty>
+  <RimWorldAccess.Caravan.Inspect.Negotiator>negociador</RimWorldAccess.Caravan.Inspect.Negotiator>
+  <RimWorldAccess.Caravan.Inspect.PawnPossession>{1} de {0}</RimWorldAccess.Caravan.Inspect.PawnPossession>
+  <RimWorldAccess.Caravan.Inspect.StatLocation>Ubicación</RimWorldAccess.Caravan.Inspect.StatLocation>
+  <RimWorldAccess.Caravan.Inspect.StatMass>Masa</RimWorldAccess.Caravan.Inspect.StatMass>
+  <RimWorldAccess.Caravan.Inspect.StatStatus>Estado</RimWorldAccess.Caravan.Inspect.StatStatus>
+  <RimWorldAccess.Caravan.Inspect.StatSpeed>Velocidad</RimWorldAccess.Caravan.Inspect.StatSpeed>
+  <RimWorldAccess.Caravan.Inspect.StatFood>Alimentación</RimWorldAccess.Caravan.Inspect.StatFood>
+  <RimWorldAccess.Caravan.Inspect.StatForaging>Recolección</RimWorldAccess.Caravan.Inspect.StatForaging>
+  <RimWorldAccess.Caravan.Inspect.StatDestination>Destino</RimWorldAccess.Caravan.Inspect.StatDestination>
+  <RimWorldAccess.Caravan.Inspect.StatETA>Tiempo estimado de llegada</RimWorldAccess.Caravan.Inspect.StatETA>
+  <RimWorldAccess.Caravan.Inspect.StatVisibility>Visibilidad</RimWorldAccess.Caravan.Inspect.StatVisibility>
+  <RimWorldAccess.Caravan.Inspect.StatBeds>Camas</RimWorldAccess.Caravan.Inspect.StatBeds>
+  <RimWorldAccess.Caravan.Inspect.Immobile>Inmóvil</RimWorldAccess.Caravan.Inspect.Immobile>
+  <RimWorldAccess.Caravan.Inspect.DaysUntilRot>({0} días hasta pudrirse)</RimWorldAccess.Caravan.Inspect.DaysUntilRot>
+  <RimWorldAccess.Caravan.Inspect.OutOfFood>SIN ALIMENTOS</RimWorldAccess.Caravan.Inspect.OutOfFood>
+  <RimWorldAccess.Caravan.Inspect.FoodFallback>alimento</RimWorldAccess.Caravan.Inspect.FoodFallback>
+  <RimWorldAccess.Caravan.Inspect.ForagingPerDay>{0} ({1})/día</RimWorldAccess.Caravan.Inspect.ForagingPerDay>
+  <RimWorldAccess.Caravan.Inspect.BedrollsInUse>{0} saco(s) de dormir en uso</RimWorldAccess.Caravan.Inspect.BedrollsInUse>
+  <RimWorldAccess.Caravan.Inspect.NoBedrolls>Sin sacos de dormir</RimWorldAccess.Caravan.Inspect.NoBedrolls>
+  <RimWorldAccess.Caravan.Inspect.LocationCoords>Cuadro {0}, {1}N {2}E</RimWorldAccess.Caravan.Inspect.LocationCoords>
+  <RimWorldAccess.Caravan.Inspect.MassUsageCapacity>{0} / {1} kg</RimWorldAccess.Caravan.Inspect.MassUsageCapacity>
+  <RimWorldAccess.Caravan.Inspect.TileNumber>Cuadro {0}</RimWorldAccess.Caravan.Inspect.TileNumber>
+  <RimWorldAccess.Caravan.Inspect.TooltipMassCarried>Masa transportada: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipMassCarried>
+  <RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>Capacidad de masa: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>
+  <RimWorldAccess.Caravan.Inspect.TooltipOverloaded>SOBRECARGADA - La caravana no puede moverse hasta que se reduzca la masa.</RimWorldAccess.Caravan.Inspect.TooltipOverloaded>
+  <RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity>Capacidad restante: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipRemainingCapacity>
+  <RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown>Desglose de capacidad:</RimWorldAccess.Caravan.Inspect.TooltipCapacityBreakdown>
+  <RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause>La caravana no puede moverse porque:</RimWorldAccess.Caravan.Inspect.StatusCannotMoveBecause>
+  <RimWorldAccess.Caravan.Inspect.StatusAllDowned>Todos los miembros de la caravana están incapacitados</RimWorldAccess.Caravan.Inspect.StatusAllDowned>
+  <RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak>Todos los miembros de la caravana están sufriendo crisis mentales</RimWorldAccess.Caravan.Inspect.StatusAllMentalBreak>
+  <RimWorldAccess.Caravan.Inspect.StatusOverloaded>La caravana está sobrecargada más allá de su capacidad</RimWorldAccess.Caravan.Inspect.StatusOverloaded>
+  <RimWorldAccess.Caravan.Inspect.StatusNightResting>La caravana está descansando durante las horas nocturnas.</RimWorldAccess.Caravan.Inspect.StatusNightResting>
+  <RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls>Usando {0} saco(s) de dormir para descansar mejor.</RimWorldAccess.Caravan.Inspect.StatusUsingBedrolls>
+  <RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround>Sin sacos de dormir - los personajes duermen en el suelo.</RimWorldAccess.Caravan.Inspect.StatusNoBedrollsGround>
+  <RimWorldAccess.Caravan.Inspect.StatusPaused>El movimiento de la caravana está pausado.</RimWorldAccess.Caravan.Inspect.StatusPaused>
+  <RimWorldAccess.Caravan.Inspect.StatusTraveling>La caravana viaja hacia el destino.</RimWorldAccess.Caravan.Inspect.StatusTraveling>
+  <RimWorldAccess.Caravan.Inspect.StatusStopped>La caravana está detenida y esperando órdenes.</RimWorldAccess.Caravan.Inspect.StatusStopped>
+
+  <!-- =================================================================
+       Caravan input helper (CaravanInputHelper).
+       Alt+H/M/N/G/K dispatch from inside the caravan dialog tabs.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Input.NoPawnSelected>Ningún personaje seleccionado. Navega a la pestaña de Personajes primero.</RimWorldAccess.Caravan.Input.NoPawnSelected>
+  <RimWorldAccess.Caravan.Input.RemovedSingle>{0} quitado</RimWorldAccess.Caravan.Input.RemovedSingle>
+  <RimWorldAccess.Caravan.Input.RemovedAllOf>Se quitaron todos los {0} {1}</RimWorldAccess.Caravan.Input.RemovedAllOf>
+
+  <!-- =================================================================
+       Caravan UI helper (CaravanUIHelper).
+       Toggling individual transferable rows. Spoken on space-bar
+       check / uncheck. {0} = item label.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.UI.TransferableUnchecked>{0} desmarcado</RimWorldAccess.Caravan.UI.TransferableUnchecked>
+  <RimWorldAccess.Caravan.UI.TransferableChecked>{0} marcado</RimWorldAccess.Caravan.UI.TransferableChecked>
+
+  <!-- =================================================================
+       Caravan quantity helper (CaravanQuantityHelper).
+       Boundary feedback when adjusting per-item quantities.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>No hay suficiente capacidad para más</RimWorldAccess.Caravan.Quantity.NotEnoughCapacity>
+  <!-- Shift+Enter "add maximum" feedback. {N} are counts; the trailing
+       insert is the localized MassSuffix (", X kg") or empty. -->
+  <RimWorldAccess.Caravan.Quantity.MassSuffix>, {0} kg</RimWorldAccess.Caravan.Quantity.MassSuffix>
+  <RimWorldAccess.Caravan.Quantity.TakingOne>Llevando 1{0}</RimWorldAccess.Caravan.Quantity.TakingOne>
+  <RimWorldAccess.Caravan.Quantity.TakingAll>Llevando todos los {0}{1}</RimWorldAccess.Caravan.Quantity.TakingAll>
+  <RimWorldAccess.Caravan.Quantity.TakingXofY>Llevando {0} de {1}{2}</RimWorldAccess.Caravan.Quantity.TakingXofY>
+  <RimWorldAccess.Caravan.Quantity.TakingXofYLimit>Llevando {0} de {1}{2}, límite de capacidad</RimWorldAccess.Caravan.Quantity.TakingXofYLimit>
+  <RimWorldAccess.Caravan.Quantity.AddedOne>Se agregó 1{0}</RimWorldAccess.Caravan.Quantity.AddedOne>
+  <RimWorldAccess.Caravan.Quantity.AddedOneNowAll>Se agregó 1, ahora llevando todos los {0}{1}</RimWorldAccess.Caravan.Quantity.AddedOneNowAll>
+  <RimWorldAccess.Caravan.Quantity.AddedNowAll>Se agregaron {0}, ahora llevando todos los {1}{2}</RimWorldAccess.Caravan.Quantity.AddedNowAll>
+  <RimWorldAccess.Caravan.Quantity.AddedNowXofY>Se agregaron {0}, ahora {1} de {2}{3}</RimWorldAccess.Caravan.Quantity.AddedNowXofY>
+  <RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit>Se agregaron {0}, ahora {1} de {2}{3}, límite de capacidad</RimWorldAccess.Caravan.Quantity.AddedNowXofYLimit>
+
+  <!-- =================================================================
+       Caravan announcement helper (CaravanAnnouncementHelper).
+       Shared per-tab "no items" announcement.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Announce.NoItemsInTab>No hay elementos en esta pestaña</RimWorldAccess.Caravan.Announce.NoItemsInTab>
+  <!-- Per-item announcement fragments for the formation/split tab lists.
+       Appended after the item label with a leading separator in code. -->
+  <RimWorldAccess.Caravan.Announce.NoItemSelected>Ningún elemento seleccionado</RimWorldAccess.Caravan.Announce.NoItemSelected>
+  <RimWorldAccess.Caravan.Announce.TakingXofY>Llevando {0} de {1}</RimWorldAccess.Caravan.Announce.TakingXofY>
+  <RimWorldAccess.Caravan.Announce.XAvailable>{0} disponibles</RimWorldAccess.Caravan.Announce.XAvailable>
+  <RimWorldAccess.Caravan.Announce.Wielding>(empuñando {0})</RimWorldAccess.Caravan.Announce.Wielding>
+  <RimWorldAccess.Caravan.Announce.Checked>marcado</RimWorldAccess.Caravan.Announce.Checked>
+  <RimWorldAccess.Caravan.Announce.MassKg>Masa: {0} kg</RimWorldAccess.Caravan.Announce.MassKg>
+  <RimWorldAccess.Caravan.Announce.SearchMatch>'{0}' coincidencia {1} de {2}</RimWorldAccess.Caravan.Announce.SearchMatch>
+
+  <!-- =================================================================
+       Gear-equip menu (GearEquipMenuState).
+       Pawn picker shown by Alt+E while inspecting an item; user
+       chooses who to equip the item on. Handles swap/replace/equip
+       paths and apparel locking.
+       {0} = action verb (Equip / Wear / Drop), {1} = item label,
+       {2} = target pawn, {3} = previously-equipped item or owner.
+       ================================================================= -->
+  <RimWorldAccess.Gear.CannotOpenEquipMenu>No se puede abrir el menú de equipar</RimWorldAccess.Gear.CannotOpenEquipMenu>
+  <RimWorldAccess.Gear.NoPawnsAvailable>No hay personajes disponibles para equipar este elemento</RimWorldAccess.Gear.NoPawnsAvailable>
+  <RimWorldAccess.Gear.OpenInstructions>¿{0} {1} a quién? Usa las flechas para navegar, Enter para seleccionar, Escape para cancelar.</RimWorldAccess.Gear.OpenInstructions>
+  <RimWorldAccess.Gear.CannotEquipReason>No se puede equipar: {0}</RimWorldAccess.Gear.CannotEquipReason>
+  <RimWorldAccess.Gear.UnequippedToInventory>{0} desequipado al inventario.</RimWorldAccess.Gear.UnequippedToInventory>
+  <RimWorldAccess.Gear.SwappedTwoOwners>Intercambiado. {0} ahora tiene {1}, y {2} ahora tiene {3}.</RimWorldAccess.Gear.SwappedTwoOwners>
+  <RimWorldAccess.Gear.SwappedToInventory>Intercambiado. {0} ahora tiene {1}. {2} se movió al inventario.</RimWorldAccess.Gear.SwappedToInventory>
+  <RimWorldAccess.Gear.EquippedTo>{1} ahora tiene {0} equipado.</RimWorldAccess.Gear.EquippedTo>
+  <RimWorldAccess.Gear.FailedToEquip>No se pudo equipar el elemento</RimWorldAccess.Gear.FailedToEquip>
+  <RimWorldAccess.Gear.CannotRemoveLockedApparel>No se puede quitar la vestimenta bloqueada</RimWorldAccess.Gear.CannotRemoveLockedApparel>
+  <RimWorldAccess.Gear.CannotRemoveLockedFromPawn>No se puede quitar la vestimenta bloqueada {0} de {1}</RimWorldAccess.Gear.CannotRemoveLockedFromPawn>
+  <RimWorldAccess.Gear.LabelPosition>{0}. {1}</RimWorldAccess.Gear.LabelPosition>
+  <RimWorldAccess.Gear.UnequipToInventory>Desequipar al inventario</RimWorldAccess.Gear.UnequipToInventory>
+  <RimWorldAccess.Gear.PawnCantEquip>{0} (no puede equipar: {1})</RimWorldAccess.Gear.PawnCantEquip>
+  <RimWorldAccess.Gear.PawnWithCurrent>{0} ({1})</RimWorldAccess.Gear.PawnWithCurrent>
+  <RimWorldAccess.Gear.ActionGive>Dar</RimWorldAccess.Gear.ActionGive>
+  <RimWorldAccess.Gear.ActionEquip>Equipar</RimWorldAccess.Gear.ActionEquip>
+
+  <!-- =================================================================
+       Quest locations browser (QuestLocationsBrowserState).
+       List of tiles flagged by quests; J key opens it from the world
+       map. {0} = filter or position.
+       ================================================================= -->
+  <RimWorldAccess.QuestBrowser.QuestSystemUnavailable>Sistema de misiones no disponible</RimWorldAccess.QuestBrowser.QuestSystemUnavailable>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationsFound>No se encontraron ubicaciones de misiones</RimWorldAccess.QuestBrowser.NoQuestLocationsFound>
+  <RimWorldAccess.QuestBrowser.Closed>Explorador de ubicaciones de misiones cerrado</RimWorldAccess.QuestBrowser.Closed>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable>No hay ubicaciones de misiones disponibles</RimWorldAccess.QuestBrowser.NoQuestLocationsAvailable>
+  <RimWorldAccess.QuestBrowser.NoQuestLocationSelected>Ninguna ubicación de misión seleccionada</RimWorldAccess.QuestBrowser.NoQuestLocationSelected>
+  <RimWorldAccess.QuestBrowser.UnknownLocation>Ubicación desconocida</RimWorldAccess.QuestBrowser.UnknownLocation>
+  <RimWorldAccess.QuestBrowser.LocationAnnouncement>{0} - {1}, {2} cuadros. {3}. {4}</RimWorldAccess.QuestBrowser.LocationAnnouncement>
+
+  <!-- =================================================================
+       Settlement browser (SettlementBrowserState).
+       Filterable settlement list (Friendly / Hostile / Neutral / Player).
+       {0} = filter name, {1} = match count.
+       ================================================================= -->
+  <RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable>Objetos del mundo no disponibles</RimWorldAccess.SettlementBrowser.WorldObjectsUnavailable>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsFound>No se encontraron asentamientos</RimWorldAccess.SettlementBrowser.NoSettlementsFound>
+  <RimWorldAccess.SettlementBrowser.Closed>Explorador de asentamientos cerrado</RimWorldAccess.SettlementBrowser.Closed>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter>Ningún asentamiento coincide con este filtro</RimWorldAccess.SettlementBrowser.NoSettlementsMatchFilter>
+  <RimWorldAccess.SettlementBrowser.NoSettlementsAvailable>No hay asentamientos disponibles</RimWorldAccess.SettlementBrowser.NoSettlementsAvailable>
+  <RimWorldAccess.SettlementBrowser.NoSettlementSelected>Ningún asentamiento seleccionado</RimWorldAccess.SettlementBrowser.NoSettlementSelected>
+  <RimWorldAccess.SettlementBrowser.FilterCount>{0}, {1} encontrados</RimWorldAccess.SettlementBrowser.FilterCount>
+  <RimWorldAccess.SettlementBrowser.FilterPlayer>Asentamientos del jugador</RimWorldAccess.SettlementBrowser.FilterPlayer>
+  <RimWorldAccess.SettlementBrowser.FilterAllied>Asentamientos aliados</RimWorldAccess.SettlementBrowser.FilterAllied>
+  <RimWorldAccess.SettlementBrowser.FilterNeutral>Asentamientos neutrales</RimWorldAccess.SettlementBrowser.FilterNeutral>
+  <RimWorldAccess.SettlementBrowser.FilterHostile>Asentamientos hostiles</RimWorldAccess.SettlementBrowser.FilterHostile>
+  <RimWorldAccess.SettlementBrowser.FilterAll>Todos los asentamientos</RimWorldAccess.SettlementBrowser.FilterAll>
+  <RimWorldAccess.SettlementBrowser.FilterUnknown>Filtro desconocido</RimWorldAccess.SettlementBrowser.FilterUnknown>
+  <RimWorldAccess.SettlementBrowser.RelationshipUnknown>Desconocido</RimWorldAccess.SettlementBrowser.RelationshipUnknown>
+  <RimWorldAccess.SettlementBrowser.RelationshipPlayer>Jugador</RimWorldAccess.SettlementBrowser.RelationshipPlayer>
+  <RimWorldAccess.SettlementBrowser.RelationshipHostile>Hostil</RimWorldAccess.SettlementBrowser.RelationshipHostile>
+  <RimWorldAccess.SettlementBrowser.SettlementAnnouncement>{0}, {1}, {2}, {3} cuadros. {4}</RimWorldAccess.SettlementBrowser.SettlementAnnouncement>
+  <RimWorldAccess.SettlementBrowser.SearchAnnouncement>{0}: {1}, {2}, {3}, {4} cuadros</RimWorldAccess.SettlementBrowser.SearchAnnouncement>
+  <RimWorldAccess.SettlementBrowser.SearchInfo>'{0}' coincidencia {1} de {2}</RimWorldAccess.SettlementBrowser.SearchInfo>
+
+  <!-- =================================================================
+       Stat-breakdown overlay (StatBreakdownState).
+       Tree of stat factors opened by Alt+I from a summary stat row.
+       {0} = stat name, {1} = factor count, {2} = suffix.
+       ================================================================= -->
+  <RimWorldAccess.StatBreakdown.NoBreakdownFor>No hay desglose disponible para {0}</RimWorldAccess.StatBreakdown.NoBreakdownFor>
+  <RimWorldAccess.StatBreakdown.NoFactorsFor>No hay factores de desglose para {0}</RimWorldAccess.StatBreakdown.NoFactorsFor>
+  <RimWorldAccess.StatBreakdown.HeaderWithSuffix>Desglose de {0} ({1} factores){2}.</RimWorldAccess.StatBreakdown.HeaderWithSuffix>
+  <RimWorldAccess.StatBreakdown.Closed>Desglose cerrado</RimWorldAccess.StatBreakdown.Closed>
+  <RimWorldAccess.StatBreakdown.NotExpandable>No expandible</RimWorldAccess.StatBreakdown.NotExpandable>
+  <RimWorldAccess.StatBreakdown.AlreadyExpanded>Ya expandido</RimWorldAccess.StatBreakdown.AlreadyExpanded>
+  <RimWorldAccess.StatBreakdown.TreeviewSuffix> vista de árbol</RimWorldAccess.StatBreakdown.TreeviewSuffix>
+
+  <!-- =================================================================
+       Route planner (RoutePlannerState).
+       Caravan waypoint planner. Estimated travel time always pairs
+       with the speed-source noun ("walking", "driving", etc.) which
+       comes from game data, lowercased before display.
+       {0} = waypoint count, {1} = travel time string,
+       {2} = speed source noun, {3} = error/limit message,
+       {4} = destination name.
+       ================================================================= -->
+  <RimWorldAccess.Route.WorldNavMustBeActive>La navegación del mundo debe estar activa</RimWorldAccess.Route.WorldNavMustBeActive>
+  <RimWorldAccess.Route.PlannerNotAvailable>Planificador de rutas no disponible</RimWorldAccess.Route.PlannerNotAvailable>
+  <RimWorldAccess.Route.NoCaravanDialog>No hay cuadro de diálogo de caravana</RimWorldAccess.Route.NoCaravanDialog>
+  <RimWorldAccess.Route.PlannerNotActive>Planificador de rutas no activo</RimWorldAccess.Route.PlannerNotActive>
+  <RimWorldAccess.Route.WorldNavNotActive>Navegación del mundo no activa</RimWorldAccess.Route.WorldNavNotActive>
+  <RimWorldAccess.Route.ChoosingPrompt>Eligiendo ruta. {0} Espacio para agregar un punto de ruta, E para el tiempo de viaje, Enter para confirmar, Escape para cancelar.</RimWorldAccess.Route.ChoosingPrompt>
+  <RimWorldAccess.Route.StandaloneInstructions>Planificador de rutas activo. Espacio para agregar un punto de ruta, Shift+Espacio para quitar el punto de ruta en el cursor, E para el tiempo de viaje, Escape para salir.</RimWorldAccess.Route.StandaloneInstructions>
+  <RimWorldAccess.Route.Closed>Planificador de rutas cerrado</RimWorldAccess.Route.Closed>
+  <RimWorldAccess.Route.WaypointAddedWithEta>Punto de ruta {0} agregado. Tiempo estimado de viaje: {1} {2}</RimWorldAccess.Route.WaypointAddedWithEta>
+  <RimWorldAccess.Route.WaypointAddedStarting>Punto de ruta {0} agregado (punto de inicio)</RimWorldAccess.Route.WaypointAddedStarting>
+  <RimWorldAccess.Route.NoWaypointToRemove>No hay ningún punto de ruta aquí para quitar</RimWorldAccess.Route.NoWaypointToRemove>
+  <RimWorldAccess.Route.WaypointRemoved>Punto de ruta {0} quitado. {1} puntos de ruta restantes.</RimWorldAccess.Route.WaypointRemoved>
+  <RimWorldAccess.Route.WaypointRemovedWithEta>Punto de ruta {0} quitado. {1} puntos de ruta restantes. Tiempo estimado de viaje: {2} {3}</RimWorldAccess.Route.WaypointRemovedWithEta>
+  <!-- Travel-speed source line (RoutePlannerState). UsingCaravanSpeed {0}=caravan label. -->
+  <RimWorldAccess.Route.UsingCaravanSpeed>Usando la velocidad de {0}</RimWorldAccess.Route.UsingCaravanSpeed>
+  <RimWorldAccess.Route.UsingAverageSpeed>Usando la velocidad promedio de la caravana</RimWorldAccess.Route.UsingAverageSpeed>
+  <RimWorldAccess.Route.EtaWithSource>Tiempo estimado de viaje: {0} {1}</RimWorldAccess.Route.EtaWithSource>
+  <RimWorldAccess.Route.NoWaypointsSet>No hay puntos de ruta establecidos</RimWorldAccess.Route.NoWaypointsSet>
+  <RimWorldAccess.Route.StartingPoint>Punto de inicio: {0}. Agrega más puntos de ruta con Espacio.</RimWorldAccess.Route.StartingPoint>
+  <RimWorldAccess.Route.WaypointSummary>{0} puntos de ruta. {1} {2}</RimWorldAccess.Route.WaypointSummary>
+  <RimWorldAccess.Route.RouteConfirmed>Ruta confirmada. Destino: {0}</RimWorldAccess.Route.RouteConfirmed>
+  <RimWorldAccess.Route.AlreadySent>Caravana ya enviada. Planificador de rutas cerrado.</RimWorldAccess.Route.AlreadySent>
+  <!-- Route path tracing (GetRouteAnnouncement). HeadSegment: {0} = localized compass direction, {1} = waypoint number. HeadDirections wraps the comma-joined list of HeadSegment phrases. -->
+  <RimWorldAccess.Route.AtDestination>Destino.</RimWorldAccess.Route.AtDestination>
+  <RimWorldAccess.Route.HeadSegment>{0} hacia el punto de ruta {1}</RimWorldAccess.Route.HeadSegment>
+  <RimWorldAccess.Route.HeadDirections>Dirígete {0}.</RimWorldAccess.Route.HeadDirections>
+
+  <!-- =================================================================
+       World scanner (WorldScannerState).
+       Mirrors Map scanner pattern - same category structure,
+       PgUp/PgDn for items inside categories, etc. {0} = layer,
+       {1} = direction noun, {2} = distance, {3} = category name,
+       {4} = item count, {5} = position.
+       ================================================================= -->
+  <RimWorldAccess.WorldScanner.AutoJumpEnabled>Modo de salto automático activado</RimWorldAccess.WorldScanner.AutoJumpEnabled>
+  <RimWorldAccess.WorldScanner.AutoJumpDisabled>Modo de salto automático desactivado</RimWorldAccess.WorldScanner.AutoJumpDisabled>
+  <RimWorldAccess.WorldScanner.NavNotActive>Navegación del mundo no activa</RimWorldAccess.WorldScanner.NavNotActive>
+  <RimWorldAccess.WorldScanner.NoWorldObjects>No se encontraron objetos del mundo</RimWorldAccess.WorldScanner.NoWorldObjects>
+  <RimWorldAccess.WorldScanner.NoSubcategories>Sin subcategorías</RimWorldAccess.WorldScanner.NoSubcategories>
+  <RimWorldAccess.WorldScanner.NoItemsInCategory>No hay elementos en esta categoría</RimWorldAccess.WorldScanner.NoItemsInCategory>
+  <RimWorldAccess.WorldScanner.NoInstancesToNavigate>No hay instancias para navegar</RimWorldAccess.WorldScanner.NoInstancesToNavigate>
+  <RimWorldAccess.WorldScanner.SwitchedToLayer>Cambiaste a la capa {0}.</RimWorldAccess.WorldScanner.SwitchedToLayer>
+  <RimWorldAccess.WorldScanner.DirectionDistance>{0}, {1} cuadros</RimWorldAccess.WorldScanner.DirectionDistance>
+  <RimWorldAccess.WorldScanner.CategoryAnnouncement>{0}, {1} elementos. Categoría {2} de {3}</RimWorldAccess.WorldScanner.CategoryAnnouncement>
+  <RimWorldAccess.WorldScanner.SubcategoryAnnouncement>{0}, {1} elementos. Subcategoría {2} de {3}</RimWorldAccess.WorldScanner.SubcategoryAnnouncement>
+
+  <!-- =================================================================
+       World object inspect (WorldObjectSelectionState + WorldNavigationPatch).
+       The "Selection" overlay opened by Alt+I on the world map,
+       listing world objects on the focused tile.
+       {0} = settlement / map-parent label.
+       ================================================================= -->
+  <RimWorldAccess.WorldObject.NoObjectsHere>No hay objetos aquí</RimWorldAccess.WorldObject.NoObjectsHere>
+  <RimWorldAccess.WorldObject.NoObjectsToInspect>No hay objetos aquí para inspeccionar</RimWorldAccess.WorldObject.NoObjectsToInspect>
+  <RimWorldAccess.WorldObject.Entering>Entrando a {0}</RimWorldAccess.WorldObject.Entering>
+  <RimWorldAccess.WorldObject.NoActionAvailable>No hay acción disponible</RimWorldAccess.WorldObject.NoActionAvailable>
+  <RimWorldAccess.WorldObject.SelectionClosed>Selección cerrada</RimWorldAccess.WorldObject.SelectionClosed>
+  <RimWorldAccess.WorldObject.ObjectsAtTile>{0} objetos en este cuadro</RimWorldAccess.WorldObject.ObjectsAtTile>
+
+  <!-- =================================================================
+       World tile info helper (WorldInfoHelper.cs).
+       Tile read-out helpers used across the world map: brief summary
+       (arrow-key navigation), detailed tile info (I-key), per-category
+       readouts (number keys 1-5), settlement info, caravan status /
+       short-status / path announcements, and road / river direction
+       descriptions.
+
+       Compass direction nouns reuse RimWorldAccess.Map.Direction.Lower.*
+       (the eight lowercase forms north / northeast / east / ... ); the
+       internal compass tokens stay English inside WorldInfoHelper for
+       dictionary lookups and only get translated at emission time via
+       a private LocalizeCompass helper.
+
+       A small slice of legacy behavior continues to operate on the
+       game's English-language inspect strings: ConvertToInfinitive
+       (turning "Entering Mikaelville" into "enter Mikaelville") and
+       the "Traveling to X" prefix extraction in GetDestinationSuffix /
+       GetCaravanDestinationName both pattern-match English. Non-English
+       game data falls through to the destination-tile fallback and the
+       phrase frames below stay localizable.
+
+       {0}/{1}/... = data-driven values per phrase (counts, names,
+       distances, biome / hilliness / faction labels from game data).
+       ================================================================= -->
+
+  <!-- Guard / "tile is invalid or unknown" returns. -->
+  <RimWorldAccess.World.Tile.Invalid>Cuadro inválido</RimWorldAccess.World.Tile.Invalid>
+  <RimWorldAccess.World.Tile.Unknown>Cuadro desconocido</RimWorldAccess.World.Tile.Unknown>
+
+  <!-- Settlement field labels and parentheticals. The Inline / *Field
+       split lets GetTileSummary emit "FactionName, Hostile +0" inside
+       parentheses while GetSettlementInfo emits "Faction: X" /
+       "Relationship: X" on their own lines. -->
+  <RimWorldAccess.World.Settlement.None>Sin asentamiento</RimWorldAccess.World.Settlement.None>
+  <RimWorldAccess.World.Settlement.FactionInline>{0}</RimWorldAccess.World.Settlement.FactionInline>
+  <RimWorldAccess.World.Settlement.FactionWithRelationInline>{0}, {1} {2}</RimWorldAccess.World.Settlement.FactionWithRelationInline>
+  <!-- Settlement label with parenthesized faction info: "Outpost (Empire, Ally +30)". -->
+  <RimWorldAccess.World.Settlement.LabelWithFaction>{0} ({1})</RimWorldAccess.World.Settlement.LabelWithFaction>
+  <RimWorldAccess.World.Settlement.GoodwillPositive>+{0}</RimWorldAccess.World.Settlement.GoodwillPositive>
+  <RimWorldAccess.World.Settlement.RequiresTitleToTrade>Requiere el título {0} para comerciar</RimWorldAccess.World.Settlement.RequiresTitleToTrade>
+  <RimWorldAccess.World.Settlement.LabelField>Asentamiento: {0}</RimWorldAccess.World.Settlement.LabelField>
+  <RimWorldAccess.World.Settlement.FactionField>Facción: {0}</RimWorldAccess.World.Settlement.FactionField>
+  <RimWorldAccess.World.Settlement.RelationshipField>Relación: {0}</RimWorldAccess.World.Settlement.RelationshipField>
+  <RimWorldAccess.World.Settlement.GoodwillField>Buena voluntad: {0}</RimWorldAccess.World.Settlement.GoodwillField>
+  <RimWorldAccess.World.Settlement.PlayerColonyRelationship>Colonia del jugador</RimWorldAccess.World.Settlement.PlayerColonyRelationship>
+  <RimWorldAccess.World.Settlement.HostileRelationship>Hostil</RimWorldAccess.World.Settlement.HostileRelationship>
+  <RimWorldAccess.World.Settlement.StatusVisitable>Estado: Visitable</RimWorldAccess.World.Settlement.StatusVisitable>
+  <RimWorldAccess.World.Settlement.StatusAttackable>Estado: Atacable</RimWorldAccess.World.Settlement.StatusAttackable>
+
+  <!-- Tile summary (GetTileSummary). Composes biome, landmark, fuel
+       cost, hilliness, temperature, world objects, road, river, quest,
+       and route info. Most items are appended via ", "; full sentences
+       via ". " - composition stays in code so each segment translates
+       independently. -->
+  <RimWorldAccess.World.Tile.Summary.WaypointPrefix>Punto de ruta {0}. </RimWorldAccess.World.Tile.Summary.WaypointPrefix>
+  <RimWorldAccess.World.Tile.Summary.RoadInline>{0} {1}</RimWorldAccess.World.Tile.Summary.RoadInline>
+  <RimWorldAccess.World.Tile.Summary.RiverInline>Río {0}</RimWorldAccess.World.Tile.Summary.RiverInline>
+  <RimWorldAccess.World.Tile.Caravan.IsHere>{0} está aquí</RimWorldAccess.World.Tile.Caravan.IsHere>
+  <RimWorldAccess.World.Tile.Caravan.AreHere>{0} están aquí</RimWorldAccess.World.Tile.Caravan.AreHere>
+  <RimWorldAccess.World.Tile.Caravan.WithDetailParenthetical>{0} ({1})</RimWorldAccess.World.Tile.Caravan.WithDetailParenthetical>
+
+  <!-- Caravan status (GetCaravanStatus + GetCaravanShortStatus). -->
+  <RimWorldAccess.World.Caravan.DefaultLabel>Caravana</RimWorldAccess.World.Caravan.DefaultLabel>
+  <RimWorldAccess.World.Caravan.Status.Unknown>desconocido</RimWorldAccess.World.Caravan.Status.Unknown>
+  <RimWorldAccess.World.Caravan.Status.AllDowned>todos incapacitados</RimWorldAccess.World.Caravan.Status.AllDowned>
+  <RimWorldAccess.World.Caravan.Status.MentalBreak>crisis mental</RimWorldAccess.World.Caravan.Status.MentalBreak>
+  <RimWorldAccess.World.Caravan.Status.Overloaded>sobrecargada</RimWorldAccess.World.Caravan.Status.Overloaded>
+  <RimWorldAccess.World.Caravan.Status.Visiting>visitando {0}</RimWorldAccess.World.Caravan.Status.Visiting>
+  <RimWorldAccess.World.Caravan.Status.Paused>pausada</RimWorldAccess.World.Caravan.Status.Paused>
+  <RimWorldAccess.World.Caravan.Status.Resting>descansando</RimWorldAccess.World.Caravan.Status.Resting>
+  <RimWorldAccess.World.Caravan.Status.Waiting>esperando</RimWorldAccess.World.Caravan.Status.Waiting>
+  <RimWorldAccess.World.Caravan.Status.Stopped>detenida</RimWorldAccess.World.Caravan.Status.Stopped>
+  <RimWorldAccess.World.Caravan.Status.Traveling>viajando</RimWorldAccess.World.Caravan.Status.Traveling>
+  <RimWorldAccess.World.Caravan.Status.TravelingTo>viajando a {0}</RimWorldAccess.World.Caravan.Status.TravelingTo>
+  <RimWorldAccess.World.Caravan.Status.HeadingDirection>dirigiéndose al {0}</RimWorldAccess.World.Caravan.Status.HeadingDirection>
+  <RimWorldAccess.World.Caravan.Status.HeadingDirectionToward>dirigiéndose al {0} hacia {1}</RimWorldAccess.World.Caravan.Status.HeadingDirectionToward>
+
+  <!-- Bedroll parenthetical appended to "resting" when the caravan
+       has bedrolls in use. One/Many split for subject-verb agreement
+       (1 bedroll vs N bedrolls). The leading space matches the
+       concatenation pattern used by GetCaravanStatus. -->
+  <RimWorldAccess.World.Caravan.RestingBedsOneSuffix> (1 saco de dormir)</RimWorldAccess.World.Caravan.RestingBedsOneSuffix>
+  <RimWorldAccess.World.Caravan.RestingBedsManySuffix> ({0} sacos de dormir)</RimWorldAccess.World.Caravan.RestingBedsManySuffix>
+
+  <!-- Destination suffix (GetDestinationSuffix). Two top-level shapes
+       (active "to" vs paused "will") x two arrival sources (the game's
+       "Traveling to X" extracted form vs a verb-extracted infinitive
+       phrase). The ActiveTo / PausedSeparate variants take the bare
+       destination name; the *Verb variants take the infinitive phrase
+       like "enter Mikaelville". -->
+  <RimWorldAccess.World.Caravan.SuffixActiveTo> a {0}</RimWorldAccess.World.Caravan.SuffixActiveTo>
+  <RimWorldAccess.World.Caravan.SuffixActiveVerb>, para {0}</RimWorldAccess.World.Caravan.SuffixActiveVerb>
+  <RimWorldAccess.World.Caravan.SuffixPausedSeparate>. A {0}</RimWorldAccess.World.Caravan.SuffixPausedSeparate>
+  <RimWorldAccess.World.Caravan.SuffixPausedVerb>, va a {0}</RimWorldAccess.World.Caravan.SuffixPausedVerb>
+
+  <!-- Caravan path announcement (GetCaravanPathAnnouncement). Used
+       when a caravan's planned path passes through (or terminates at)
+       the focused tile. -->
+  <RimWorldAccess.World.Caravan.PathHeadingTowardOnTile>{0} dirigiéndose al {1} hacia {2}.</RimWorldAccess.World.Caravan.PathHeadingTowardOnTile>
+  <RimWorldAccess.World.Caravan.PathHeadingOnTile>{0} dirigiéndose al {1}.</RimWorldAccess.World.Caravan.PathHeadingOnTile>
+  <RimWorldAccess.World.Caravan.PathWillHead>{0} se dirigirá al {1}.</RimWorldAccess.World.Caravan.PathWillHead>
+  <RimWorldAccess.World.Caravan.PathWillStopHere>{0} se detendrá aquí.</RimWorldAccess.World.Caravan.PathWillStopHere>
+
+  <!-- Quest entries (GetQuestInfoForTile + GetDetailedQuestInfoForTile).
+       Difficulty stars are split One/Many. Description-suffix variants
+       compose with " - " inside the same key so the punctuation belongs
+       to the phrase. -->
+  <RimWorldAccess.World.Quest.DifficultyOneStar>1 estrella</RimWorldAccess.World.Quest.DifficultyOneStar>
+  <RimWorldAccess.World.Quest.DifficultyManyStars>{0} estrellas</RimWorldAccess.World.Quest.DifficultyManyStars>
+  <RimWorldAccess.World.Quest.Label>Misión: {0}</RimWorldAccess.World.Quest.Label>
+  <RimWorldAccess.World.Quest.LabelWithDifficulty>Misión: {0} ({1})</RimWorldAccess.World.Quest.LabelWithDifficulty>
+  <RimWorldAccess.World.Quest.LabelWithDescription>Misión: {0} - {1}</RimWorldAccess.World.Quest.LabelWithDescription>
+  <RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription>Misión: {0} ({1}) - {2}</RimWorldAccess.World.Quest.LabelWithDifficultyAndDescription>
+  <RimWorldAccess.World.Quest.DetailDifficultyField>Dificultad: {0}</RimWorldAccess.World.Quest.DetailDifficultyField>
+  <RimWorldAccess.World.Quest.DetailDescriptionField>Descripción: {0}</RimWorldAccess.World.Quest.DetailDescriptionField>
+
+  <!-- Detailed tile info (GetDetailedTileInfo) - I-key view. -->
+  <RimWorldAccess.World.Tile.Detail.Coordinates>Coordenadas: {0}° N, {1}° E</RimWorldAccess.World.Tile.Detail.Coordinates>
+  <RimWorldAccess.World.Tile.Detail.Biome>Bioma: {0}</RimWorldAccess.World.Tile.Detail.Biome>
+  <RimWorldAccess.World.Tile.Detail.Hilliness>Relieve: {0}</RimWorldAccess.World.Tile.Detail.Hilliness>
+  <RimWorldAccess.World.Tile.Detail.Elevation>Elevación: {0}m</RimWorldAccess.World.Tile.Detail.Elevation>
+  <RimWorldAccess.World.Tile.Detail.TemperatureAverage>Temperatura: Promedio {0}</RimWorldAccess.World.Tile.Detail.TemperatureAverage>
+  <RimWorldAccess.World.Tile.Detail.Pollution>Contaminación: {0}%</RimWorldAccess.World.Tile.Detail.Pollution>
+  <RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>Objetos del mundo</RimWorldAccess.World.Tile.Detail.WorldObjectsHeader>
+  <RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>Objetivos de misión</RimWorldAccess.World.Tile.Detail.QuestTargetsHeader>
+  <!-- Whole-phrase keys for the four world-object shapes. Spoken as
+       comma- and period-separated fragments by AnnouncementBuilder. -->
+  <RimWorldAccess.World.Tile.Detail.PlayerSettlement>{0} ({1})</RimWorldAccess.World.Tile.Detail.PlayerSettlement>
+  <RimWorldAccess.World.Tile.Detail.Faction>Facción: {0}</RimWorldAccess.World.Tile.Detail.Faction>
+  <RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill>Relación: {0} ({1})</RimWorldAccess.World.Tile.Detail.RelationshipWithGoodwill>
+  <RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade>Requiere el título {0} para comerciar</RimWorldAccess.World.Tile.Detail.RequiresTitleToTrade>
+  <RimWorldAccess.World.Tile.Detail.CaravanWithFaction>Caravana: {0} ({1})</RimWorldAccess.World.Tile.Detail.CaravanWithFaction>
+  <RimWorldAccess.World.Tile.Detail.Site>Sitio: {0}</RimWorldAccess.World.Tile.Detail.Site>
+
+  <!-- Number key 1: growing / food / resources. AnnouncementBuilder
+       owns the period separator, so each fragment is a clean phrase. -->
+  <RimWorldAccess.World.Tile.Growing.NoSpaceInfo>No hay información de cultivo para cuadros del espacio</RimWorldAccess.World.Tile.Growing.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Growing.Period>Periodo de cultivo: {0}</RimWorldAccess.World.Tile.Growing.Period>
+  <RimWorldAccess.World.Tile.Growing.Rainfall>Precipitación: {0} mm</RimWorldAccess.World.Tile.Growing.Rainfall>
+  <RimWorldAccess.World.Tile.Growing.Forageability>Capacidad de recolección: {0} ({1})</RimWorldAccess.World.Tile.Growing.Forageability>
+  <RimWorldAccess.World.Tile.Growing.NoForageability>Capacidad de recolección: 0%</RimWorldAccess.World.Tile.Growing.NoForageability>
+  <RimWorldAccess.World.Tile.Growing.GrazeYes>Los animales pueden pastar: sí</RimWorldAccess.World.Tile.Growing.GrazeYes>
+  <RimWorldAccess.World.Tile.Growing.GrazeNo>Los animales pueden pastar: no</RimWorldAccess.World.Tile.Growing.GrazeNo>
+  <RimWorldAccess.World.Tile.Growing.StoneTypes>Tipos de piedra: {0}</RimWorldAccess.World.Tile.Growing.StoneTypes>
+
+  <!-- Number key 2: movement / terrain. -->
+  <RimWorldAccess.World.Tile.Movement.NoSpaceInfo>No hay información de movimiento para cuadros del espacio</RimWorldAccess.World.Tile.Movement.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Movement.RouteArrival>Llegada: {0}</RimWorldAccess.World.Tile.Movement.RouteArrival>
+  <RimWorldAccess.World.Tile.Movement.Impassable>Movimiento: Intransitable</RimWorldAccess.World.Tile.Movement.Impassable>
+  <RimWorldAccess.World.Tile.Movement.Difficulty>Dificultad de movimiento: {0}</RimWorldAccess.World.Tile.Movement.Difficulty>
+  <RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>Penalización de invierno actual: +{0}</RimWorldAccess.World.Tile.Movement.WinterPenaltyCurrent>
+  <RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>Penalización de invierno: +2.0 en invierno</RimWorldAccess.World.Tile.Movement.WinterPenaltyDefault>
+  <RimWorldAccess.World.Tile.Movement.Terrain>Terreno: {0}</RimWorldAccess.World.Tile.Movement.Terrain>
+  <RimWorldAccess.World.Tile.Movement.Elevation>Elevación: {0} m</RimWorldAccess.World.Tile.Movement.Elevation>
+  <RimWorldAccess.World.Tile.Movement.Road>Camino: {0}</RimWorldAccess.World.Tile.Movement.Road>
+  <RimWorldAccess.World.Tile.Movement.River>Río: {0}</RimWorldAccess.World.Tile.Movement.River>
+  <RimWorldAccess.World.Tile.Movement.Coastal>Costero</RimWorldAccess.World.Tile.Movement.Coastal>
+
+  <!-- Number key 3: health / environment. -->
+  <RimWorldAccess.World.Tile.Health.NoSpaceInfo>No hay información de salud para cuadros del espacio</RimWorldAccess.World.Tile.Health.NoSpaceInfo>
+  <RimWorldAccess.World.Tile.Health.DiseaseFrequency>Frecuencia de enfermedades: {0} por año</RimWorldAccess.World.Tile.Health.DiseaseFrequency>
+  <RimWorldAccess.World.Tile.Health.DiseaseNone>Frecuencia de enfermedades: Ninguna</RimWorldAccess.World.Tile.Health.DiseaseNone>
+  <RimWorldAccess.World.Tile.Health.TilePollution>Contaminación del cuadro: {0}</RimWorldAccess.World.Tile.Health.TilePollution>
+  <RimWorldAccess.World.Tile.Health.NearbyPollution>Contaminación cercana: {0}</RimWorldAccess.World.Tile.Health.NearbyPollution>
+  <RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>Intervalo de bruma nociva: {0} días</RimWorldAccess.World.Tile.Health.NoxiousHazeInterval>
+  <RimWorldAccess.World.Tile.Health.NoxiousHazeNever>Bruma nociva: Nunca</RimWorldAccess.World.Tile.Health.NoxiousHazeNever>
+
+  <!-- Number key 4: location / coordinates / time zone. -->
+  <RimWorldAccess.World.Tile.Location.Coordinates>Coordenadas: {0} grados {1}, {2} grados {3}</RimWorldAccess.World.Tile.Location.Coordinates>
+  <RimWorldAccess.World.Tile.Location.LatNorth>N</RimWorldAccess.World.Tile.Location.LatNorth>
+  <RimWorldAccess.World.Tile.Location.LatSouth>S</RimWorldAccess.World.Tile.Location.LatSouth>
+  <RimWorldAccess.World.Tile.Location.LonEast>E</RimWorldAccess.World.Tile.Location.LonEast>
+  <RimWorldAccess.World.Tile.Location.LonWest>O</RimWorldAccess.World.Tile.Location.LonWest>
+  <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
+  <RimWorldAccess.World.Tile.Location.TimeZone>Zona horaria: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
+  <RimWorldAccess.World.Tile.Location.TileId>ID del cuadro: {0}</RimWorldAccess.World.Tile.Location.TileId>
+
+  <!-- Number key 5: features / DLC content. -->
+  <RimWorldAccess.World.Tile.Features.Mutators>Características del cuadro: {0}</RimWorldAccess.World.Tile.Features.Mutators>
+  <RimWorldAccess.World.Tile.Features.MutatorWithDescription>{0}: {1}</RimWorldAccess.World.Tile.Features.MutatorWithDescription>
+  <RimWorldAccess.World.Tile.Features.Landmark>Punto de referencia: {0}, {1}</RimWorldAccess.World.Tile.Features.Landmark>
+  <RimWorldAccess.World.Tile.Features.Region>Región: {0}</RimWorldAccess.World.Tile.Features.Region>
+  <RimWorldAccess.World.Tile.Features.MayHaveCaves>Puede tener cuevas</RimWorldAccess.World.Tile.Features.MayHaveCaves>
+  <RimWorldAccess.World.Tile.Features.None>Sin características especiales</RimWorldAccess.World.Tile.Features.None>
+
+  <!-- Road and river direction descriptions. The capitalized form
+       (Cap) is used standalone at sentence start; the inline lowercase
+       form (Inline) is composed with the road / river name like
+       "Highway1 runs north to south" inside GetTileSummary - the
+       trailing period is omitted from the inline keys so the caller
+       can choose the segment terminator. -->
+  <RimWorldAccess.World.Road.EndsHere>Termina aquí.</RimWorldAccess.World.Road.EndsHere>
+  <RimWorldAccess.World.Road.EndsContinues>Termina aquí, continúa al {0}.</RimWorldAccess.World.Road.EndsContinues>
+  <RimWorldAccess.World.Road.Runs>Recorre del {0} al {1}.</RimWorldAccess.World.Road.Runs>
+  <RimWorldAccess.World.Road.Curves>Se curva del {0} al {1}.</RimWorldAccess.World.Road.Curves>
+  <RimWorldAccess.World.Road.Junction>Cruce: {0}.</RimWorldAccess.World.Road.Junction>
+  <RimWorldAccess.World.Road.EndsHere.Inline>termina aquí</RimWorldAccess.World.Road.EndsHere.Inline>
+  <RimWorldAccess.World.Road.EndsContinues.Inline>termina aquí, continúa al {0}</RimWorldAccess.World.Road.EndsContinues.Inline>
+  <RimWorldAccess.World.Road.Runs.Inline>recorre del {0} al {1}</RimWorldAccess.World.Road.Runs.Inline>
+  <RimWorldAccess.World.Road.Curves.Inline>se curva del {0} al {1}</RimWorldAccess.World.Road.Curves.Inline>
+  <RimWorldAccess.World.Road.Junction.Inline>cruce: {0}</RimWorldAccess.World.Road.Junction.Inline>
+  <RimWorldAccess.World.River.Flows>Fluye al {0}.</RimWorldAccess.World.River.Flows>
+  <RimWorldAccess.World.River.FlowsBetween>Fluye del {0} al {1}.</RimWorldAccess.World.River.FlowsBetween>
+  <RimWorldAccess.World.River.Bends>Se curva del {0} al {1}.</RimWorldAccess.World.River.Bends>
+  <RimWorldAccess.World.River.Confluence>Confluencia: {0}.</RimWorldAccess.World.River.Confluence>
+  <RimWorldAccess.World.River.Flows.Inline>fluye al {0}</RimWorldAccess.World.River.Flows.Inline>
+  <RimWorldAccess.World.River.FlowsBetween.Inline>fluye del {0} al {1}</RimWorldAccess.World.River.FlowsBetween.Inline>
+  <RimWorldAccess.World.River.Bends.Inline>se curva del {0} al {1}</RimWorldAccess.World.River.Bends.Inline>
+  <RimWorldAccess.World.River.Confluence.Inline>confluencia: {0}</RimWorldAccess.World.River.Confluence.Inline>
+
+
+  <!-- World scanner readout, categories, directions, sizes (src/World/WorldScannerState.cs). -->
+  <RimWorldAccess.WorldScanner.SizeApprox>aproximadamente {0} cuadros</RimWorldAccess.WorldScanner.SizeApprox>
+  <RimWorldAccess.WorldScanner.SizeTiles>{0} cuadros</RimWorldAccess.WorldScanner.SizeTiles>
+  <RimWorldAccess.WorldScanner.SizeTilesLong>{0} cuadros, {1} de largo</RimWorldAccess.WorldScanner.SizeTilesLong>
+  <RimWorldAccess.WorldScanner.RelDir.Ahead>Adelante</RimWorldAccess.WorldScanner.RelDir.Ahead>
+  <RimWorldAccess.WorldScanner.RelDir.AheadRight>Adelante a la derecha</RimWorldAccess.WorldScanner.RelDir.AheadRight>
+  <RimWorldAccess.WorldScanner.RelDir.Right>Derecha</RimWorldAccess.WorldScanner.RelDir.Right>
+  <RimWorldAccess.WorldScanner.RelDir.BehindRight>Atrás a la derecha</RimWorldAccess.WorldScanner.RelDir.BehindRight>
+  <RimWorldAccess.WorldScanner.RelDir.Behind>Atrás</RimWorldAccess.WorldScanner.RelDir.Behind>
+  <RimWorldAccess.WorldScanner.RelDir.BehindLeft>Atrás a la izquierda</RimWorldAccess.WorldScanner.RelDir.BehindLeft>
+  <RimWorldAccess.WorldScanner.RelDir.Left>Izquierda</RimWorldAccess.WorldScanner.RelDir.Left>
+  <RimWorldAccess.WorldScanner.RelDir.AheadLeft>Adelante a la izquierda</RimWorldAccess.WorldScanner.RelDir.AheadLeft>
+  <RimWorldAccess.WorldScanner.Cat.RouteWaypoints>Puntos de ruta</RimWorldAccess.WorldScanner.Cat.RouteWaypoints>
+  <RimWorldAccess.WorldScanner.Cat.Settlements>Asentamientos</RimWorldAccess.WorldScanner.Cat.Settlements>
+  <RimWorldAccess.WorldScanner.Cat.QuestSites>Sitios de misión</RimWorldAccess.WorldScanner.Cat.QuestSites>
+  <RimWorldAccess.WorldScanner.Cat.Caravans>Caravanas</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.OtherSites>Otros sitios</RimWorldAccess.WorldScanner.Cat.OtherSites>
+  <RimWorldAccess.WorldScanner.Cat.Biomes>Biomas</RimWorldAccess.WorldScanner.Cat.Biomes>
+  <RimWorldAccess.WorldScanner.Cat.Roads>Caminos</RimWorldAccess.WorldScanner.Cat.Roads>
+  <RimWorldAccess.WorldScanner.Cat.Landmarks>Puntos de referencia</RimWorldAccess.WorldScanner.Cat.Landmarks>
+  <RimWorldAccess.WorldScanner.Sub.Waypoints>Puntos de ruta</RimWorldAccess.WorldScanner.Sub.Waypoints>
+  <RimWorldAccess.WorldScanner.Sub.All>Todos</RimWorldAccess.WorldScanner.Sub.All>
+  <RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>Caminos y ríos</RimWorldAccess.WorldScanner.Cat.RoadsAndRivers>
+  <RimWorldAccess.WorldScanner.Sub.Roads>Caminos</RimWorldAccess.WorldScanner.Sub.Roads>
+  <RimWorldAccess.WorldScanner.Sub.Rivers>Ríos</RimWorldAccess.WorldScanner.Sub.Rivers>
+  <!-- RegionPosition: live proximity rank of the current patch. {0} = rank, {1} = total. -->
+  <RimWorldAccess.WorldScanner.RegionPosition>Región {0} de {1}</RimWorldAccess.WorldScanner.RegionPosition>
+  <!-- Direction-and-distance suffixes: {0} = compass direction, {1} = tile count. -->
+  <RimWorldAccess.WorldScanner.DirectionDistanceTiles>{0}, {1} cuadros</RimWorldAccess.WorldScanner.DirectionDistanceTiles>
+  <RimWorldAccess.WorldScanner.DirectionOverTiles>{0}, más de {1} cuadros</RimWorldAccess.WorldScanner.DirectionOverTiles>
+  <!-- Center-jump cue: {0} = tile count, {1} = compass direction. -->
+  <RimWorldAccess.WorldScanner.JumpedTilesToCenter>Saltaste {0} cuadros al {1} hacia el centro</RimWorldAccess.WorldScanner.JumpedTilesToCenter>
+  <RimWorldAccess.WorldScanner.JumpedToCenter>Saltaste al centro</RimWorldAccess.WorldScanner.JumpedToCenter>
+  <RimWorldAccess.WorldScanner.Sub.Player>Jugador</RimWorldAccess.WorldScanner.Sub.Player>
+  <RimWorldAccess.WorldScanner.Sub.Allied>Aliados</RimWorldAccess.WorldScanner.Sub.Allied>
+  <RimWorldAccess.WorldScanner.Sub.Neutral>Neutrales</RimWorldAccess.WorldScanner.Sub.Neutral>
+  <RimWorldAccess.WorldScanner.Sub.Hostile>Hostiles</RimWorldAccess.WorldScanner.Sub.Hostile>
+  <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Misiones activas</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
+  <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Caravanas del jugador</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.Sites>Sitios</RimWorldAccess.WorldScanner.Sub.Sites>
+  <RimWorldAccess.WorldScanner.Sub.AllBiomes>Todos los biomas</RimWorldAccess.WorldScanner.Sub.AllBiomes>
+  <RimWorldAccess.WorldScanner.Unreachable>Inalcanzable</RimWorldAccess.WorldScanner.Unreachable>
+  <RimWorldAccess.WorldScanner.QuestPrefix>Misión: {0}</RimWorldAccess.WorldScanner.QuestPrefix>
+  <RimWorldAccess.WorldScanner.FactionWithType>{0}, {1}</RimWorldAccess.WorldScanner.FactionWithType>
+  <RimWorldAccess.WorldScanner.RelationshipGoodwill>{0} {1}</RimWorldAccess.WorldScanner.RelationshipGoodwill>
+  <RimWorldAccess.WorldScanner.RegionOf>Región {0} de {1}</RimWorldAccess.WorldScanner.RegionOf>
+  <RimWorldAccess.WorldScanner.CurrentLocation>Ubicación actual</RimWorldAccess.WorldScanner.CurrentLocation>
+  <RimWorldAccess.WorldScanner.OnLayer>en la capa {0}</RimWorldAccess.WorldScanner.OnLayer>
+  <RimWorldAccess.WorldScanner.PositionOf>{0} de {1}</RimWorldAccess.WorldScanner.PositionOf>
+  <RimWorldAccess.WorldScanner.Waypoint>Punto de ruta {0}</RimWorldAccess.WorldScanner.Waypoint>
+  <RimWorldAccess.WorldScanner.EstimatedTravelTime>Tiempo estimado de viaje: {0}</RimWorldAccess.WorldScanner.EstimatedTravelTime>
+  <RimWorldAccess.WorldScanner.WaypointStart>(Inicio)</RimWorldAccess.WorldScanner.WaypointStart>
+
+  <!-- =================================================================
+       Caravan formation: colony-originated route-choice opening prompt.
+       {0} = translated "RoutePlannerAddOneOrMoreWaypoints" game string.
+       ================================================================= -->
+  <RimWorldAccess.Caravan.Form.ChooseDestinationPrompt>Elige un destino para la caravana en el mapa del mundo. {0} Espacio para agregar un punto de ruta, E para el tiempo de viaje, Enter para confirmar, Escape para cancelar.</RimWorldAccess.Caravan.Form.ChooseDestinationPrompt>
+
+  <!-- =================================================================
+       World scanner: no-move guard feedback when a Home jump targets
+       the tile the player already occupies.
+       {0} = scanner item label (from game data).
+       ================================================================= -->
+  <RimWorldAccess.WorldScanner.AlreadyAt>Ya en {0}</RimWorldAccess.WorldScanner.AlreadyAt>
+  <RimWorldAccess.WorldScanner.AlreadyAtCenter>Ya en el centro de {0}</RimWorldAccess.WorldScanner.AlreadyAtCenter>
+
+  <!-- World object selection tree + announcements (src/World/WorldObjectSelectionState.cs). -->
+  <RimWorldAccess.WorldObject.EnterSettlement>Entrar al asentamiento</RimWorldAccess.WorldObject.EnterSettlement>
+  <RimWorldAccess.WorldObject.Enter>Entrar</RimWorldAccess.WorldObject.Enter>
+  <RimWorldAccess.WorldObject.FactionLabel>Facción: {0}</RimWorldAccess.WorldObject.FactionLabel>
+  <RimWorldAccess.WorldObject.RelationLabel>Relación: {0}</RimWorldAccess.WorldObject.RelationLabel>
+  <RimWorldAccess.WorldObject.CanTradeHere>Se puede comerciar aquí</RimWorldAccess.WorldObject.CanTradeHere>
+  <RimWorldAccess.WorldObject.LabelCaravan>{0} (caravana)</RimWorldAccess.WorldObject.LabelCaravan>
+  <RimWorldAccess.WorldObject.LabelYourSettlement>{0} (tu asentamiento)</RimWorldAccess.WorldObject.LabelYourSettlement>
+  <RimWorldAccess.WorldObject.LabelWithFaction>{0} ({1})</RimWorldAccess.WorldObject.LabelWithFaction>
+  <RimWorldAccess.WorldObject.LabelSite>{0} (sitio)</RimWorldAccess.WorldObject.LabelSite>
+  <RimWorldAccess.WorldObject.UnknownFactionLower>facción desconocida</RimWorldAccess.WorldObject.UnknownFactionLower>
+  <RimWorldAccess.WorldObject.UnknownFaction>Facción desconocida</RimWorldAccess.WorldObject.UnknownFaction>
+  <RimWorldAccess.WorldObject.SettlementAnnounce>{0}. {1}.</RimWorldAccess.WorldObject.SettlementAnnounce>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Gear.CantReason.Unknown>desconocido</RimWorldAccess.Gear.CantReason.Unknown>
+  <RimWorldAccess.Gear.CantReason.Prisoner>prisionero</RimWorldAccess.Gear.CantReason.Prisoner>
+  <RimWorldAccess.Gear.CantReason.Pacifist>pacifista</RimWorldAccess.Gear.CantReason.Pacifist>
+  <RimWorldAccess.Gear.CantReason.CantShoot>no puede disparar</RimWorldAccess.Gear.CantReason.CantShoot>
+  <RimWorldAccess.Gear.CantReason.CantManipulate>no puede manipular</RimWorldAccess.Gear.CantReason.CantManipulate>
+  <RimWorldAccess.Gear.CantReason.MissingBodyParts>le faltan partes del cuerpo</RimWorldAccess.Gear.CantReason.MissingBodyParts>
+  <RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel>reemplazaría vestimenta bloqueada</RimWorldAccess.Gear.CantReason.WouldReplaceLockedApparel>
+  <RimWorldAccess.Gear.SlotUnarmed>desarmado</RimWorldAccess.Gear.SlotUnarmed>
+  <RimWorldAccess.Gear.SlotConflictingPlusMore>{0} +{1} más</RimWorldAccess.Gear.SlotConflictingPlusMore>
+  <RimWorldAccess.Gear.SlotNone>ninguno</RimWorldAccess.Gear.SlotNone>
+  <RimWorldAccess.Gear.SwappedItemFallback>objeto</RimWorldAccess.Gear.SwappedItemFallback>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Stat.MassUnknown>Masa: Desconocida</RimWorldAccess.Stat.MassUnknown>
+  <RimWorldAccess.Stat.SpeedUnknown>Velocidad: Desconocida</RimWorldAccess.Stat.SpeedUnknown>
+  <RimWorldAccess.Stat.FoodUnknown>Alimentación: Desconocida</RimWorldAccess.Stat.FoodUnknown>
+  <RimWorldAccess.Stat.ForagingUnknown>Recolección: Desconocida</RimWorldAccess.Stat.ForagingUnknown>
+  <RimWorldAccess.Stat.VisibilityUnknown>Visibilidad: Desconocida</RimWorldAccess.Stat.VisibilityUnknown>
+</LanguageData>

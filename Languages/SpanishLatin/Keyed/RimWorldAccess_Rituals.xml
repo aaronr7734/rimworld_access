@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Rituals module strings (src/Rituals/). Four files contribute:
+      - RitualPatch.cs           (dialog-lifecycle Harmony patches, on-screen indicator)
+      - RitualState.cs           (three-mode navigation: RoleList, PawnSelection, QualityStats)
+      - RitualStatFormatter.cs   (role / pawn / quality announcement composition)
+      - RitualTreeBuilder.cs     (role-list, pawn-list, and quality-factor construction)
+
+    This is Ideology-DLC ritual-setup content (Dialog_BeginRitual). Ritual
+    names, role names, outcome labels, pawn names, and quality-factor labels
+    are data from the game and flow through as placeholders.
+
+    Gravship-launch checkbox strings (forceVisitorsToLeave, boardColonyAnimals,
+    boardColonyMechs) are sourced from the Gravships module and localized in
+    RimWorldAccess_Gravships.xml — they are NOT duplicated here. The Rituals
+    module reads those labels/tooltips via their translation keys.
+
+    Guard-style messages ("Search cleared") delegate to the shared Common keys.
+
+    One/Many splits exist for English subject-verb agreement (role/roles,
+    candidate/candidates) — translators can collapse or split further.
+  -->
+
+  <!-- Dialog lifecycle (RitualPatch.cs). -->
+  <RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator>Modo de teclado activo</RimWorldAccess.Rituals.Dialog.KeyboardModeIndicator>
+
+  <!-- Opening announcement (RitualState.Open).
+       Begin: {0} = ritual name (e.g., "Wedding", "Funeral").
+       Warning: {0} = blocking-issue text joined with periods.
+       RoleCount One/Many: {0} = role count. English splits singular "role"
+       from plural "roles".
+       OpenInstructions: one-time instruction line appended to the opener. -->
+  <RimWorldAccess.Rituals.Open.Begin>Comenzar {0}.</RimWorldAccess.Rituals.Open.Begin>
+  <RimWorldAccess.Rituals.Open.Warning>Advertencia: {0}</RimWorldAccess.Rituals.Open.Warning>
+  <RimWorldAccess.Rituals.Open.RoleCountOne>{0} rol.</RimWorldAccess.Rituals.Open.RoleCountOne>
+  <RimWorldAccess.Rituals.Open.RoleCountMany>{0} roles.</RimWorldAccess.Rituals.Open.RoleCountMany>
+  <RimWorldAccess.Rituals.Open.Instructions>Arriba/Abajo para navegar, Enter para asignar personajes, Tab para estadísticas de calidad, Alt+S para iniciar.</RimWorldAccess.Rituals.Open.Instructions>
+
+  <!-- Expected-quality summary, used both at dialog-open and in the quality
+       stats list (RitualState.GetExpectedQualitySummary,
+       RitualStatFormatter.FormatQualitySummary).
+       Single: {0} = single percentage (min == max).
+       Range:  {0} = min percentage, {1} = max percentage. -->
+
+  <!-- Role announcement composition (RitualStatFormatter.FormatRoleAnnouncement).
+       The role/spectator label is emitted first, followed by one of the count
+       clauses below, followed by optional Required/Locked suffixes.
+       AssignedOfMax: {0} = assigned count, {1} = max count.
+       AssignedOptional: {0} = assigned count (role has maxCount == 0).
+       AssignedUnlimited: {0} = assigned count (role has maxCount == -1). -->
+  <RimWorldAccess.Rituals.Role.AssignedOfMax>{0} asignados de {1} máximo</RimWorldAccess.Rituals.Role.AssignedOfMax>
+  <RimWorldAccess.Rituals.Role.AssignedOptional>{0} asignados, opcional</RimWorldAccess.Rituals.Role.AssignedOptional>
+  <RimWorldAccess.Rituals.Role.AssignedUnlimited>{0} asignados</RimWorldAccess.Rituals.Role.AssignedUnlimited>
+  <RimWorldAccess.Rituals.Role.Required>, obligatorio</RimWorldAccess.Rituals.Role.Required>
+  <RimWorldAccess.Rituals.Role.Locked>, bloqueado</RimWorldAccess.Rituals.Role.Locked>
+
+  <!-- Gravship checkbox state words (RitualStatFormatter.FormatCheckboxAnnouncement,
+       RitualState.ToggleGravshipCheckbox). The checkbox LABEL and TOOLTIP
+       themselves are sourced from RimWorldAccess_Gravships.xml. -->
+  <RimWorldAccess.Rituals.Checkbox.Checked>marcado</RimWorldAccess.Rituals.Checkbox.Checked>
+  <RimWorldAccess.Rituals.Checkbox.Unchecked>desmarcado</RimWorldAccess.Rituals.Checkbox.Unchecked>
+  <RimWorldAccess.Rituals.Checkbox.Toggled>{0}: {1}.</RimWorldAccess.Rituals.Checkbox.Toggled>
+
+  <!-- Pawn announcement fragments (RitualStatFormatter.FormatPawnAnnouncement). -->
+  <RimWorldAccess.Rituals.Pawn.ForcedCannotChange>forzado, no se puede cambiar</RimWorldAccess.Rituals.Pawn.ForcedCannotChange>
+  <RimWorldAccess.Rituals.Pawn.Selected>Selección</RimWorldAccess.Rituals.Pawn.Selected>
+  <RimWorldAccess.Rituals.Pawn.CannotAssignReason>no se puede asignar: {0}</RimWorldAccess.Rituals.Pawn.CannotAssignReason>
+
+  <!-- Stat / skill disability marker used in suitability-info strings
+       (RitualStatFormatter.FormatPawnSuitability). Spoken as
+       "<StatLabel>: Disabled" when the pawn cannot use that stat/skill. -->
+  <RimWorldAccess.Rituals.Pawn.StatDisabled>Desactivado</RimWorldAccess.Rituals.Pawn.StatDisabled>
+
+  <!-- Quality-factor status suffixes (RitualStatFormatter.FormatQualityFactor).
+       Appended to "{Label}: {Change}." when Change doesn't already provide
+       context and the factor isn't informational. -->
+  <RimWorldAccess.Rituals.Quality.UncertainOutcome>Resultado incierto.</RimWorldAccess.Rituals.Quality.UncertainOutcome>
+  <RimWorldAccess.Rituals.Quality.Bonus>Bonificación.</RimWorldAccess.Rituals.Quality.Bonus>
+  <RimWorldAccess.Rituals.Quality.Penalty>Penalización.</RimWorldAccess.Rituals.Quality.Penalty>
+  <RimWorldAccess.Rituals.Quality.NotMet>No cumplido.</RimWorldAccess.Rituals.Quality.NotMet>
+
+  <!-- Quality-factor list construction (RitualTreeBuilder.BuildQualityStatsList,
+       RitualState.BuildQualityStatsList).
+       UnknownFactor: fallback when a QualityFactor has no label.
+       ExpectedQualityLabel: row label for the summary row appended after all
+       factors. ExpectedQualitySummaryTooltip: description for that row. -->
+  <RimWorldAccess.Rituals.Quality.UnknownFactor>Desconocido</RimWorldAccess.Rituals.Quality.UnknownFactor>
+  <RimWorldAccess.Rituals.Quality.ExpectedQualityLabel>Calidad esperada</RimWorldAccess.Rituals.Quality.ExpectedQualityLabel>
+
+  <!-- No-data fallbacks (RitualState.BuildQualityStatsList).
+       NoQualityFactorsLabel: row label when a ritual has zero quality factors.
+       NoQualityFactorsTooltip: description spoken via Alt+I. -->
+  <RimWorldAccess.Rituals.Quality.Unavailable>Estadísticas de calidad no disponibles</RimWorldAccess.Rituals.Quality.Unavailable>
+
+  <!-- Location row prepended to the quality-stats list (RitualState.BuildQualityStatsList,
+       GetLocationDescription). The "Location" label is the row title; the
+       room/outdoors suffixes compose the value. -->
+  <RimWorldAccess.Rituals.Quality.LocationLabel>Ubicación</RimWorldAccess.Rituals.Quality.LocationLabel>
+  <RimWorldAccess.Rituals.Location.InRoom>en {0}</RimWorldAccess.Rituals.Location.InRoom>
+  <RimWorldAccess.Rituals.Location.Outdoors>al aire libre</RimWorldAccess.Rituals.Location.Outdoors>
+  <RimWorldAccess.Rituals.Location.Cell>Cuadro ({0}, {1})</RimWorldAccess.Rituals.Location.Cell>
+
+  <!-- Fluid-ideology development points (RitualState.AddIdeologyDevelopmentPoints).
+       Header row announcing the section. FluidIdeologyTag is the parenthetical
+       appended to the header's Change column. -->
+  <RimWorldAccess.Rituals.Quality.DevelopmentPointsLabel>Puntos de desarrollo</RimWorldAccess.Rituals.Quality.DevelopmentPointsLabel>
+  <RimWorldAccess.Rituals.Quality.FluidIdeologyTag>(Ideoligión fluida)</RimWorldAccess.Rituals.Quality.FluidIdeologyTag>
+  <RimWorldAccess.Rituals.Quality.DevelopmentPointsTooltip>Puntos otorgados a tu ideoligión fluida según el resultado del ritual.</RimWorldAccess.Rituals.Quality.DevelopmentPointsTooltip>
+
+  <!-- Role-list / pawn-list / quality-stats empty announcements
+       (RitualState.AnnounceCurrentRole/Pawn/QualityStat). -->
+  <RimWorldAccess.Rituals.Empty.NoRoles>No hay roles disponibles.</RimWorldAccess.Rituals.Empty.NoRoles>
+  <RimWorldAccess.Rituals.Empty.NoPawns>No hay personajes disponibles.</RimWorldAccess.Rituals.Empty.NoPawns>
+  <RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable>No hay factores de calidad disponibles.</RimWorldAccess.Rituals.Empty.NoQualityFactorsAvailable>
+
+  <!-- Fallback labels used by RitualTreeBuilder when game data is missing. -->
+  <RimWorldAccess.Rituals.Fallback.Spectators>Espectadores</RimWorldAccess.Rituals.Fallback.Spectators>
+  <RimWorldAccess.Rituals.Fallback.Role>rol</RimWorldAccess.Rituals.Fallback.Role>
+
+  <!-- Pawn-selection mode transitions (RitualState.EnterPawnSelection / ExitPawnSelection).
+       EnterInstructions: {0} = role label, {1} = candidate-count clause below.
+       CandidateCountOne/Many: {0} = count; split for English "1 candidate" vs
+       "N candidates". -->
+  <RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns>No hay personajes elegibles para este rol.</RimWorldAccess.Rituals.PawnSelection.NoEligiblePawns>
+  <RimWorldAccess.Rituals.PawnSelection.CandidateCountOne>{0} candidato</RimWorldAccess.Rituals.PawnSelection.CandidateCountOne>
+  <RimWorldAccess.Rituals.PawnSelection.CandidateCountMany>{0} candidatos</RimWorldAccess.Rituals.PawnSelection.CandidateCountMany>
+  <RimWorldAccess.Rituals.PawnSelection.EnterInstructions>Seleccionando personaje para {0}. {1}. Espacio para alternar la selección, Enter para confirmar, Escape para cancelar.</RimWorldAccess.Rituals.PawnSelection.EnterInstructions>
+  <RimWorldAccess.Rituals.PawnSelection.Cancelled>Cancelado. Regreso a la lista de roles.</RimWorldAccess.Rituals.PawnSelection.Cancelled>
+  <RimWorldAccess.Rituals.PawnSelection.Confirmed>Selección confirmada. Regreso a la lista de roles.</RimWorldAccess.Rituals.PawnSelection.Confirmed>
+
+  <!-- Pawn assignment feedback (RitualState.TogglePawnAssignment).
+       Forced/CannotAssign/CannotAssignReason: {0} = pawn name, {1} = reason.
+       Selected / Deselected: {0} = pawn name. NowAt: {0} = pawn name (spoken
+       after the list reorders so the user knows their cursor's current row). -->
+  <RimWorldAccess.Rituals.Pawn.IsForced>{0} está forzado para este rol y no se puede cambiar.</RimWorldAccess.Rituals.Pawn.IsForced>
+  <RimWorldAccess.Rituals.Pawn.CannotAssignWithReason>No se puede asignar a {0}. {1}</RimWorldAccess.Rituals.Pawn.CannotAssignWithReason>
+  <RimWorldAccess.Rituals.Pawn.CannotAssign>No se puede asignar a {0}.</RimWorldAccess.Rituals.Pawn.CannotAssign>
+  <RimWorldAccess.Rituals.Pawn.SelectedName>{0} seleccionado.</RimWorldAccess.Rituals.Pawn.SelectedName>
+  <RimWorldAccess.Rituals.Pawn.DeselectedName>{0} deseleccionado.</RimWorldAccess.Rituals.Pawn.DeselectedName>
+  <RimWorldAccess.Rituals.Pawn.NowAt>Posición actual: {0}</RimWorldAccess.Rituals.Pawn.NowAt>
+
+  <!-- Quality-stats mode transitions (RitualState.ToggleQualityStatsView).
+       ReturnedToRoleList / ReturnedToPawnSelection: spoken on Tab/Escape back.
+       FactorsCountOne/Many: {0} = factor count; split for English "1 factor"
+       vs "N factors" (used inside the two Instructions keys below). Note: we
+       keep Instructions as a whole-sentence key so translators can reorder
+       subject/verb/object freely. -->
+  <RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList>Regreso a la lista de roles.</RimWorldAccess.Rituals.QualityStats.ReturnedToRoleList>
+  <RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection>Regreso a la selección de personajes para {0}.</RimWorldAccess.Rituals.QualityStats.ReturnedToPawnSelection>
+  <RimWorldAccess.Rituals.QualityStats.InstructionsOne>Estadísticas de calidad. {0} factor. Arriba/Abajo para navegar, Alt+I para el desglose, Tab para volver.</RimWorldAccess.Rituals.QualityStats.InstructionsOne>
+  <RimWorldAccess.Rituals.QualityStats.InstructionsMany>Estadísticas de calidad. {0} factores. Arriba/Abajo para navegar, Alt+I para el desglose, Tab para volver.</RimWorldAccess.Rituals.QualityStats.InstructionsMany>
+  <RimWorldAccess.Rituals.QualityStats.HeaderOne>Estadísticas de calidad. {0} factor.</RimWorldAccess.Rituals.QualityStats.HeaderOne>
+  <RimWorldAccess.Rituals.QualityStats.HeaderMany>Estadísticas de calidad. {0} factores.</RimWorldAccess.Rituals.QualityStats.HeaderMany>
+
+  <!-- Quality breakdown (Alt+I in QualityStats, RitualState.OpenQualityStatBreakdown). -->
+  <RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip>{0}. {1}</RimWorldAccess.Rituals.QualityStats.BreakdownWithTooltip>
+  <RimWorldAccess.Rituals.QualityStats.NoBreakdown>No hay desglose detallado disponible para este factor.</RimWorldAccess.Rituals.QualityStats.NoBreakdown>
+
+  <!-- Start ritual (RitualState.StartRitual). -->
+
+  <!-- Blocking issues surfaced during Open (RitualState.GetBlockingIssues).
+       DraftedParticipants is spoken when any assigned participant is drafted. -->
+
+  <!-- LordJobDialogState generic messages (covers ritual, psychic-ritual, gravship launch).
+       These are intentionally distinct from the Ritual-specific keys above which mention
+       "ritual" or "pawns required by the ritual" — the LordJob variants are dialog-agnostic.
+       RoleLocked: spoken when user tries to enter pawn selection for a locked role.
+       NoDialogOpen: fallback when Alt+S is pressed but no adapter is present.
+       CannotStart: {0} = blocking issues joined with ". " -->
+  <RimWorldAccess.Rituals.LordJob.RoleLocked>El rol está bloqueado. Todos los personajes asignados son obligatorios.</RimWorldAccess.Rituals.LordJob.RoleLocked>
+  <RimWorldAccess.Rituals.LordJob.NoDialogOpen>No hay ningún diálogo abierto.</RimWorldAccess.Rituals.LordJob.NoDialogOpen>
+  <RimWorldAccess.Rituals.LordJob.CannotStart>No se puede iniciar. {0}</RimWorldAccess.Rituals.LordJob.CannotStart>
+
+  <!-- DryadCasteState messages (DryadCasteState.cs, DryadCastePatch.cs).
+       OpenAnnouncement: {0} = "ChangeMode".Translate() result, {1} = caste count, {2} = pawn label.
+       NoCasteSelected: guard when Enter is pressed with no valid selection.
+       MissingTreeData: guard when the tree/pawn reflection data is null.
+       DialogClosed: spoken by DryadCastePatch when the dialog closes. -->
+  <RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement>{0}. {1} castas para {2}.</RimWorldAccess.Rituals.DryadCaste.OpenAnnouncement>
+  <RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>No hay ninguna casta seleccionada.</RimWorldAccess.Rituals.DryadCaste.NoCasteSelected>
+  <RimWorldAccess.Rituals.DryadCaste.MissingTreeData>No se puede aplicar la casta: faltan datos del árbol.</RimWorldAccess.Rituals.DryadCaste.MissingTreeData>
+  <RimWorldAccess.Rituals.DryadCaste.DialogClosed>Diálogo de casta de dríade cerrado.</RimWorldAccess.Rituals.DryadCaste.DialogClosed>
+  <!-- Lord-job dialog adapter announcements (consumed via SpeakData in RitualPatch). -->
+  <RimWorldAccess.Rituals.Ritual.DialogNameFallback>Ritual</RimWorldAccess.Rituals.Ritual.DialogNameFallback>
+  <RimWorldAccess.Rituals.Ritual.DialogClosed>Diálogo de ritual cerrado.</RimWorldAccess.Rituals.Ritual.DialogClosed>
+  <RimWorldAccess.Rituals.Ritual.ParticipantsDrafted>Algunos participantes están reclutados.</RimWorldAccess.Rituals.Ritual.ParticipantsDrafted>
+  <RimWorldAccess.Rituals.Gravship.DialogName>Lanzamiento de gravinave</RimWorldAccess.Rituals.Gravship.DialogName>
+  <RimWorldAccess.Rituals.Gravship.DialogClosed>Diálogo de lanzamiento de gravinave cerrado.</RimWorldAccess.Rituals.Gravship.DialogClosed>
+  <RimWorldAccess.Rituals.Psychic.DialogClosed>Diálogo de ritual psíquico cerrado.</RimWorldAccess.Rituals.Psychic.DialogClosed>
+  <!-- Fallback dialog name when the ritual def has no resolvable label. -->
+  <RimWorldAccess.Rituals.Psychic.FallbackName>Ritual psíquico</RimWorldAccess.Rituals.Psychic.FallbackName>
+  <!-- Disallowed-condition readout on each role. {0} is the localized, comma-joined
+       list of condition nouns the role refuses. Surfaces the assignability rules
+       sighted players see only via on-hover tooltips. -->
+  <RimWorldAccess.Rituals.Psychic.Disallows>No permite: {0}.</RimWorldAccess.Rituals.Psychic.Disallows>
+  <RimWorldAccess.Rituals.Psychic.Condition.Sleeping>durmiendo</RimWorldAccess.Rituals.Psychic.Condition.Sleeping>
+  <RimWorldAccess.Rituals.Psychic.Condition.Drafted>reclutados</RimWorldAccess.Rituals.Psychic.Condition.Drafted>
+  <RimWorldAccess.Rituals.Psychic.Condition.Bleeding>con hemorragia</RimWorldAccess.Rituals.Psychic.Condition.Bleeding>
+  <RimWorldAccess.Rituals.Psychic.Condition.Burning>en llamas</RimWorldAccess.Rituals.Psychic.Condition.Burning>
+  <RimWorldAccess.Rituals.Psychic.Condition.MentalState>en estado mental</RimWorldAccess.Rituals.Psychic.Condition.MentalState>
+  <RimWorldAccess.Rituals.Psychic.Condition.Downed>incapacitados</RimWorldAccess.Rituals.Psychic.Condition.Downed>
+  <RimWorldAccess.Rituals.Psychic.Condition.Prisoner>prisioneros</RimWorldAccess.Rituals.Psychic.Condition.Prisoner>
+  <RimWorldAccess.Rituals.Psychic.Condition.Slave>esclavos</RimWorldAccess.Rituals.Psychic.Condition.Slave>
+  <RimWorldAccess.Rituals.Psychic.Condition.Baby>bebés</RimWorldAccess.Rituals.Psychic.Condition.Baby>
+  <RimWorldAccess.Rituals.Psychic.Condition.Child>niños</RimWorldAccess.Rituals.Psychic.Condition.Child>
+  <RimWorldAccess.Rituals.DryadCaste.UnknownCaste>Casta desconocida</RimWorldAccess.Rituals.DryadCaste.UnknownCaste>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Rituals.LordJob.DialogClosed>Diálogo cerrado.</RimWorldAccess.Rituals.LordJob.DialogClosed>
+  <RimWorldAccess.Rituals.Quality.OutcomeChancesLabel>Probabilidades de resultado</RimWorldAccess.Rituals.Quality.OutcomeChancesLabel>
+  <RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel>Descripción del resultado</RimWorldAccess.Rituals.Quality.OutcomeDescriptionLabel>
+  <RimWorldAccess.Rituals.Quality.RangeFormat>{0} a {1}</RimWorldAccess.Rituals.Quality.RangeFormat>
+</LanguageData>

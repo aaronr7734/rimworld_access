@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Gravships module strings (src/Gravships/). Four files contribute:
+      - GravshipDestinationState.cs  (world-map destination targeting via CompPilotConsole)
+      - GravshipHelper.cs            (engine fuel/component/readiness summaries)
+      - GravshipPatch.cs             (landing-marker spawn guidance)
+      - SubstructureOverlayState.cs  (disconnected-substructure scanner category)
+
+    These keys cover every user-facing phrase the module speaks or writes into
+    a scanner label. Fuel numbers, tile counts, component names, and similar
+    data come from the game's own state and are injected as placeholders.
+    Guard-style messages ("No valid tile selected", "World navigation not
+    active") delegate to the shared Common keys, so they don't appear here.
+
+    Gravships is Odyssey-DLC content. Vanilla gravship keys referenced by the
+    C# (StoredChemfuel, FuelPerTile, ConnectedSubstructure, CannotLaunchOnCooldown,
+    TransportPodDestinationBeyondMaximumRange, CannotLaunchDestination,
+    ConfirmLandGravship, GravshipLandingMarkerNotPlaced, DesignatorMoveGravship,
+    AbortLandGravship, etc.) are NOT duplicated here - they're reused directly
+    from RimWorld's own Odyssey language files.
+  -->
+
+  <!-- Destination-targeting open announcement (GravshipDestinationState.Open).
+       {0} = total chemfuel available, {1} = max range in tiles. Launching is
+       the active-flight path that ends with Enter; ViewRange is the preview
+       path used from a pilot console without actually launching. -->
+  <RimWorldAccess.Gravships.Destination.OpenLaunching>Selección de destino de la gravinave. {0} de quimbustible disponible, alcance máximo {1} cuadros. Usa el escáner para explorar destinos, Enter para confirmar, Escape para cancelar.</RimWorldAccess.Gravships.Destination.OpenLaunching>
+  <RimWorldAccess.Gravships.Destination.OpenViewRange>Viendo el alcance de la gravinave. {0} de quimbustible disponible, alcance máximo {1} cuadros. Usa el escáner para explorar destinos, Escape para cerrar.</RimWorldAccess.Gravships.Destination.OpenViewRange>
+
+  <!-- Destination confirmation errors (GravshipDestinationState.ConfirmCurrentDestination). -->
+  <RimWorldAccess.Gravships.Destination.CannotAccessCallbacks>No se puede acceder a las funciones del selector de cuadros</RimWorldAccess.Gravships.Destination.CannotAccessCallbacks>
+  <RimWorldAccess.Gravships.Destination.ErrorSelecting>Error al seleccionar el destino</RimWorldAccess.Gravships.Destination.ErrorSelecting>
+
+  <!-- Cancellation (GravshipDestinationState.CancelTargeting). Spoken after
+       the TilePicker is stopped and the camera returns to the pilot console. -->
+  <RimWorldAccess.Gravships.Destination.Cancelled>Selección de destino de la gravinave cancelada</RimWorldAccess.Gravships.Destination.Cancelled>
+
+  <!-- Fuel status summary (F key, GravshipDestinationState.AnnounceFuelStatus).
+       {0} = current fuel, {1} = max fuel capacity, {2} = max range in tiles,
+       {3} = fuel burned per tile of travel. -->
+  <RimWorldAccess.Gravships.Destination.FuelStatus>Combustible: {0} de {1} de quimbustible. Alcance máximo: {2} cuadros. Combustible por cuadro: {3}.</RimWorldAccess.Gravships.Destination.FuelStatus>
+
+  <!-- Per-tile fuel cost announcements (GravshipDestinationState.GetFuelCostAnnouncement).
+       Spoken by WorldScannerState / WorldNavigationState as the user browses
+       destinations. CostOnly = "12 chemfuel". CostNotEnough = cost + warning.
+       Vanilla keys TransportPodDestinationBeyondMaximumRange and
+       CannotLaunchDestination handle the other two error branches. -->
+  <RimWorldAccess.Gravships.Destination.CostOnly>{0} de quimbustible</RimWorldAccess.Gravships.Destination.CostOnly>
+  <RimWorldAccess.Gravships.Destination.CostNotEnough>{0} de quimbustible, COMBUSTIBLE INSUFICIENTE</RimWorldAccess.Gravships.Destination.CostNotEnough>
+
+  <!-- Engine fuel summary (GravshipHelper.GetFuelSummary).
+       Most of the sentence is built from vanilla RimWorld keys (StoredChemfuel,
+       FuelConsumption, FuelPerTile, GravshipRange). FuelSavings is our
+       addition; {0} = percentage (e.g. "25%") when the engine has any savings. -->
+  <RimWorldAccess.Gravships.Engine.FuelSavings>Ahorro de combustible: {0}</RimWorldAccess.Gravships.Engine.FuelSavings>
+
+  <!-- Engine component status (GravshipHelper.GetComponentStatus).
+       ComponentsConnectedOne/Many: split for English singular/plural because
+       these appear as bare number+noun. {0} = count of components.
+       The "Requires: ..." suffix uses the vanilla Requires key plus a
+       comma-joined list of component labels from the game. -->
+  <RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>{0} componente conectado</RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>
+  <RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>{0} componentes conectados</RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>
+
+  <!-- Engine launch readiness (GravshipHelper.GetLaunchReadiness).
+       NotReadyMissing: prepended to a comma-joined list of missing-component
+       labels.
+       AllConnected: spoken when no components are missing. -->
+  <RimWorldAccess.Gravships.Engine.NotReadyMissing>No está listo: falta</RimWorldAccess.Gravships.Engine.NotReadyMissing>
+  <RimWorldAccess.Gravships.Engine.AllConnected>Todos los componentes conectados</RimWorldAccess.Gravships.Engine.AllConnected>
+
+  <!-- Landing-marker spawn guidance (GravshipPatch.GravshipLandingMarker_SpawnSetup_Patch).
+       Spoken once when the marker first appears (not on save load). -->
+  <RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>Zona de aterrizaje de la gravinave colocada en una ubicación predeterminada válida. Ve al marcador de aterrizaje y presiona G para confirmar el aterrizaje, o usa el control Mover para reposicionarlo primero.</RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>
+
+  <!-- Disconnected-substructure scanner category (SubstructureOverlayState).
+       CategoryLabel is the scanner category title. ItemLabel is the per-region
+       label spoken when the user navigates onto a disconnected cluster. -->
+  <RimWorldAccess.Gravships.Substructure.CategoryLabel>Subestructura desconectada</RimWorldAccess.Gravships.Substructure.CategoryLabel>
+  <RimWorldAccess.Gravships.Substructure.ItemLabel>Subestructura desconectada</RimWorldAccess.Gravships.Substructure.ItemLabel>
+
+  <!-- Gravship rename gizmo description (vanilla has none). -->
+  <RimWorldAccess.Gravships.Engine.RenameDesc>Cambia el nombre de esta gravinave.</RimWorldAccess.Gravships.Engine.RenameDesc>
+</LanguageData>

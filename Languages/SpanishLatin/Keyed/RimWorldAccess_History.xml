@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    History module strings (src/History/). The History tab is one of the
+    bottom-bar tabs and contains a Statistics sub-tab and a Messages
+    (archive) sub-tab. Five files contribute spoken text:
+      - HistoryState.cs            (tab switching + intro/close)
+      - HistoryStatisticsState.cs  (Up/Down through colony stats)
+      - HistoryMessagesState.cs    (archive list + two-level detail view)
+      - HistoryHelper.cs           (announcement composition, archive item
+                                    wrappers, jump-to-location)
+      - HistoryPatch.cs            (window open/close hooks)
+
+    What is DATA and stays out of this file: the statistic NAME labels
+    (Play time, Storyteller, wealth lines, etc.) come from vanilla
+    RimWorld keys (Playtime, Storyteller, ThisMapColonyWealthTotal, ...);
+    archive item labels, dates, pawn/world-object names, and numeric
+    counts are game-supplied and passed in as {0}, {1} arguments. Only
+    the surrounding authored phrasing lives here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Fragments that get
+    joined into a larger announcement carry no trailing punctuation of
+    their own unless the punctuation is part of the phrase being composed
+    (e.g. the "Name: value" stat format). One/Many key variants cover
+    English singular vs. plural agreement on the item count; translators
+    with different plural classes may collapse or split them.
+  -->
+
+  <!-- Window lifecycle (HistoryState / HistoryPatch). Intro is spoken when
+       the History tab opens; it orients the user to Tab switching. -->
+  <RimWorldAccess.History.Intro>Historial. Tab alterna entre las pestañas Estadísticas y Mensajes.</RimWorldAccess.History.Intro>
+  <RimWorldAccess.History.Closed>Historial cerrado</RimWorldAccess.History.Closed>
+
+  <!-- Tab names and the "now on this tab" announcement (HistoryState).
+       {0} = localized tab name. -->
+  <RimWorldAccess.History.Tab.Statistics>Estadísticas</RimWorldAccess.History.Tab.Statistics>
+  <RimWorldAccess.History.Tab.Messages>Mensajes</RimWorldAccess.History.Tab.Messages>
+  <RimWorldAccess.History.Tab.Current>Pestaña {0}</RimWorldAccess.History.Tab.Current>
+
+  <!-- Shared fallbacks and small nouns used across the module. -->
+  <RimWorldAccess.History.Unknown>Desconocido</RimWorldAccess.History.Unknown>
+  <RimWorldAccess.History.UnknownDate>Fecha desconocida</RimWorldAccess.History.UnknownDate>
+  <RimWorldAccess.History.Pinned>Fijado</RimWorldAccess.History.Pinned>
+  <RimWorldAccess.History.Unpinned>No fijado</RimWorldAccess.History.Unpinned>
+
+  <!-- Statistics tab (HistoryStatisticsState / HistoryHelper). None is
+       spoken when no statistics are available. NameValue composes a stat
+       name with its value ({0} = name, {1} = value); TooltipSuffix appends
+       an optional tooltip ({0} = tooltip) and owns its leading separator
+       because it is glued onto the end of NameValue. -->
+  <RimWorldAccess.History.Statistics.None>No hay estadísticas disponibles</RimWorldAccess.History.Statistics.None>
+  <RimWorldAccess.History.Statistics.NameValue>{0}: {1}</RimWorldAccess.History.Statistics.NameValue>
+  <RimWorldAccess.History.Statistics.TooltipSuffix>. {0}</RimWorldAccess.History.Statistics.TooltipSuffix>
+
+  <!-- Archive item type nouns (HistoryHelper.TypeLabel). Spoken as part of
+       each row's announcement. -->
+  <RimWorldAccess.History.Type.Letter>Carta</RimWorldAccess.History.Type.Letter>
+  <RimWorldAccess.History.Type.Message>Mensaje</RimWorldAccess.History.Type.Message>
+  <RimWorldAccess.History.Type.Item>Elemento</RimWorldAccess.History.Type.Item>
+
+  <!-- Jump-to-location announcements and target descriptions (HistoryHelper).
+       Target.Position: {0} = x, {1} = z map coordinates. The other target
+       fallbacks are used when no game-supplied label is available. -->
+  <RimWorldAccess.History.NoLocation>No hay ubicación disponible</RimWorldAccess.History.NoLocation>
+  <RimWorldAccess.History.FailedToJump>No se pudo ir a la ubicación</RimWorldAccess.History.FailedToJump>
+  <RimWorldAccess.History.Target.Unknown>ubicación desconocida</RimWorldAccess.History.Target.Unknown>
+  <RimWorldAccess.History.Target.Thing>cosa</RimWorldAccess.History.Target.Thing>
+  <RimWorldAccess.History.Target.Position>posición {0}, {1}</RimWorldAccess.History.Target.Position>
+  <RimWorldAccess.History.Target.WorldLocation>ubicación en el mundo</RimWorldAccess.History.Target.WorldLocation>
+  <RimWorldAccess.History.Target.Generic>ubicación objetivo</RimWorldAccess.History.Target.Generic>
+
+  <!-- Messages/archive tab (HistoryMessagesState). -->
+
+  <!-- Detail view (two-level menu) header and boundary messages.
+       DetailHeader: {0} = type label, {1} = item label. -->
+  <RimWorldAccess.History.Messages.DetailHeader>{0}: {1}</RimWorldAccess.History.Messages.DetailHeader>
+  <RimWorldAccess.History.Messages.EndOfMessage>Fin del mensaje</RimWorldAccess.History.Messages.EndOfMessage>
+  <RimWorldAccess.History.Messages.StartOfMessage>Inicio del mensaje</RimWorldAccess.History.Messages.StartOfMessage>
+  <RimWorldAccess.History.Messages.OpenFirst>Presiona Enter para abrir el mensaje primero</RimWorldAccess.History.Messages.OpenFirst>
+
+  <!-- Hotkey orientation spoken on entering the tab, and the empty-list
+       message that carries it. NoneWithHint: {0} = the hotkey hint. -->
+  <RimWorldAccess.History.Messages.HotkeyHint>Alt+L para mostrar u ocultar cartas, Alt+M para mostrar u ocultar mensajes</RimWorldAccess.History.Messages.HotkeyHint>
+  <RimWorldAccess.History.Messages.NoneWithHint>No hay elementos archivados. {0}.</RimWorldAccess.History.Messages.NoneWithHint>
+
+  <!-- Filter toggle status phrases (Alt+L / Alt+M). Each is spoken via the
+       FilterStatus keys below, never on its own. -->
+  <RimWorldAccess.History.Messages.ShowingLetters>Mostrando cartas</RimWorldAccess.History.Messages.ShowingLetters>
+  <RimWorldAccess.History.Messages.HidingLetters>Ocultando cartas</RimWorldAccess.History.Messages.HidingLetters>
+  <RimWorldAccess.History.Messages.ShowingMessages>Mostrando mensajes</RimWorldAccess.History.Messages.ShowingMessages>
+  <RimWorldAccess.History.Messages.HidingMessages>Ocultando mensajes</RimWorldAccess.History.Messages.HidingMessages>
+
+  <!-- Filter result: a status phrase plus the resulting item count.
+       FilterStatusOne is used when exactly one item remains ({0} = status);
+       FilterStatusMany otherwise ({0} = status, {1} = count). -->
+  <RimWorldAccess.History.Messages.FilterStatusOne>{0}. 1 elemento.</RimWorldAccess.History.Messages.FilterStatusOne>
+  <RimWorldAccess.History.Messages.FilterStatusMany>{0}. {1} elementos.</RimWorldAccess.History.Messages.FilterStatusMany>
+
+  <!-- Detail-view action button labels (spoken when arrowing through
+       buttons) and the failure announcement when an action throws. -->
+  <RimWorldAccess.History.Button.Open>Abrir</RimWorldAccess.History.Button.Open>
+  <RimWorldAccess.History.Button.JumpToLocation>Ir a la ubicación</RimWorldAccess.History.Button.JumpToLocation>
+  <RimWorldAccess.History.Button.Pin>Fijar</RimWorldAccess.History.Button.Pin>
+  <RimWorldAccess.History.Button.Unpin>Quitar fijación</RimWorldAccess.History.Button.Unpin>
+  <RimWorldAccess.History.FailedToActivateButton>No se pudo activar el botón</RimWorldAccess.History.FailedToActivateButton>
+
+
+  <!-- Keyboard-mode visual overlay (src/History/HistoryPatch.cs). -->
+  <RimWorldAccess.History.Overlay.KeyboardModeTab>Modo teclado activo - Pestaña {0}</RimWorldAccess.History.Overlay.KeyboardModeTab>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.History.Duration.DaysHoursMinutes>{0} días, {1} horas, {2} minutos</RimWorldAccess.History.Duration.DaysHoursMinutes>
+  <RimWorldAccess.History.Duration.HoursMinutes>{0} horas, {1} minutos</RimWorldAccess.History.Duration.HoursMinutes>
+  <RimWorldAccess.History.Duration.Minutes>{0} minutos</RimWorldAccess.History.Duration.Minutes>
+</LanguageData>

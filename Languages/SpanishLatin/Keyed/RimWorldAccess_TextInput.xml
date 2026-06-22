@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.TextInput.LabelDefault>campo</RimWorldAccess.TextInput.LabelDefault>
+  <RimWorldAccess.TextInput.LabelFaction>nombre de la facción</RimWorldAccess.TextInput.LabelFaction>
+  <RimWorldAccess.TextInput.LabelSettlement>nombre del asentamiento</RimWorldAccess.TextInput.LabelSettlement>
+  <RimWorldAccess.TextInput.LabelZone>nombre del área</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelPlan>nombre de la planificación</RimWorldAccess.TextInput.LabelPlan>
+  <RimWorldAccess.TextInput.LabelStorage>nombre del almacén</RimWorldAccess.TextInput.LabelStorage>
+  <RimWorldAccess.TextInput.LabelPen>nombre del corral</RimWorldAccess.TextInput.LabelPen>
+  <RimWorldAccess.TextInput.LabelScenarioTitle>título del escenario</RimWorldAccess.TextInput.LabelScenarioTitle>
+  <RimWorldAccess.TextInput.LabelScenarioSummary>resumen del escenario</RimWorldAccess.TextInput.LabelScenarioSummary>
+  <RimWorldAccess.TextInput.LabelScenarioDescription>descripción del escenario</RimWorldAccess.TextInput.LabelScenarioDescription>
+  <RimWorldAccess.TextInput.LabelFilename>nombre de archivo</RimWorldAccess.TextInput.LabelFilename>
+  <RimWorldAccess.TextInput.LabelXenotype>nombre del xenotipo</RimWorldAccess.TextInput.LabelXenotype>
+  <RimWorldAccess.TextInput.LabelXenogerm>nombre del xenogermen</RimWorldAccess.TextInput.LabelXenogerm>
+  <RimWorldAccess.TextInput.LabelWorldSeed>semilla del mundo</RimWorldAccess.TextInput.LabelWorldSeed>
+
+  <RimWorldAccess.TextInput.EditingField>Editando {0}: {1}. Escribe el nuevo valor, Enter para confirmar, Escape para cancelar.</RimWorldAccess.TextInput.EditingField>
+  <RimWorldAccess.TextInput.EditingMultiLineField>Editando campo de varias líneas {0}: {1}. Escribe, Shift+Enter para nueva línea, Arriba/Abajo para navegar por líneas, Enter para confirmar, Escape para cancelar.</RimWorldAccess.TextInput.EditingMultiLineField>
+  <RimWorldAccess.TextInput.Empty>vacío</RimWorldAccess.TextInput.Empty>
+  <RimWorldAccess.TextInput.Deleted>{0} eliminado</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.FieldSet>{0} cambiado a {1}</RimWorldAccess.TextInput.FieldSet>
+  <RimWorldAccess.TextInput.FieldUnchanged>{0} sin cambios</RimWorldAccess.TextInput.FieldUnchanged>
+  <RimWorldAccess.TextInput.NewLine>Nueva línea</RimWorldAccess.TextInput.NewLine>
+  <RimWorldAccess.TextInput.BlankLine>línea en blanco</RimWorldAccess.TextInput.BlankLine>
+
+  <RimWorldAccess.TextInput.Copied>Copiado</RimWorldAccess.TextInput.Copied>
+  <RimWorldAccess.TextInput.Cut>Cortado</RimWorldAccess.TextInput.Cut>
+  <RimWorldAccess.TextInput.SelectedAll>Todo seleccionado: {0}</RimWorldAccess.TextInput.SelectedAll>
+  <RimWorldAccess.TextInput.SelectedAllLong>Todo seleccionado, {0} caracteres</RimWorldAccess.TextInput.SelectedAllLong>
+  <RimWorldAccess.TextInput.ClipboardEmpty>El portapapeles está vacío</RimWorldAccess.TextInput.ClipboardEmpty>
+  <RimWorldAccess.TextInput.PastedShort>Pegado: {0}</RimWorldAccess.TextInput.PastedShort>
+  <RimWorldAccess.TextInput.PastedWords>{0} palabras pegadas</RimWorldAccess.TextInput.PastedWords>
+  <RimWorldAccess.TextInput.PastedLines>{0} líneas pegadas, {1} palabras</RimWorldAccess.TextInput.PastedLines>
+
+  <RimWorldAccess.TextInput.RejectedEmpty>No se puede aceptar un valor vacío</RimWorldAccess.TextInput.RejectedEmpty>
+  <RimWorldAccess.TextInput.RejectedTooLong>No se puede pegar, supera el máximo de {0} caracteres</RimWorldAccess.TextInput.RejectedTooLong>
+  <RimWorldAccess.TextInput.RejectedTooShort>No se puede pegar, se requieren mínimo {0} caracteres</RimWorldAccess.TextInput.RejectedTooShort>
+  <RimWorldAccess.TextInput.RejectedDisallowed>No se puede pegar, contiene caracteres no permitidos: {0}</RimWorldAccess.TextInput.RejectedDisallowed>
+  <RimWorldAccess.TextInput.RejectedSpecial>No se puede pegar, contiene caracteres de gramática prohibidos</RimWorldAccess.TextInput.RejectedSpecial>
+  <RimWorldAccess.TextInput.RejectedFilename>No se puede pegar, contiene caracteres no permitidos en nombres de archivo</RimWorldAccess.TextInput.RejectedFilename>
+  <RimWorldAccess.TextInput.RejectedCustom>No se puede aceptar el valor: {0}</RimWorldAccess.TextInput.RejectedCustom>
+</LanguageData>

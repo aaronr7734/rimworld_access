@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    MainMenu module strings (src/MainMenu/). Covers the main menu, the
+    full game-setup flow (scenario picker, scenario builder, mod manager,
+    storyteller/difficulty picker, ideology picker, world parameters,
+    starting site selection, faction relations dialog, starting pawn
+    editor, pawn filter), the loading screen, and the quit/save flow.
+
+    Files contributing strings:
+      - MainMenuAccessibilityPatch.cs   (the main menu shell)
+      - LoadingScreenAccessibilityPatch (the load-screen tip + events)
+      - ModListState.cs / ModSettingsDialogPatch.cs
+      - WindowlessScenarioLoadState.cs / WindowlessScenarioSaveState.cs
+      - ScenarioSelectionPatch.cs / ScenarioNavigationState.cs
+      - ScenarioBuilderState.cs / ScenarioBuilderPatch.cs /
+        ScenarioBuilderAddPartState.cs / ScenarioBuilderPartEditState.cs
+      - StorytellerSelectionPatch.cs / StorytellerSelectionState.cs /
+        StorytellerNavigationState.cs / CustomDifficultyEditState.cs
+      - IdeologyNavigationState.cs / IdeologySelectionPatch.cs
+      - WorldParamsPatch.cs / WorldParamsNavigationState.cs
+      - StartingSitePatch.cs / StartingSiteContext.cs
+      - StartingPawnState.cs / StartingPawnHelper.cs
+      - FactionsNavigationState.cs / FactionLandingState.cs
+      - PawnFilterState.cs / PawnFilterPresetLoadState.cs /
+        PawnFilterPresetSaveState.cs
+      - RerollState.cs
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / Stepper            -> Common.xml
+      - "{0}. {1}" position composition (UI.Item.WithPosition) -> UI.xml
+      - "Cancelled"                                    -> UI.Cancelled
+      - vanilla labels: "NewColony", "Save", "LoadGame", "Options",
+        "Mods", "Credits", "QuitToMainMenu", "QuitToOS",
+        "ConfirmQuit", "GameOverMainMenu", "Tutorial",
+        "ChooseAIStoryteller", "Difficulty", "ClearAll",
+        "Randomize", "AnyNonArchite", "Random", "Structure",
+        "RandomStructureTip", "NoneLower", "DifficultyCustomSectionLabel",
+        "BuySoundtrack_*", "FictionPrimer", "LudeonBlog", "Subreddit",
+        "OfficialWiki", "TynansX", "TynansDesignBook", "HelpTranslate",
+        "ReviewScenario", "DevQuickTest", "SaveTranslationReport",
+        "SaveAndQuitToMainMenu", "SaveAndQuitToOS",
+        "LearnToPlay" - all come from vanilla via .Translate().
+
+    Data such as scenario names, faction names/descriptions, mod names,
+    storyteller labels/descriptions, ideology preset labels, biome
+    names, faction relation status text, season/weather/era data, and
+    pawn names continue to come from the game and are NOT translated
+    in this file.
+  -->
+
+  <!-- =================================================================
+       Main menu shell (MainMenuAccessibilityPatch).
+       Tutorial-not-implemented dialog. The "GameOverMainMenu" title
+       announcement comes from the vanilla key.
+       ================================================================= -->
+  <RimWorldAccess.MainMenu.TutorialNotAccessible>El tutorial actualmente no es accesible. Esto se agregará pronto.</RimWorldAccess.MainMenu.TutorialNotAccessible>
+
+  <!-- =================================================================
+       Loading screen (LoadingScreenAccessibilityPatch).
+       Live announcements as the game loads. "Tip: {0}" wraps the
+       vanilla tip-of-the-day text; the loading message itself and
+       any progress events come straight from the game. AssetsPercent
+       suffixes the vanilla LoadingAssets phrase with a percentage.
+       {0} = the tip text or percent value.
+       ================================================================= -->
+  <RimWorldAccess.Loading.Tip>Consejo: {0}</RimWorldAccess.Loading.Tip>
+  <RimWorldAccess.Loading.AssetsPercent>{0} {1}%</RimWorldAccess.Loading.AssetsPercent>
+
+  <!-- =================================================================
+       Mod settings dialog (ModSettingsDialogPatch).
+       {0} = the mod's display name (when known).
+       ================================================================= -->
+  <RimWorldAccess.ModSettings.OpenedFor>Configuración del mod {0}. Presiona Escape para cerrar.</RimWorldAccess.ModSettings.OpenedFor>
+  <RimWorldAccess.ModSettings.OpenedGeneric>Diálogo de configuración del mod abierto. Presiona Escape para cerrar.</RimWorldAccess.ModSettings.OpenedGeneric>
+  <RimWorldAccess.ModSettings.Closed>Configuración del mod cerrada</RimWorldAccess.ModSettings.Closed>
+  <RimWorldAccess.ModSettings.UnknownMod>Mod desconocido</RimWorldAccess.ModSettings.UnknownMod>
+
+  <!-- =================================================================
+       Mod list / mod manager (ModListState).
+       Action announcements for the active/inactive mod columns,
+       reorder feedback, save/sort buttons, web-link launch feedback.
+       {0} = mod name, {1} = action verb (enabled/disabled) or
+       new position, {2} = additional context.
+       ================================================================= -->
+  <RimWorldAccess.ModList.OpeningWebsiteFor>Abriendo el sitio web de {0}</RimWorldAccess.ModList.OpeningWebsiteFor>
+  <RimWorldAccess.ModList.OpeningWorkshopPageFor>Abriendo la página de Workshop de {0}</RimWorldAccess.ModList.OpeningWorkshopPageFor>
+  <RimWorldAccess.ModList.OpeningFolderFor>Abriendo la carpeta de {0}</RimWorldAccess.ModList.OpeningFolderFor>
+  <RimWorldAccess.ModList.UnsubscribedFrom>Cancelaste la suscripción a {0}</RimWorldAccess.ModList.UnsubscribedFrom>
+  <RimWorldAccess.ModList.CouldNotEnableMod>No se pudo activar el mod. Puede que ya esté activo un mod con el mismo ID de paquete.</RimWorldAccess.ModList.CouldNotEnableMod>
+  <RimWorldAccess.ModList.ActionEnabled>activado</RimWorldAccess.ModList.ActionEnabled>
+  <RimWorldAccess.ModList.ActionDisabled>desactivado</RimWorldAccess.ModList.ActionDisabled>
+  <RimWorldAccess.ModList.ModWithAction>{0} {1}</RimWorldAccess.ModList.ModWithAction>
+  <RimWorldAccess.ModList.ModWithActionAndNext>{0} {1}.{2}</RimWorldAccess.ModList.ModWithActionAndNext>
+  <RimWorldAccess.ModList.CanOnlyReorderActiveMods>Solo se pueden reordenar los mods activos</RimWorldAccess.ModList.CanOnlyReorderActiveMods>
+  <RimWorldAccess.ModList.MovedToPosition>{0} movido a la posición {1}</RimWorldAccess.ModList.MovedToPosition>
+  <RimWorldAccess.ModList.OpenDetailsFirst>Presiona Enter para abrir primero los detalles del mod</RimWorldAccess.ModList.OpenDetailsFirst>
+  <RimWorldAccess.ModList.CannotReorder>No se puede reordenar: {0}</RimWorldAccess.ModList.CannotReorder>
+  <RimWorldAccess.ModList.ChangesSaved>Cambios de mods guardados</RimWorldAccess.ModList.ChangesSaved>
+  <RimWorldAccess.ModList.AutoSorted>Mods ordenados automáticamente</RimWorldAccess.ModList.AutoSorted>
+  <RimWorldAccess.ModList.FailedToActivateButton>No se pudo activar el botón</RimWorldAccess.ModList.FailedToActivateButton>
+  <RimWorldAccess.ModList.ColumnEmpty>Lista de mods {0}, vacía</RimWorldAccess.ModList.ColumnEmpty>
+  <RimWorldAccess.ModList.ColumnActive>Activos</RimWorldAccess.ModList.ColumnActive>
+  <RimWorldAccess.ModList.ColumnInactive>Inactivos</RimWorldAccess.ModList.ColumnInactive>
+  <!-- More mod-list composition strings (ModListState).
+       {0} = mod name, {1} = author, {2} = next mod info, {3} = column name. -->
+  <RimWorldAccess.ModList.ContainsErrors>contiene errores</RimWorldAccess.ModList.ContainsErrors>
+  <RimWorldAccess.ModList.ByAuthor>por {0}</RimWorldAccess.ModList.ByAuthor>
+  <RimWorldAccess.ModList.OpeningAnnouncement>{0}. {1}, {2} mods. {3}: Alt+R. {4}: Alt+S.</RimWorldAccess.ModList.OpeningAnnouncement>
+  <RimWorldAccess.ModList.OpeningWithMod>{0} ... {1}</RimWorldAccess.ModList.OpeningWithMod>
+  <RimWorldAccess.ModList.ColumnHeader>{0} mods, {1} mods. </RimWorldAccess.ModList.ColumnHeader>
+  <RimWorldAccess.ModList.NowOnNext> Ahora en: {0}, {1}</RimWorldAccess.ModList.NowOnNext>
+  <RimWorldAccess.ModList.NowEmpty> La lista ahora está vacía.</RimWorldAccess.ModList.NowEmpty>
+  <RimWorldAccess.ModList.SearchPosition>{0}, {1} de {2}</RimWorldAccess.ModList.SearchPosition>
+
+  <!-- =================================================================
+       Scenario load dialog (WindowlessScenarioLoadState).
+       Type-to-search list of saved scenarios with delete confirmation.
+       {0} = scenario count, {1} = filename.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioLoad.FileWithDate>{0} - {1}</RimWorldAccess.ScenarioLoad.FileWithDate>
+  <RimWorldAccess.ScenarioLoad.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioLoad.WithPositionSuffix>
+  <RimWorldAccess.ScenarioLoad.NoSavedScenarios>No se encontraron escenarios guardados.</RimWorldAccess.ScenarioLoad.NoSavedScenarios>
+  <RimWorldAccess.ScenarioLoad.OpenInstructions>Cargar escenario. {0} escenarios disponibles. Escribe para buscar.</RimWorldAccess.ScenarioLoad.OpenInstructions>
+  <RimWorldAccess.ScenarioLoad.NoScenariosAvailable>No hay escenarios disponibles.</RimWorldAccess.ScenarioLoad.NoScenariosAvailable>
+  <RimWorldAccess.ScenarioLoad.NoScenarioSelected>Ningún escenario seleccionado.</RimWorldAccess.ScenarioLoad.NoScenarioSelected>
+  <RimWorldAccess.ScenarioLoad.FailedToLoad>No se pudo cargar el escenario: {0}</RimWorldAccess.ScenarioLoad.FailedToLoad>
+  <RimWorldAccess.ScenarioLoad.ErrorLoading>Error al cargar el escenario: {0}</RimWorldAccess.ScenarioLoad.ErrorLoading>
+  <RimWorldAccess.ScenarioLoad.DeleteConfirm>¿Eliminar {0}? Presiona Enter para confirmar, Escape para cancelar.</RimWorldAccess.ScenarioLoad.DeleteConfirm>
+  <RimWorldAccess.ScenarioLoad.Deleted>{0} eliminado</RimWorldAccess.ScenarioLoad.Deleted>
+  <RimWorldAccess.ScenarioLoad.DeleteCancelled>Eliminación cancelada</RimWorldAccess.ScenarioLoad.DeleteCancelled>
+
+  <!-- =================================================================
+       Scenario save dialog (WindowlessScenarioSaveState).
+       Filename text-input plus a list of existing scenarios that
+       can be overwritten. {0} = current filename, {1} = position
+       fragment, {2} = file modified date.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioSave.OpenInstructions>Guardar escenario. Escribe un nombre de archivo o presiona Abajo para seleccionar un archivo existente que sobreescribir. Nombre actual: {0}</RimWorldAccess.ScenarioSave.OpenInstructions>
+  <RimWorldAccess.ScenarioSave.SaveAs>Guardar como: {0} ({1})</RimWorldAccess.ScenarioSave.SaveAs>
+  <RimWorldAccess.ScenarioSave.Overwrite>Sobreescribir: {0} - {1} ({2})</RimWorldAccess.ScenarioSave.Overwrite>
+  <RimWorldAccess.ScenarioSave.InvalidSelection>Selección no válida</RimWorldAccess.ScenarioSave.InvalidSelection>
+  <RimWorldAccess.ScenarioSave.FilenameEmpty>El nombre de archivo no puede estar vacío</RimWorldAccess.ScenarioSave.FilenameEmpty>
+  <RimWorldAccess.ScenarioSave.FileExists>El archivo {0} ya existe. Presiona Enter de nuevo para sobreescribir, o Escape para cancelar.</RimWorldAccess.ScenarioSave.FileExists>
+  <RimWorldAccess.ScenarioSave.SavedAs>Guardado como {0}</RimWorldAccess.ScenarioSave.SavedAs>
+  <RimWorldAccess.ScenarioSave.ErrorSaving>Error al guardar: {0}</RimWorldAccess.ScenarioSave.ErrorSaving>
+
+  <!-- =================================================================
+       Scenario picker (Page_SelectScenario via ScenarioSelectionPatch
+       and ScenarioNavigationState). Shown when starting a new colony.
+       {0} = page title, {1} = first scenario name,
+       {2} = first scenario summary, {3} = category suffix.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioSelect.OpenInstructions>{0} - {1} - {2}{3}. Tab para detalles, Alt+E para editar.</RimWorldAccess.ScenarioSelect.OpenInstructions>
+  <RimWorldAccess.ScenarioSelect.EditingScenario>Editando escenario: {0}</RimWorldAccess.ScenarioSelect.EditingScenario>
+  <RimWorldAccess.ScenarioSelect.EditingCopyOf>Editando copia de: {0}</RimWorldAccess.ScenarioSelect.EditingCopyOf>
+  <RimWorldAccess.ScenarioSelect.CategoryBuiltIn> (Integrado)</RimWorldAccess.ScenarioSelect.CategoryBuiltIn>
+  <RimWorldAccess.ScenarioSelect.CategoryGeneric> ({0})</RimWorldAccess.ScenarioSelect.CategoryGeneric>
+  <RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry>No se puede editar la entrada del Creador de escenarios. Presiona Enter para crear un escenario nuevo.</RimWorldAccess.ScenarioSelect.CannotEditBuilderEntry>
+  <RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry>No se puede eliminar la entrada del Creador de escenarios</RimWorldAccess.ScenarioSelect.CannotDeleteBuilderEntry>
+  <RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn>No se pueden eliminar los escenarios integrados</RimWorldAccess.ScenarioSelect.CannotDeleteBuiltIn>
+  <RimWorldAccess.ScenarioSelect.NoDetailsForBuilder>No hay detalles para el Creador de escenarios. Presiona Enter para abrir.</RimWorldAccess.ScenarioSelect.NoDetailsForBuilder>
+  <!-- Scenario list and detail tree announcements (ScenarioNavigationState).
+       {0} = scenario name, {1} = scenario summary, {2} = category suffix.
+       Detail headers are also user-facing tree labels. -->
+  <RimWorldAccess.ScenarioSelect.BuilderEntryLabel>Creador de escenarios - Crea un escenario personalizado desde cero</RimWorldAccess.ScenarioSelect.BuilderEntryLabel>
+  <RimWorldAccess.ScenarioSelect.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioSelect.WithPositionSuffix>
+  <RimWorldAccess.ScenarioSelect.NameSummary>{0} - {1}{2}</RimWorldAccess.ScenarioSelect.NameSummary>
+  <RimWorldAccess.ScenarioSelect.WarningSuffix>. Advertencia: {0}</RimWorldAccess.ScenarioSelect.WarningSuffix>
+  <RimWorldAccess.ScenarioSelect.CategoryCustom> (Personalizado)</RimWorldAccess.ScenarioSelect.CategoryCustom>
+  <RimWorldAccess.ScenarioSelect.CategoryWorkshop> (Workshop)</RimWorldAccess.ScenarioSelect.CategoryWorkshop>
+  <RimWorldAccess.ScenarioSelect.NoAdditionalDetails>No hay detalles adicionales disponibles</RimWorldAccess.ScenarioSelect.NoAdditionalDetails>
+  <RimWorldAccess.ScenarioSelect.DetailsLabel>Detalles</RimWorldAccess.ScenarioSelect.DetailsLabel>
+  <RimWorldAccess.ScenarioSelect.ScenarioListLabel>Lista de escenarios</RimWorldAccess.ScenarioSelect.ScenarioListLabel>
+  <RimWorldAccess.ScenarioSelect.BuilderSearchLabel>Creador de escenarios</RimWorldAccess.ScenarioSelect.BuilderSearchLabel>
+  <RimWorldAccess.ScenarioSelect.DescriptionLine>Descripción: {0}</RimWorldAccess.ScenarioSelect.DescriptionLine>
+  <RimWorldAccess.ScenarioSelect.StartWith>Comienzas con</RimWorldAccess.ScenarioSelect.StartWith>
+  <RimWorldAccess.ScenarioSelect.MapScatteredWith>El mapa está esparcido con</RimWorldAccess.ScenarioSelect.MapScatteredWith>
+  <RimWorldAccess.ScenarioSelect.CreateIncident>Crear incidente</RimWorldAccess.ScenarioSelect.CreateIncident>
+  <RimWorldAccess.ScenarioSelect.DisableIncident>Desactivar incidente</RimWorldAccess.ScenarioSelect.DisableIncident>
+  <RimWorldAccess.ScenarioSelect.PermanentGameCondition>Condición permanente de la partida</RimWorldAccess.ScenarioSelect.PermanentGameCondition>
+  <RimWorldAccess.ScenarioSelect.Deleted>{0} eliminado</RimWorldAccess.ScenarioSelect.Deleted>
+  <RimWorldAccess.ScenarioSelect.UnsubscribedFrom>Cancelaste la suscripción a {0}</RimWorldAccess.ScenarioSelect.UnsubscribedFrom>
+  <RimWorldAccess.ScenarioSelect.CannotUnsubscribe>No se puede cancelar la suscripción a este escenario</RimWorldAccess.ScenarioSelect.CannotUnsubscribe>
+  <RimWorldAccess.ScenarioSelect.CannotDelete>No se puede eliminar este escenario</RimWorldAccess.ScenarioSelect.CannotDelete>
+
+  <!-- =================================================================
+       Scenario builder shell (ScenarioBuilderState + ScenarioBuilderPatch).
+       Two-section editor: Metadata (title/summary/description) +
+       Parts (the list of scenario rules). Many announcements track
+       moves between sections, item edits, parts insert/remove, and
+       global save/load/randomize actions.
+       {0} = scenario title or part name, {1} = field name or
+       neighbor part name, {2} = secondary neighbor name.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.OpenInstructions>Creador de escenarios: {0}. Sección de metadatos. Presiona Tab para cambiar a Partes. Alt+L para cargar, Alt+S para guardar, Alt+R para aleatorizar, Alt+A para agregar parte.</RimWorldAccess.ScenarioBuilder.OpenInstructions>
+  <RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt>Tienes cambios sin guardar en este escenario.</RimWorldAccess.ScenarioBuilder.UnsavedChangesPrompt>
+  <RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle>Cambios sin guardar</RimWorldAccess.ScenarioBuilder.UnsavedChangesTitle>
+  <RimWorldAccess.ScenarioBuilder.UnsavedSave>Guardar</RimWorldAccess.ScenarioBuilder.UnsavedSave>
+  <RimWorldAccess.ScenarioBuilder.UnsavedDiscard>Descartar</RimWorldAccess.ScenarioBuilder.UnsavedDiscard>
+  <RimWorldAccess.ScenarioBuilder.UnsavedCancel>Cancelar</RimWorldAccess.ScenarioBuilder.UnsavedCancel>
+  <RimWorldAccess.ScenarioBuilder.ChangesDiscarded>Cambios descartados.</RimWorldAccess.ScenarioBuilder.ChangesDiscarded>
+  <RimWorldAccess.ScenarioBuilder.ContinuingToEdit>Continuando la edición.</RimWorldAccess.ScenarioBuilder.ContinuingToEdit>
+  <RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry>Se agregó una nueva entrada de tipo de personaje.</RimWorldAccess.ScenarioBuilder.AddedPawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry>Se agregó una nueva entrada de xenotipo.</RimWorldAccess.ScenarioBuilder.AddedXenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.AddedMutantEntry>Se agregó una nueva entrada de mutante.</RimWorldAccess.ScenarioBuilder.AddedMutantEntry>
+  <RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable>No hay etiquetas de capa disponibles para conectar.</RimWorldAccess.ScenarioBuilder.NoLayerTagsAvailable>
+  <RimWorldAccess.ScenarioBuilder.AddedConnectionTo>Se agregó una conexión a {0}.</RimWorldAccess.ScenarioBuilder.AddedConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.RemovedItemType>{0} eliminado.</RimWorldAccess.ScenarioBuilder.RemovedItemType>
+  <RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst>Presiona Enter para confirmar o Escape para cancelar primero la edición</RimWorldAccess.ScenarioBuilder.ConfirmOrCancelEditingFirst>
+  <RimWorldAccess.ScenarioBuilder.PartsSection>Sección de partes</RimWorldAccess.ScenarioBuilder.PartsSection>
+  <RimWorldAccess.ScenarioBuilder.MetadataSection>Sección de metadatos</RimWorldAccess.ScenarioBuilder.MetadataSection>
+  <RimWorldAccess.ScenarioBuilder.FieldSetTo>{0} fijado en: {1}</RimWorldAccess.ScenarioBuilder.FieldSetTo>
+  <RimWorldAccess.ScenarioBuilder.FieldEmptyValue>vacío</RimWorldAccess.ScenarioBuilder.FieldEmptyValue>
+  <RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>Presiona Enter para editar.</RimWorldAccess.ScenarioBuilder.PressEnterToEditHint>
+  <RimWorldAccess.ScenarioBuilder.FieldEditCancelled>Cancelado. {0} sin cambios.</RimWorldAccess.ScenarioBuilder.FieldEditCancelled>
+  <RimWorldAccess.ScenarioBuilder.NoParts>No hay partes en el escenario. Presiona Alt+A para agregar una parte.</RimWorldAccess.ScenarioBuilder.NoParts>
+  <RimWorldAccess.ScenarioBuilder.PartHasNoFields>Esta parte no tiene campos editables. Presiona Suprimir para eliminarla.</RimWorldAccess.ScenarioBuilder.PartHasNoFields>
+  <RimWorldAccess.ScenarioBuilder.NoItemSelected>Ningún elemento seleccionado.</RimWorldAccess.ScenarioBuilder.NoItemSelected>
+  <RimWorldAccess.ScenarioBuilder.FieldEmpty>El campo está vacío.</RimWorldAccess.ScenarioBuilder.FieldEmpty>
+  <RimWorldAccess.ScenarioBuilder.NotATextField>No es un campo de texto.</RimWorldAccess.ScenarioBuilder.NotATextField>
+  <RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction>No se puede eliminar la acción de agregar.</RimWorldAccess.ScenarioBuilder.CannotDeleteAddAction>
+  <RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved>Esta parte no se puede eliminar.</RimWorldAccess.ScenarioBuilder.PartCannotBeRemoved>
+  <RimWorldAccess.ScenarioBuilder.RemovedLabel>{0} eliminado.</RimWorldAccess.ScenarioBuilder.RemovedLabel>
+  <RimWorldAccess.ScenarioBuilder.CannotMoveUp>No se puede subir {0}.</RimWorldAccess.ScenarioBuilder.CannotMoveUp>
+  <RimWorldAccess.ScenarioBuilder.MovedToTopAbove>{0} movido al inicio, encima de {1}.</RimWorldAccess.ScenarioBuilder.MovedToTopAbove>
+  <RimWorldAccess.ScenarioBuilder.MovedToTopOfList>{0} movido al inicio de la lista.</RimWorldAccess.ScenarioBuilder.MovedToTopOfList>
+  <RimWorldAccess.ScenarioBuilder.MovedUpBetween>{0} subido, ahora entre {1} y {2}.</RimWorldAccess.ScenarioBuilder.MovedUpBetween>
+  <RimWorldAccess.ScenarioBuilder.MovedUpBelow>{0} subido, ahora debajo de {1}.</RimWorldAccess.ScenarioBuilder.MovedUpBelow>
+  <RimWorldAccess.ScenarioBuilder.CannotMoveDown>No se puede bajar {0}.</RimWorldAccess.ScenarioBuilder.CannotMoveDown>
+  <RimWorldAccess.ScenarioBuilder.MovedToBottomBelow>{0} movido al final, debajo de {1}.</RimWorldAccess.ScenarioBuilder.MovedToBottomBelow>
+  <RimWorldAccess.ScenarioBuilder.MovedToBottomOfList>{0} movido al final de la lista.</RimWorldAccess.ScenarioBuilder.MovedToBottomOfList>
+  <RimWorldAccess.ScenarioBuilder.MovedDownBetween>{0} bajado, ahora entre {1} y {2}.</RimWorldAccess.ScenarioBuilder.MovedDownBetween>
+  <RimWorldAccess.ScenarioBuilder.MovedDownAbove>{0} bajado, ahora encima de {1}.</RimWorldAccess.ScenarioBuilder.MovedDownAbove>
+  <RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit>{0} agregado. Presiona Enter para editar.</RimWorldAccess.ScenarioBuilder.AddedPressEnterToEdit>
+  <RimWorldAccess.ScenarioBuilder.LoadedScenario>Escenario cargado: {0}</RimWorldAccess.ScenarioBuilder.LoadedScenario>
+  <RimWorldAccess.ScenarioBuilder.ScenarioSaved>Escenario guardado.</RimWorldAccess.ScenarioBuilder.ScenarioSaved>
+  <RimWorldAccess.ScenarioBuilder.RandomizedNew>Aleatorizado. Nuevo escenario: {0}</RimWorldAccess.ScenarioBuilder.RandomizedNew>
+  <RimWorldAccess.ScenarioBuilder.NewScenarioFallback>Escenario nuevo</RimWorldAccess.ScenarioBuilder.NewScenarioFallback>
+
+  <!-- =================================================================
+       Scenario builder add-part picker (ScenarioBuilderAddPartState).
+       Type-to-search list of available scenario part defs.
+       {0} = the count of parts available.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd>No hay partes disponibles para agregar.</RimWorldAccess.ScenarioBuilder.AddPart.NothingToAdd>
+  <RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions>Agregar parte. {0} partes disponibles. Escribe para buscar.</RimWorldAccess.ScenarioBuilder.AddPart.OpenInstructions>
+  <RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable>No hay partes disponibles.</RimWorldAccess.ScenarioBuilder.AddPart.NoneAvailable>
+
+  <!-- =================================================================
+       Scenario builder part-edit overlay (ScenarioBuilderPartEditState).
+       Edits a single field on a scenario part: enum picker, text,
+       integer, float, percent. Limit annotations: "minimum"/"maximum"
+       come from Common.Stepper; "{0} ({1})" wraps the limit-tag text.
+       {0} = label or value, {1} = limit type word.
+       ================================================================= -->
+  <RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel>Selección: {0}</RimWorldAccess.ScenarioBuilder.PartEdit.SelectedLabel>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.SetTo>Fijado en: {0}</RimWorldAccess.ScenarioBuilder.PartEdit.SetTo>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved>Texto guardado</RimWorldAccess.ScenarioBuilder.PartEdit.TextSaved>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal>Ya tiene punto decimal</RimWorldAccess.ScenarioBuilder.PartEdit.AlreadyHasDecimal>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint>0 punto</RimWorldAccess.ScenarioBuilder.PartEdit.ZeroPoint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint>{0} punto</RimWorldAccess.ScenarioBuilder.PartEdit.NumberPoint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit>{0} ({1})</RimWorldAccess.ScenarioBuilder.PartEdit.ValueWithLimit>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare>{0}%</RimWorldAccess.ScenarioBuilder.PartEdit.PercentBare>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit>{0}% ({1})</RimWorldAccess.ScenarioBuilder.PartEdit.PercentWithLimit>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Cleared>Borrado</RimWorldAccess.ScenarioBuilder.PartEdit.Cleared>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum>mínimo</RimWorldAccess.ScenarioBuilder.PartEdit.LimitMinimum>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum>máximo</RimWorldAccess.ScenarioBuilder.PartEdit.LimitMaximum>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled>{0}: {1}</RimWorldAccess.ScenarioBuilder.PartEdit.CheckboxToggled>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Checked>marcado</RimWorldAccess.ScenarioBuilder.PartEdit.Checked>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked>sin marcar</RimWorldAccess.ScenarioBuilder.PartEdit.Unchecked>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType>Tipo de campo no compatible.</RimWorldAccess.ScenarioBuilder.PartEdit.UnsupportedFieldType>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint>{0}: {1}. Escribe un número o usa Arriba/Abajo para ajustar, Enter para confirmar.</RimWorldAccess.ScenarioBuilder.PartEdit.QuantityHint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback>Valor</RimWorldAccess.ScenarioBuilder.PartEdit.QuantityFallback>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextHint>{0}: {1}. Escribe para editar, Ctrl+V para pegar, Insertar para leer todo, Shift+Enter para una línea nueva, Enter para confirmar, Escape para cancelar.</RimWorldAccess.ScenarioBuilder.PartEdit.TextHint>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback>Texto</RimWorldAccess.ScenarioBuilder.PartEdit.TextFallback>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>vacío</RimWorldAccess.ScenarioBuilder.PartEdit.TextEmpty>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>{0} líneas, {1} palabras</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryLines>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>{0} palabras</RimWorldAccess.ScenarioBuilder.PartEdit.TextSummaryWords>
+  <RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>No hay opciones disponibles para este campo.</RimWorldAccess.ScenarioBuilder.PartEdit.NoOptionsForField>
+
+  <!-- =================================================================
+       Storyteller picker (StorytellerSelectionPatch + State).
+       Page_SelectStoryteller has three side-by-side panels: storyteller,
+       difficulty, save mode. Tab cycles between them.
+       {0} = page title, {1} = storyteller label, {2} = description,
+       {3} = position suffix.
+       ================================================================= -->
+  <RimWorldAccess.Storyteller.ModeIndicator>[{0}]</RimWorldAccess.Storyteller.ModeIndicator>
+  <!-- Per-row announcements (StorytellerNavigationState).
+       The custom-difficulty marker is a parenthetical added to the difficulty
+       label when the def is custom; it then gets the description and position
+       suffix appended. {0} = label, {1} = description, {2} = position. -->
+  <RimWorldAccess.Storyteller.LabelDescription>{0} - {1}</RimWorldAccess.Storyteller.LabelDescription>
+  <RimWorldAccess.Storyteller.WithDescriptionSuffix> - {0}</RimWorldAccess.Storyteller.WithDescriptionSuffix>
+  <RimWorldAccess.Storyteller.WithPositionSuffix> ({0})</RimWorldAccess.Storyteller.WithPositionSuffix>
+  <RimWorldAccess.Storyteller.CustomSettingsSuffix> (Configuración personalizada)</RimWorldAccess.Storyteller.CustomSettingsSuffix>
+  <RimWorldAccess.Storyteller.SaveMode>Modo de guardado</RimWorldAccess.Storyteller.SaveMode>
+  <RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions>Configuración de dificultad personalizada. Usa Arriba y Abajo para navegar por las secciones, Enter para editar la configuración, Escape para volver.</RimWorldAccess.Storyteller.CustomDifficultyOpenInstructions>
+  <RimWorldAccess.Storyteller.NoSettingsInSection>No hay configuraciones disponibles en esta sección</RimWorldAccess.Storyteller.NoSettingsInSection>
+  <RimWorldAccess.Storyteller.AllSettingsResetTo>Todas las configuraciones restablecidas a {0}</RimWorldAccess.Storyteller.AllSettingsResetTo>
+  <RimWorldAccess.Storyteller.ResetSelectPreset>Restablecer todas las configuraciones al preajuste. Selecciona un preajuste de dificultad.</RimWorldAccess.Storyteller.ResetSelectPreset>
+  <RimWorldAccess.Storyteller.Confirmed>Narrador y dificultad confirmados. Cerrando la selección.</RimWorldAccess.Storyteller.Confirmed>
+  <!-- In-game storyteller picker (StorytellerSelectionState) - separate from
+       the main-menu Page_SelectStoryteller. {0} = label, {1} = description,
+       {2} = customize hint, {3} = section name, {4} = settings count,
+       {5} = items noun (already localized). -->
+  <RimWorldAccess.Storyteller.LabelDot>{0}. {1}</RimWorldAccess.Storyteller.LabelDot>
+  <RimWorldAccess.Storyteller.LabelDotWithHint>{0}. {1}{2}</RimWorldAccess.Storyteller.LabelDotWithHint>
+  <RimWorldAccess.Storyteller.CustomizeHintSuffix> Presiona Enter para personalizar la configuración.</RimWorldAccess.Storyteller.CustomizeHintSuffix>
+  <RimWorldAccess.Storyteller.SectionWithCount>{0}. {1} {2}</RimWorldAccess.Storyteller.SectionWithCount>
+  <RimWorldAccess.Storyteller.SwitchToDifficultyHint> Presiona Tab para cambiar a la selección de dificultad.</RimWorldAccess.Storyteller.SwitchToDifficultyHint>
+  <RimWorldAccess.Storyteller.SwitchToStorytellerHint> Presiona Tab para cambiar a la selección de narrador. Presiona Enter para confirmar.</RimWorldAccess.Storyteller.SwitchToStorytellerHint>
+  <RimWorldAccess.Storyteller.PositionSpacePrefix> {0}</RimWorldAccess.Storyteller.PositionSpacePrefix>
+
+  <!-- =================================================================
+       Custom difficulty editor (CustomDifficultyEditState).
+       Section list with per-section setting list. {0} = section name,
+       {1} = setting count, {2} = items label (already the section's
+       own translated noun: e.g. "settings", "options").
+       ================================================================= -->
+  <RimWorldAccess.CustomDifficulty.SectionList>Lista de secciones</RimWorldAccess.CustomDifficulty.SectionList>
+  <RimWorldAccess.CustomDifficulty.SectionWithCount>{0}. {1} {2}</RimWorldAccess.CustomDifficulty.SectionWithCount>
+  <RimWorldAccess.CustomDifficulty.AllSettingsSetTo>Todas las configuraciones fijadas en {0}</RimWorldAccess.CustomDifficulty.AllSettingsSetTo>
+  <RimWorldAccess.CustomDifficulty.NoSettingSelected>Ninguna configuración seleccionada</RimWorldAccess.CustomDifficulty.NoSettingSelected>
+
+  <!-- =================================================================
+       Ideology picker (IdeologyNavigationState).
+       Two-tab dialog (Options / Presets) plus structure and style
+       submenus. Most labels come from vanilla; only the join phrasings
+       and the Random + tip prefix sentence live here.
+       ================================================================= -->
+  <RimWorldAccess.Ideology.OptionsTab>Opciones</RimWorldAccess.Ideology.OptionsTab>
+  <RimWorldAccess.Ideology.PresetsTab>Preajustes</RimWorldAccess.Ideology.PresetsTab>
+  <RimWorldAccess.Ideology.TabPrefix>{0}. {1}</RimWorldAccess.Ideology.TabPrefix>
+  <RimWorldAccess.Ideology.TabNoneSuffix>{0}. {1}.</RimWorldAccess.Ideology.TabNoneSuffix>
+  <RimWorldAccess.Ideology.PresetsHint>. Alt+S para fijar la estructura, Alt+Y para fijar el estilo de tu preajuste elegido</RimWorldAccess.Ideology.PresetsHint>
+  <RimWorldAccess.Ideology.PresetSiblingPosition>. {0} de {1}</RimWorldAccess.Ideology.PresetSiblingPosition>
+  <RimWorldAccess.Ideology.OptionWithDescription>{0}. {1}</RimWorldAccess.Ideology.OptionWithDescription>
+  <RimWorldAccess.Ideology.OptionDotPosition>{0}. {1}</RimWorldAccess.Ideology.OptionDotPosition>
+  <RimWorldAccess.Ideology.StructureColon>{0}: {1}</RimWorldAccess.Ideology.StructureColon>
+  <RimWorldAccess.Ideology.StructureRandomTip>{0}: {1}. {2}</RimWorldAccess.Ideology.StructureRandomTip>
+  <RimWorldAccess.Ideology.StructureMemeOption>{0}. {1}</RimWorldAccess.Ideology.StructureMemeOption>
+  <RimWorldAccess.Ideology.CategoryWithDescription>{0}: {1}</RimWorldAccess.Ideology.CategoryWithDescription>
+  <RimWorldAccess.Ideology.StyleSlot>{0} {1}: {2}</RimWorldAccess.Ideology.StyleSlot>
+  <RimWorldAccess.Ideology.StylesAnnouncement>{0}: {1}</RimWorldAccess.Ideology.StylesAnnouncement>
+  <RimWorldAccess.Ideology.StateChangeAnnouncement>{0}. {1}</RimWorldAccess.Ideology.StateChangeAnnouncement>
+  <RimWorldAccess.Ideology.OpeningAnnouncement>{0}. {1}. {2}</RimWorldAccess.Ideology.OpeningAnnouncement>
+
+  <!-- =================================================================
+       World parameters (WorldParamsPatch + WorldParamsNavigationState).
+       Page_CreateWorldParams has fields like Seed, Coverage, Rainfall,
+       Temperature, Population. Seed input is a text dialog with
+       custom announcements; other fields announce via FieldColonValue.
+       {0} = page-level help/title, {1} = field name, {2} = value,
+       {3} = warning suffix.
+       ================================================================= -->
+  <RimWorldAccess.WorldParams.OpenInstructions>Crear mundo. {0}</RimWorldAccess.WorldParams.OpenInstructions>
+  <RimWorldAccess.WorldParams.OpenHelp>Presiona Enter para generar el mundo con la configuración predeterminada, o Arriba/Abajo para explorar los campos, Izquierda/Derecha para cambiar los valores. Tab para cambiar a facciones.</RimWorldAccess.WorldParams.OpenHelp>
+  <RimWorldAccess.WorldParams.SeedTypingIndicator>[Escribiendo semilla: {0}] (Enter=Confirmar, Esc=Cancelar)</RimWorldAccess.WorldParams.SeedTypingIndicator>
+  <RimWorldAccess.WorldParams.FieldIndicator>[Campo: {0}] (Teclas de flecha para navegar)</RimWorldAccess.WorldParams.FieldIndicator>
+  <RimWorldAccess.WorldParams.Title>Parámetros del mundo</RimWorldAccess.WorldParams.Title>
+  <RimWorldAccess.WorldParams.SeedInstructions>Presiona Enter para escribir una semilla personalizada, o R para aleatorizar</RimWorldAccess.WorldParams.SeedInstructions>
+  <RimWorldAccess.WorldParams.SeedConfirmed>Semilla del mundo: {0} (Confirmada)</RimWorldAccess.WorldParams.SeedConfirmed>
+  <RimWorldAccess.WorldParams.SeedEmptyCancelled>Entrada de semilla cancelada (vacía)</RimWorldAccess.WorldParams.SeedEmptyCancelled>
+  <RimWorldAccess.WorldParams.SeedEditCancelled>Edición de semilla cancelada</RimWorldAccess.WorldParams.SeedEditCancelled>
+  <RimWorldAccess.WorldParams.SeedRandomized>Semilla del mundo: {0} (Aleatorizada)</RimWorldAccess.WorldParams.SeedRandomized>
+  <RimWorldAccess.WorldParams.FieldColonValue>{0}: {1}{2}</RimWorldAccess.WorldParams.FieldColonValue>
+  <RimWorldAccess.WorldParams.FieldColonValueNoWarning>{0}: {1}</RimWorldAccess.WorldParams.FieldColonValueNoWarning>
+  <RimWorldAccess.WorldParams.WarningPrefix>. {0}</RimWorldAccess.WorldParams.WarningPrefix>
+
+  <!-- Rainfall/Temperature/Population/Landmark density labels for the
+       world-params editor. The game's enum lacks vanilla translation
+       keys for these adjectives, so we ship our own. -->
+  <RimWorldAccess.WorldParams.Rainfall.AlmostNone>Casi nada</RimWorldAccess.WorldParams.Rainfall.AlmostNone>
+  <RimWorldAccess.WorldParams.Rainfall.Little>Poca</RimWorldAccess.WorldParams.Rainfall.Little>
+  <RimWorldAccess.WorldParams.Rainfall.LittleLess>Un poco menos</RimWorldAccess.WorldParams.Rainfall.LittleLess>
+  <RimWorldAccess.WorldParams.Rainfall.Normal>Normal</RimWorldAccess.WorldParams.Rainfall.Normal>
+  <RimWorldAccess.WorldParams.Rainfall.LittleMore>Un poco más</RimWorldAccess.WorldParams.Rainfall.LittleMore>
+  <RimWorldAccess.WorldParams.Rainfall.High>Alta</RimWorldAccess.WorldParams.Rainfall.High>
+  <RimWorldAccess.WorldParams.Rainfall.VeryHigh>Muy alta</RimWorldAccess.WorldParams.Rainfall.VeryHigh>
+  <RimWorldAccess.WorldParams.Temperature.VeryCold>Muy fría</RimWorldAccess.WorldParams.Temperature.VeryCold>
+  <RimWorldAccess.WorldParams.Temperature.Cold>Fría</RimWorldAccess.WorldParams.Temperature.Cold>
+  <RimWorldAccess.WorldParams.Temperature.LittleColder>Un poco más fría</RimWorldAccess.WorldParams.Temperature.LittleColder>
+  <RimWorldAccess.WorldParams.Temperature.Normal>Normal</RimWorldAccess.WorldParams.Temperature.Normal>
+  <RimWorldAccess.WorldParams.Temperature.LittleWarmer>Un poco más cálida</RimWorldAccess.WorldParams.Temperature.LittleWarmer>
+  <RimWorldAccess.WorldParams.Temperature.Hot>Cálida</RimWorldAccess.WorldParams.Temperature.Hot>
+  <RimWorldAccess.WorldParams.Temperature.VeryHot>Muy cálida</RimWorldAccess.WorldParams.Temperature.VeryHot>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Sparse>Escasa</RimWorldAccess.WorldParams.LandmarkDensity.Sparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>Ligeramente más escasa</RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>Ligeramente escasa</RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Normal>Normal</RimWorldAccess.WorldParams.LandmarkDensity.Normal>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>Ligeramente densa</RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>Ligeramente más densa</RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.Crowded>Densa</RimWorldAccess.WorldParams.LandmarkDensity.Crowded>
+
+  <!-- =================================================================
+       Starting site selection (StartingSitePatch + StartingSiteContext).
+       The world tile picker before colony start. The "I" menu surfaces
+       per-tile read-outs (terrain, biome, stone, faction relations).
+       {0} = page title, {1} = error/info text, {2} = item count.
+       ================================================================= -->
+  <RimWorldAccess.StartingSite.OpenInstructions>{0} - Teclas de flecha para navegar, Control+flechas para saltar por bioma, Page Up/Page Down para el escáner, Z para buscar, 1-5 para información del cuadro, I para el menú de información detallada, F para facciones, Enter para validar la selección</RimWorldAccess.StartingSite.OpenInstructions>
+  <RimWorldAccess.StartingSite.CannotSettleHere>No se puede asentar aquí: {0}</RimWorldAccess.StartingSite.CannotSettleHere>
+
+  <!-- Visual help/menu overlays drawn by StartingSitePatch's Postfix.
+       Visible to sighted users only. Each line has its own key so the
+       caller can join them with Environment.NewLine; this avoids
+       embedding literal newlines in XML and keeps each line independently
+       localizable. {0} = selected item, {1} = position, {2} = total. -->
+  <RimWorldAccess.StartingSite.MenuOverlayTitle>Menú de información adicional</RimWorldAccess.StartingSite.MenuOverlayTitle>
+  <RimWorldAccess.StartingSite.MenuOverlaySelected>Selección: {0}</RimWorldAccess.StartingSite.MenuOverlaySelected>
+  <RimWorldAccess.StartingSite.MenuOverlayItemPosition>Elemento {0} de {1}</RimWorldAccess.StartingSite.MenuOverlayItemPosition>
+  <RimWorldAccess.StartingSite.MenuOverlayControls>Controles:</RimWorldAccess.StartingSite.MenuOverlayControls>
+  <RimWorldAccess.StartingSite.MenuOverlayControlNavigate>  Flechas Arriba/Abajo: Navegar por los elementos del menú</RimWorldAccess.StartingSite.MenuOverlayControlNavigate>
+  <RimWorldAccess.StartingSite.MenuOverlayControlEnter>  Enter: Leer información detallada</RimWorldAccess.StartingSite.MenuOverlayControlEnter>
+  <RimWorldAccess.StartingSite.MenuOverlayControlEscape>  Escape: Cerrar el menú</RimWorldAccess.StartingSite.MenuOverlayControlEscape>
+  <RimWorldAccess.StartingSite.HelpOverlayTitle>Selección del sitio inicial:</RimWorldAccess.StartingSite.HelpOverlayTitle>
+  <RimWorldAccess.StartingSite.HelpOverlayLine1>Teclas de flecha: Navegar  |  Ctrl+Flechas: Saltar por bioma  |  Page Down/Page Up: Escáner</RimWorldAccess.StartingSite.HelpOverlayLine1>
+  <RimWorldAccess.StartingSite.HelpOverlayLine2>1-5: Información del cuadro  |  Z: Buscar  |  I: Menú de información  |  F: Facciones  |  R: Aleatorio  |  Enter: Validar</RimWorldAccess.StartingSite.HelpOverlayLine2>
+  <RimWorldAccess.StartingSite.NoTileSelected>Ningún cuadro seleccionado. Usa las teclas de flecha para navegar primero a un cuadro.</RimWorldAccess.StartingSite.NoTileSelected>
+  <RimWorldAccess.StartingSite.Selected>Sitio inicial seleccionado.</RimWorldAccess.StartingSite.Selected>
+  <RimWorldAccess.StartingSite.MenuOpened>{0}. Selección: {1}. Usa las teclas de flecha para navegar, Enter para leer los detalles, Escape para cerrar.</RimWorldAccess.StartingSite.MenuOpened>
+  <RimWorldAccess.StartingSite.MenuTitle>Menú de información adicional - {0} categorías disponibles</RimWorldAccess.StartingSite.MenuTitle>
+  <RimWorldAccess.StartingSite.MenuItemPosition>{0} ({1} de {2})</RimWorldAccess.StartingSite.MenuItemPosition>
+
+  <!-- Per-category labels for the I-menu (StartingSiteContext.GetMenuItemName).
+       These appear both in the menu list and as headers in the detail readouts. -->
+  <RimWorldAccess.StartingSite.Category.RoadsAndRivers>Caminos, ríos y costa</RimWorldAccess.StartingSite.Category.RoadsAndRivers>
+  <RimWorldAccess.StartingSite.Category.StoneTypes>Tipos de piedra</RimWorldAccess.StartingSite.Category.StoneTypes>
+  <RimWorldAccess.StartingSite.Category.GrowingInfo>Cultivo y recolección</RimWorldAccess.StartingSite.Category.GrowingInfo>
+  <RimWorldAccess.StartingSite.Category.HealthInfo>Frecuencia de enfermedades</RimWorldAccess.StartingSite.Category.HealthInfo>
+  <RimWorldAccess.StartingSite.Category.MovementAndLocation>Movimiento y zona horaria</RimWorldAccess.StartingSite.Category.MovementAndLocation>
+  <RimWorldAccess.StartingSite.Category.DLCFeatures>Características de DLC</RimWorldAccess.StartingSite.Category.DLCFeatures>
+  <RimWorldAccess.StartingSite.Category.Coordinates>Coordenadas</RimWorldAccess.StartingSite.Category.Coordinates>
+  <RimWorldAccess.StartingSite.Category.Unknown>Desconocido</RimWorldAccess.StartingSite.Category.Unknown>
+
+  <!-- Roads/Rivers/Coastline detail readout (sentences joined into a single
+       readout string). -->
+  <RimWorldAccess.StartingSite.RoadsRivers.Header>Caminos, ríos y costa:</RimWorldAccess.StartingSite.RoadsRivers.Header>
+  <RimWorldAccess.StartingSite.RoadsRivers.RoadsList>Caminos: {0}</RimWorldAccess.StartingSite.RoadsRivers.RoadsList>
+  <RimWorldAccess.StartingSite.RoadsRivers.RoadsNone>Caminos: Ninguno</RimWorldAccess.StartingSite.RoadsRivers.RoadsNone>
+  <RimWorldAccess.StartingSite.RoadsRivers.River>Río: {0}</RimWorldAccess.StartingSite.RoadsRivers.River>
+  <RimWorldAccess.StartingSite.RoadsRivers.RiverNone>Río: Ninguno</RimWorldAccess.StartingSite.RoadsRivers.RiverNone>
+  <RimWorldAccess.StartingSite.RoadsRivers.CoastalYes>Costero: Sí (agua al {0})</RimWorldAccess.StartingSite.RoadsRivers.CoastalYes>
+  <RimWorldAccess.StartingSite.RoadsRivers.CoastalNo>Costero: No</RimWorldAccess.StartingSite.RoadsRivers.CoastalNo>
+
+  <!-- Stone types detail readout. -->
+  <RimWorldAccess.StartingSite.Stone.Header>Tipos de piedra:</RimWorldAccess.StartingSite.Stone.Header>
+
+  <!-- DLC features detail readout. -->
+  <RimWorldAccess.StartingSite.Dlc.Header>Características de DLC:</RimWorldAccess.StartingSite.Dlc.Header>
+  <RimWorldAccess.StartingSite.Dlc.Pollution>Contaminación: {0}</RimWorldAccess.StartingSite.Dlc.Pollution>
+  <RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery>Bruma nociva: Cada {0} días en promedio</RimWorldAccess.StartingSite.Dlc.NoxiousHazeEvery>
+  <RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone>Bruma nociva: No ocurre</RimWorldAccess.StartingSite.Dlc.NoxiousHazeNone>
+  <RimWorldAccess.StartingSite.Dlc.Landmark>Punto de referencia: {0}</RimWorldAccess.StartingSite.Dlc.Landmark>
+  <RimWorldAccess.StartingSite.Dlc.TileMutators>Mutadores del cuadro: {0}</RimWorldAccess.StartingSite.Dlc.TileMutators>
+  <RimWorldAccess.StartingSite.Dlc.MutatorBullet>  - {0}</RimWorldAccess.StartingSite.Dlc.MutatorBullet>
+
+  <!-- Faction proximity warning, used by both the random-tile announcement
+       and the live tile read-out. {0} = warning prefix (vanilla Warning),
+       {1} = count. -->
+  <RimWorldAccess.StartingSite.SettlingAffectsFactionsOne>{0}: Asentarse aquí afecta a {1} facción</RimWorldAccess.StartingSite.SettlingAffectsFactionsOne>
+  <RimWorldAccess.StartingSite.SettlingAffectsFactionsMany>{0}: Asentarse aquí afecta a {1} facciones</RimWorldAccess.StartingSite.SettlingAffectsFactionsMany>
+  <RimWorldAccess.StartingSite.NoAdditionalInfo>No hay información adicional disponible para este cuadro.</RimWorldAccess.StartingSite.NoAdditionalInfo>
+  <RimWorldAccess.StartingSite.MenuClosed>Menú cerrado.</RimWorldAccess.StartingSite.MenuClosed>
+  <RimWorldAccess.StartingSite.RandomSiteFailed>No se pudo encontrar un sitio inicial aleatorio válido.</RimWorldAccess.StartingSite.RandomSiteFailed>
+  <RimWorldAccess.StartingSite.RandomSiteSelected>Sitio aleatorio seleccionado: {0}</RimWorldAccess.StartingSite.RandomSiteSelected>
+  <RimWorldAccess.StartingSite.CannotDetermineBiome>No se puede determinar el bioma en la ubicación actual</RimWorldAccess.StartingSite.CannotDetermineBiome>
+  <RimWorldAccess.StartingSite.NoDifferentBiomeFound>No se encontró un bioma diferente (se buscaron {0} cuadros)</RimWorldAccess.StartingSite.NoDifferentBiomeFound>
+  <RimWorldAccess.StartingSite.NoInfoAvailable>No hay información disponible.</RimWorldAccess.StartingSite.NoInfoAvailable>
+  <RimWorldAccess.StartingSite.NoStoneInfo>No hay información de piedra disponible.</RimWorldAccess.StartingSite.NoStoneInfo>
+  <RimWorldAccess.StartingSite.NoDlcFeatures>No hay características de DLC presentes en este cuadro.</RimWorldAccess.StartingSite.NoDlcFeatures>
+
+  <!-- =================================================================
+       Starting pawn editor (StartingPawnState + StartingPawnHelper +
+       RerollState). Tree of pawns with Bio/Traits/Skills/Health/etc.
+       Reroll runs in batches; the periodic announcement shows
+       attempt count. {0} = attempts.
+       ================================================================= -->
+  <RimWorldAccess.StartingPawn.GoBackConfirm>Volver atrás descartará los colonos iniciales actuales. ¿Continuar?</RimWorldAccess.StartingPawn.GoBackConfirm>
+  <RimWorldAccess.StartingPawn.GoBackContinue>Continuar</RimWorldAccess.StartingPawn.GoBackContinue>
+  <RimWorldAccess.StartingPawn.GoBackCancel>Cancelar</RimWorldAccess.StartingPawn.GoBackCancel>
+  <RimWorldAccess.StartingPawn.WandererTitle>{0}. Alt+A para agregar, Suprimir para quitar.</RimWorldAccess.StartingPawn.WandererTitle>
+  <RimWorldAccess.StartingPawn.RandomizeWithMatch>{0}. Coincidencia encontrada en {1} intentos.</RimWorldAccess.StartingPawn.RandomizeWithMatch>
+  <RimWorldAccess.StartingPawn.RandomizeNoMatch>{0}. Sin coincidencia tras {1} intentos, se mantiene el último resultado.</RimWorldAccess.StartingPawn.RandomizeNoMatch>
+  <RimWorldAccess.StartingPawn.RerollStopped>Detenido en {0} intentos.</RimWorldAccess.StartingPawn.RerollStopped>
+  <RimWorldAccess.StartingPawn.RerollFound>Coincidencia encontrada en {0} intentos.</RimWorldAccess.StartingPawn.RerollFound>
+  <RimWorldAccess.StartingPawn.RerollNoMatch>Sin coincidencia tras {0} intentos, se mantiene el último resultado.</RimWorldAccess.StartingPawn.RerollNoMatch>
+  <RimWorldAccess.StartingPawn.NeighborBetween>entre {0} y {1}</RimWorldAccess.StartingPawn.NeighborBetween>
+  <RimWorldAccess.StartingPawn.NeighborAfter>después de {0}</RimWorldAccess.StartingPawn.NeighborAfter>
+  <RimWorldAccess.StartingPawn.NeighborBefore>antes de {0}</RimWorldAccess.StartingPawn.NeighborBefore>
+  <RimWorldAccess.StartingPawn.NoPawnSelected>Ningún personaje seleccionado</RimWorldAccess.StartingPawn.NoPawnSelected>
+  <RimWorldAccess.StartingPawn.StartGameConfirm>¿Iniciar la partida con {0}?</RimWorldAccess.StartingPawn.StartGameConfirm>
+  <RimWorldAccess.StartingPawn.WandererConfirm>{0}: {1}?</RimWorldAccess.StartingPawn.WandererConfirm>
+  <RimWorldAccess.StartingPawn.MaximumPawns>Máximo {0}</RimWorldAccess.StartingPawn.MaximumPawns>
+  <RimWorldAccess.StartingPawn.MinimumPawns>Mínimo {0}</RimWorldAccess.StartingPawn.MinimumPawns>
+  <RimWorldAccess.StartingPawn.PawnAdded>Personaje agregado</RimWorldAccess.StartingPawn.PawnAdded>
+  <RimWorldAccess.StartingPawn.PawnRemoved>{0} eliminado</RimWorldAccess.StartingPawn.PawnRemoved>
+  <RimWorldAccess.StartingPawn.LabelRandomize>{0}, {1}</RimWorldAccess.StartingPawn.LabelRandomize>
+
+  <!-- Tree-item composition for the starting pawn editor (FormatItemAnnouncement).
+       Splits into per-shape keys so the order of {label}/{state}/{position} can
+       differ per language. {0} = label, {1} = state word (expanded/collapsed),
+       {2} = summary text or position fragment. The bare " ({0})" position
+       suffix is reused by all branches. The " Inspectable." suffix lives
+       in Common.xml as RimWorldAccess.InfoCard.Inspectable. -->
+  <RimWorldAccess.StartingPawn.PawnLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.PawnLabelWithState>
+  <RimWorldAccess.StartingPawn.CategoryLabelWithState>{0}, {1}</RimWorldAccess.StartingPawn.CategoryLabelWithState>
+  <RimWorldAccess.StartingPawn.CategoryWithSummary>{0}: {1}, {2}</RimWorldAccess.StartingPawn.CategoryWithSummary>
+  <RimWorldAccess.StartingPawn.PositionParenSuffix> ({0})</RimWorldAccess.StartingPawn.PositionParenSuffix>
+  <RimWorldAccess.StartingPawn.SectionPrefix>{0}. {1}</RimWorldAccess.StartingPawn.SectionPrefix>
+  <RimWorldAccess.Reroll.SearchingAttempts>Buscando, {0} intentos...</RimWorldAccess.Reroll.SearchingAttempts>
+
+  <!-- =================================================================
+       Factions navigation (FactionsNavigationState + FactionLandingState).
+       The starting-faction dialog allows adding/removing factions.
+       Locked-by-scenario / tutorial-mode are user-facing block reasons.
+       {0} = faction label, {1} = remaining count or disabled reason.
+       ================================================================= -->
+  <RimWorldAccess.Factions.Title>Facciones</RimWorldAccess.Factions.Title>
+  <RimWorldAccess.Factions.PressAddHint>Presiona Alt+A para agregar facciones.</RimWorldAccess.Factions.PressAddHint>
+  <RimWorldAccess.Factions.NoFactionsInList>Facciones. No hay facciones en la lista. Presiona Alt+A para agregar facciones.</RimWorldAccess.Factions.NoFactionsInList>
+  <RimWorldAccess.Factions.NoFactionSelected>Ninguna facción seleccionada</RimWorldAccess.Factions.NoFactionSelected>
+  <RimWorldAccess.Factions.CannotRemoveLocked>No se puede quitar {0}: bloqueada por el escenario</RimWorldAccess.Factions.CannotRemoveLocked>
+  <RimWorldAccess.Factions.CannotModifyTutorial>No se pueden modificar las facciones en el modo tutorial</RimWorldAccess.Factions.CannotModifyTutorial>
+  <RimWorldAccess.Factions.RemovedRemaining>{0} eliminada. Quedan {1} facciones.</RimWorldAccess.Factions.RemovedRemaining>
+  <RimWorldAccess.Factions.NoneRemaining>No quedan facciones. Presiona Alt+A para agregar facciones.</RimWorldAccess.Factions.NoneRemaining>
+  <RimWorldAccess.Factions.NoneAvailableToAdd>No hay facciones disponibles para agregar</RimWorldAccess.Factions.NoneAvailableToAdd>
+  <RimWorldAccess.Factions.AddMenuOpened>Menú de agregar facción abierto</RimWorldAccess.Factions.AddMenuOpened>
+  <RimWorldAccess.Factions.AddMenuClosed>Menú de agregar cerrado</RimWorldAccess.Factions.AddMenuClosed>
+  <RimWorldAccess.Factions.CannotAddReason>No se puede agregar {0}: {1}</RimWorldAccess.Factions.CannotAddReason>
+  <RimWorldAccess.Factions.AddedNowInList>{0} agregada. Ahora hay {1} en la lista.</RimWorldAccess.Factions.AddedNowInList>
+  <RimWorldAccess.Factions.LandingClosed>Relaciones de facciones cerradas.</RimWorldAccess.Factions.LandingClosed>
+  <!-- AddFactionMenu and faction list announcements. {0} = label,
+       {1} = description, {2} = position, {3} = disabled reason or count. -->
+  <RimWorldAccess.Factions.MaxAllowed>Máximo {0} facciones permitidas</RimWorldAccess.Factions.MaxAllowed>
+  <RimWorldAccess.Factions.MaxOfType>Máximo {0} de este tipo de facción</RimWorldAccess.Factions.MaxOfType>
+  <RimWorldAccess.Factions.WarningNoFactions>Advertencia: Sin facciones, los asaltos, el comercio y las misiones no ocurrirán con normalidad.</RimWorldAccess.Factions.WarningNoFactions>
+  <RimWorldAccess.Factions.WarningMissingEmpire>Advertencia: La ausencia de la facción del Imperio puede reducir el contenido de misiones de Royalty.</RimWorldAccess.Factions.WarningMissingEmpire>
+  <RimWorldAccess.Factions.WarningMissingMechanoid>Advertencia: La ausencia de Mecanoides puede reducir la variedad de misiones.</RimWorldAccess.Factions.WarningMissingMechanoid>
+  <RimWorldAccess.Factions.WarningMissingInsect>Advertencia: La ausencia de Insectos puede reducir la variedad de misiones.</RimWorldAccess.Factions.WarningMissingInsect>
+  <RimWorldAccess.Factions.LabelWithReason>{0} ({1})</RimWorldAccess.Factions.LabelWithReason>
+  <RimWorldAccess.Factions.LabelWithCount>{0} ({1})</RimWorldAccess.Factions.LabelWithCount>
+  <RimWorldAccess.Factions.WithDescriptionSuffix>. {0}</RimWorldAccess.Factions.WithDescriptionSuffix>
+  <RimWorldAccess.Factions.PositionSpaceSuffix> {0}</RimWorldAccess.Factions.PositionSpaceSuffix>
+  <RimWorldAccess.Factions.LockedSuffix> (bloqueada por el escenario)</RimWorldAccess.Factions.LockedSuffix>
+  <RimWorldAccess.Factions.DisabledSuffix> (desactivada)</RimWorldAccess.Factions.DisabledSuffix>
+
+  <!-- =================================================================
+       Pawn filter editor (PawnFilterState + Helper). Configure
+       what kinds of pawns the reroll system will accept.
+       {0} = mode label / type, {1} = trait label, {2} = filter count.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.Editor>Editor de filtro de personajes.{0}</RimWorldAccess.PawnFilter.Editor>
+  <RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix> {0} filtros activos.</RimWorldAccess.PawnFilter.ActiveFiltersCountSuffix>
+  <RimWorldAccess.PawnFilter.FilterSaved>Filtro guardado. {0} filtros activos.</RimWorldAccess.PawnFilter.FilterSaved>
+  <RimWorldAccess.PawnFilter.EditorClosedDiscarded>Editor de filtro cerrado. Cambios descartados.</RimWorldAccess.PawnFilter.EditorClosedDiscarded>
+  <RimWorldAccess.PawnFilter.PresetLoaded>Preajuste cargado. {0} filtros activos.</RimWorldAccess.PawnFilter.PresetLoaded>
+  <RimWorldAccess.PawnFilter.TraitAdded>{0}: {1} agregado</RimWorldAccess.PawnFilter.TraitAdded>
+  <RimWorldAccess.PawnFilter.NoAvailableTraits>No hay rasgos disponibles</RimWorldAccess.PawnFilter.NoAvailableTraits>
+  <RimWorldAccess.PawnFilter.TraitRemoved>{0}: {1} eliminado</RimWorldAccess.PawnFilter.TraitRemoved>
+  <RimWorldAccess.PawnFilter.AddRequiredTrait>Agregar rasgo requerido...</RimWorldAccess.PawnFilter.AddRequiredTrait>
+  <RimWorldAccess.PawnFilter.AddExcludedTrait>Agregar rasgo excluido...</RimWorldAccess.PawnFilter.AddExcludedTrait>
+  <RimWorldAccess.PawnFilter.AddOptionalTrait>Agregar rasgo opcional...</RimWorldAccess.PawnFilter.AddOptionalTrait>
+  <RimWorldAccess.PawnFilter.SavePreset>Guardar preajuste...</RimWorldAccess.PawnFilter.SavePreset>
+  <RimWorldAccess.PawnFilter.LoadPreset>Cargar preajuste...</RimWorldAccess.PawnFilter.LoadPreset>
+  <RimWorldAccess.PawnFilter.SectionDemographics>Demografía</RimWorldAccess.PawnFilter.SectionDemographics>
+  <RimWorldAccess.PawnFilter.SectionConditions>Condiciones</RimWorldAccess.PawnFilter.SectionConditions>
+  <RimWorldAccess.PawnFilter.SectionActions>Acciones</RimWorldAccess.PawnFilter.SectionActions>
+  <RimWorldAccess.PawnFilter.TraitEntryFormat>{0}: {1} {2}</RimWorldAccess.PawnFilter.TraitEntryFormat>
+  <RimWorldAccess.PawnFilter.WorkAllowNone>No permitir ninguno</RimWorldAccess.PawnFilter.WorkAllowNone>
+
+  <!-- =================================================================
+       Pawn filter preset save (PawnFilterPresetSaveState).
+       Same shape as the scenario save dialog.
+       {0} = current name buffer, {1} = position fragment,
+       {2} = preset name to overwrite.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.PresetSave.OpenInstructions>Guardar preajuste de filtro. Escribe un nombre o presiona Abajo para seleccionar un preajuste existente que sobreescribir. Nombre actual: {0}</RimWorldAccess.PawnFilter.PresetSave.OpenInstructions>
+  <RimWorldAccess.PawnFilter.PresetSave.SaveAs>Guardar como: {0} ({1})</RimWorldAccess.PawnFilter.PresetSave.SaveAs>
+  <RimWorldAccess.PawnFilter.PresetSave.Overwrite>Sobreescribir: {0} ({1})</RimWorldAccess.PawnFilter.PresetSave.Overwrite>
+  <RimWorldAccess.PawnFilter.PresetSave.NameEmpty>El nombre no puede estar vacío</RimWorldAccess.PawnFilter.PresetSave.NameEmpty>
+  <RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten>Preajuste {0} sobreescrito</RimWorldAccess.PawnFilter.PresetSave.PresetOverwritten>
+  <RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs>Preajuste guardado como {0}</RimWorldAccess.PawnFilter.PresetSave.PresetSavedAs>
+  <RimWorldAccess.PawnFilter.PresetSave.ErrorSaving>Error al guardar: {0}</RimWorldAccess.PawnFilter.PresetSave.ErrorSaving>
+  <RimWorldAccess.PawnFilter.PresetSave.InvalidSelection>Selección no válida</RimWorldAccess.PawnFilter.PresetSave.InvalidSelection>
+
+  <!-- =================================================================
+       Pawn filter preset load (PawnFilterPresetLoadState).
+       Same shape as the scenario load dialog.
+       {0} = preset count, {1} = preset name, {2} = error message.
+       ================================================================= -->
+  <RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets>No se encontraron preajustes guardados.</RimWorldAccess.PawnFilter.PresetLoad.NoSavedPresets>
+  <RimWorldAccess.PawnFilter.PresetLoad.UnnamedFallback>(sin nombre)</RimWorldAccess.PawnFilter.PresetLoad.UnnamedFallback>
+  <RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix> ({0})</RimWorldAccess.PawnFilter.PresetLoad.WithPositionSuffix>
+  <RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions>Cargar preajuste de filtro. {0} preajustes disponibles. Escribe para buscar.</RimWorldAccess.PawnFilter.PresetLoad.OpenInstructions>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable>No hay preajustes disponibles.</RimWorldAccess.PawnFilter.PresetLoad.NoPresetsAvailable>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected>Ningún preajuste seleccionado.</RimWorldAccess.PawnFilter.PresetLoad.NoPresetSelected>
+  <RimWorldAccess.PawnFilter.PresetLoad.Loaded>{0} cargado</RimWorldAccess.PawnFilter.PresetLoad.Loaded>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading>Error al cargar el preajuste</RimWorldAccess.PawnFilter.PresetLoad.ErrorLoading>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail>Error al cargar el preajuste: {0}</RimWorldAccess.PawnFilter.PresetLoad.ErrorLoadingDetail>
+  <RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm>¿Eliminar {0}? Presiona Enter para confirmar, Escape para cancelar.</RimWorldAccess.PawnFilter.PresetLoad.DeleteConfirm>
+  <RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining>No quedan preajustes.</RimWorldAccess.PawnFilter.PresetLoad.NoneRemaining>
+  <RimWorldAccess.PawnFilter.PresetLoad.Deleted>{0} eliminado</RimWorldAccess.PawnFilter.PresetLoad.Deleted>
+  <RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting>Error al eliminar el preajuste: {0}</RimWorldAccess.PawnFilter.PresetLoad.ErrorDeleting>
+  <RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled>Eliminación cancelada</RimWorldAccess.PawnFilter.PresetLoad.DeleteCancelled>
+
+  <!-- Note: the bare "Cancelled" word reuses RimWorldAccess.UI.Cancelled
+       from the UI module (already used by quantity/save dialogs). The
+       longer Delete-cancelled phrasings live in this file's
+       ScenarioLoad.DeleteCancelled and PawnFilter.PresetLoad.DeleteCancelled
+       since they share the "Delete cancelled" wording across both load
+       dialogs. -->
+
+  <!-- Add part announcement composition (ScenarioBuilderAddPartState).
+       LabelDescription joins a part's label and description with a colon.
+       PartWithPosition appends a position suffix in parentheses for
+       the navigation announcement.
+       {0} = label, {1} = description or position. -->
+  <RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>{0}: {1}</RimWorldAccess.ScenarioBuilder.AddPart.LabelDescription>
+  <RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix> ({0})</RimWorldAccess.ScenarioBuilder.AddPart.WithPositionSuffix>
+  <RimWorldAccess.ScenarioBuilder.Field.Faction>Facción</RimWorldAccess.ScenarioBuilder.Field.Faction>
+  <RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>Capa del planeta</RimWorldAccess.ScenarioBuilder.Field.PlanetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerTag>Etiqueta de capa</RimWorldAccess.ScenarioBuilder.Field.LayerTag>
+  <RimWorldAccess.ScenarioBuilder.Field.LayerSettings>Configuración de capa</RimWorldAccess.ScenarioBuilder.Field.LayerSettings>
+  <RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>Método de llegada</RimWorldAccess.ScenarioBuilder.Field.ArrivalMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.Item>Objeto</RimWorldAccess.ScenarioBuilder.Field.Item>
+  <RimWorldAccess.ScenarioBuilder.Field.Material>Material</RimWorldAccess.ScenarioBuilder.Field.Material>
+  <RimWorldAccess.ScenarioBuilder.Field.Quality>Calidad</RimWorldAccess.ScenarioBuilder.Field.Quality>
+  <RimWorldAccess.ScenarioBuilder.Field.Count>Cantidad</RimWorldAccess.ScenarioBuilder.Field.Count>
+  <RimWorldAccess.ScenarioBuilder.Field.Chance>Probabilidad</RimWorldAccess.ScenarioBuilder.Field.Chance>
+  <RimWorldAccess.ScenarioBuilder.Field.Condition>Condición</RimWorldAccess.ScenarioBuilder.Field.Condition>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>Gravedad mínima</RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>Gravedad máxima</RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>
+  <RimWorldAccess.ScenarioBuilder.Field.Affects>Afecta a</RimWorldAccess.ScenarioBuilder.Field.Affects>
+  <RimWorldAccess.ScenarioBuilder.Field.AnimalType>Tipo de animal</RimWorldAccess.ScenarioBuilder.Field.AnimalType>
+  <RimWorldAccess.ScenarioBuilder.Field.Trait>Rasgo</RimWorldAccess.ScenarioBuilder.Field.Trait>
+  <RimWorldAccess.ScenarioBuilder.Field.Incident>Incidente</RimWorldAccess.ScenarioBuilder.Field.Incident>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumDays>Días mínimos</RimWorldAccess.ScenarioBuilder.Field.MinimumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumDays>Días máximos</RimWorldAccess.ScenarioBuilder.Field.MaximumDays>
+  <RimWorldAccess.ScenarioBuilder.Field.Repeat>Repetir</RimWorldAccess.ScenarioBuilder.Field.Repeat>
+  <RimWorldAccess.ScenarioBuilder.Field.Research>Investigación</RimWorldAccess.ScenarioBuilder.Field.Research>
+  <RimWorldAccess.ScenarioBuilder.Field.StartingPawns>Personajes iniciales</RimWorldAccess.ScenarioBuilder.Field.StartingPawns>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>Reserva de elección de personajes</RimWorldAccess.ScenarioBuilder.Field.PawnChoicePool>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowBabies>Permitir bebés</RimWorldAccess.ScenarioBuilder.Field.AllowBabies>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowChildren>Permitir niños</RimWorldAccess.ScenarioBuilder.Field.AllowChildren>
+  <RimWorldAccess.ScenarioBuilder.Field.AllowAdults>Permitir adultos</RimWorldAccess.ScenarioBuilder.Field.AllowAdults>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumAge>Edad mínima</RimWorldAccess.ScenarioBuilder.Field.MinimumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumAge>Edad máxima</RimWorldAccess.ScenarioBuilder.Field.MaximumAge>
+  <RimWorldAccess.ScenarioBuilder.Field.MechType>Tipo de mecanoide</RimWorldAccess.ScenarioBuilder.Field.MechType>
+  <RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>Probabilidad de supervisión de mecanitor</RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>
+  <RimWorldAccess.ScenarioBuilder.Field.DialogText>Texto del diálogo</RimWorldAccess.ScenarioBuilder.Field.DialogText>
+  <RimWorldAccess.ScenarioBuilder.Field.Stat>Estadística</RimWorldAccess.ScenarioBuilder.Field.Stat>
+  <RimWorldAccess.ScenarioBuilder.Field.Factor>Factor</RimWorldAccess.ScenarioBuilder.Field.Factor>
+  <RimWorldAccess.ScenarioBuilder.Field.Building>Construcción</RimWorldAccess.ScenarioBuilder.Field.Building>
+  <RimWorldAccess.ScenarioBuilder.Field.Need>Necesidad</RimWorldAccess.ScenarioBuilder.Field.Need>
+  <RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>Nivel mínimo</RimWorldAccess.ScenarioBuilder.Field.MinimumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>Nivel máximo</RimWorldAccess.ScenarioBuilder.Field.MaximumLevel>
+  <RimWorldAccess.ScenarioBuilder.Field.DurationDays>Duración (días)</RimWorldAccess.ScenarioBuilder.Field.DurationDays>
+  <RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>Radio de explosión</RimWorldAccess.ScenarioBuilder.Field.ExplosionRadius>
+  <RimWorldAccess.ScenarioBuilder.Field.DamageType>Tipo de daño</RimWorldAccess.ScenarioBuilder.Field.DamageType>
+  <RimWorldAccess.ScenarioBuilder.Field.Quest>Misión</RimWorldAccess.ScenarioBuilder.Field.Quest>
+  <RimWorldAccess.ScenarioBuilder.Field.MapGenerator>Generador de mapa</RimWorldAccess.ScenarioBuilder.Field.MapGenerator>
+  <RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>Método de generación</RimWorldAccess.ScenarioBuilder.Field.GenerationMethod>
+  <RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>Retardo de activación (días)</RimWorldAccess.ScenarioBuilder.Field.ActivationDelayDays>
+  <RimWorldAccess.ScenarioBuilder.Field.PawnKind>Tipo de personaje</RimWorldAccess.ScenarioBuilder.Field.PawnKind>
+  <RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>Requerido al inicio</RimWorldAccess.ScenarioBuilder.Field.RequiredAtStart>
+  <RimWorldAccess.ScenarioBuilder.Field.Xenotype>Xenotipo</RimWorldAccess.ScenarioBuilder.Field.Xenotype>
+  <RimWorldAccess.ScenarioBuilder.Field.MutantType>Tipo de mutante</RimWorldAccess.ScenarioBuilder.Field.MutantType>
+  <RimWorldAccess.ScenarioBuilder.Field.TargetLayer>Capa objetivo</RimWorldAccess.ScenarioBuilder.Field.TargetLayer>
+  <RimWorldAccess.ScenarioBuilder.Field.ZoomMode>Modo de zoom</RimWorldAccess.ScenarioBuilder.Field.ZoomMode>
+  <RimWorldAccess.ScenarioBuilder.Field.FuelCost>Costo de combustible</RimWorldAccess.ScenarioBuilder.Field.FuelCost>
+  <RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>Agregar nuevo objeto. Presiona Enter para agregar.</RimWorldAccess.ScenarioBuilder.Announce.AddNewItem>
+  <RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>{0}, casilla, {1}. Presiona Enter o Espacio para alternar.</RimWorldAccess.ScenarioBuilder.Announce.CheckboxField>
+  <RimWorldAccess.ScenarioBuilder.Announce.EditableField>{0}: {1}. {2}. Presiona Enter para editar.</RimWorldAccess.ScenarioBuilder.Announce.EditableField>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>1 campo</RimWorldAccess.ScenarioBuilder.Announce.FieldCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>{0} campos</RimWorldAccess.ScenarioBuilder.Announce.FieldCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>1 objeto</RimWorldAccess.ScenarioBuilder.Announce.ItemCountOne>
+  <RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>{0} objetos</RimWorldAccess.ScenarioBuilder.Announce.ItemCountMany>
+  <RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>{0} ({1})</RimWorldAccess.ScenarioBuilder.Announce.LabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>{0}, {1}, {2}. Presiona Suprimir para eliminar.</RimWorldAccess.ScenarioBuilder.Announce.ListItemExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>{0}. Presiona Suprimir para eliminar.</RimWorldAccess.ScenarioBuilder.Announce.ListItemSimple>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>{0}, {1}, {2}</RimWorldAccess.ScenarioBuilder.Announce.PartExpandable>
+  <RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>{0}, solo lectura</RimWorldAccess.ScenarioBuilder.Announce.PartReadOnly>
+  <RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix> Presiona Insertar para leer el texto completo.</RimWorldAccess.ScenarioBuilder.Announce.ReadFullTextSuffix>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>desplegable</RimWorldAccess.ScenarioBuilder.Announce.TypeHintDropdown>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>cantidad</RimWorldAccess.ScenarioBuilder.Announce.TypeHintQuantity>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>casilla</RimWorldAccess.ScenarioBuilder.Announce.TypeHintCheckbox>
+  <RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>texto</RimWorldAccess.ScenarioBuilder.Announce.TypeHintText>
+  <RimWorldAccess.ScenarioBuilder.AddNewItemLabel>Agregar nuevo objeto</RimWorldAccess.ScenarioBuilder.AddNewItemLabel>
+  <RimWorldAccess.ScenarioBuilder.ConnectionTo>Conexión a {0}</RimWorldAccess.ScenarioBuilder.ConnectionTo>
+  <RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>Conexión a {0} ({1})</RimWorldAccess.ScenarioBuilder.ConnectionToWithZoom>
+  <RimWorldAccess.ScenarioBuilder.ListItemCount>{0}x {1}</RimWorldAccess.ScenarioBuilder.ListItemCount>
+  <RimWorldAccess.ScenarioBuilder.RequiredSuffix> (Requerido)</RimWorldAccess.ScenarioBuilder.RequiredSuffix>
+  <RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>{0} - {1}</RimWorldAccess.ScenarioBuilder.PartLabelWithSummary>
+  <RimWorldAccess.ScenarioBuilder.ZoomIn>Acercar</RimWorldAccess.ScenarioBuilder.ZoomIn>
+  <RimWorldAccess.ScenarioBuilder.ZoomOut>Alejar</RimWorldAccess.ScenarioBuilder.ZoomOut>
+  <RimWorldAccess.ScenarioBuilder.Value.Empty>(vacío)</RimWorldAccess.ScenarioBuilder.Value.Empty>
+  <RimWorldAccess.ScenarioBuilder.Value.RandomPet>Mascota aleatoria</RimWorldAccess.ScenarioBuilder.Value.RandomPet>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Item>objeto</RimWorldAccess.ScenarioBuilder.ItemType.Item>
+  <RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>entrada de tipo de personaje</RimWorldAccess.ScenarioBuilder.ItemType.PawnKindEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>entrada de xenotipo</RimWorldAccess.ScenarioBuilder.ItemType.XenotypeEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>entrada de mutante</RimWorldAccess.ScenarioBuilder.ItemType.MutantEntry>
+  <RimWorldAccess.ScenarioBuilder.ItemType.Connection>conexión</RimWorldAccess.ScenarioBuilder.ItemType.Connection>
+
+
+  <!-- Mod-list detail nav + requirement status (src/MainMenu/ModListState.cs). -->
+  <RimWorldAccess.ModList.EndOfDetails>Fin de los detalles del mod</RimWorldAccess.ModList.EndOfDetails>
+  <RimWorldAccess.ModList.StartOfDetails>Inicio de los detalles del mod</RimWorldAccess.ModList.StartOfDetails>
+  <RimWorldAccess.ModList.ReqSatisfied>cumplido</RimWorldAccess.ModList.ReqSatisfied>
+  <RimWorldAccess.ModList.ReqNotSatisfied>no cumplido</RimWorldAccess.ModList.ReqNotSatisfied>
+  <!-- Difficulty reset preset tooltip fallback (src/MainMenu/DifficultySettingsHelper.cs). -->
+  <RimWorldAccess.CustomDifficulty.ResetTooltip>Restablece todas las configuraciones de dificultad personalizada a este preajuste</RimWorldAccess.CustomDifficulty.ResetTooltip>
+
+  <!-- =================================================================
+       Anomaly settings dialog (AnomalySettingsDialogState +
+       AnomalySettingsDialogPatch + StorytellerSelectionPatch).
+       Dialog_AnomalySettings opened from the Storyteller page.
+       {0} = the translated "AnomalySettings" label (vanilla key).
+       ================================================================= -->
+  <RimWorldAccess.AnomalySettings.Saved>{0} guardada.</RimWorldAccess.AnomalySettings.Saved>
+  <RimWorldAccess.AnomalySettings.Closed>{0} cerrada.</RimWorldAccess.AnomalySettings.Closed>
+  <RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>{0}. Presiona Enter para abrir.</RimWorldAccess.AnomalySettings.LabelPressEnterToOpen>
+  <RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>No se puede aceptar: la dificultad no está cargada.</RimWorldAccess.AnomalySettings.CannotAcceptDifficultyNotLoaded>
+
+  <!-- Storyteller page tab-cycle hint (StorytellerSelectionPatch line 61).
+       Two variants: with and without the Anomaly Settings tab stop. -->
+  <RimWorldAccess.Storyteller.TabHint>Tab y Shift+Tab para moverte entre Narrador, Dificultad y Modo de guardado.</RimWorldAccess.Storyteller.TabHint>
+  <RimWorldAccess.Storyteller.TabHintWithAnomaly>Tab y Shift+Tab para moverte entre Narrador, Dificultad, Modo de guardado y Configuración de anomalías.</RimWorldAccess.Storyteller.TabHintWithAnomaly>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.PawnFilter.Any>Cualquiera</RimWorldAccess.PawnFilter.Any>
+  <RimWorldAccess.PawnFilter.SkillLabelAny>{0}: Cualquiera</RimWorldAccess.PawnFilter.SkillLabelAny>
+  <RimWorldAccess.PawnFilter.SkillLabelWithRequirements>{0}: {1}</RimWorldAccess.PawnFilter.SkillLabelWithRequirements>
+  <RimWorldAccess.PawnFilter.TotalPassionsWithValue>Total de pasiones {0}: {1}</RimWorldAccess.PawnFilter.TotalPassionsWithValue>
+  <RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>Total de puntos de habilidad {0}: {1}</RimWorldAccess.PawnFilter.TotalSkillPointsWithValue>
+  <RimWorldAccess.PawnFilter.CountOnlyHighestAttack>Contar solo la habilidad de ataque más alta: {0}. Al contar el total de puntos de habilidad, cuenta solo la más alta entre Disparo o Cuerpo a cuerpo, no ambas</RimWorldAccess.PawnFilter.CountOnlyHighestAttack>
+  <RimWorldAccess.PawnFilter.CountOnlyPassionSkills>Contar solo habilidades con pasión: {0}. Al contar el total de puntos de habilidad, cuenta solo las habilidades que tienen pasión</RimWorldAccess.PawnFilter.CountOnlyPassionSkills>
+  <RimWorldAccess.PawnFilter.RequiredTraitsInPool>Rasgos requeridos de la reserva: {0}</RimWorldAccess.PawnFilter.RequiredTraitsInPool>
+  <RimWorldAccess.PawnFilter.AgeWithValue>Edad {0}: {1}</RimWorldAccess.PawnFilter.AgeWithValue>
+  <RimWorldAccess.PawnFilter.HealthOnlyStartConditions>Solo condiciones iniciales</RimWorldAccess.PawnFilter.HealthOnlyStartConditions>
+  <RimWorldAccess.PawnFilter.HealthNoPain>Sin dolor</RimWorldAccess.PawnFilter.HealthNoPain>
+  <RimWorldAccess.PawnFilter.HealthNoAddictions>Sin adicciones</RimWorldAccess.PawnFilter.HealthNoAddictions>
+  <RimWorldAccess.PawnFilter.HealthNoConditions>Sin condiciones de salud</RimWorldAccess.PawnFilter.HealthNoConditions>
+  <RimWorldAccess.PawnFilter.WorkNoDumbLabor>Sin trabajo no calificado</RimWorldAccess.PawnFilter.WorkNoDumbLabor>
+  <RimWorldAccess.PawnFilter.RerollLimit>Límite de reintentos: {0}</RimWorldAccess.PawnFilter.RerollLimit>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>estilos de juego</RimWorldAccess.CustomDifficulty.ItemsLabelPlaystyles>
+  <RimWorldAccess.CustomDifficulty.ItemsLabelSettings>configuraciones</RimWorldAccess.CustomDifficulty.ItemsLabelSettings>
+  <RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>Selecciona un estilo de juego de anomalías</RimWorldAccess.CustomDifficulty.AnomalyPlaystyleTooltip>
+
+  <!-- Pawn filter editor: range-bound words and labels that previously
+       pointed at nonexistent keys. -->
+  <RimWorldAccess.PawnFilter.Minimum>mínimo</RimWorldAccess.PawnFilter.Minimum>
+  <RimWorldAccess.PawnFilter.Maximum>máximo</RimWorldAccess.PawnFilter.Maximum>
+  <RimWorldAccess.PawnFilter.SectionSettings>Configuración</RimWorldAccess.PawnFilter.SectionSettings>
+  <RimWorldAccess.PawnFilter.TraitExcluded>Excluido</RimWorldAccess.PawnFilter.TraitExcluded>
+  <!-- Starting pawn editor context menu entries. -->
+  <RimWorldAccess.StartingPawn.EditPawnFilter>Editar filtro de personajes...</RimWorldAccess.StartingPawn.EditPawnFilter>
+  <RimWorldAccess.StartingPawn.AddPawn>Agregar personaje</RimWorldAccess.StartingPawn.AddPawn>
+  <RimWorldAccess.StartingPawn.RemovePawn>Quitar personaje</RimWorldAccess.StartingPawn.RemovePawn>
+
+</LanguageData>
