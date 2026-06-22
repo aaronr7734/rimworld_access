@@ -143,7 +143,11 @@ namespace RimWorldAccess
             // and the list stays active beneath it. Gate the list off so typing while editing a
             // bill searches the editor, not the list ("Add bill..." was stealing the 'a' key).
             TypeaheadDispatcher.Register(3.65, () => BillsMenuState.IsActive && !BillConfigState.IsActive, c => BillsMenuState.HandleTypeahead(c));
-            TypeaheadDispatcher.Register(3.66, () => BillConfigState.IsActive, c => BillConfigState.HandleTypeahead(c));
+            // While a numeric field is being edited (Enter pressed on Repeat/Target count, etc.),
+            // digits arrive as a separate layout-aware character event with keyCode == None. That
+            // event must reach the numeric buffer, NOT the typeahead search — so gate the consumer
+            // off during numeric input mode.
+            TypeaheadDispatcher.Register(3.66, () => BillConfigState.IsActive && !BillConfigState.IsNumericInputMode, c => BillConfigState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.67, () => FishingZoneMenuState.IsActive, c => FishingZoneMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.68, () => StorytellerSelectionState.IsActive, c => StorytellerSelectionState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.70, () => TradeNavigationState.IsActive, c => TradeNavigationState.HandleTypeahead(c));
