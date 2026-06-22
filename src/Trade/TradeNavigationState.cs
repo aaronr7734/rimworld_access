@@ -269,10 +269,12 @@ namespace RimWorldAccess
             // Restore the view state to where the user was before trading
             RestoreViewState();
 
-            // Close the trade dialog if it still exists
+            // Close the trade dialog if it still exists. Let the dialog's own close sound
+            // (Dialog_Trade.soundClose = CommsWindow_Close) play, matching what a sighted
+            // player hears when the trade window closes.
             if (dialogToClose != null && Find.WindowStack != null)
             {
-                Find.WindowStack.TryRemove(dialogToClose, doCloseSound: false);
+                Find.WindowStack.TryRemove(dialogToClose, doCloseSound: true);
             }
 
             // Note: We intentionally do NOT call TradeSession.Close() here.

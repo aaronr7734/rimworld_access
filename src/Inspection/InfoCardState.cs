@@ -270,17 +270,18 @@ namespace RimWorldAccess
             if (cardStack.Count > 0)
             {
                 // Nested card: remove inner dialog without calling Dialog_InfoCard.Close()
-                // (which would clear RimWorld's static history). Use TryRemove instead.
+                // (which would clear RimWorld's static history). Use TryRemove instead, but let
+                // the card's own close sound (InfoCard_Close) play so closing a nested info card
+                // sounds like closing an info card, matching the sighted experience.
                 closingFromAccessibility = true;
                 if (currentDialog != null)
-                    Find.WindowStack.TryRemove(currentDialog, doCloseSound: false);
+                    Find.WindowStack.TryRemove(currentDialog, doCloseSound: true);
                 closingFromAccessibility = false;
 
                 // Restore outer card state (cursor position, expansion state preserved)
                 var saved = cardStack.Pop();
                 currentDialog = saved.dialog;
                 treeNav.Initialize(saved.rootItem, saved.selectedIndex);
-                SoundDefOf.Click.PlayOneShotOnCamera();
                 treeNav.ReannounceCurrentItem();
             }
             else
