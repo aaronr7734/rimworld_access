@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess
 {
@@ -67,7 +68,9 @@ namespace RimWorldAccess
             if (dialog == null)
                 return;
 
-            Close();
+            // Pre-clear any prior dialog WITHOUT completing its close lifecycle - it is being
+            // superseded, not resolved by the user, so its closeAction must not fire here.
+            Close(runCloseLifecycle: false);
 
             // Pause the game when a dialog opens
             if (Current.ProgramState == ProgramState.Playing && Find.TickManager != null)
@@ -145,7 +148,7 @@ namespace RimWorldAccess
         /// <summary>
         /// Closes the current windowless dialog.
         /// </summary>
-        public static void Close()
+        public static void Close(bool runCloseLifecycle = true)
         {
             // Null currentDialog first to ensure IsActive returns false immediately,
             // preventing stale state from blocking arrow keys via SuppressMapNavigation
@@ -154,6 +157,45 @@ namespace RimWorldAccess
 
             if (dialogToClose != null)
             {
+                // Intercepted Dialog_NodeTree instances never enter the WindowStack, so their
+                // PostClose (which runs closeAction) and their soundClose never fire on their own.
+                // Only the node-tree dialogs the game deliberately gave a close consequence carry a
+                // non-null closeAction: the scenario intro re-enables the music manager and plays the
+                // GameStartSting riff; quest dialogs run their close behavior. Complete that lifecycle
+                // here so those effects aren't lost. Ordinary node-tree dialogs (comms, letters,
+                // research-finished) have no closeAction and stay silent, as before.
+                if (runCloseLifecycle && dialogToClose is Dialog_NodeTree nodeTree && nodeTree.closeAction != null)
+                {
+                    // The scenario intro dialog's closeAction also unpauses the game
+                    // (CurTimeSpeed = Normal). For accessibility we keep the game paused at
+                    // startup so the player can orient before time advances, so detect the
+                    // game-start dialog (true only while it is open) and restore the pause
+                    // after running the lifecycle. This is captured before closeAction runs,
+                    // since it calls Notify_GameStartDialogClosed and clears the flag.
+                    bool wasGameStartDialog = Find.WindowStack != null
+                        && Find.WindowStack.SecondsSinceClosedGameStartDialog == 0f;
+
+                    nodeTree.soundClose?.PlayOneShotOnCamera();
+
+                    // Mute time-speed announcements while the game's close logic runs, so the
+                    // transient "time speed normal" it sets isn't spoken right before our
+                    // "paused". The pause itself, set after unmuting, is announced normally.
+                    if (wasGameStartDialog)
+                        TimeControlAccessibilityPatch.MuteAnnouncements = true;
+                    try
+                    {
+                        nodeTree.closeAction();
+                    }
+                    finally
+                    {
+                        if (wasGameStartDialog)
+                            TimeControlAccessibilityPatch.MuteAnnouncements = false;
+                    }
+
+                    if (wasGameStartDialog && Find.TickManager != null)
+                        Find.TickManager.CurTimeSpeed = TimeSpeed.Paused;
+                }
+
                 // Remove from window stack if still present
                 Find.WindowStack.TryRemove(dialogToClose, doCloseSound: false);
             }

@@ -21,6 +21,14 @@ namespace RimWorldAccess
         private static TimeSpeed lastAnnouncedSpeed = TimeSpeed.Normal;
         private static bool isInitialized = false;
 
+        /// <summary>
+        /// While true, speed changes are tracked silently (lastAnnouncedSpeed still updates) but
+        /// not spoken. Used to swallow a transient speed change the player shouldn't hear — e.g.
+        /// the scenario intro's closeAction sets Normal on its way to our game-start re-pause, and
+        /// we don't want "time speed normal" announced right before "paused".
+        /// </summary>
+        internal static bool MuteAnnouncements { get; set; }
+
         // Patch the CurTimeSpeed setter to announce when time speed changes
         [HarmonyPatch("CurTimeSpeed", MethodType.Setter)]
         [HarmonyPostfix]
@@ -37,8 +45,11 @@ namespace RimWorldAccess
             // Only announce if speed actually changed
             if (__instance.CurTimeSpeed != lastAnnouncedSpeed)
             {
-                string announcement = GetTimeSpeedAnnouncement(__instance.CurTimeSpeed);
-                TolkHelper.SpeakData(announcement);
+                if (!MuteAnnouncements)
+                {
+                    string announcement = GetTimeSpeedAnnouncement(__instance.CurTimeSpeed);
+                    TolkHelper.SpeakData(announcement);
+                }
                 lastAnnouncedSpeed = __instance.CurTimeSpeed;
             }
         }
@@ -60,8 +71,11 @@ namespace RimWorldAccess
             // Announce the new speed since TogglePaused bypasses the setter
             if (__instance.CurTimeSpeed != lastAnnouncedSpeed)
             {
-                string announcement = GetTimeSpeedAnnouncement(__instance.CurTimeSpeed);
-                TolkHelper.SpeakData(announcement);
+                if (!MuteAnnouncements)
+                {
+                    string announcement = GetTimeSpeedAnnouncement(__instance.CurTimeSpeed);
+                    TolkHelper.SpeakData(announcement);
+                }
                 lastAnnouncedSpeed = __instance.CurTimeSpeed;
             }
         }
