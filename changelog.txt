@@ -1,4 +1,41 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+06/22/2026
+
+CHANGES
+-------
+- Terrain sounds no longer play for tiles you have not discovered yet. Moving
+  the cursor onto a fogged tile is now silent, so the terrain audio can no
+  longer hint at what is hidden under the fog of war.
+- Fixed the background music not starting after you create a new world and
+  colony. Previously you had to restart the game before the music would play
+  again. The guitar sting that plays when you close the scenario introduction
+  dialog now plays again as well. The game still starts paused after the intro
+  so you have time to get your bearings before time begins.
+- Fixed entering custom numbers for bills at a workstation. Typing a quantity,
+  such as a target count or how many times to do a bill, now goes into the
+  number field instead of being swallowed by the menu's type-to-search.
+- Fixed the research detail view mixing up which buildings were available. A
+  research bench you have actually built now reads as available even when a
+  required facility like the multi-analyzer is missing, and each required
+  facility now reports its own status: available, present but inactive, or not
+  available.
+- Simplified the map cursor jump modes down to the two useful ones, a preset
+  distance and a jump to the next tile beside a wall. Hold Shift and press Up
+  or Down to switch between them, and Shift with Left or Right to change the
+  preset distance.
+- The world map tile information (press 4 on the world map) no longer reads out
+  the internal Tile ID, which was developer data not meant for players.
+- Added a Roofs category to the map scanner. It collects natural roofs grouped
+  into patches like terrain, with an All view plus two groups: overhead
+  mountain (thick) roofs and thin rock roofs. Use it to find where you are
+  standing under a mountain.
+- The trade window and the info card now play their normal close sound when you
+  close them, matching what a sighted player hears, instead of closing silently.
+- Fixed a doubled announcement when opening a menu from a building's inspection.
+  Opening Bills, Storage, Temperature and similar categories announced both the
+  opened menu and the inspection row behind it (for example "Add bill... 1 of 6.
+  Bills. 2 of 3"). The inspection row no longer speaks over the menu you opened.
+
 06/21/2026
 
 CHANGES
