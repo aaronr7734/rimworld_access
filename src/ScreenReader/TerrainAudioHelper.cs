@@ -290,6 +290,11 @@ namespace RimWorldAccess
             if (map == null)
                 return false;
 
+            // Never reveal what lies under fog of war. An undiscovered cell must not
+            // betray its terrain or any natural-rock wall through an audio cue.
+            if (cell.Fogged(map))
+                return false;
+
             if (IsWall(cell, map))
             {
                 EmbeddedAudioHelper.PlayEmbeddedSound(WallAudioFile, volume);
