@@ -53,6 +53,11 @@ namespace RimWorldAccess
         public object Data { get; set; }  // Associated data (Pawn, Building, SkillRecord, etc.)
         public Def LinkedDef { get; set; }  // Associated Def for Alt+I info card navigation
         public Action OnActivate { get; set; }  // Action to execute when Enter is pressed
+        // True when OnActivate hands off to a separate overlay menu (Bills, Storage, Temperature,
+        // Prisoner tab, etc.). That menu owns the announcement, so the inspection tree must not
+        // re-announce its own row after activating — doing so doubled the speech (e.g.
+        // "Add bill... 1 of 6. Bills. 2 of 3").
+        public bool OpensOverlayMenu { get; set; }
         public Action OnDelete { get; set; }  // Action to execute when Delete is pressed (for canceling jobs, etc.)
         public Action OnInfo { get; set; }  // Action for Alt+I (custom info display, e.g. stat breakdown)
 

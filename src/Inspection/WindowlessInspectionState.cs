@@ -736,8 +736,11 @@ namespace RimWorldAccess
             {
                 item.OnActivate();
 
-                // If the action closed this state (e.g., opening HealthTabState), stop here
-                if (!IsActive)
+                // If the action closed this state (e.g., opening HealthTabState), or it opened a
+                // separate overlay menu that now owns input and its own announcement (Bills,
+                // Storage, Temperature, etc.), stop here. Re-announcing this row on top would
+                // double the speech (e.g. "Add bill... 1 of 6. Bills. 2 of 3").
+                if (!IsActive || item.OpensOverlayMenu)
                     return true;
 
                 SoundDefOf.Click.PlayOneShotOnCamera();

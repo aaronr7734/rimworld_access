@@ -210,6 +210,7 @@ namespace RimWorldAccess
                     // Actionable category (Bills, Storage, etc.) - opens separate menu
                     item.IsExpandable = false;
                     item.OnActivate = () => ExecuteCategoryAction(obj, categoryKey);
+                    item.OpensOverlayMenu = true;
                     break;
 
                 case TabHandlerType.RichNavigation:
@@ -394,6 +395,7 @@ namespace RimWorldAccess
                 // Note: In ReadOnly mode, actionable categories are filtered out at the parent level
                 item.IsExpandable = false;
                 item.OnActivate = () => ExecuteCategoryAction(obj, category);
+                item.OpensOverlayMenu = true;
             }
             else if (IsExpandableCategory(obj, category))
             {
