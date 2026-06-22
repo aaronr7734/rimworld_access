@@ -3,6 +3,33 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
+- Styling stations are now fully accessible. When a colonist uses "Change
+  style" at a styling station, a keyboard menu opens. Press Tab to move between
+  the hair, beard, face tattoo, body tattoo, and apparel color sections, and use
+  the arrow keys (and type to search) to browse the options. Pressing Enter on a
+  style applies it and then opens a color list so you can set its color in one
+  step. The currently applied style announces its color, so you always know what
+  you have on. Press Alt+S to apply all your changes, right bracket to reset, and
+  Escape to cancel.
+- Pawns now have an Appearance section in their inspection (press Enter on a
+  colonist, then find Appearance). It lists their hair and hair color, beard,
+  tattoos, and favorite color in one place, so you can review how someone looks
+  without opening the styling station.
+- Every hairstyle, beard, and tattoo now has a written description of what it
+  actually looks like, so you are no longer choosing by name alone. For example,
+  the princess hairstyle reads as long hair parted down the center that falls
+  past the shoulders, and the skeleton body tattoo as a skull above a curved
+  ribcage. These descriptions are spoken after the style name in the styling
+  station, in a pawn's Appearance section, and in the ideoligion viewer and
+  editor where you set how often each style appears, so you always know what you
+  are picking. The name comes first and the description follows, so you can move
+  on as soon as you have heard enough.
+- You can now choose paint colors when painting floors or buildings. Selecting
+  the Paint Floor or Paint Building tool opens a list of every paint color by
+  name - red, scarlet, plum, and so on - so you can pick one and paint as usual.
+  Press C while painting to change the color again. As you move the map cursor,
+  painted floors and buildings now announce their color too (for example, "fine
+  marble tile, deep purple").
 - The in-game Learning Helper now speaks your language in Chinese, Ukrainian,
   and Russian. This covers both the mod's own accessibility lessons (inspecting
   things, the scanner, selecting colonists, building, and so on) and the

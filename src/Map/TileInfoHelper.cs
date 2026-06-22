@@ -99,6 +99,9 @@ namespace RimWorldAccess
                     : (string)terrain.LabelCap;
                 if (terrain.defName.EndsWith("_Smooth"))
                     terrainLabel += "RimWorldAccess.Map.Tile.FloorSuffix".Translate();
+                ColorDef floorPaint = map.terrainGrid.ColorAt(position);
+                if (floorPaint != null && !floorPaint.label.NullOrEmpty())
+                    terrainLabel += "RimWorldAccess.Map.Tile.PaintSuffix".Translate(floorPaint.LabelCap);
                 builder.Add(terrainLabel);
             }
 
@@ -166,6 +169,9 @@ namespace RimWorldAccess
                 string cellInfo = BuildingCellHelper.GetCellPrefix(building, position);
                 if (!string.IsNullOrEmpty(cellInfo))
                     label += "RimWorldAccess.Map.Tile.CellSuffix".Translate(cellInfo);
+
+                if (building.PaintColorDef != null && !building.PaintColorDef.label.NullOrEmpty())
+                    label += "RimWorldAccess.Map.Tile.PaintSuffix".Translate(building.PaintColorDef.LabelCap);
 
                 builder.Add(label + ComposeThingDesignationSuffix(thing, thingDesignations));
 
@@ -308,6 +314,10 @@ namespace RimWorldAccess
 
             var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
             builder.Add(terrainLabel);
+
+            ColorDef floorPaint = map.terrainGrid.ColorAt(position);
+            if (floorPaint != null && !floorPaint.label.NullOrEmpty())
+                builder.Add(floorPaint.LabelCap);
 
             float fertility = position.GetFertility(map);
             if (fertility > 0.0001f)

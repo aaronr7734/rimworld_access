@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <RimWorldAccess.Styling.Opened>Стилизация: {0}. Tab переключает разделы. Enter применяет стиль и выбирает его цвет. Alt S применяет все изменения, правая квадратная скобка сбрасывает, Escape отменяет.</RimWorldAccess.Styling.Opened>
+  <RimWorldAccess.Styling.TabPosition>Вкладка {0} из {1}</RimWorldAccess.Styling.TabPosition>
+  <RimWorldAccess.Styling.TabHeader>{0}. {1} элементов.</RimWorldAccess.Styling.TabHeader>
+  <RimWorldAccess.Styling.TabEmpty>{0}. Ничего не доступно.</RimWorldAccess.Styling.TabEmpty>
+  <RimWorldAccess.Styling.Selected>выбрано</RimWorldAccess.Styling.Selected>
+  <RimWorldAccess.Styling.ItemSelected>{0} выбрано</RimWorldAccess.Styling.ItemSelected>
+  <RimWorldAccess.Styling.CurrentColor>текущий</RimWorldAccess.Styling.CurrentColor>
+  <RimWorldAccess.Styling.HairColorTitle>Цвет волос</RimWorldAccess.Styling.HairColorTitle>
+  <RimWorldAccess.Styling.ApparelColorTitle>Цвет: {0}</RimWorldAccess.Styling.ApparelColorTitle>
+  <RimWorldAccess.Styling.ColorSet>Цвет: {0}</RimWorldAccess.Styling.ColorSet>
+  <RimWorldAccess.Styling.ApparelRow>{0}, цвет {1}</RimWorldAccess.Styling.ApparelRow>
+  <RimWorldAccess.Styling.Locked>заблокировано</RimWorldAccess.Styling.Locked>
+  <RimWorldAccess.Styling.NoApparel>Нет одежды для перекраски</RimWorldAccess.Styling.NoApparel>
+  <RimWorldAccess.Styling.ResetDone>Сброшено</RimWorldAccess.Styling.ResetDone>
+  <RimWorldAccess.Styling.Closed>Станция стилизации закрыта</RimWorldAccess.Styling.Closed>
+
+</LanguageData>

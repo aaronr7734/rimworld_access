@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <RimWorldAccess.Styling.Opened>正在为 {0} 设计造型。按 Tab 切换分区。按回车键应用造型并选择其颜色。按 Alt S 应用所有更改，右方括号重置，Escape 取消。</RimWorldAccess.Styling.Opened>
+  <RimWorldAccess.Styling.TabPosition>第 {0} 个标签页，共 {1} 个</RimWorldAccess.Styling.TabPosition>
+  <RimWorldAccess.Styling.TabHeader>{0}. {1} 项。</RimWorldAccess.Styling.TabHeader>
+  <RimWorldAccess.Styling.TabEmpty>{0}. 无可用项。</RimWorldAccess.Styling.TabEmpty>
+  <RimWorldAccess.Styling.Selected>已选择</RimWorldAccess.Styling.Selected>
+  <RimWorldAccess.Styling.ItemSelected>已选择 {0}</RimWorldAccess.Styling.ItemSelected>
+  <RimWorldAccess.Styling.CurrentColor>当前</RimWorldAccess.Styling.CurrentColor>
+  <RimWorldAccess.Styling.HairColorTitle>发色</RimWorldAccess.Styling.HairColorTitle>
+  <RimWorldAccess.Styling.ApparelColorTitle>{0} 颜色</RimWorldAccess.Styling.ApparelColorTitle>
+  <RimWorldAccess.Styling.ColorSet>颜色: {0}</RimWorldAccess.Styling.ColorSet>
+  <RimWorldAccess.Styling.ApparelRow>{0}, 颜色 {1}</RimWorldAccess.Styling.ApparelRow>
+  <RimWorldAccess.Styling.Locked>已锁定</RimWorldAccess.Styling.Locked>
+  <RimWorldAccess.Styling.NoApparel>没有可重新着色的服装</RimWorldAccess.Styling.NoApparel>
+  <RimWorldAccess.Styling.ResetDone>已重置</RimWorldAccess.Styling.ResetDone>
+  <RimWorldAccess.Styling.Closed>造型站已关闭</RimWorldAccess.Styling.Closed>
+
+</LanguageData>

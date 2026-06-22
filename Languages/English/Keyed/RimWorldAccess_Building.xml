@@ -1008,4 +1008,13 @@
   <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} available)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
   <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(none available)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
 
+  <!-- Paint color picker (src/Building/PaintColorHelper.cs). Auto-opens when a paint designator
+       (Paint Floor / Paint Building) is selected, and reopens with 'C' while painting. The color
+       names themselves come from the game's own ColorDef labels. -->
+  <RimWorldAccess.Building.PaintColor.MenuTitle>Paint color</RimWorldAccess.Building.PaintColor.MenuTitle>
+  <!-- {0} = color name. Spoken after a color is chosen from the picker. -->
+  <RimWorldAccess.Building.PaintColor.Set>Color: {0}</RimWorldAccess.Building.PaintColor.Set>
+  <!-- Suffix (composed after ", ") marking the color currently selected on the designator. -->
+  <RimWorldAccess.Building.PaintColor.Current>current</RimWorldAccess.Building.PaintColor.Current>
+
 </LanguageData>

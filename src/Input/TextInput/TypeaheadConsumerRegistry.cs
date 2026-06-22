@@ -160,6 +160,7 @@ namespace RimWorldAccess
             TypeaheadDispatcher.Register(4.61, () => PrisonerTabState.IsActive, c => PrisonerTabState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.63, () => AnomalySettingsDialogState.IsActive, c => AnomalySettingsDialogState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.64, () => EntityCodexState.IsActive, c => EntityCodexState.HandleTypeahead(c));
+            TypeaheadDispatcher.Register(4.66, () => StylingStationState.IsActive, c => StylingStationState.HandleTypeahead(c));
             // bool-returning HandleTypeahead methods — wrapped in a void lambda.
             // Work menu (table view): 0-4 set work priority directly, so digits are action keys.
             TypeaheadDispatcher.Register(3.31, () => WorkTableState.IsActive, c => WorkTableState.HandleTypeahead(c), acceptsDigits: false);

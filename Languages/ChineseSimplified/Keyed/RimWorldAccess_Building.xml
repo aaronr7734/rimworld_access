@@ -1007,4 +1007,7 @@
   <RimWorldAccess.Building.Architect.MoreOptionsHint>(按右方括号查看更多选项)</RimWorldAccess.Building.Architect.MoreOptionsHint>
   <RimWorldAccess.Building.Architect.MaterialAvailableCount>(可用 {0})</RimWorldAccess.Building.Architect.MaterialAvailableCount>
   <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(无可用)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
+  <RimWorldAccess.Building.PaintColor.MenuTitle>颜色</RimWorldAccess.Building.PaintColor.MenuTitle>
+  <RimWorldAccess.Building.PaintColor.Set>颜色: {0}</RimWorldAccess.Building.PaintColor.Set>
+  <RimWorldAccess.Building.PaintColor.Current>当前</RimWorldAccess.Building.PaintColor.Current>
 </LanguageData>

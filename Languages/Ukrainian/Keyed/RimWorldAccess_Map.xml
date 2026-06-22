@@ -657,4 +657,5 @@
   <RimWorldAccess.Map.Scanner.JumpedToCenter>Перейдено до центру</RimWorldAccess.Map.Scanner.JumpedToCenter>
   <RimWorldAccess.Map.Scanner.SubName.Polluted>Забруднені</RimWorldAccess.Map.Scanner.SubName.Polluted>
   <RimWorldAccess.Map.Scanner.PollutedArea>забруднена область</RimWorldAccess.Map.Scanner.PollutedArea>
+  <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
 </LanguageData>

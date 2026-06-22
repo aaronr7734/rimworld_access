@@ -662,4 +662,5 @@
 
   <RimWorldAccess.Map.Scanner.SubName.Polluted>Загрязнённая</RimWorldAccess.Map.Scanner.SubName.Polluted>
   <RimWorldAccess.Map.Scanner.PollutedArea>загрязнённый участок</RimWorldAccess.Map.Scanner.PollutedArea>
+  <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
 </LanguageData>

@@ -159,6 +159,7 @@ namespace RimWorldAccess
             { "Character", TabHandlerType.RichNavigation },
             { "Gear", TabHandlerType.RichNavigation },
             { "Skills", TabHandlerType.RichNavigation },
+            { "Appearance", TabHandlerType.RichNavigation },
             { "Social", TabHandlerType.RichNavigation },
             { "Training", TabHandlerType.RichNavigation },
             { "Log", TabHandlerType.RichNavigation },

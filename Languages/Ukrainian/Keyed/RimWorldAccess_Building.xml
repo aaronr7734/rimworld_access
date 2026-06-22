@@ -1004,4 +1004,7 @@
   <RimWorldAccess.Building.Architect.MoreOptionsHint>(права квадратна дужка для додаткових параметрів)</RimWorldAccess.Building.Architect.MoreOptionsHint>
   <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} доступно)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
   <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(немає в наявності)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
+  <RimWorldAccess.Building.PaintColor.MenuTitle>Колір фарби</RimWorldAccess.Building.PaintColor.MenuTitle>
+  <RimWorldAccess.Building.PaintColor.Set>Колір: {0}</RimWorldAccess.Building.PaintColor.Set>
+  <RimWorldAccess.Building.PaintColor.Current>поточний</RimWorldAccess.Building.PaintColor.Current>
 </LanguageData>

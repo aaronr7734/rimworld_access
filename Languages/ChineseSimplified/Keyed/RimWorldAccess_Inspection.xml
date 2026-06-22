@@ -1493,4 +1493,8 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>可用 ({0} 点)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>已锁定 ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>已锁定</RimWorldAccess.Inspection.Permit.Locked>
+  <RimWorldAccess.Inspection.CategoryName.Appearance>外观</RimWorldAccess.Inspection.CategoryName.Appearance>
+  <RimWorldAccess.Inspection.Appearance.Row>{0}: {1}</RimWorldAccess.Inspection.Appearance.Row>
+  <RimWorldAccess.Inspection.Appearance.HairRow>{0}: {1}, {2}</RimWorldAccess.Inspection.Appearance.HairRow>
+  <RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>喜爱的颜色</RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>
 </LanguageData>

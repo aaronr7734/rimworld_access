@@ -244,7 +244,17 @@ namespace RimWorldAccess
         {
             // Style-item leaves read as just their text — no level/position chatter mid-list.
             if (item.Type == InspectionTreeItem.ItemType.Item)
+            {
+                // Append the visual description after the actionable "name, frequency, gender" so the
+                // player can learn what the style looks like, or skip past it while bulk-editing.
+                if (item.Data is StyleItemDef styleItem)
+                {
+                    string description = StyleDescriptionHelper.Describe(styleItem);
+                    if (!string.IsNullOrEmpty(description))
+                        return item.Label + ". " + description;
+                }
                 return item.Label;
+            }
 
             var sb = new StringBuilder();
             sb.Append(item.IsExpandable && item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel)

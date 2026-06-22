@@ -976,6 +976,11 @@ namespace RimWorldAccess
                     sb.Append(", " + Gender.Female.GetLabel().CapitalizeFirst());
             }
 
+            // Trailing visual description so the player knows what the style looks like.
+            string description = StyleDescriptionHelper.Describe(item);
+            if (!string.IsNullOrEmpty(description))
+                sb.Append(". " + description);
+
             return sb.ToString();
         }
 

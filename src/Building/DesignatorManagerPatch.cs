@@ -134,6 +134,17 @@ namespace RimWorldAccess
                 return;
             }
 
+            // Handle paint designators (Paint Floor / Paint Building, plus modded Designator_Paint).
+            // These are order-type designators for cell placement, but vanilla also pops a visual
+            // color-swatch grid the keyboard flow never triggers. Route to placement, then auto-open
+            // the accessible color picker so the user can pick a color before painting.
+            if (PaintColorHelper.IsPaintDesignator(des))
+            {
+                RouteToAccessiblePlacement(des);
+                PaintColorHelper.OpenColorPicker((Designator_Paint)des);
+                return;
+            }
+
             // Handle order designators (Hunt, Haul, Tame, etc.)
             if (ShapeHelper.IsOrderDesignator(des))
             {

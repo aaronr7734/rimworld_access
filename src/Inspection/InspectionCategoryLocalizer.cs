@@ -30,6 +30,7 @@ namespace RimWorldAccess
             { "Mood", "RimWorldAccess.Inspection.CategoryName.Mood" },
             { "Gear", "RimWorldAccess.Inspection.CategoryName.Gear" },
             { "Skills", "RimWorldAccess.Inspection.CategoryName.Skills" },
+            { "Appearance", "RimWorldAccess.Inspection.CategoryName.Appearance" },
             { "Social", "RimWorldAccess.Inspection.CategoryName.Social" },
             { "Character", "RimWorldAccess.Inspection.CategoryName.Character" },
             { "Work Priorities", "RimWorldAccess.Inspection.CategoryName.WorkPriorities" },

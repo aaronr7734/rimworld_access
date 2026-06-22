@@ -661,4 +661,5 @@
   <RimWorldAccess.Map.Scanner.JumpedToCenter>已跳转到中心</RimWorldAccess.Map.Scanner.JumpedToCenter>
   <RimWorldAccess.Map.Scanner.SubName.Polluted>受污染</RimWorldAccess.Map.Scanner.SubName.Polluted>
   <RimWorldAccess.Map.Scanner.PollutedArea>受污染区域</RimWorldAccess.Map.Scanner.PollutedArea>
+  <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
 </LanguageData>

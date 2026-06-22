@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <RimWorldAccess.Styling.Opened>Стилізація {0}. Tab перемикає секції. Enter застосовує стиль і обирає його колір. Alt S застосовує всі зміни, права квадратна дужка скидає, Escape скасовує.</RimWorldAccess.Styling.Opened>
+  <RimWorldAccess.Styling.TabPosition>Вкладка {0} з {1}</RimWorldAccess.Styling.TabPosition>
+  <RimWorldAccess.Styling.TabHeader>{0}. {1} елементів.</RimWorldAccess.Styling.TabHeader>
+  <RimWorldAccess.Styling.TabEmpty>{0}. Немає доступних.</RimWorldAccess.Styling.TabEmpty>
+  <RimWorldAccess.Styling.Selected>вибрано</RimWorldAccess.Styling.Selected>
+  <RimWorldAccess.Styling.ItemSelected>{0} вибрано</RimWorldAccess.Styling.ItemSelected>
+  <RimWorldAccess.Styling.CurrentColor>поточний</RimWorldAccess.Styling.CurrentColor>
+  <RimWorldAccess.Styling.HairColorTitle>Колір волосся</RimWorldAccess.Styling.HairColorTitle>
+  <RimWorldAccess.Styling.ApparelColorTitle>Колір: {0}</RimWorldAccess.Styling.ApparelColorTitle>
+  <RimWorldAccess.Styling.ColorSet>Колір: {0}</RimWorldAccess.Styling.ColorSet>
+  <RimWorldAccess.Styling.ApparelRow>{0}, колір {1}</RimWorldAccess.Styling.ApparelRow>
+  <RimWorldAccess.Styling.Locked>заблоковано</RimWorldAccess.Styling.Locked>
+  <RimWorldAccess.Styling.NoApparel>Немає одягу для перефарбування</RimWorldAccess.Styling.NoApparel>
+  <RimWorldAccess.Styling.ResetDone>Скинуто</RimWorldAccess.Styling.ResetDone>
+  <RimWorldAccess.Styling.Closed>Станцію стилізації закрито</RimWorldAccess.Styling.Closed>
+
+</LanguageData>

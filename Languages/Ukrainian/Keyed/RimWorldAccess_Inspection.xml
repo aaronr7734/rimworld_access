@@ -1489,4 +1489,8 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Доступно ({0} балів)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>Заблоковано ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>Заблоковано</RimWorldAccess.Inspection.Permit.Locked>
+  <RimWorldAccess.Inspection.CategoryName.Appearance>Зовнішність</RimWorldAccess.Inspection.CategoryName.Appearance>
+  <RimWorldAccess.Inspection.Appearance.Row>{0}: {1}</RimWorldAccess.Inspection.Appearance.Row>
+  <RimWorldAccess.Inspection.Appearance.HairRow>{0}: {1}, {2}</RimWorldAccess.Inspection.Appearance.HairRow>
+  <RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>Улюблений колір</RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>
 </LanguageData>

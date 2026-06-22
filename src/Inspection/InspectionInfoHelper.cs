@@ -188,6 +188,21 @@ namespace RimWorldAccess
                         });
                     }
 
+                    // Add Appearance category for humanlike pawns (hair / beard / tattoos / favorite
+                    // color). Vanilla only exposes these through the visual styling station and
+                    // portrait, so there is otherwise no way to review what a pawn looks like.
+                    if (pawn.RaceProps.Humanlike && pawn.story != null && !categories.Any(c => c.OriginalCategoryName == "Appearance"))
+                    {
+                        categories.Add(new TabCategoryInfo
+                        {
+                            Name = TranslateSyntheticName("Appearance", "Appearance"),
+                            Tab = null,
+                            Handler = TabHandlerType.RichNavigation,
+                            IsKnown = true,
+                            OriginalCategoryName = "Appearance"
+                        });
+                    }
+
                     // Add Work Priorities for humanlike pawns
                     if (pawn.RaceProps.Humanlike && !categories.Any(c => c.OriginalCategoryName == "Work Priorities"))
                     {

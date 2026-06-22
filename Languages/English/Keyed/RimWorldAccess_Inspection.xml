@@ -1428,6 +1428,14 @@
   <RimWorldAccess.Inspection.CategoryName.Mood>Mood</RimWorldAccess.Inspection.CategoryName.Mood>
   <RimWorldAccess.Inspection.CategoryName.Gear>Gear</RimWorldAccess.Inspection.CategoryName.Gear>
   <RimWorldAccess.Inspection.CategoryName.Skills>Skills</RimWorldAccess.Inspection.CategoryName.Skills>
+  <RimWorldAccess.Inspection.CategoryName.Appearance>Appearance</RimWorldAccess.Inspection.CategoryName.Appearance>
+  <!-- Appearance category rows (src/Inspection/InspectionTreeBuilder.BuildAppearanceChildren).
+       Labels (Hair/Beard/etc.) and values (style/color names) all come from the game's own
+       translated data. Row: {0} = label, {1} = value. HairRow: {0} = label, {1} = hair style,
+       {2} = hair color. FavoriteColorLabel is the row label for the pawn's favorite color. -->
+  <RimWorldAccess.Inspection.Appearance.Row>{0}: {1}</RimWorldAccess.Inspection.Appearance.Row>
+  <RimWorldAccess.Inspection.Appearance.HairRow>{0}: {1}, {2}</RimWorldAccess.Inspection.Appearance.HairRow>
+  <RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>Favorite color</RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>
   <RimWorldAccess.Inspection.CategoryName.Social>Social</RimWorldAccess.Inspection.CategoryName.Social>
   <RimWorldAccess.Inspection.CategoryName.Character>Character</RimWorldAccess.Inspection.CategoryName.Character>
   <RimWorldAccess.Inspection.CategoryName.WorkPriorities>Work Priorities</RimWorldAccess.Inspection.CategoryName.WorkPriorities>

@@ -1008,4 +1008,7 @@
   <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} доступно)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
   <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(нет доступных)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
 
+  <RimWorldAccess.Building.PaintColor.MenuTitle>Цвет покраски</RimWorldAccess.Building.PaintColor.MenuTitle>
+  <RimWorldAccess.Building.PaintColor.Set>Цвет: {0}</RimWorldAccess.Building.PaintColor.Set>
+  <RimWorldAccess.Building.PaintColor.Current>текущий</RimWorldAccess.Building.PaintColor.Current>
 </LanguageData>

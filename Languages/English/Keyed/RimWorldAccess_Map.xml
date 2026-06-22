@@ -532,6 +532,9 @@
   <RimWorldAccess.Map.Tile.ForbiddenPrefix>Forbidden {0}</RimWorldAccess.Map.Tile.ForbiddenPrefix>
   <!-- " floor" appended to smoothed-stone terrain labels. -->
   <RimWorldAccess.Map.Tile.FloorSuffix> floor</RimWorldAccess.Map.Tile.FloorSuffix>
+  <!-- Paint color suffix appended to a painted floor or building label. {0} = color name
+       (from the game's ColorDef labels), e.g. "Fine marble, purple". -->
+  <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <!-- Roof status. -->
 
   <!-- Stack count appended to item label (e.g. "wood x5"). -->

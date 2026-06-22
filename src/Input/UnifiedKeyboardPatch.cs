@@ -992,7 +992,20 @@ namespace RimWorldAccess
             // Input handled in ArchitectPlacementPatch, but state needs priority registration
             if (ShapePlacementState.IsActive)
             {
-                // Let ArchitectPlacementPatch handle the input
+                // While painting (Paint Floor / Paint Building), 'C' reopens the color picker so
+                // the user can change the paint color mid-placement. ArchitectPlacementPatch does
+                // not consume plain letters, so handling it here (ahead of the global 'C' caravan
+                // shortcut) is safe.
+                if (key == KeyCode.C && !KeyboardHelper.IsAltHeld && !Event.current.control && !Event.current.shift
+                    && Find.CurrentMap != null
+                    && PaintColorHelper.IsPaintDesignator(Find.DesignatorManager?.SelectedDesignator))
+                {
+                    PaintColorHelper.OpenColorPicker((Designator_Paint)Find.DesignatorManager.SelectedDesignator);
+                    Event.current.Use();
+                    return;
+                }
+
+                // Otherwise let ArchitectPlacementPatch handle the input
                 // This ensures proper priority ordering
             }
 
@@ -3221,6 +3234,16 @@ namespace RimWorldAccess
             if (EntityCodexState.IsActive)
             {
                 if (EntityCodexState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 4.66: Handle styling station dialog if active =====
+            if (StylingStationState.IsActive)
+            {
+                if (StylingStationState.HandleInput(Event.current))
                 {
                     Event.current.Use();
                     return;
