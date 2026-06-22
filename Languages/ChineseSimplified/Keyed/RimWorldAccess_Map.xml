@@ -251,11 +251,6 @@
        ================================================================= -->
   <RimWorldAccess.Map.Jump.Distance>跳转距离: {0}</RimWorldAccess.Map.Jump.Distance>
   <RimWorldAccess.Map.Jump.MinimumDistance>最小距离</RimWorldAccess.Map.Jump.MinimumDistance>
-  <RimWorldAccess.Map.Jump.Mode.Terrain>跳转模式: 地形</RimWorldAccess.Map.Jump.Mode.Terrain>
-  <RimWorldAccess.Map.Jump.Mode.Buildings>跳转模式: 建筑</RimWorldAccess.Map.Jump.Mode.Buildings>
-  <RimWorldAccess.Map.Jump.Mode.Geysers>跳转模式: 地热蒸汽口</RimWorldAccess.Map.Jump.Mode.Geysers>
-  <RimWorldAccess.Map.Jump.Mode.HarvestableTrees>跳转模式: 可收获的树木</RimWorldAccess.Map.Jump.Mode.HarvestableTrees>
-  <RimWorldAccess.Map.Jump.Mode.MinableTiles>跳转模式: 可开采地块</RimWorldAccess.Map.Jump.Mode.MinableTiles>
   <RimWorldAccess.Map.Jump.Mode.PresetDistance>跳转模式: 预设距离, {0} 格</RimWorldAccess.Map.Jump.Mode.PresetDistance>
   <RimWorldAccess.Map.Jump.Mode.AdjacentToWall>跳转模式: 紧邻墙壁</RimWorldAccess.Map.Jump.Mode.AdjacentToWall>
   <RimWorldAccess.Map.Jump.Mode.Unknown>跳转模式: 未知</RimWorldAccess.Map.Jump.Mode.Unknown>
@@ -387,6 +382,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Plants>植物</RimWorldAccess.Map.Scanner.CatName.Plants>
   <RimWorldAccess.Map.Scanner.CatName.Items>物品</RimWorldAccess.Map.Scanner.CatName.Items>
   <RimWorldAccess.Map.Scanner.CatName.Terrain>地形</RimWorldAccess.Map.Scanner.CatName.Terrain>
+  <RimWorldAccess.Map.Scanner.CatName.Roofs>屋顶</RimWorldAccess.Map.Scanner.CatName.Roofs>
   <RimWorldAccess.Map.Scanner.CatName.Mineable>可开采</RimWorldAccess.Map.Scanner.CatName.Mineable>
   <RimWorldAccess.Map.Scanner.CatName.Orders>命令</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>区域</RimWorldAccess.Map.Scanner.CatName.Zones>
@@ -660,6 +656,8 @@
   <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>向中心{1}跳转了 {0} 格</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
   <RimWorldAccess.Map.Scanner.JumpedToCenter>已跳转到中心</RimWorldAccess.Map.Scanner.JumpedToCenter>
   <RimWorldAccess.Map.Scanner.SubName.Polluted>受污染</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.SubName.ThickRoof>山体顶板</RimWorldAccess.Map.Scanner.SubName.ThickRoof>
+  <RimWorldAccess.Map.Scanner.SubName.ThinRoof>薄岩顶</RimWorldAccess.Map.Scanner.SubName.ThinRoof>
   <RimWorldAccess.Map.Scanner.PollutedArea>受污染区域</RimWorldAccess.Map.Scanner.PollutedArea>
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <RimWorldAccess.Map.Tile.Plan>{0}{1}</RimWorldAccess.Map.Tile.Plan>

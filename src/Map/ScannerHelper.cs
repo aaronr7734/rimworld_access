@@ -585,6 +585,10 @@ namespace RimWorldAccess
             var terrainConstructedSubcat = buckets.Sub("Terrain-Constructed");
             var terrainPollutedSubcat = buckets.Sub("Terrain-Polluted");
 
+            var roofsCategory = buckets.Cat("Roofs");
+            var roofsThickSubcat = buckets.Sub("Roofs-ThickRoof");
+            var roofsThinSubcat = buckets.Sub("Roofs-ThinRoof");
+
             var mineableCategory = buckets.Cat("Mineable");
             var mineableRareSubcat = buckets.Sub("Mineable-Rare");
             var mineableStoneSubcat = buckets.Sub("Mineable-Stone");
@@ -904,6 +908,11 @@ namespace RimWorldAccess
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableRare);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableStone);
                 mineableCategory.Subcategories[0].Items.AddRange(cachedMineableScanned);
+
+                roofsThickSubcat.Items.AddRange(cachedRoofsThick);
+                roofsThinSubcat.Items.AddRange(cachedRoofsThin);
+                roofsCategory.Subcategories[0].Items.AddRange(cachedRoofsThick);
+                roofsCategory.Subcategories[0].Items.AddRange(cachedRoofsThin);
             }
             else
             {
@@ -916,6 +925,11 @@ namespace RimWorldAccess
                 var mineableStoneByDef = new Dictionary<string, List<(IntVec3 position, Thing thing)>>();
                 var fogPositions = new List<IntVec3>();
                 var pollutedPositions = new List<IntVec3>();
+
+                // Natural roof cells grouped by RoofDef so each clump carries one roof label.
+                // Constructed roofs are excluded; thick (overhead mountain) vs thin (rock) is
+                // decided per def at grouping time via RoofDef.isThickRoof.
+                var roofCellsByDef = new Dictionary<RoofDef, List<IntVec3>>();
 
                 foreach (var cell in allCells)
                 {
@@ -986,6 +1000,19 @@ namespace RimWorldAccess
                                     AddTo(terrainCategory, terrainConstructedSubcat, terrainItem);
                                 }
                             }
+                        }
+
+                        // Collect natural roofs (overhead mountain / thick, and thin rock).
+                        // Fog-gated like terrain above so undiscovered roofs aren't revealed.
+                        var roof = map.roofGrid.RoofAt(cell);
+                        if (roof != null && roof.isNatural)
+                        {
+                            if (!roofCellsByDef.TryGetValue(roof, out var roofList))
+                            {
+                                roofList = new List<IntVec3>();
+                                roofCellsByDef[roof] = roofList;
+                            }
+                            roofList.Add(cell);
                         }
                     }
                     else
@@ -1079,6 +1106,18 @@ namespace RimWorldAccess
                     AddTo(terrainCategory, terrainPollutedSubcat, pollutedItem);
                 }
 
+                // Group each natural roof type's cells into contiguous patches, clumped like
+                // terrain. One scanner item per RoofDef carries all its patches as regions, routed
+                // to the thick (overhead mountain) or thin (rock) subcategory by isThickRoof.
+                foreach (var kvp in roofCellsByDef)
+                {
+                    var roofDef = kvp.Key;
+                    var subcat = roofDef.isThickRoof ? roofsThickSubcat : roofsThinSubcat;
+                    var regions = GroupTerrainByAdjacency(kvp.Value, cursorPosition);
+                    var roofItem = new ScannerItem(regions, roofDef.label, cursorPosition);
+                    AddTo(roofsCategory, subcat, roofItem);
+                }
+
                 // Save results to cell cache
                 cachedTerrainNatural = new List<ScannerItem>(terrainNaturalSubcat.Items);
                 cachedTerrainConstructed = new List<ScannerItem>(terrainConstructedSubcat.Items);
@@ -1086,6 +1125,8 @@ namespace RimWorldAccess
                 cachedMineableRare = new List<ScannerItem>(mineableRareSubcat.Items);
                 cachedMineableStone = new List<ScannerItem>(mineableStoneSubcat.Items);
                 cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
+                cachedRoofsThick = new List<ScannerItem>(roofsThickSubcat.Items);
+                cachedRoofsThin = new List<ScannerItem>(roofsThinSubcat.Items);
                 cachedFogItems = new List<ScannerItem>(unexploredCategory.Subcategories[0].Items);
                 fogDirty = false;
 
@@ -1628,6 +1669,8 @@ namespace RimWorldAccess
         private static List<ScannerItem> cachedMineableScanned = null;
         private static List<ScannerItem> cachedFogItems = null;
         private static List<ScannerItem> cachedPollutedItems = null;
+        private static List<ScannerItem> cachedRoofsThick = null;
+        private static List<ScannerItem> cachedRoofsThin = null;
         private static bool fogDirty = true;
         private static int lastCellHash = 0;
         private static int lastPollutionCount = 0;
@@ -1653,6 +1696,8 @@ namespace RimWorldAccess
             cachedMineableScanned = null;
             cachedFogItems = null;
             cachedPollutedItems = null;
+            cachedRoofsThick = null;
+            cachedRoofsThin = null;
             fogDirty = true;
             lastCellHash = 0;
             lastPollutionCount = 0;

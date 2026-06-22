@@ -251,11 +251,6 @@
        ================================================================= -->
   <RimWorldAccess.Map.Jump.Distance>Дальность перехода: {0}</RimWorldAccess.Map.Jump.Distance>
   <RimWorldAccess.Map.Jump.MinimumDistance>Минимальная дальность</RimWorldAccess.Map.Jump.MinimumDistance>
-  <RimWorldAccess.Map.Jump.Mode.Terrain>Режим перехода: Поверхность</RimWorldAccess.Map.Jump.Mode.Terrain>
-  <RimWorldAccess.Map.Jump.Mode.Buildings>Режим перехода: Постройки</RimWorldAccess.Map.Jump.Mode.Buildings>
-  <RimWorldAccess.Map.Jump.Mode.Geysers>Режим перехода: Гейзеры</RimWorldAccess.Map.Jump.Mode.Geysers>
-  <RimWorldAccess.Map.Jump.Mode.HarvestableTrees>Режим перехода: Деревья для заготовки</RimWorldAccess.Map.Jump.Mode.HarvestableTrees>
-  <RimWorldAccess.Map.Jump.Mode.MinableTiles>Режим перехода: Клетки для добычи</RimWorldAccess.Map.Jump.Mode.MinableTiles>
   <RimWorldAccess.Map.Jump.Mode.PresetDistance>Режим перехода: Заданная дальность, {0} {0_numCase ? клетка : клетки : клеток}</RimWorldAccess.Map.Jump.Mode.PresetDistance>
   <RimWorldAccess.Map.Jump.Mode.AdjacentToWall>Режим перехода: Рядом со стеной</RimWorldAccess.Map.Jump.Mode.AdjacentToWall>
   <RimWorldAccess.Map.Jump.Mode.Unknown>Режим перехода: Неизвестно</RimWorldAccess.Map.Jump.Mode.Unknown>
@@ -387,6 +382,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Plants>Растения</RimWorldAccess.Map.Scanner.CatName.Plants>
   <RimWorldAccess.Map.Scanner.CatName.Items>Предметы</RimWorldAccess.Map.Scanner.CatName.Items>
   <RimWorldAccess.Map.Scanner.CatName.Terrain>Поверхность</RimWorldAccess.Map.Scanner.CatName.Terrain>
+  <RimWorldAccess.Map.Scanner.CatName.Roofs>Крыши</RimWorldAccess.Map.Scanner.CatName.Roofs>
   <RimWorldAccess.Map.Scanner.CatName.Mineable>Для добычи</RimWorldAccess.Map.Scanner.CatName.Mineable>
   <RimWorldAccess.Map.Scanner.CatName.Orders>Приказы</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>Области</RimWorldAccess.Map.Scanner.CatName.Zones>
@@ -661,6 +657,8 @@
   <RimWorldAccess.Map.Scanner.JumpedToCenter>Переход к центру</RimWorldAccess.Map.Scanner.JumpedToCenter>
 
   <RimWorldAccess.Map.Scanner.SubName.Polluted>Загрязнённая</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.SubName.ThickRoof>Нависающая гора</RimWorldAccess.Map.Scanner.SubName.ThickRoof>
+  <RimWorldAccess.Map.Scanner.SubName.ThinRoof>Тонкая порода</RimWorldAccess.Map.Scanner.SubName.ThinRoof>
   <RimWorldAccess.Map.Scanner.PollutedArea>загрязнённый участок</RimWorldAccess.Map.Scanner.PollutedArea>
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <RimWorldAccess.Map.Tile.Plan>{0}: {1}</RimWorldAccess.Map.Tile.Plan>

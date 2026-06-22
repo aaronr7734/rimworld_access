@@ -90,21 +90,6 @@ namespace RimWorldAccess
                 // Use appropriate jump method based on current jump mode
                 switch (MapNavigationState.CurrentJumpMode)
                 {
-                    case JumpMode.Terrain:
-                        positionChanged = MapNavigationState.JumpToNextTerrainType(moveOffset, Find.CurrentMap);
-                        break;
-                    case JumpMode.Buildings:
-                        positionChanged = MapNavigationState.JumpToNextBuilding(moveOffset, Find.CurrentMap);
-                        break;
-                    case JumpMode.Geysers:
-                        positionChanged = MapNavigationState.JumpToNextGeyser(moveOffset, Find.CurrentMap);
-                        break;
-                    case JumpMode.HarvestableTrees:
-                        positionChanged = MapNavigationState.JumpToNextHarvestableTrees(moveOffset, Find.CurrentMap);
-                        break;
-                    case JumpMode.MinableTiles:
-                        positionChanged = MapNavigationState.JumpToNextMinableTiles(moveOffset, Find.CurrentMap);
-                        break;
                     case JumpMode.PresetDistance:
                         positionChanged = MapNavigationState.JumpPresetDistance(moveOffset, Find.CurrentMap);
                         break;

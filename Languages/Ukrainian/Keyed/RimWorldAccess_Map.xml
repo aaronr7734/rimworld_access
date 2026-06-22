@@ -251,11 +251,6 @@
        ================================================================= -->
   <RimWorldAccess.Map.Jump.Distance>Відстань переходу: {0}</RimWorldAccess.Map.Jump.Distance>
   <RimWorldAccess.Map.Jump.MinimumDistance>Мінімальна відстань</RimWorldAccess.Map.Jump.MinimumDistance>
-  <RimWorldAccess.Map.Jump.Mode.Terrain>Режим переходу: Рельєф</RimWorldAccess.Map.Jump.Mode.Terrain>
-  <RimWorldAccess.Map.Jump.Mode.Buildings>Режим переходу: Будівлі</RimWorldAccess.Map.Jump.Mode.Buildings>
-  <RimWorldAccess.Map.Jump.Mode.Geysers>Режим переходу: Гейзери</RimWorldAccess.Map.Jump.Mode.Geysers>
-  <RimWorldAccess.Map.Jump.Mode.HarvestableTrees>Режим переходу: Дерева для зрубування</RimWorldAccess.Map.Jump.Mode.HarvestableTrees>
-  <RimWorldAccess.Map.Jump.Mode.MinableTiles>Режим переходу: Клітинки для видобутку</RimWorldAccess.Map.Jump.Mode.MinableTiles>
   <RimWorldAccess.Map.Jump.Mode.PresetDistance>Режим переходу: Задана відстань, {0} клітинок</RimWorldAccess.Map.Jump.Mode.PresetDistance>
   <RimWorldAccess.Map.Jump.Mode.AdjacentToWall>Режим переходу: Поруч зі стіною</RimWorldAccess.Map.Jump.Mode.AdjacentToWall>
   <RimWorldAccess.Map.Jump.Mode.Unknown>Режим переходу: Невідомо</RimWorldAccess.Map.Jump.Mode.Unknown>
@@ -387,6 +382,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Plants>Рослини</RimWorldAccess.Map.Scanner.CatName.Plants>
   <RimWorldAccess.Map.Scanner.CatName.Items>Предмети</RimWorldAccess.Map.Scanner.CatName.Items>
   <RimWorldAccess.Map.Scanner.CatName.Terrain>Рельєф</RimWorldAccess.Map.Scanner.CatName.Terrain>
+  <RimWorldAccess.Map.Scanner.CatName.Roofs>Дахи</RimWorldAccess.Map.Scanner.CatName.Roofs>
   <RimWorldAccess.Map.Scanner.CatName.Mineable>Для видобутку</RimWorldAccess.Map.Scanner.CatName.Mineable>
   <RimWorldAccess.Map.Scanner.CatName.Orders>Накази</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>Зони</RimWorldAccess.Map.Scanner.CatName.Zones>
@@ -656,6 +652,8 @@
   <RimWorldAccess.Map.Scanner.JumpedTilesToCenter>Перейдено на {0} клітинок {1} до центру</RimWorldAccess.Map.Scanner.JumpedTilesToCenter>
   <RimWorldAccess.Map.Scanner.JumpedToCenter>Перейдено до центру</RimWorldAccess.Map.Scanner.JumpedToCenter>
   <RimWorldAccess.Map.Scanner.SubName.Polluted>Забруднені</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.SubName.ThickRoof>Навислі гори</RimWorldAccess.Map.Scanner.SubName.ThickRoof>
+  <RimWorldAccess.Map.Scanner.SubName.ThinRoof>Тонка порода</RimWorldAccess.Map.Scanner.SubName.ThinRoof>
   <RimWorldAccess.Map.Scanner.PollutedArea>забруднена область</RimWorldAccess.Map.Scanner.PollutedArea>
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <RimWorldAccess.Map.Tile.Plan>{0}, {1}</RimWorldAccess.Map.Tile.Plan>

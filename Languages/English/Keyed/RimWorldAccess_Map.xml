@@ -251,11 +251,6 @@
        ================================================================= -->
   <RimWorldAccess.Map.Jump.Distance>Jump distance: {0}</RimWorldAccess.Map.Jump.Distance>
   <RimWorldAccess.Map.Jump.MinimumDistance>Minimum distance</RimWorldAccess.Map.Jump.MinimumDistance>
-  <RimWorldAccess.Map.Jump.Mode.Terrain>Jump mode: Terrain</RimWorldAccess.Map.Jump.Mode.Terrain>
-  <RimWorldAccess.Map.Jump.Mode.Buildings>Jump mode: Buildings</RimWorldAccess.Map.Jump.Mode.Buildings>
-  <RimWorldAccess.Map.Jump.Mode.Geysers>Jump mode: Geysers</RimWorldAccess.Map.Jump.Mode.Geysers>
-  <RimWorldAccess.Map.Jump.Mode.HarvestableTrees>Jump mode: Harvestable Trees</RimWorldAccess.Map.Jump.Mode.HarvestableTrees>
-  <RimWorldAccess.Map.Jump.Mode.MinableTiles>Jump mode: Mineable Tiles</RimWorldAccess.Map.Jump.Mode.MinableTiles>
   <RimWorldAccess.Map.Jump.Mode.PresetDistance>Jump mode: Preset distance, {0} tiles</RimWorldAccess.Map.Jump.Mode.PresetDistance>
   <RimWorldAccess.Map.Jump.Mode.AdjacentToWall>Jump mode: Adjacent to Wall</RimWorldAccess.Map.Jump.Mode.AdjacentToWall>
   <RimWorldAccess.Map.Jump.Mode.Unknown>Jump mode: Unknown</RimWorldAccess.Map.Jump.Mode.Unknown>
@@ -387,6 +382,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Plants>Plants</RimWorldAccess.Map.Scanner.CatName.Plants>
   <RimWorldAccess.Map.Scanner.CatName.Items>Items</RimWorldAccess.Map.Scanner.CatName.Items>
   <RimWorldAccess.Map.Scanner.CatName.Terrain>Terrain</RimWorldAccess.Map.Scanner.CatName.Terrain>
+  <RimWorldAccess.Map.Scanner.CatName.Roofs>Roofs</RimWorldAccess.Map.Scanner.CatName.Roofs>
   <RimWorldAccess.Map.Scanner.CatName.Mineable>Mineable</RimWorldAccess.Map.Scanner.CatName.Mineable>
   <RimWorldAccess.Map.Scanner.CatName.Orders>Orders</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>Zones</RimWorldAccess.Map.Scanner.CatName.Zones>
@@ -439,6 +435,8 @@
   <RimWorldAccess.Map.Scanner.SubName.Natural>Natural</RimWorldAccess.Map.Scanner.SubName.Natural>
   <RimWorldAccess.Map.Scanner.SubName.Constructed>Constructed</RimWorldAccess.Map.Scanner.SubName.Constructed>
   <RimWorldAccess.Map.Scanner.SubName.Polluted>Polluted</RimWorldAccess.Map.Scanner.SubName.Polluted>
+  <RimWorldAccess.Map.Scanner.SubName.ThickRoof>Overhead mountain</RimWorldAccess.Map.Scanner.SubName.ThickRoof>
+  <RimWorldAccess.Map.Scanner.SubName.ThinRoof>Thin rock</RimWorldAccess.Map.Scanner.SubName.ThinRoof>
   <RimWorldAccess.Map.Scanner.SubName.Rare>Rare</RimWorldAccess.Map.Scanner.SubName.Rare>
   <RimWorldAccess.Map.Scanner.SubName.Stone>Stone</RimWorldAccess.Map.Scanner.SubName.Stone>
   <RimWorldAccess.Map.Scanner.SubName.Chunks>Chunks</RimWorldAccess.Map.Scanner.SubName.Chunks>
