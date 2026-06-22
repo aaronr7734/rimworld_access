@@ -630,7 +630,6 @@
   <RimWorldAccess.World.Tile.Location.LonWest>зх. д.</RimWorldAccess.World.Tile.Location.LonWest>
   <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
   <RimWorldAccess.World.Tile.Location.TimeZone>Часовий пояс: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
-  <RimWorldAccess.World.Tile.Location.TileId>Ідентифікатор плитки: {0}</RimWorldAccess.World.Tile.Location.TileId>
 
   <!-- Number key 5: features / DLC content. -->
   <RimWorldAccess.World.Tile.Features.Mutators>Особливості плитки: {0}</RimWorldAccess.World.Tile.Features.Mutators>

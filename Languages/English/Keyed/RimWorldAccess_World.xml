@@ -633,7 +633,6 @@
   <RimWorldAccess.World.Tile.Location.LonWest>W</RimWorldAccess.World.Tile.Location.LonWest>
   <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
   <RimWorldAccess.World.Tile.Location.TimeZone>Time zone: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
-  <RimWorldAccess.World.Tile.Location.TileId>Tile ID: {0}</RimWorldAccess.World.Tile.Location.TileId>
 
   <!-- Number key 5: features / DLC content. -->
   <RimWorldAccess.World.Tile.Features.Mutators>Tile features: {0}</RimWorldAccess.World.Tile.Features.Mutators>

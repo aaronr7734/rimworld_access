@@ -962,7 +962,8 @@ namespace RimWorldAccess
                 : timeZone.ToString();
             builder.Add("RimWorldAccess.World.Tile.Location.TimeZone".Translate(tzStr));
 
-            builder.Add("RimWorldAccess.World.Tile.Location.TileId".Translate(planetTile.ToString()));
+            // Tile ID (the raw internal tile index) is dev-only data and is not surfaced to
+            // players; sighted players never see it outside dev mode, so we don't announce it.
 
             return builder.Build();
         }

@@ -630,7 +630,6 @@
   <RimWorldAccess.World.Tile.Location.LonWest>西</RimWorldAccess.World.Tile.Location.LonWest>
   <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
   <RimWorldAccess.World.Tile.Location.TimeZone>时区: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
-  <RimWorldAccess.World.Tile.Location.TileId>地块 ID: {0}</RimWorldAccess.World.Tile.Location.TileId>
 
   <!-- Number key 5: features / DLC content. -->
   <RimWorldAccess.World.Tile.Features.Mutators>地块特性: {0}</RimWorldAccess.World.Tile.Features.Mutators>

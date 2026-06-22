@@ -633,7 +633,6 @@
   <RimWorldAccess.World.Tile.Location.LonWest>O</RimWorldAccess.World.Tile.Location.LonWest>
   <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
   <RimWorldAccess.World.Tile.Location.TimeZone>Zona horaria: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
-  <RimWorldAccess.World.Tile.Location.TileId>ID del cuadro: {0}</RimWorldAccess.World.Tile.Location.TileId>
 
   <!-- Number key 5: features / DLC content. -->
   <RimWorldAccess.World.Tile.Features.Mutators>Características del cuadro: {0}</RimWorldAccess.World.Tile.Features.Mutators>

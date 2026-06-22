@@ -630,7 +630,6 @@
   <RimWorldAccess.World.Tile.Location.LonWest>з. д.</RimWorldAccess.World.Tile.Location.LonWest>
   <RimWorldAccess.World.Tile.Location.TimeZonePositive>+{0}</RimWorldAccess.World.Tile.Location.TimeZonePositive>
   <RimWorldAccess.World.Tile.Location.TimeZone>Часовой пояс: UTC{0}</RimWorldAccess.World.Tile.Location.TimeZone>
-  <RimWorldAccess.World.Tile.Location.TileId>ID клетки: {0}</RimWorldAccess.World.Tile.Location.TileId>
 
   <!-- Number key 5: features / DLC content. -->
   <RimWorldAccess.World.Tile.Features.Mutators>Особенности клетки: {0}</RimWorldAccess.World.Tile.Features.Mutators>
