@@ -23,6 +23,10 @@ namespace RimWorldAccess
         private static List<object> savedSelection = null;
         private static bool announceOnExecute = true;
         private static List<Def> currentInfoCardDefs = null;
+        // Optional callback invoked once when the menu closes; the bool is true when the close was a
+        // cancel (Escape) and false when an option was chosen. Used by the paint/plan color pickers
+        // to announce the held placement entry, or cancel the tool on an initial-picker escape.
+        private static System.Action<bool> onCloseCallback = null;
 
         // Cached reflection for FloatMenuOption.shownItem (private ThingDef field used as icon)
         private static readonly FieldInfo shownItemField = typeof(FloatMenuOption).GetField("shownItem", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -42,10 +46,11 @@ namespace RimWorldAccess
         /// </summary>
         /// <param name="playOpenSound">Whether to play FloatMenu_Open sound. Set to false when
         /// the vanilla FloatMenu constructor already played it (e.g. DialogInterceptionPatch).</param>
-        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true, bool playOpenSound = true, List<Def> infoCardDefs = null)
+        public static void Open(List<FloatMenuOption> options, bool colonistOrders, int startIndex = 0, bool announceSelection = true, bool playOpenSound = true, List<Def> infoCardDefs = null, System.Action<bool> onClose = null)
         {
             currentOptions = options;
             currentInfoCardDefs = infoCardDefs;
+            onCloseCallback = onClose;
             selectedIndex = System.Math.Max(0, System.Math.Min(startIndex, options.Count - 1));
             isActive = true;
             givesColonistOrders = colonistOrders;
@@ -78,7 +83,20 @@ namespace RimWorldAccess
             currentInfoCardDefs = null;
             selectedIndex = 0;
             isActive = false;
+            onCloseCallback = null;
             typeahead.ClearSearch();
+        }
+
+        /// <summary>
+        /// Closes the menu as a cancel (Escape), running the on-close callback. Selection-based
+        /// closes run the callback from <see cref="ExecuteSelected"/> after the action instead.
+        /// </summary>
+        public static void Cancel()
+        {
+            System.Action<bool> cb = onCloseCallback;
+            onCloseCallback = null;
+            Close();
+            cb?.Invoke(true);
         }
 
         /// <summary>
@@ -147,6 +165,10 @@ namespace RimWorldAccess
                 }
             }
 
+            // Capture the on-close callback before Close() clears it, so we can run it AFTER the
+            // option's action (which may itself speak, e.g. "Color: Gray").
+            System.Action<bool> closeCb = onCloseCallback;
+
             // Close the menu BEFORE executing the action
             // This allows the action to open a new menu if needed
             Close();
@@ -192,6 +214,9 @@ namespace RimWorldAccess
                 else
                     TolkHelper.Speak("RimWorldAccess.UI.FloatMenu.Selected".Loc(selectedOption.Label));
             }
+
+            // Run the on-close callback last (after the option's own announcement).
+            closeCb?.Invoke(false);
         }
 
         /// <summary>

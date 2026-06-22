@@ -36,6 +36,7 @@ namespace RimWorldAccess
         private static int lastDesignationCount = 0;
         private static int lastZoneCount = 0;
         private static int lastZoneCellHash = 0;
+        private static int lastPlanHash = 0;
 
         // Navigation session: within a sequence of Page Up/Down presses the sort order is
         // frozen so sequential navigation is stable and fast (no per-press re-sort). A session
@@ -569,6 +570,7 @@ namespace RimWorldAccess
             lastDesignationCount = 0;
             lastZoneCount = 0;
             lastZoneCellHash = 0;
+            lastPlanHash = 0;
             ScannerHelper.InvalidateCache();
 
             // End any in-progress navigation session.
@@ -629,12 +631,23 @@ namespace RimWorldAccess
                 currentZoneCellHash = unchecked(currentZoneCellHash * 31 + cellCount);
             }
 
+            // Plans aren't Things/zones, so fold their count, per-plan color, and cell count into a
+            // hash; this invalidates the cache when a plan is added, removed, recolored (which moves
+            // it between color subcategories), or resized.
+            int currentPlanHash = 0;
+            foreach (var plan in map.planManager.AllPlans)
+            {
+                int planFactor = (plan?.Color?.shortHash ?? 0) * 31 + (plan?.CellCount ?? 0);
+                currentPlanHash = unchecked(currentPlanHash * 31 + planFactor);
+            }
+
             bool cacheValid = cachedCategories != null
                 && cachedCategories.Count > 0
                 && currentThingHash == lastThingStateHash
                 && currentDesignationCount == lastDesignationCount
                 && currentZoneCount == lastZoneCount
-                && currentZoneCellHash == lastZoneCellHash;
+                && currentZoneCellHash == lastZoneCellHash
+                && currentPlanHash == lastPlanHash;
 
             if (cacheValid)
             {
@@ -672,6 +685,7 @@ namespace RimWorldAccess
                 lastDesignationCount = currentDesignationCount;
                 lastZoneCount = currentZoneCount;
                 lastZoneCellHash = currentZoneCellHash;
+                lastPlanHash = currentPlanHash;
                 lastSortedCursorPosition = cursorPos;
                 // Map state changed (cache miss) — the previous navigation snapshot is no
                 // longer valid. Pawn death / designation / zone edit all land here.
@@ -734,6 +748,7 @@ namespace RimWorldAccess
             lastDesignationCount = currentDesignationCount;
             lastZoneCount = currentZoneCount;
             lastZoneCellHash = currentZoneCellHash;
+            lastPlanHash = currentPlanHash;
             // CollectMapItems sorted items by distance from cursorPos, so the current cursor
             // matches the sort order. Skip the next EnsureSortedForCurrentCursor re-sort.
             lastSortedCursorPosition = cursorPos;

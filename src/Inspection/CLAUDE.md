@@ -34,6 +34,14 @@ matching the universal pawn-picker keyboard convention.
 
 Routed via `BuildingInspectPatch` (priority VeryHigh prefix) alongside BillsMenuState.
 
+### Plan management
+
+A `Verse.Plan` marker at the cursor is added to the inspection object list (alongside zones, which
+are likewise not Things) and shows a read-only **Overview** (color, name, size). Its management
+actions — Rename, Change color, Toggle visibility, Expand, Shrink, Delete — live on the **G gizmo
+key**: `GizmoNavigationState.OpenAtCursor` collects the plan at the cursor and adds the synthetic
+`Command_Action`s from `Building/PlanActionHelper.BuildGizmos`.
+
 ## Key Shortcuts
 - **Enter** - Open inspection at cursor
 - **G** - Gizmo navigation

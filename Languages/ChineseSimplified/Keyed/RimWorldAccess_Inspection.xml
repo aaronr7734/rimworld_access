@@ -1497,4 +1497,6 @@
   <RimWorldAccess.Inspection.Appearance.Row>{0}: {1}</RimWorldAccess.Inspection.Appearance.Row>
   <RimWorldAccess.Inspection.Appearance.HairRow>{0}: {1}, {2}</RimWorldAccess.Inspection.Appearance.HairRow>
   <RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>喜爱的颜色</RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>
+  <RimWorldAccess.Inspection.Summary.Plan>{0}{1}</RimWorldAccess.Inspection.Summary.Plan>
+  <RimWorldAccess.Inspection.CategoryName.PlanRename>重命名</RimWorldAccess.Inspection.CategoryName.PlanRename>
 </LanguageData>

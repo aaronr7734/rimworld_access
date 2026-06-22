@@ -60,6 +60,13 @@ namespace RimWorldAccess
             {
                 removedCount = RemoveZoneSegmentItems(segmentIndex, cellSegments, map, targetZone);
             }
+            else if (activeDesignator is Designator_Plan_Add)
+            {
+                // Plan cells live in the PlanManager, not the DesignationManager, so undo removes
+                // the placed cells from whatever plan now occupies them (Plan.RemoveCell auto-
+                // deregisters a plan once its last cell is gone).
+                removedCount = RemovePlanSegmentItems(segmentIndex, cellSegments, map);
+            }
             else
             {
                 removedCount = RemoveDesignationSegmentItems(segmentIndex, cellSegments, map, activeDesignator);
@@ -143,6 +150,47 @@ namespace RimWorldAccess
                 }
             }
 
+            return removedCount;
+        }
+
+        /// <summary>
+        /// Removes plan cells placed in one segment (or all segments when segmentIndex is -1) by
+        /// taking them back out of the PlanManager. Mirrors how the plan-remove tool works, but
+        /// scoped to exactly the cells this placement added.
+        /// </summary>
+        private static int RemovePlanSegmentItems(
+            int segmentIndex,
+            List<List<IntVec3>> cellSegments,
+            Map map)
+        {
+            if (map?.planManager == null)
+                return 0;
+
+            int removedCount = 0;
+            if (segmentIndex >= 0 && segmentIndex < cellSegments.Count)
+            {
+                removedCount = RemovePlanCells(cellSegments[segmentIndex], map);
+            }
+            else if (segmentIndex == -1)
+            {
+                foreach (var segment in cellSegments)
+                    removedCount += RemovePlanCells(segment, map);
+            }
+            return removedCount;
+        }
+
+        private static int RemovePlanCells(List<IntVec3> cells, Map map)
+        {
+            int removedCount = 0;
+            foreach (var cell in cells)
+            {
+                var plan = map.planManager.PlanAt(cell);
+                if (plan != null)
+                {
+                    plan.RemoveCell(cell);
+                    removedCount++;
+                }
+            }
             return removedCount;
         }
 

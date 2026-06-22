@@ -126,6 +126,11 @@ namespace RimWorldAccess
                 Find.Selector.ClearSelection();
                 Find.Selector.Select(zoneToSelect, playSound: false, forceDesignatorDeselect: false);
             }
+            else if (obj is Plan planToSelect && !Find.Selector.IsSelected(planToSelect))
+            {
+                Find.Selector.ClearSelection();
+                Find.Selector.Select(planToSelect, playSound: false, forceDesignatorDeselect: false);
+            }
 
             // Use new dynamic categories that discover tabs from the game
             var dynamicCategories = InspectionInfoHelper.GetDynamicCategories(obj);

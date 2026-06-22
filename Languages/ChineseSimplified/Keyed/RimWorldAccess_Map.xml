@@ -662,4 +662,6 @@
   <RimWorldAccess.Map.Scanner.SubName.Polluted>受污染</RimWorldAccess.Map.Scanner.SubName.Polluted>
   <RimWorldAccess.Map.Scanner.PollutedArea>受污染区域</RimWorldAccess.Map.Scanner.PollutedArea>
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
+  <RimWorldAccess.Map.Tile.Plan>{0}{1}</RimWorldAccess.Map.Tile.Plan>
+  <RimWorldAccess.Map.Scanner.CatName.Plans>计划</RimWorldAccess.Map.Scanner.CatName.Plans>
 </LanguageData>

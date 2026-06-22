@@ -658,4 +658,6 @@
   <RimWorldAccess.Map.Scanner.SubName.Polluted>Забруднені</RimWorldAccess.Map.Scanner.SubName.Polluted>
   <RimWorldAccess.Map.Scanner.PollutedArea>забруднена область</RimWorldAccess.Map.Scanner.PollutedArea>
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
+  <RimWorldAccess.Map.Tile.Plan>{0}, {1}</RimWorldAccess.Map.Tile.Plan>
+  <RimWorldAccess.Map.Scanner.CatName.Plans>Плани</RimWorldAccess.Map.Scanner.CatName.Plans>
 </LanguageData>

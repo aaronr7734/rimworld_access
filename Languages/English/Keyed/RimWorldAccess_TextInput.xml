@@ -4,6 +4,7 @@
   <RimWorldAccess.TextInput.LabelFaction>faction name</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>settlement name</RimWorldAccess.TextInput.LabelSettlement>
   <RimWorldAccess.TextInput.LabelZone>zone name</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelPlan>plan name</RimWorldAccess.TextInput.LabelPlan>
   <RimWorldAccess.TextInput.LabelStorage>storage name</RimWorldAccess.TextInput.LabelStorage>
   <RimWorldAccess.TextInput.LabelPen>pen name</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>scenario title</RimWorldAccess.TextInput.LabelScenarioTitle>

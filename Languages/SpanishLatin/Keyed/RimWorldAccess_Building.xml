@@ -1039,9 +1039,18 @@
   <RimWorldAccess.Building.PlanColor.Pink>Rosa</RimWorldAccess.Building.PlanColor.Pink>
 
   <!-- Plan management announcements (src/Building/PlanActionHelper.cs). -->
-  <RimWorldAccess.Building.Plan.Shown>Planificación mostrada</RimWorldAccess.Building.Plan.Shown>
   <RimWorldAccess.Building.Plan.Hidden>Planificación oculta</RimWorldAccess.Building.Plan.Hidden>
   <!-- {0} = plan name. -->
   <RimWorldAccess.Building.Plan.Deleted>Planificación {0} eliminada</RimWorldAccess.Building.Plan.Deleted>
 
+  <RimWorldAccess.Building.Plan.Copied>Planificación {0} copiada</RimWorldAccess.Building.Plan.Copied>
+  <RimWorldAccess.Building.Plan.Pasted>Planificación {0} pegada, {1} cuadros</RimWorldAccess.Building.Plan.Pasted>
+  <RimWorldAccess.Building.Plan.PastedReplaced>Planificación {0} pegada, {1} cuadros, {2} reemplazados de otras planificaciones</RimWorldAccess.Building.Plan.PastedReplaced>
+  <RimWorldAccess.Building.Plan.PasteNothing>No se pegó nada, no hay espacio aquí</RimWorldAccess.Building.Plan.PasteNothing>
+  <RimWorldAccess.Building.Plan.ClipboardEmpty>Ninguna planificación copiada</RimWorldAccess.Building.Plan.ClipboardEmpty>
+  <RimWorldAccess.Building.Plan.PasteHint>Presiona Ctrl+V para pegar.</RimWorldAccess.Building.Plan.PasteHint>
+  <RimWorldAccess.Building.Plan.PasteRelativeHint>La planificación se copia con respecto a tu cursor, así que al pegar tu cursor quedará en la misma celda de la copia en la que está ahora.</RimWorldAccess.Building.Plan.PasteRelativeHint>
+  <RimWorldAccess.Building.Plan.Desc.Rename>Renombra esta planificación.</RimWorldAccess.Building.Plan.Desc.Rename>
+  <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Alterna la visibilidad de esta planificación en el mapa.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
+  <RimWorldAccess.Building.Plan.Desc.Expand>Expande esta planificación dibujando más cuadros.</RimWorldAccess.Building.Plan.Desc.Expand>
 </LanguageData>

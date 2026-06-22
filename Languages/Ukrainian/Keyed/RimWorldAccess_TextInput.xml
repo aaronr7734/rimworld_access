@@ -39,4 +39,5 @@
   <RimWorldAccess.TextInput.RejectedSpecial>Неможливо вставити, містить заборонені граматичні символи</RimWorldAccess.TextInput.RejectedSpecial>
   <RimWorldAccess.TextInput.RejectedFilename>Неможливо вставити, містить символи, недопустимі в назвах файлів</RimWorldAccess.TextInput.RejectedFilename>
   <RimWorldAccess.TextInput.RejectedCustom>Неможливо прийняти значення: {0}</RimWorldAccess.TextInput.RejectedCustom>
+  <RimWorldAccess.TextInput.LabelPlan>назва маркера планування</RimWorldAccess.TextInput.LabelPlan>
 </LanguageData>

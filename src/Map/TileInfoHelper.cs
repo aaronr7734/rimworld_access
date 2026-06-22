@@ -123,6 +123,13 @@ namespace RimWorldAccess
             if (zone != null)
                 builder.Add(zone.label);
 
+            // Plan markers are a sibling overlay of zones (map.planManager), not a TerrainDef or a
+            // Thing, so announce the plan's name and color when the cursor sits on one of its cells.
+            Plan plan = map.planManager.PlanAt(position);
+            if (plan != null)
+                builder.Add("RimWorldAccess.Map.Tile.Plan".Translate(
+                    PlanColorHelper.ColorName(plan.Color), plan.RenamableLabel));
+
             builder.Add("RimWorldAccess.Map.Tile.Coords".Translate(position.x, position.z));
 
             if (IsDropPodLandingTargeting() &&

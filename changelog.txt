@@ -37,6 +37,23 @@ CHANGES
   Press C while painting to change the color again. As you move the map cursor,
   painted floors and buildings now announce their color too (for example, "fine
   marble tile, deep purple").
+- Plans are now fully accessible. When you pick the Plan tool from the architect
+  Orders menu, a color list opens so you can choose the plan color by name
+  (gray, red, orange, yellow, green, cyan, blue, purple, or pink); press C while
+  drawing to change it again. As you move the map cursor, any plan under it
+  announces its color and name, for example "purple Potato farm". Plans have
+  their own scanner category: each block of plan is one entry that reads its
+  color, name, and size, and Home jumps you to the nearest edge and then the
+  center, just like terrain patches. The Plans category also has a subcategory
+  for each color in use, so you can browse just your red plans, just your blue
+  ones, and so on. Press G on a plan to manage it, the same as any other object:
+  the gizmo list lets you rename it, change its color, show or hide it, expand or
+  shrink it, copy it, or delete it. Copy captures the plan, then Ctrl+V pastes a
+  duplicate. Paste is cursor-relative: the cell you were standing on when you
+  copied lands right under your cursor when you paste, so the duplicate appears
+  exactly where you expect. If the paste covers cells that belonged to another
+  plan, it tells you how many it replaced. Pressing Enter on a plan still reads
+  its overview (color, name, and size).
 - The in-game Learning Helper now speaks your language in Chinese, Ukrainian,
   and Russian. This covers both the mod's own accessibility lessons (inspecting
   things, the scanner, selecting colonists, building, and so on) and the

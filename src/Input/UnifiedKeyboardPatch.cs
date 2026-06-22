@@ -1005,6 +1005,16 @@ namespace RimWorldAccess
                     return;
                 }
 
+                // Likewise, while drawing a plan, 'C' reopens the plan color picker.
+                if (key == KeyCode.C && !KeyboardHelper.IsAltHeld && !Event.current.control && !Event.current.shift
+                    && Find.CurrentMap != null
+                    && PlanColorHelper.IsPlanColorDesignator(Find.DesignatorManager?.SelectedDesignator))
+                {
+                    PlanColorHelper.OpenColorPicker((Designator_Plan_Add)Find.DesignatorManager.SelectedDesignator);
+                    Event.current.Use();
+                    return;
+                }
+
                 // Otherwise let ArchitectPlacementPatch handle the input
                 // This ensures proper priority ordering
             }
@@ -5253,7 +5263,7 @@ namespace RimWorldAccess
                     {
                         // No active search, close the menu
                         SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
-                        WindowlessFloatMenuState.Close();
+                        WindowlessFloatMenuState.Cancel();
 
                         // If architect mode is active (category/tool/material selection), also reset it
                         if (ArchitectState.IsActive && !ArchitectState.IsInPlacementMode)
@@ -6605,6 +6615,29 @@ namespace RimWorldAccess
                 {
                     Event.current.Use();
                     OpenInfoCardAtCursor();
+                    return;
+                }
+            }
+
+            // ===== PRIORITY 7.62: Paste a copied plan at the cursor with Ctrl+V =====
+            // Only fires when a plan has been copied; otherwise Ctrl+V falls through untouched.
+            if (KeyboardHelper.IsCtrlHeld && key == KeyCode.V && !KeyboardHelper.IsAltHeld && !Event.current.shift
+                && PlanClipboard.HasContent)
+            {
+                if (Current.ProgramState == ProgramState.Playing &&
+                    Find.CurrentMap != null &&
+                    (Find.WindowStack == null || !Find.WindowStack.WindowsPreventCameraMotion) &&
+                    !ZoneCreationState.IsInCreationMode &&
+                    MapNavigationState.IsInitialized &&
+                    TextInputManager.Active == null &&
+                    !ShapePlacementState.IsActive &&
+                    !GizmoNavigationState.IsActive &&
+                    !WindowlessInspectionState.IsActive &&
+                    !WindowlessFloatMenuState.IsActive &&
+                    !WindowlessInventoryState.IsActive)
+                {
+                    Event.current.Use();
+                    PlanClipboard.PasteAt(MapNavigationState.CurrentCursorPosition, Find.CurrentMap);
                     return;
                 }
             }

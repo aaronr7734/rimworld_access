@@ -390,6 +390,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Mineable>Mineable</RimWorldAccess.Map.Scanner.CatName.Mineable>
   <RimWorldAccess.Map.Scanner.CatName.Orders>Orders</RimWorldAccess.Map.Scanner.CatName.Orders>
   <RimWorldAccess.Map.Scanner.CatName.Zones>Zones</RimWorldAccess.Map.Scanner.CatName.Zones>
+  <RimWorldAccess.Map.Scanner.CatName.Plans>Plans</RimWorldAccess.Map.Scanner.CatName.Plans>
   <RimWorldAccess.Map.Scanner.CatName.Rooms>Rooms</RimWorldAccess.Map.Scanner.CatName.Rooms>
   <RimWorldAccess.Map.Scanner.CatName.Unexplored>Unexplored</RimWorldAccess.Map.Scanner.CatName.Unexplored>
   <RimWorldAccess.Map.Scanner.CatName.Uncategorized>Uncategorized</RimWorldAccess.Map.Scanner.CatName.Uncategorized>
@@ -514,6 +515,8 @@
   <!-- Tile coordinates fragment ({x}, {z}). AnnouncementBuilder owns
        the leading comma when other content is present. -->
   <RimWorldAccess.Map.Tile.Coords>{0}, {1}</RimWorldAccess.Map.Tile.Coords>
+  <!-- Plan marker on the cursor tile. {0} = color name, {1} = plan name (e.g. "purple Potato farm"). -->
+  <RimWorldAccess.Map.Tile.Plan>{0} {1}</RimWorldAccess.Map.Tile.Plan>
   <RimWorldAccess.Map.Tile.CantLand>can't land</RimWorldAccess.Map.Tile.CantLand>
   <RimWorldAccess.Map.Tile.NotVisible>not visible</RimWorldAccess.Map.Tile.NotVisible>
 

@@ -1010,4 +1010,29 @@
   <RimWorldAccess.Building.PaintColor.MenuTitle>颜色</RimWorldAccess.Building.PaintColor.MenuTitle>
   <RimWorldAccess.Building.PaintColor.Set>颜色: {0}</RimWorldAccess.Building.PaintColor.Set>
   <RimWorldAccess.Building.PaintColor.Current>当前</RimWorldAccess.Building.PaintColor.Current>
+  <RimWorldAccess.Building.PlanColor.MenuTitle>计划颜色</RimWorldAccess.Building.PlanColor.MenuTitle>
+  <RimWorldAccess.Building.PlanColor.Set>颜色: {0}</RimWorldAccess.Building.PlanColor.Set>
+  <RimWorldAccess.Building.PlanColor.Current>当前</RimWorldAccess.Building.PlanColor.Current>
+  <RimWorldAccess.Building.PlanColor.Gray>灰色</RimWorldAccess.Building.PlanColor.Gray>
+  <RimWorldAccess.Building.PlanColor.Red>红色</RimWorldAccess.Building.PlanColor.Red>
+  <RimWorldAccess.Building.PlanColor.Orange>橙色</RimWorldAccess.Building.PlanColor.Orange>
+  <RimWorldAccess.Building.PlanColor.Yellow>黄色</RimWorldAccess.Building.PlanColor.Yellow>
+  <RimWorldAccess.Building.PlanColor.Green>绿色</RimWorldAccess.Building.PlanColor.Green>
+  <RimWorldAccess.Building.PlanColor.Cyan>青色</RimWorldAccess.Building.PlanColor.Cyan>
+  <RimWorldAccess.Building.PlanColor.Blue>蓝色</RimWorldAccess.Building.PlanColor.Blue>
+  <RimWorldAccess.Building.PlanColor.Purple>紫色</RimWorldAccess.Building.PlanColor.Purple>
+  <RimWorldAccess.Building.PlanColor.Pink>粉色</RimWorldAccess.Building.PlanColor.Pink>
+  <RimWorldAccess.Building.Rename.PlanError>重命名计划时出错: {0}</RimWorldAccess.Building.Rename.PlanError>
+  <RimWorldAccess.Building.Plan.Hidden>已隐藏计划</RimWorldAccess.Building.Plan.Hidden>
+  <RimWorldAccess.Building.Plan.Deleted>已删除计划 {0}</RimWorldAccess.Building.Plan.Deleted>
+  <RimWorldAccess.Building.Plan.Copied>已复制计划 {0}</RimWorldAccess.Building.Plan.Copied>
+  <RimWorldAccess.Building.Plan.Pasted>已粘贴计划 {0}, {1} 格</RimWorldAccess.Building.Plan.Pasted>
+  <RimWorldAccess.Building.Plan.PastedReplaced>已粘贴计划 {0}, {1} 格, 覆盖了其他计划的 {2} 格</RimWorldAccess.Building.Plan.PastedReplaced>
+  <RimWorldAccess.Building.Plan.PasteNothing>未粘贴任何内容，此处无空间</RimWorldAccess.Building.Plan.PasteNothing>
+  <RimWorldAccess.Building.Plan.ClipboardEmpty>未复制任何计划</RimWorldAccess.Building.Plan.ClipboardEmpty>
+  <RimWorldAccess.Building.Plan.PasteHint>按 Ctrl+V 粘贴。</RimWorldAccess.Building.Plan.PasteHint>
+  <RimWorldAccess.Building.Plan.PasteRelativeHint>计划以光标位置为基准复制，因此粘贴时，光标会落在副本中与当前相同的格子上。</RimWorldAccess.Building.Plan.PasteRelativeHint>
+  <RimWorldAccess.Building.Plan.Desc.Rename>重命名此计划。</RimWorldAccess.Building.Plan.Desc.Rename>
+  <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>切换此计划在地图上的可见性。</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
+  <RimWorldAccess.Building.Plan.Desc.Expand>通过绘制更多格来扩展此计划。</RimWorldAccess.Building.Plan.Desc.Expand>
 </LanguageData>

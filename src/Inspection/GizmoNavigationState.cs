@@ -250,6 +250,23 @@ namespace RimWorldAccess
                         gizmoOwners[gizmo] = zone;
                     }
                 }
+
+                // Check for a plan marker at the cursor. We present our own accessible plan
+                // management gizmos (rename, change color, visibility, expand, shrink, delete)
+                // instead of vanilla's, whose change-color grid and copy tools are unusable by
+                // keyboard.
+                Plan plan = cursorPosition.GetPlan(map);
+                if (plan != null)
+                {
+                    Find.Selector.ClearSelection();
+                    Find.Selector.Select(plan, playSound: false, forceDesignatorDeselect: false);
+
+                    foreach (Gizmo gizmo in PlanActionHelper.BuildGizmos(plan))
+                    {
+                        availableGizmos.Add(gizmo);
+                        gizmoOwners[gizmo] = plan;
+                    }
+                }
             }
             finally
             {
@@ -1444,6 +1461,8 @@ namespace RimWorldAccess
                         ownerPrefix = thing.LabelCap.StripTags() + ": ";
                     else if (owner is WorldObject worldObj)
                         ownerPrefix = worldObj.LabelCap.StripTags() + ": ";
+                    else if (owner is Plan plan)
+                        ownerPrefix = plan.RenamableLabel + ": ";
                 }
             }
 

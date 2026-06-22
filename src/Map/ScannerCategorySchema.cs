@@ -27,6 +27,7 @@ namespace RimWorldAccess
             ["Trees"] = "Trees",
             ["Plants"] = "Plants",
             ["Items"] = "Items",
+            ["Plans"] = "Plans",
             ["Terrain"] = "Terrain",
             ["Mineable"] = "Mineable",
             ["Orders"] = "Orders",
@@ -136,6 +137,15 @@ namespace RimWorldAccess
 
             if (subPart == "All")
                 return localizedCat;
+
+            // Plans subcategories are per-color: the subPart is a planning-color suffix (e.g. "Red")
+            // whose display name comes from the Building PlanColor keys, not the scanner SubName table.
+            if (catPart == "Plans")
+            {
+                string colorKey = "RimWorldAccess.Building.PlanColor." + subPart;
+                string localizedColor = colorKey.CanTranslate() ? colorKey.Translate().ToString() : subPart;
+                return "RimWorldAccess.Map.Scanner.SubFullName".Translate(localizedCat, localizedColor).ToString();
+            }
 
             if (!SubcategoryKeys.TryGetValue(subPart, out string subSuffix))
                 return fullName;
@@ -292,6 +302,7 @@ namespace RimWorldAccess
                 "Construction", "Haul", "Hunt", "Mine", "Deconstruct", "Uninstall",
                 "Cut", "Harvest", "Smooth", "Tame", "Slaughter", "Other"),
             new ScannerCategorySchema("Zones", "Growing", "Stockpile", "Fishing", "Other"),
+            new ScannerCategorySchema("Plans"), // only gets "All"
             new ScannerCategorySchema("Rooms"), // only gets "All"
             new ScannerCategorySchema("Unexplored"),
             // Uncategorized is built separately — its subcategories are discovered at runtime.

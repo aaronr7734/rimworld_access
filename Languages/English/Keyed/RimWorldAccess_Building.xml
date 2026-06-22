@@ -128,6 +128,7 @@
   <RimWorldAccess.Building.Rename.StorageCancelled>Cancelled</RimWorldAccess.Building.Rename.StorageCancelled>
   <RimWorldAccess.Building.Rename.PenError>Error renaming pen marker: {0}</RimWorldAccess.Building.Rename.PenError>
   <RimWorldAccess.Building.Rename.ZoneError>Error renaming zone: {0}</RimWorldAccess.Building.Rename.ZoneError>
+  <RimWorldAccess.Building.Rename.PlanError>Error renaming plan: {0}</RimWorldAccess.Building.Rename.PlanError>
   <RimWorldAccess.Building.Rename.StorageError>Error: {0}</RimWorldAccess.Building.Rename.StorageError>
   <RimWorldAccess.Building.Rename.StorageMapMissing>Error: Cannot find map.</RimWorldAccess.Building.Rename.StorageMapMissing>
   <RimWorldAccess.Building.Rename.StorageGroupCreated>Created storage group {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
@@ -1016,5 +1017,43 @@
   <RimWorldAccess.Building.PaintColor.Set>Color: {0}</RimWorldAccess.Building.PaintColor.Set>
   <!-- Suffix (composed after ", ") marking the color currently selected on the designator. -->
   <RimWorldAccess.Building.PaintColor.Current>current</RimWorldAccess.Building.PaintColor.Current>
+
+  <!-- Plan color picker (src/Building/PlanColorHelper.cs). Auto-opens when the architect "Plan"
+       tool is selected, and reopens with 'C' while drawing a plan. The nine planning ColorDefs
+       ship with empty labels, so we supply our own names keyed off each def's name suffix
+       (PlanRed -> Red). -->
+  <RimWorldAccess.Building.PlanColor.MenuTitle>Plan color</RimWorldAccess.Building.PlanColor.MenuTitle>
+  <!-- {0} = color name. Spoken after a color is chosen from the picker. -->
+  <RimWorldAccess.Building.PlanColor.Set>Color: {0}</RimWorldAccess.Building.PlanColor.Set>
+  <!-- Suffix (composed after ", ") marking the color currently selected on the designator. -->
+  <RimWorldAccess.Building.PlanColor.Current>current</RimWorldAccess.Building.PlanColor.Current>
+  <!-- The nine planning color names. -->
+  <RimWorldAccess.Building.PlanColor.Gray>Gray</RimWorldAccess.Building.PlanColor.Gray>
+  <RimWorldAccess.Building.PlanColor.Red>Red</RimWorldAccess.Building.PlanColor.Red>
+  <RimWorldAccess.Building.PlanColor.Orange>Orange</RimWorldAccess.Building.PlanColor.Orange>
+  <RimWorldAccess.Building.PlanColor.Yellow>Yellow</RimWorldAccess.Building.PlanColor.Yellow>
+  <RimWorldAccess.Building.PlanColor.Green>Green</RimWorldAccess.Building.PlanColor.Green>
+  <RimWorldAccess.Building.PlanColor.Cyan>Cyan</RimWorldAccess.Building.PlanColor.Cyan>
+  <RimWorldAccess.Building.PlanColor.Blue>Blue</RimWorldAccess.Building.PlanColor.Blue>
+  <RimWorldAccess.Building.PlanColor.Purple>Purple</RimWorldAccess.Building.PlanColor.Purple>
+  <RimWorldAccess.Building.PlanColor.Pink>Pink</RimWorldAccess.Building.PlanColor.Pink>
+
+  <!-- Plan management announcements (src/Building/PlanActionHelper.cs). -->
+  <RimWorldAccess.Building.Plan.Hidden>Plan hidden</RimWorldAccess.Building.Plan.Hidden>
+  <!-- {0} = plan name. -->
+  <RimWorldAccess.Building.Plan.Deleted>Deleted plan {0}</RimWorldAccess.Building.Plan.Deleted>
+  <!-- Plan copy/paste (src/Building/PlanClipboard.cs). {0} = plan name, {1} = cell count. -->
+  <RimWorldAccess.Building.Plan.Copied>Copied plan {0}</RimWorldAccess.Building.Plan.Copied>
+  <RimWorldAccess.Building.Plan.Pasted>Pasted plan {0}, {1} cells</RimWorldAccess.Building.Plan.Pasted>
+  <RimWorldAccess.Building.Plan.PastedReplaced>Pasted plan {0}, {1} cells, replaced {2} from other plans</RimWorldAccess.Building.Plan.PastedReplaced>
+  <RimWorldAccess.Building.Plan.PasteNothing>Nothing pasted, no room here</RimWorldAccess.Building.Plan.PasteNothing>
+  <RimWorldAccess.Building.Plan.ClipboardEmpty>No plan copied</RimWorldAccess.Building.Plan.ClipboardEmpty>
+  <!-- Spoken after copying a plan, and shown in the Copy gizmo's tooltip. -->
+  <RimWorldAccess.Building.Plan.PasteHint>Press Ctrl+V to paste.</RimWorldAccess.Building.Plan.PasteHint>
+  <RimWorldAccess.Building.Plan.PasteRelativeHint>The plan is copied relative to your cursor, so when you paste, your cursor lands on the same cell of the copy that it is on now.</RimWorldAccess.Building.Plan.PasteRelativeHint>
+  <!-- Plan gizmo tooltips (the rest reuse the game's own plan-command descriptions). -->
+  <RimWorldAccess.Building.Plan.Desc.Rename>Rename this plan.</RimWorldAccess.Building.Plan.Desc.Rename>
+  <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Toggle this plan's visibility on the map.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
+  <RimWorldAccess.Building.Plan.Desc.Expand>Expand this plan by drawing more cells.</RimWorldAccess.Building.Plan.Desc.Expand>
 
 </LanguageData>

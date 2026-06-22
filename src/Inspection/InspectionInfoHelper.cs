@@ -132,6 +132,12 @@ namespace RimWorldAccess
                 return "RimWorldAccess.Inspection.Summary.Zone".Translate(zone.label, zoneType);
             }
 
+            if (obj is Plan plan)
+            {
+                return "RimWorldAccess.Inspection.Summary.Plan".Translate(
+                    PlanColorHelper.ColorName(plan.Color), plan.RenamableLabel);
+            }
+
             return obj.ToString();
         }
 
@@ -384,6 +390,10 @@ namespace RimWorldAccess
                 }
             }
 
+            // Plans only get the synthetic Overview (added for every object above). Their management
+            // actions (rename, change color, visibility, expand, shrink, delete) live on the G gizmo
+            // key instead — see Building/PlanActionHelper.BuildGizmos.
+
             return categories;
         }
 
@@ -418,6 +428,10 @@ namespace RimWorldAccess
                 else if (obj is Zone zone)
                 {
                     return GetZoneCategoryInfo(zone, category);
+                }
+                else if (obj is Plan plan)
+                {
+                    return GetPlanCategoryInfo(plan, category);
                 }
                 else if (obj is Thing thing)
                 {
@@ -1095,6 +1109,44 @@ namespace RimWorldAccess
                 default:
                     return "RimWorldAccess.Inspection.Category.NotFound".Translate();
             }
+        }
+
+        /// <summary>
+        /// Gets category information for a plan. Only the Overview is read-only text; the other plan
+        /// categories are actions dispatched through ExecuteCategoryAction.
+        /// </summary>
+        private static string GetPlanCategoryInfo(Plan plan, string category)
+        {
+            switch (category)
+            {
+                case "Overview":
+                    return GetPlanOverview(plan);
+                default:
+                    return "RimWorldAccess.Inspection.Category.NotFound".Translate();
+            }
+        }
+
+        /// <summary>
+        /// Gets overview information for a plan: its name, color, and RimWorld's own localized size
+        /// inspect string ("Size: N", "Total planning area: M").
+        /// </summary>
+        private static string GetPlanOverview(Plan plan)
+        {
+            var lines = new List<string>();
+
+            lines.Add("RimWorldAccess.Inspection.Summary.Plan".Translate(
+                PlanColorHelper.ColorName(plan.Color), plan.RenamableLabel));
+
+            if (plan.Hidden)
+                lines.Add("RimWorldAccess.Building.Plan.Hidden".Translate());
+
+            string inspectString = plan.GetInspectString();
+            if (!string.IsNullOrWhiteSpace(inspectString))
+            {
+                lines.Add(FormatInspectStringWithPunctuation(inspectString));
+            }
+
+            return string.Join("\n", lines);
         }
 
         /// <summary>

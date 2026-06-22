@@ -39,4 +39,5 @@
   <RimWorldAccess.TextInput.RejectedSpecial>无法粘贴，包含禁用的语法字符</RimWorldAccess.TextInput.RejectedSpecial>
   <RimWorldAccess.TextInput.RejectedFilename>无法粘贴，包含文件名中不允许的字符</RimWorldAccess.TextInput.RejectedFilename>
   <RimWorldAccess.TextInput.RejectedCustom>无法接受该值: {0}</RimWorldAccess.TextInput.RejectedCustom>
+  <RimWorldAccess.TextInput.LabelPlan>计划名称</RimWorldAccess.TextInput.LabelPlan>
 </LanguageData>

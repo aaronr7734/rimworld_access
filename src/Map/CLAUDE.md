@@ -97,6 +97,8 @@ Limited - mostly uses public RimWorld APIs
 7. Items (All Items, Forbidden Items)
 8. Mineable Tiles
 9. Orders (Construction, Haul, Hunt, Mine, etc.)
+10. Plans (one entry per plan marker; announces color + name + size; Home edge/center like terrain;
+   per-color subcategories so you can browse one plan color at a time)
 
 **Features:**
 - Hierarchical navigation (category → subcategory → item)

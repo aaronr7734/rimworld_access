@@ -1478,11 +1478,6 @@
   <RimWorldAccess.Inspection.CategoryName.Rename>Renombrar</RimWorldAccess.Inspection.CategoryName.Rename>
   <!-- Plan management actions in a plan's inspection tree. -->
   <RimWorldAccess.Inspection.CategoryName.PlanRename>Renombrar</RimWorldAccess.Inspection.CategoryName.PlanRename>
-  <RimWorldAccess.Inspection.CategoryName.PlanChangeColor>Cambiar color</RimWorldAccess.Inspection.CategoryName.PlanChangeColor>
-  <RimWorldAccess.Inspection.CategoryName.PlanToggleVisibility>Alternar visibilidad</RimWorldAccess.Inspection.CategoryName.PlanToggleVisibility>
-  <RimWorldAccess.Inspection.CategoryName.PlanExpand>Expandir</RimWorldAccess.Inspection.CategoryName.PlanExpand>
-  <RimWorldAccess.Inspection.CategoryName.PlanShrink>Reducir</RimWorldAccess.Inspection.CategoryName.PlanShrink>
-  <RimWorldAccess.Inspection.CategoryName.PlanDelete>Eliminar</RimWorldAccess.Inspection.CategoryName.PlanDelete>
   <RimWorldAccess.Inspection.CategoryName.GrowthInfo>Información de crecimiento</RimWorldAccess.Inspection.CategoryName.GrowthInfo>
   <RimWorldAccess.Inspection.CategoryName.PlantInfo>Información de planta</RimWorldAccess.Inspection.CategoryName.PlantInfo>
   <RimWorldAccess.Inspection.CategoryName.PowerControl>Control de electricidad</RimWorldAccess.Inspection.CategoryName.PowerControl>

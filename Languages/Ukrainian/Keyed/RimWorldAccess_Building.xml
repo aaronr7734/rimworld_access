@@ -1007,4 +1007,29 @@
   <RimWorldAccess.Building.PaintColor.MenuTitle>Колір фарби</RimWorldAccess.Building.PaintColor.MenuTitle>
   <RimWorldAccess.Building.PaintColor.Set>Колір: {0}</RimWorldAccess.Building.PaintColor.Set>
   <RimWorldAccess.Building.PaintColor.Current>поточний</RimWorldAccess.Building.PaintColor.Current>
+  <RimWorldAccess.Building.PlanColor.MenuTitle>Колір планування</RimWorldAccess.Building.PlanColor.MenuTitle>
+  <RimWorldAccess.Building.PlanColor.Set>Колір: {0}</RimWorldAccess.Building.PlanColor.Set>
+  <RimWorldAccess.Building.PlanColor.Current>поточний</RimWorldAccess.Building.PlanColor.Current>
+  <RimWorldAccess.Building.PlanColor.Gray>сірий</RimWorldAccess.Building.PlanColor.Gray>
+  <RimWorldAccess.Building.PlanColor.Red>червоний</RimWorldAccess.Building.PlanColor.Red>
+  <RimWorldAccess.Building.PlanColor.Orange>помаранчевий</RimWorldAccess.Building.PlanColor.Orange>
+  <RimWorldAccess.Building.PlanColor.Yellow>жовтий</RimWorldAccess.Building.PlanColor.Yellow>
+  <RimWorldAccess.Building.PlanColor.Green>зелений</RimWorldAccess.Building.PlanColor.Green>
+  <RimWorldAccess.Building.PlanColor.Cyan>бірюзовий</RimWorldAccess.Building.PlanColor.Cyan>
+  <RimWorldAccess.Building.PlanColor.Blue>синій</RimWorldAccess.Building.PlanColor.Blue>
+  <RimWorldAccess.Building.PlanColor.Purple>фіолетовий</RimWorldAccess.Building.PlanColor.Purple>
+  <RimWorldAccess.Building.PlanColor.Pink>рожевий</RimWorldAccess.Building.PlanColor.Pink>
+  <RimWorldAccess.Building.Rename.PlanError>Помилка перейменування маркера планування: {0}</RimWorldAccess.Building.Rename.PlanError>
+  <RimWorldAccess.Building.Plan.Hidden>Маркер планування приховано</RimWorldAccess.Building.Plan.Hidden>
+  <RimWorldAccess.Building.Plan.Deleted>Маркер планування {0} видалено</RimWorldAccess.Building.Plan.Deleted>
+  <RimWorldAccess.Building.Plan.Copied>Маркер планування {0} скопійовано</RimWorldAccess.Building.Plan.Copied>
+  <RimWorldAccess.Building.Plan.Pasted>Маркер планування {0} вставлено, {1} клітинок</RimWorldAccess.Building.Plan.Pasted>
+  <RimWorldAccess.Building.Plan.PastedReplaced>Маркер планування {0} вставлено, {1} клітинок, замінено {2} з інших маркерів</RimWorldAccess.Building.Plan.PastedReplaced>
+  <RimWorldAccess.Building.Plan.PasteNothing>Нічого не вставлено, немає місця</RimWorldAccess.Building.Plan.PasteNothing>
+  <RimWorldAccess.Building.Plan.ClipboardEmpty>Маркер планування не скопійовано</RimWorldAccess.Building.Plan.ClipboardEmpty>
+  <RimWorldAccess.Building.Plan.PasteHint>Натисніть Ctrl+V, щоб вставити.</RimWorldAccess.Building.Plan.PasteHint>
+  <RimWorldAccess.Building.Plan.PasteRelativeHint>Маркер копіюється відносно курсора, тож під час вставлення курсор опиниться на тій самій клітинці копії, на якій він зараз.</RimWorldAccess.Building.Plan.PasteRelativeHint>
+  <RimWorldAccess.Building.Plan.Desc.Rename>Перейменувати цей маркер планування.</RimWorldAccess.Building.Plan.Desc.Rename>
+  <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Перемкнути видимість цього маркера планування на мапі.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
+  <RimWorldAccess.Building.Plan.Desc.Expand>Розширити цей маркер планування, намалювавши більше клітинок.</RimWorldAccess.Building.Plan.Desc.Expand>
 </LanguageData>

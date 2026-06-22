@@ -139,6 +139,8 @@ namespace RimWorldAccess
         public bool IsZone => Zone != null; // True if this represents a zone
         public Room Room { get; set; } // For room items
         public bool IsRoom => Room != null; // True if this represents a room
+        public Plan Plan { get; set; } // For plan-marker items
+        public bool IsPlan => Plan != null; // True if this represents a plan
 
         // Holding platform reference for captured Anomaly entities. When set, Thing is the
         // held pawn (not spawned on the map) and Position is the platform's position so
@@ -382,6 +384,21 @@ namespace RimWorldAccess
             Label = ScannerLabelBuilder.BuildRoomLabel(room);
         }
 
+        // Constructor for plan-marker items. Each Plan is already a single contiguous, single-color
+        // region (the game splits non-contiguous pieces into separate Plan objects on edit), so we
+        // wrap its cells in one TerrainRegion. That lets a plan ride the same Home edge/center clump
+        // navigation and "NxM / N tiles" announcements as natural terrain patches.
+        public ScannerItem(Plan plan, IntVec3 cursorPosition)
+        {
+            Plan = plan;
+            IsTerrain = false;
+            var region = new TerrainRegion(plan.Cells.ToList(), cursorPosition);
+            TerrainRegions = new List<TerrainRegion> { region };
+            Position = region.CenterPosition;
+            Distance = region.Distance;
+            Label = ScannerLabelBuilder.BuildPlanLabel(plan);
+        }
+
         /// <summary>
         /// Re-derives the label from the live game object.
         /// Call before announcing to get fresh labels without a full scanner refresh.
@@ -421,6 +438,10 @@ namespace RimWorldAccess
             else if (Room != null)
             {
                 Label = ScannerLabelBuilder.BuildRoomLabel(Room);
+            }
+            else if (Plan != null)
+            {
+                Label = ScannerLabelBuilder.BuildPlanLabel(Plan);
             }
             // Terrain and designations: labels derived from defs, don't change
         }
@@ -1150,6 +1171,45 @@ namespace RimWorldAccess
             // Rooms only has an "All" subcategory (no specialized buckets), so add directly to it.
             roomsCategory.Subcategories[0].Items.AddRange(
                 visibleIndoorRooms.Select(room => new ScannerItem(room, cursorPosition)));
+
+            // Collect all plan markers. Each Plan is one contiguous single-color region, so it
+            // becomes one navigable clump item (color + name announced, edge/center Home nav).
+            // Beyond the "All" subcategory, plans are bucketed by color so the user can browse a
+            // single color at a time (e.g. all the red plans). Color subcategories are dynamic —
+            // only colors actually present get one — and are ordered to match the game's palette.
+            var plansCategory = buckets.Cat("Plans");
+            var plansByColorSuffix = new Dictionary<string, List<ScannerItem>>();
+            foreach (var plan in map.planManager.AllPlans)
+            {
+                if (plan == null || plan.CellCount == 0)
+                    continue;
+                var item = new ScannerItem(plan, cursorPosition);
+                plansCategory.Subcategories[0].Items.Add(item); // "All"
+
+                string suffix = PlanColorHelper.ColorSuffix(plan.Color);
+                if (!plansByColorSuffix.TryGetValue(suffix, out var list))
+                    plansByColorSuffix[suffix] = list = new List<ScannerItem>();
+                list.Add(item);
+            }
+            // Create per-color subcategories in the game's color display order, then any leftover
+            // (e.g. modded planning colors outside the standard palette).
+            foreach (var colorDef in Designator_Plan_Add.Colors)
+            {
+                string suffix = PlanColorHelper.ColorSuffix(colorDef);
+                if (plansByColorSuffix.TryGetValue(suffix, out var list))
+                {
+                    var sub = new ScannerSubcategory("Plans-" + suffix);
+                    sub.Items.AddRange(list);
+                    buckets.RegisterDynamicSubcategory(plansCategory, sub);
+                    plansByColorSuffix.Remove(suffix);
+                }
+            }
+            foreach (var kvp in plansByColorSuffix)
+            {
+                var sub = new ScannerSubcategory("Plans-" + kvp.Key);
+                sub.Items.AddRange(kvp.Value);
+                buckets.RegisterDynamicSubcategory(plansCategory, sub);
+            }
 
             // Build the top-level "All" category by flattening every other category's "-All"
             // subcategory, deduplicating by ScannerItem reference. Items that span multiple

@@ -37,6 +37,8 @@
   <RimWorldAccess.Inspection.Summary.Unknown>Unknown object</RimWorldAccess.Inspection.Summary.Unknown>
   <RimWorldAccess.Inspection.Summary.Pawn>Pawn: {0}</RimWorldAccess.Inspection.Summary.Pawn>
   <RimWorldAccess.Inspection.Summary.Zone>{0} ({1})</RimWorldAccess.Inspection.Summary.Zone>
+  <!-- Plan inspection summary. {0} = color name, {1} = plan name (e.g. "purple Potato farm"). -->
+  <RimWorldAccess.Inspection.Summary.Plan>{0} {1}</RimWorldAccess.Inspection.Summary.Plan>
   <!-- Master-merge additions: pawn summary now uses KindLabel prefix and
        a generic status suffix rather than per-kind×status whole phrases.
        KindWithLabel: {0} = kind label (e.g. "Colonist"), {1} = pawn name.
@@ -1474,6 +1476,8 @@
   <RimWorldAccess.Inspection.CategoryName.PenAutoCut>Pen Auto-Cut</RimWorldAccess.Inspection.CategoryName.PenAutoCut>
   <RimWorldAccess.Inspection.CategoryName.LinkedFacilities>Linked Facilities</RimWorldAccess.Inspection.CategoryName.LinkedFacilities>
   <RimWorldAccess.Inspection.CategoryName.Rename>Rename</RimWorldAccess.Inspection.CategoryName.Rename>
+  <!-- Plan management actions in a plan's inspection tree. -->
+  <RimWorldAccess.Inspection.CategoryName.PlanRename>Rename</RimWorldAccess.Inspection.CategoryName.PlanRename>
   <RimWorldAccess.Inspection.CategoryName.GrowthInfo>Growth Info</RimWorldAccess.Inspection.CategoryName.GrowthInfo>
   <RimWorldAccess.Inspection.CategoryName.PlantInfo>Plant Info</RimWorldAccess.Inspection.CategoryName.PlantInfo>
   <RimWorldAccess.Inspection.CategoryName.PowerControl>Power Control</RimWorldAccess.Inspection.CategoryName.PowerControl>

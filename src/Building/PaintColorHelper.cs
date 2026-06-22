@@ -86,7 +86,8 @@ namespace RimWorldAccess
             if (startIndex < 0) startIndex = 0;
 
             TolkHelper.Speak("RimWorldAccess.Building.PaintColor.MenuTitle".Loc());
-            WindowlessFloatMenuState.Open(options, colonistOrders: false, startIndex: startIndex);
+            WindowlessFloatMenuState.Open(options, colonistOrders: false, startIndex: startIndex,
+                onClose: ShapePlacementState.OnColorPickerClosed);
         }
     }
 }

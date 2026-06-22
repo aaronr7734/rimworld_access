@@ -13,6 +13,23 @@ Two-point placement workflow (Line, Rectangle, Oval). ShapeHelper wraps RimWorld
 **Zones** - `ZoneCreationState.cs`, `ZoneCreationPatch.cs`, `ZoneUndoTracker.cs`, `ZoneRenameState.cs`
 Zone create/expand/shrink with undo. Uses ShapePreviewHelper for shape selection.
 
+**Plans** - `PlanColorHelper.cs`, `PlanActionHelper.cs`, `PlanRenameState.cs`, `PlanClipboard.cs`
+Colored plan markers (`Verse.Plan`). `PlanColorHelper` names the nine planning `ColorDef`s (which
+ship with empty labels) and drives the accessible color picker for both the architect Plan tool and
+the per-plan "change color" action. `PlanActionHelper` provides the keyboard-friendly plan gizmos
+(delete + the clipboard copy) and exposes the plan's **gizmos on the G key** via
+`PlanActionHelper.BuildGizmos` (wired in `Inspection/GizmoNavigationState.OpenAtCursor`).
+`BuildGizmos` is driven by the plan's own `GetGizmos()` so the real, game-localized gizmos (hide,
+expand, shrink, delete) flow through unchanged; it only swaps the change-color action for our picker
+(the vanilla one is a label-less swatch grid), drops the mouse-bound copy tools for a keyboard
+clipboard copy, and appends Rename (vanilla has no rename gizmo). `PlanRenameState` mirrors
+`ZoneRenameState`. Plans
+also surface on the cursor tile (TileInfoHelper), in the scanner's "Plans" category (Map module), and
+via Enter for a read-only Overview. Each `Plan` is already one contiguous single-color region, so it
+maps cleanly to one scanner clump. The Copy gizmo captures the plan into `PlanClipboard`; Ctrl+V on
+the map pastes a duplicate at the cursor (vanilla's copy tools are mouse-coupled, so this is
+self-contained).
+
 **Areas** - `AreaPatch.cs`, `AreaPaintingState.cs`, `WindowlessAreaState.cs`
 Allowed areas and home zone management.
 

@@ -140,8 +140,25 @@ namespace RimWorldAccess
             // the accessible color picker so the user can pick a color before painting.
             if (PaintColorHelper.IsPaintDesignator(des))
             {
+                // Hold the placement entry announcement so the color picker speaks first; the picker
+                // replays it after the user picks a color (or cancels).
+                ShapePlacementState.SuppressNextEntryAnnouncement = true;
                 RouteToAccessiblePlacement(des);
                 PaintColorHelper.OpenColorPicker((Designator_Paint)des);
+                return;
+            }
+
+            // Handle the plan-add designator (architect "Plan" tool). Like paint, it is an
+            // order-type cell designator, but vanilla also pops a visual color-swatch grid the
+            // keyboard flow never triggers (and whose options carry no text label anyway). Route to
+            // placement, then auto-open the accessible color picker so the user can pick a plan
+            // color before drawing. Gated on the game's CanSelectColor flag so the Expand variant
+            // (which adopts an existing plan's color) is left to the generic routing below.
+            if (PlanColorHelper.IsPlanColorDesignator(des))
+            {
+                ShapePlacementState.SuppressNextEntryAnnouncement = true;
+                RouteToAccessiblePlacement(des);
+                PlanColorHelper.OpenColorPicker((Designator_Plan_Add)des);
                 return;
             }
 

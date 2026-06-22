@@ -1011,4 +1011,29 @@
   <RimWorldAccess.Building.PaintColor.MenuTitle>Цвет покраски</RimWorldAccess.Building.PaintColor.MenuTitle>
   <RimWorldAccess.Building.PaintColor.Set>Цвет: {0}</RimWorldAccess.Building.PaintColor.Set>
   <RimWorldAccess.Building.PaintColor.Current>текущий</RimWorldAccess.Building.PaintColor.Current>
+  <RimWorldAccess.Building.PlanColor.MenuTitle>Цвет планировки</RimWorldAccess.Building.PlanColor.MenuTitle>
+  <RimWorldAccess.Building.PlanColor.Set>Цвет: {0}</RimWorldAccess.Building.PlanColor.Set>
+  <RimWorldAccess.Building.PlanColor.Current>текущий</RimWorldAccess.Building.PlanColor.Current>
+  <RimWorldAccess.Building.PlanColor.Gray>серый</RimWorldAccess.Building.PlanColor.Gray>
+  <RimWorldAccess.Building.PlanColor.Red>красный</RimWorldAccess.Building.PlanColor.Red>
+  <RimWorldAccess.Building.PlanColor.Orange>оранжевый</RimWorldAccess.Building.PlanColor.Orange>
+  <RimWorldAccess.Building.PlanColor.Yellow>жёлтый</RimWorldAccess.Building.PlanColor.Yellow>
+  <RimWorldAccess.Building.PlanColor.Green>зелёный</RimWorldAccess.Building.PlanColor.Green>
+  <RimWorldAccess.Building.PlanColor.Cyan>голубой</RimWorldAccess.Building.PlanColor.Cyan>
+  <RimWorldAccess.Building.PlanColor.Blue>синий</RimWorldAccess.Building.PlanColor.Blue>
+  <RimWorldAccess.Building.PlanColor.Purple>фиолетовый</RimWorldAccess.Building.PlanColor.Purple>
+  <RimWorldAccess.Building.PlanColor.Pink>розовый</RimWorldAccess.Building.PlanColor.Pink>
+  <RimWorldAccess.Building.Rename.PlanError>Ошибка переименования планировки: {0}</RimWorldAccess.Building.Rename.PlanError>
+  <RimWorldAccess.Building.Plan.Hidden>Планировка скрыта</RimWorldAccess.Building.Plan.Hidden>
+  <RimWorldAccess.Building.Plan.Deleted>Планировка удалена: {0}</RimWorldAccess.Building.Plan.Deleted>
+  <RimWorldAccess.Building.Plan.Copied>Планировка скопирована: {0}</RimWorldAccess.Building.Plan.Copied>
+  <RimWorldAccess.Building.Plan.Pasted>Планировка вставлена: {0}, {1_numCase ? клетка : клетки : клеток}</RimWorldAccess.Building.Plan.Pasted>
+  <RimWorldAccess.Building.Plan.PastedReplaced>Планировка вставлена: {0}, {1_numCase ? клетка : клетки : клеток}, заменено клеток других планировок: {2}</RimWorldAccess.Building.Plan.PastedReplaced>
+  <RimWorldAccess.Building.Plan.PasteNothing>Ничего не вставлено, здесь нет места</RimWorldAccess.Building.Plan.PasteNothing>
+  <RimWorldAccess.Building.Plan.ClipboardEmpty>Планировка не скопирована</RimWorldAccess.Building.Plan.ClipboardEmpty>
+  <RimWorldAccess.Building.Plan.PasteHint>Нажмите Ctrl+V, чтобы вставить.</RimWorldAccess.Building.Plan.PasteHint>
+  <RimWorldAccess.Building.Plan.PasteRelativeHint>Планировка копируется относительно курсора, поэтому при вставке курсор окажется на той же клетке копии, на которой он находится сейчас.</RimWorldAccess.Building.Plan.PasteRelativeHint>
+  <RimWorldAccess.Building.Plan.Desc.Rename>Переименовать эту планировку.</RimWorldAccess.Building.Plan.Desc.Rename>
+  <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Показать или скрыть эту планировку на карте.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
+  <RimWorldAccess.Building.Plan.Desc.Expand>Расширить эту планировку, добавив клетки.</RimWorldAccess.Building.Plan.Desc.Expand>
 </LanguageData>

@@ -39,4 +39,5 @@
   <RimWorldAccess.TextInput.RejectedSpecial>Нельзя вставить, содержатся запрещённые грамматические символы</RimWorldAccess.TextInput.RejectedSpecial>
   <RimWorldAccess.TextInput.RejectedFilename>Нельзя вставить, содержатся символы, недопустимые в именах файлов</RimWorldAccess.TextInput.RejectedFilename>
   <RimWorldAccess.TextInput.RejectedCustom>Нельзя принять значение: {0}</RimWorldAccess.TextInput.RejectedCustom>
+  <RimWorldAccess.TextInput.LabelPlan>название планировки</RimWorldAccess.TextInput.LabelPlan>
 </LanguageData>

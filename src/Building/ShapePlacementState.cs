@@ -128,6 +128,48 @@ namespace RimWorldAccess
         private static ShapeType currentShape = ShapeType.Manual;
         private static Designator activeDesignator = null;
 
+        // When true, the next Enter() holds its entry announcement instead of speaking it, so a
+        // color picker opening over the placement (paint / plan tools) can speak first. Consumed by
+        // Enter(); the held text is replayed by AnnouncePendingEntry() when the picker closes.
+        public static bool SuppressNextEntryAnnouncement { get; set; } = false;
+        private static string pendingEntryAnnouncement = null;
+
+        /// <summary>
+        /// Speaks the entry announcement that was held back while a color picker was open (if any),
+        /// then clears it. Safe to call when nothing is pending (no-op).
+        /// </summary>
+        public static void AnnouncePendingEntry()
+        {
+            if (pendingEntryAnnouncement == null)
+                return;
+            string text = pendingEntryAnnouncement;
+            pendingEntryAnnouncement = null;
+            TolkHelper.SpeakData(text);
+        }
+
+        /// <summary>
+        /// Called when a paint/plan color picker closes. On selection, replays the held placement
+        /// entry so placing proceeds. On cancel, if the entry is still pending — meaning this was the
+        /// picker that auto-opened with the tool — the whole tool is cancelled (escaping the first
+        /// step backs all the way out). A picker reopened mid-placement with 'C' has no pending
+        /// entry, so cancelling it simply returns to placing.
+        /// </summary>
+        public static void OnColorPickerClosed(bool cancelled)
+        {
+            if (!cancelled)
+            {
+                AnnouncePendingEntry();
+                return;
+            }
+
+            if (pendingEntryAnnouncement != null)
+            {
+                pendingEntryAnnouncement = null;
+                Find.DesignatorManager?.Deselect();
+                TolkHelper.Speak("RimWorldAccess.Building.Place.CancelFromFirstCorner".Loc(), SpeechPriority.High);
+            }
+        }
+
         // Stack tracking - whether we can return to viewing mode on exit
         private static bool hasViewingModeOnStack = false;
 
@@ -272,7 +314,16 @@ namespace RimWorldAccess
 
             // Build a comprehensive announcement with size, rotation, and key hints
             string announcement = BuildEnterAnnouncement(designator, designatorLabel, shape, shapeName);
-            TolkHelper.SpeakData(announcement);
+
+            // When a color picker is about to open over this placement (paint / plan tools), hold the
+            // entry announcement and let the picker speak it after the user picks a color, so the
+            // color menu is heard first and the two announcements don't run together.
+            bool suppress = SuppressNextEntryAnnouncement;
+            SuppressNextEntryAnnouncement = false;
+            if (suppress)
+                pendingEntryAnnouncement = announcement;
+            else
+                TolkHelper.SpeakData(announcement);
 
             Log.Message($"[ShapePlacementState] Entered with shape {shape} for designator {designatorLabel}, viewingModeOnStack={fromViewingMode}");
         }
@@ -1091,6 +1142,8 @@ namespace RimWorldAccess
             // This prevents infinite loops with DesignatorManagerDeselectPatch
             currentPhase = PlacementPhase.Inactive;
             currentShape = ShapeType.Manual;
+            pendingEntryAnnouncement = null;
+            SuppressNextEntryAnnouncement = false;
             previewHelper.FullReset();
             activeDesignator = null;
             hasViewingModeOnStack = false;

@@ -458,6 +458,14 @@ namespace RimWorldAccess
                 objects.Add(zone);
             }
 
+            // Plan markers are likewise not returned by SelectableObjectsAt — add the plan (if any)
+            // at the cursor so it can be inspected, renamed, recolored, and managed.
+            Plan plan = inspectionPosition.GetPlan(Find.CurrentMap);
+            if (plan != null)
+            {
+                objects.Add(plan);
+            }
+
             // Get other selectable objects at this position
             var objectsAtPosition = Selector.SelectableObjectsAt(inspectionPosition, Find.CurrentMap);
 

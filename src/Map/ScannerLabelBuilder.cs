@@ -103,6 +103,19 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Builds a scanner label for a Plan marker: its color name followed by its (auto- or
+        /// user-given) name, e.g. "purple Potato farm". The "NxM / N tiles" size and the
+        /// direction/distance are appended later by the scanner's region announcement.
+        /// </summary>
+        public static string BuildPlanLabel(Plan plan)
+        {
+            if (plan == null) return "RimWorldAccess.Map.Label.Unknown".Translate();
+
+            return "RimWorldAccess.Map.Tile.Plan".Translate(
+                PlanColorHelper.ColorName(plan.Color), plan.RenamableLabel).ToString();
+        }
+
+        /// <summary>
         /// Builds a scanner label for a Room — uses its role (e.g., "Bedroom", "Dining room").
         /// </summary>
         public static string BuildRoomLabel(Room room)

@@ -1499,4 +1499,6 @@
   <RimWorldAccess.Inspection.Appearance.Row>{0}: {1}</RimWorldAccess.Inspection.Appearance.Row>
   <RimWorldAccess.Inspection.Appearance.HairRow>{0}: {1}, {2}</RimWorldAccess.Inspection.Appearance.HairRow>
   <RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>Любимый цвет</RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>
+  <RimWorldAccess.Inspection.Summary.Plan>{0}: {1}</RimWorldAccess.Inspection.Summary.Plan>
+  <RimWorldAccess.Inspection.CategoryName.PlanRename>Переименовать</RimWorldAccess.Inspection.CategoryName.PlanRename>
 </LanguageData>
