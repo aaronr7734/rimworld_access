@@ -1,12 +1,12 @@
 # Installation
 
-This page walks through what you need to do before the mod will work: turn off the Steam overlay, then install the mod files.
+This page walks through what you need to do before the mod will work, including turning off the Steam overlay and installing the mod files.
 
 ## Turn off the Steam in-game overlay
 
-Do this before anything else.
+Do this before anything else, for your sanity. This will benefit all your Steam games, not just RimWorld.
 
-Steam's in-game overlay grabs certain key combinations (Shift+Tab is the main one) before they reach RimWorld. The overlay itself is not screen-reader accessible, so when it is on, some of the mod's keys will silently do nothing and you will have no way to tell why.
+Steam's in-game overlay grabs certain key combinations like **Shift+Tab** before they reach RimWorld. The overlay itself is not screen-reader accessible, so when it is on, some of the mod's keys will silently do nothing and you will have no way to tell why.
 
 Turn it off:
 
@@ -14,48 +14,62 @@ Turn it off:
 2. Go to **Steam menu > Settings**.
 3. Select the **In-Game** tab.
 4. Uncheck **"Enable the Steam Overlay while in-game."**
-5. Close the Settings window. There is no save button; closing is enough, and nothing gets disabled.
+5. Close the Settings window.
 
-If a key like **Shift+Tab** ever seems to do nothing, come back and check this first.
+If a key like **Shift+Tab** ever stops working, come back and check this first.
 
 ## Install the mod
 
-### Steam Workshop (coming soon)
+There are two ways to install RimWorld Access: through the Steam Workshop, or by hand. The Workshop is the easier path and keeps the mod up to date for you. Pick whichever fits, then finish with the shared step at the end that switches the mod on.
 
-The plan is to put RimWorld Access on the Steam Workshop so it installs and updates automatically. That is not ready yet.
+### Steam Workshop (recommended)
+
+1. Log into Steam, open the [RimWorld Access Workshop page](https://steamcommunity.com/sharedfiles/filedetails/?id=3750094441), and click **Subscribe**.
+2. Steam will ask whether you also want to subscribe to Harmony, the other mod RimWorld Access depends on. Choose **Subscribe to All**.
+3. Both will automatically download the next time RimWorld launches.
+
+That puts the files in place. Now read [Turn the mod on](#turn-the-mod-on).
 
 ### Manual install
 
-Manual install has two parts: putting the mod files in the right place, and installing Harmony (a required dependency).
+Use this if you do not own RimWorld on Steam, or you would rather manage the files yourself.
 
-#### Place the mod files
-
-[Download the latest release](https://github.com/aaronr7734/rimworld_access/releases/download/dev/RimWorldAccess-dev.zip) and unzip it into RimWorld's `Mods` folder, so you end up with a `RimWorldAccess` folder inside `Mods`. With a default Steam install, the `Mods` folder is here:
+[Download the latest release](https://github.com/aaronr7734/rimworld_access/releases/download/dev/RimWorldAccess-dev.zip) and unzip it into RimWorld's `Mods` folder, so you end up with a `RimWorldAccess` folder inside `Mods`. With a default Steam install, the `Mods` folder can be found at the following locations:
 
 - **Windows:** `C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods`
 - **macOS:** `~/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods`
 
 If you installed RimWorld to a different Steam library, the path up to `steamapps` changes, but everything after it stays the same.
 
-Then download [`ModsConfig.xml`](../files/ModsConfig.xml){ download="ModsConfig.xml" } and place it in RimWorld's Config folder. This file comes ready-made with Harmony and RimWorld Access already enabled, so you do not need to turn anything on inside the game afterward. The Config folder is here:
+A manual install does not include Harmony. You will need to download it separately:
+
+- **On Steam:** Log into your Steam account in a web browser, open the [Harmony Workshop page](https://steamcommunity.com/workshop/filedetails/?id=2009463077), and click Subscribe. Steam downloads it the next time the game launches.
+- **Without Steam:** Install Harmony from its [GitHub releases page](https://github.com/pardeike/HarmonyRimWorld/releases/latest) and place it in the same `Mods` folder.
+
+## Turn the mod on
+
+Regardless of how you installed it, the final step is the same. RimWorld's own mod list is not screen-reader accessible until RimWorld Access is already running, so instead of switching the mod on inside the game, you drop in a settings file that has it switched on already.
+
+Download [`ModsConfig.xml`](../files/ModsConfig.xml){ download="ModsConfig.xml" } and place it in RimWorld's Config folder. It comes ready-made with Harmony and RimWorld Access already enabled. The Config folder can be found at the following locations:
 
 - **Windows:** `%localappdata%low\Ludeon Studios\RimWorld by Ludeon Studios\Config`
 - **macOS:** `~/Library/Application Support/RimWorld/Config`
 
-You can paste either path as-is and it will resolve to the right folder. On Windows, paste it into the Run dialog (**Win+R**) or the File Explorer address bar. On macOS, paste it into Finder's Go to Folder box (**Cmd+Shift+G**). You do not need to substitute your username or hunt for the folder by hand.
+You can paste either path as-is and it will open the correct folder. On Windows, paste it into the Run dialog (**Win+R**) or the File Explorer address bar. On macOS, paste it into Finder's Go to Folder box (**Cmd+Shift+G**).
 
-#### Install Harmony
+### Already installed it by hand before?
 
-Harmony is a library the mod depends on. You need it separately.
+If you installed an earlier version of RimWorld Access by hand, you may still have a `RimWorldAccess` folder in your `Mods` folder. After subscribing on the Workshop, it is worth deleting that folder, for two reasons:
 
-**On Steam:** Log into your Steam account in a web browser, open the [Harmony Workshop page](https://steamcommunity.com/workshop/filedetails/?id=2009463077), and click Subscribe. Steam will download it automatically the next time the game launches.
+- A copy sitting in your `Mods` folder always loads instead of the Workshop copy. You could keep running an old version without realizing it, and it would not update automatically.
+- Older builds used a different mod identifier than the Workshop release. The two will not clash on their own, but if both end up enabled in your mods list, RimWorld might load the mod twice, which would probably break things.
 
-**Without Steam:** Install Harmony manually from its GitHub releases page and place it in the same `Mods` folder. Legitimate copies of RimWorld exist outside Steam, bought from a reputable shop or from Ludeon Studios directly, and those are fine. But if you are playing a copy you did not get from Steam, another reputable shop, or Ludeon themselves, most of the mod will probably not work, and that is not something that can be supported.
+The settings file above enables only a single copy, so as long as you use it and do not turn on a second one by hand, you are safe either way. Deleting the old folder just removes any chance of mixing them up.
 
 ## Launch the game
 
-Once the files are in place, launch RimWorld. With your screen reader running, the main menu should start talking immediately. If it does not, the most common cause is the Steam in-game overlay, covered at the top of this page.
+Once the files are in place, launch RimWorld. With your screen reader running, the main menu should start talking immediately.
 
 ## Next steps
 
-Head to [first launch](first-launch.md) to go through the initial settings and find the RimWorld Access options.
+Head to [first launch](first-launch.md) to learn more about getting started with the mod!

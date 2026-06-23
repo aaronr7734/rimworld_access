@@ -24,7 +24,7 @@ For context, the closest prior reference in blind gaming for this kind of depth 
 
 ## Download
 
-[Download the latest release](https://github.com/aaronr7734/rimworld_access/releases/download/dev/RimWorldAccess-dev.zip), then follow [Installation](getting-started/installation.md) to set it up. A Steam Workshop release that installs and updates automatically is planned for later. The one setup step you should not skip is turning off the Steam in-game overlay, so keys like **Shift+Tab** actually reach the game.
+The easiest way to install is through the [Steam Workshop](https://steamcommunity.com/sharedfiles/filedetails/?id=3750094441), which keeps the mod updated automatically. You can also [download the latest release](https://github.com/aaronr7734/rimworld_access/releases/download/dev/RimWorldAccess-dev.zip) and set it up by hand. Either way, follow [Installation](getting-started/installation.md). The one setup step you should not skip is turning off the Steam in-game overlay, so keys like **Shift+Tab** actually reach the game.
 
 ## Where to go next
 
