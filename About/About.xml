@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ModMetaData>
     <name>RimWorld Access</name>
-    <author>shane12300</author>
-    <packageId>shane12300.rimworldaccess</packageId>
-    <description>Comprehensive keyboard accessibility features for visually impaired players. Provides direct screen reader support via the Tolk library and keyboard navigation throughout the game.</description>
+    <author>aaronr7734</author>
+    <packageId>aaronr7734.rimworldaccess</packageId>
+    <description>Screen reader and keyboard accessibility for RimWorld. Adds keyboard navigation and screen reader support throughout the game so blind and visually impaired gamers can play.</description>
+    <url>https://rimworldaccess.com</url>
     <supportedVersions>
         <li>1.6</li>
     </supportedVersions>

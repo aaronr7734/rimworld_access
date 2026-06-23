@@ -70,7 +70,7 @@ Since RimWorld's mod menu is not accessible with a screen reader, you must manua
 4. Add the following two lines at the beginning of the list, immediately after `<activeMods>`:
    ```xml
    <li>brrainz.harmony</li>
-   <li>shane12300.rimworldaccess</li>
+   <li>aaronr7734.rimworldaccess</li>
    ```
 5. Save the file
 
@@ -80,7 +80,7 @@ Since RimWorld's mod menu is not accessible with a screen reader, you must manua
   <version>1.6.4633 rev1261</version>
   <activeMods>
     <li>brrainz.harmony</li>
-    <li>shane12300.rimworldaccess</li>
+    <li>aaronr7734.rimworldaccess</li>
     <li>ludeon.rimworld</li>
     <!-- other mods and DLCs... -->
   </activeMods>

@@ -59,6 +59,14 @@
     <DefFiles Include="Defs\**\*.xml" />
   </ItemGroup>
 
+  <!-- About folder files. Shipped wholesale so About.xml AND, once it exists,
+       PublishedFileId.txt (written by Steam after the first Workshop upload, then
+       committed into source) both reach the package. Steam matches updates to the
+       existing Workshop item by that id, so omitting it would create duplicates. -->
+  <ItemGroup>
+    <AboutFiles Include="About\**\*" />
+  </ItemGroup>
+
   <ItemGroup>
     <!-- Harmony reference - reference-only package (runtime provided by Harmony mod) -->
     <PackageReference Include="Lib.Harmony" Version="2.3.3">
@@ -95,10 +103,10 @@
     <MakeDir Directories="$(ModOutputDir)\About" />
     <MakeDir Directories="$(ModOutputDir)\Assemblies" />
 
-    <!-- Copy About.xml -->
+    <!-- Copy About folder (About.xml + PublishedFileId.txt when present) -->
     <Copy
-      SourceFiles="$(ProjectDir)About\About.xml"
-      DestinationFolder="$(ModOutputDir)\About\"
+      SourceFiles="@(AboutFiles)"
+      DestinationFiles="@(AboutFiles->'$(ModOutputDir)\About\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
     <!-- Copy mod DLL to Assemblies folder -->
@@ -201,14 +209,20 @@
       <ReleaseFolderPath>$(ProjectDir)release\RimWorldAccess\</ReleaseFolderPath>
     </PropertyGroup>
 
+    <!-- Wipe the package folder first so files removed from the build (e.g. a
+         no-longer-shipped README, a renamed Def) never linger as stale corpses.
+         Steam uploads the entire content folder, so a leftover file would be
+         published to subscribers. -->
+    <RemoveDir Directories="$(ReleaseFolderPath)" />
+
     <!-- Create release folder structure -->
     <MakeDir Directories="$(ReleaseFolderPath)About" />
     <MakeDir Directories="$(ReleaseFolderPath)Assemblies" />
 
-    <!-- Copy About.xml -->
+    <!-- Copy About folder (About.xml + PublishedFileId.txt when present) -->
     <Copy
-      SourceFiles="$(ProjectDir)About\About.xml"
-      DestinationFolder="$(ReleaseFolderPath)About\"
+      SourceFiles="@(AboutFiles)"
+      DestinationFiles="@(AboutFiles->'$(ReleaseFolderPath)About\%(RecursiveDir)%(Filename)%(Extension)')"
     />
 
     <!-- Copy DLL -->
@@ -281,12 +295,10 @@
       Condition="'$(NativeDir)'!='' And Exists('$(NativeDir)\libprism.so')"
     />
 
-    <!-- Copy README.md to release folder -->
-    <Copy
-      SourceFiles="$(ProjectDir)README.md"
-      DestinationFolder="$(ReleaseFolderPath)"
-      Condition="Exists('$(ProjectDir)README.md')"
-    />
+    <!-- README is intentionally NOT shipped: Steam Workshop uploads the entire
+         content folder, and the Workshop listing description comes from About.xml,
+         not README. Keeping README out avoids publishing in-repo developer/install
+         docs to subscribers. -->
 
     <!-- Copy LICENSE to release folder -->
     <Copy

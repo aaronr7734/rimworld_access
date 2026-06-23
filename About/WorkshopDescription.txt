@@ -1,0 +1,3 @@
+RimWorld Access makes RimWorld playable for blind and visually impaired gamers. It adds keyboard navigation and screen reader support throughout the game.
+
+For installation instructions and more information, visit the mod's website: [url=https://rimworldaccess.com]rimworldaccess.com[/url]

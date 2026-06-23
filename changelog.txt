@@ -35,6 +35,8 @@ CHANGES
   Opening Bills, Storage, Temperature and similar categories announced both the
   opened menu and the inspection row behind it (for example "Add bill... 1 of 6.
   Bills. 2 of 3"). The inspection row no longer speaks over the menu you opened.
+- The mod info panel now shows the project website (rimworldaccess.com) as a
+  link, and the mod description was rewritten to be shorter and clearer.
 
 06/21/2026
 
