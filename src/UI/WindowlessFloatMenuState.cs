@@ -199,7 +199,11 @@ namespace RimWorldAccess
             // Also skip if the action started a new targeting session — ItemTargetingState.Open
             // already announced the same label as part of "<label>. Navigate with arrow keys...".
             // Without this guard the user hears the option label twice back-to-back.
-            bool targetingStarted = Find.Targeter?.IsTargeting == true;
+            // Find.Targeter throws during chargen / the main-menu ideoligion builder (no map,
+            // UIRoot is UIRoot_Entry so Find.MapUI's (UIRoot_Play) cast fails), so gate on
+            // CurrentMap first — same guard as the Find.Selector access above. Targeting can
+            // never be active without a map, so false is correct there.
+            bool targetingStarted = Find.CurrentMap != null && Find.Targeter?.IsTargeting == true;
 
             // If this menu was the world "Jump to..." menu (or any world action that relocated the
             // selection/camera), follow it with our navigation cursor and announce the move distance,
