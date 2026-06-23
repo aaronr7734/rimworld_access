@@ -3,113 +3,46 @@ RimWorld Access - Changelog for Aaron's Unofficial Patch
 
 CHANGES
 -------
-- Terrain sounds no longer play for tiles you have not discovered yet. Moving
-  the cursor onto a fogged tile is now silent, so the terrain audio can no
-  longer hint at what is hidden under the fog of war.
 - Fixed the background music not starting after you create a new world and
-  colony. Previously you had to restart the game before the music would play
-  again. The guitar sting that plays when you close the scenario introduction
-  dialog now plays again as well. The game still starts paused after the intro
-  so you have time to get your bearings before time begins.
-- Fixed entering custom numbers for bills at a workstation. Typing a quantity,
-  such as a target count or how many times to do a bill, now goes into the
-  number field instead of being swallowed by the menu's type-to-search.
+  colony. You no longer have to restart the game for it to play.
+- Fixed entering custom numbers for bills at a workstation. Typing a quantity
+  now goes into the number field instead of being swallowed by the menu's
+  typeahead.
 - Fixed the research detail view mixing up which buildings were available. A
-  research bench you have actually built now reads as available even when a
-  required facility like the multi-analyzer is missing, and each required
-  facility now reports its own status: available, present but inactive, or not
-  available.
-- Simplified the map cursor jump modes down to the two useful ones, a preset
-  distance and a jump to the next tile beside a wall. Hold Shift and press Up
-  or Down to switch between them, and Shift with Left or Right to change the
-  preset distance.
-- The world map tile information (press 4 on the world map) no longer reads out
-  the internal Tile ID, which was developer data not meant for players.
-- Added a Roofs category to the map scanner. It collects natural roofs grouped
-  into patches like terrain, with an All view plus two groups: overhead
-  mountain (thick) roofs and thin rock roofs. Use it to find where you are
-  standing under a mountain.
-- The trade window and the info card now play their normal close sound when you
-  close them, matching what a sighted player hears, instead of closing silently.
-- Fixed a doubled announcement when opening a menu from a building's inspection.
-  Opening Bills, Storage, Temperature and similar categories announced both the
-  opened menu and the inspection row behind it (for example "Add bill... 1 of 6.
-  Bills. 2 of 3"). The inspection row no longer speaks over the menu you opened.
-- The mod info panel now shows the project website (rimworldaccess.com) as a
-  link, and the mod description was rewritten to be shorter and clearer.
-
-06/21/2026
-
-CHANGES
--------
-- The mod is now available in Latin American Spanish (Espanol Latinoamerica).
-  Every menu, announcement, and tooltip is translated, along with the Learning
-  Helper documentation chapters and the written hair, beard, and tattoo style
-  descriptions. Choose it from the language list and RimWorld Access speaks
-  Spanish throughout. As with our other community translations, this is a machine
-  translation anchored to RimWorld's own official Spanish wording, so corrections
-  from native speakers are very welcome.
-- Styling stations are now fully accessible. When a colonist uses "Change
-  style" at a styling station, a keyboard menu opens. Press Tab to move between
-  the hair, beard, face tattoo, body tattoo, and apparel color sections, and use
-  the arrow keys (and type to search) to browse the options. Pressing Enter on a
-  style applies it and then opens a color list so you can set its color in one
-  step. The currently applied style announces its color, so you always know what
-  you have on. Press Alt+S to apply all your changes, right bracket to reset, and
-  Escape to cancel.
-- Pawns now have an Appearance section in their inspection (press Enter on a
-  colonist, then find Appearance). It lists their hair and hair color, beard,
-  tattoos, and favorite color in one place, so you can review how someone looks
-  without opening the styling station.
+  bench you have built now reads as available even when a required facility like
+  the multi-analyzer is missing, and each facility reports its own status:
+  available, present but inactive, or not available.
+- Terrain sounds no longer play for tiles you have not discovered yet.
+- The world map tile information (press 4) no longer reads the internal Tile ID,
+  which was developer data not meant for players.
+- Styling stations are now fully accessible. Tab moves between the hair, beard,
+  face tattoo, body tattoo, and apparel color sections, and the arrow keys (with
+  typeahead) browse the options. Enter applies a style and opens a color list so
+  you can set its color in one step. Alt+S applies all your changes; Escape cancels.
+- Plans are now fully accessible. A new Plans scanner category groups your plans
+  by color into subcategories, and after placing a plan you can configure it from
+  the gizmo menu.
 - Every hairstyle, beard, and tattoo now has a written description of what it
-  actually looks like, so you are no longer choosing by name alone. For example,
-  the princess hairstyle reads as long hair parted down the center that falls
-  past the shoulders, and the skeleton body tattoo as a skull above a curved
-  ribcage. These descriptions are spoken after the style name in the styling
-  station, in a pawn's Appearance section, and in the ideoligion viewer and
-  editor where you set how often each style appears, so you always know what you
-  are picking. The name comes first and the description follows, so you can move
-  on as soon as you have heard enough.
-- You can now choose paint colors when painting floors or buildings. Selecting
-  the Paint Floor or Paint Building tool opens a list of every paint color by
-  name - red, scarlet, plum, and so on - so you can pick one and paint as usual.
-  Press C while painting to change the color again. As you move the map cursor,
-  painted floors and buildings now announce their color too (for example, "fine
-  marble tile, deep purple").
-- Plans are now fully accessible. When you pick the Plan tool from the architect
-  Orders menu, a color list opens so you can choose the plan color by name
-  (gray, red, orange, yellow, green, cyan, blue, purple, or pink); press C while
-  drawing to change it again. As you move the map cursor, any plan under it
-  announces its color and name, for example "purple Potato farm". Plans have
-  their own scanner category: each block of plan is one entry that reads its
-  color, name, and size, and Home jumps you to the nearest edge and then the
-  center, just like terrain patches. The Plans category also has a subcategory
-  for each color in use, so you can browse just your red plans, just your blue
-  ones, and so on. Press G on a plan to manage it, the same as any other object:
-  the gizmo list lets you rename it, change its color, show or hide it, expand or
-  shrink it, copy it, or delete it. Copy captures the plan, then Ctrl+V pastes a
-  duplicate. Paste is cursor-relative: the cell you were standing on when you
-  copied lands right under your cursor when you paste, so the duplicate appears
-  exactly where you expect. If the paste covers cells that belonged to another
-  plan, it tells you how many it replaced. Pressing Enter on a plan still reads
-  its overview (color, name, and size).
-- The in-game Learning Helper now speaks your language in Chinese, Ukrainian,
-  and Russian. This covers both the mod's own accessibility lessons (inspecting
-  things, the scanner, selecting colonists, building, and so on) and the
-  rewritten help for the base-game and DLC concepts, so the lessons you read
-  with the ? key are no longer in English on those languages.
-- A few newer lines now translate as well: the shot report you hear when aiming
-  a drafted colonist, the scanner's polluted-area results, and the world-map
-  "jumped N tiles" announcement.
-06/18/2026
+  actually looks like, so you are no longer choosing by name alone.
+- Pawns now have an Appearance section in their inspect screen, listing hair and
+  hair color, beard, tattoos, and favorite color in one place.
+- The paint designator's color picker is now accessible, and painted floors and
+  buildings announce their color as you move the cursor over them.
+- Added a Roofs category to the scanner, covering both thin rock roofs and
+  overhead mountains.
+- The Learning Helper now includes RimWorld Access lessons, and most of the
+  game's own lessons have been edited with the mod in mind. Suggestions for more
+  are welcome.
+- With a drafted pawn selected on the colonist bar, pressing 1 on a tile holding
+  another pawn reads the game's shooting accuracy tooltip.
+- Removed the old unsupported cursor jump modes; only "preset distance" and
+  "adjacent to walls" remain.
+- The mod info panel now shows the project website (rimworldaccess.com) as a
+  link, and the description was rewritten to be shorter.
+- The mod is now available in Latin American Spanish and Russian. Like our other
+  community translations, these are machine translations anchored to RimWorld's
+  own official wording, so corrections from native speakers are welcome.
 
-CHANGES
--------
-- Added a full Russian (Русский) translation. The mod now speaks Russian
-  throughout, using RimWorld's own terminology and correct Russian plural
-  forms (one/few/many) for counts. Russian is supported by the base game and
-  every expansion. As with any machine-assisted translation, native-speaker
-  corrections are welcome.
 06/17/2026
 
 CHANGES
