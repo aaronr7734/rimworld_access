@@ -33,6 +33,11 @@ namespace RimWorldAccess
         private static MethodInfo canDoBackMethod;
 
         private static bool subEditorWasOpen;
+        // Tracks a modal text edit (name / adjective / member name) so we can reclaim IMGUI focus
+        // when it closes. The modal owns no Unity control, so while it is open the page draws
+        // nothing (we return false below) and loses keyboard focus — without reclaiming it the hub
+        // is dead to input until the user alt-tabs.
+        internal static bool textEditWasOpen;
         private static readonly HostFocusReturn infoCardFocus = new HostFocusReturn();
 
         private static void EnsureReflectionCached()
@@ -53,9 +58,13 @@ namespace RimWorldAccess
                 infoCardFocus.Track(__instance);
 
                 // While the modal text input controller is active, skip — keys are owned by it
-                // and any Page-level Enter/Escape handling would interfere.
+                // and any Page-level Enter/Escape handling would interfere. Note that it was open
+                // so we can reclaim focus once it closes (see below).
                 if (TextInputManager.Active != null)
+                {
+                    textEditWasOpen = true;
                     return false;
+                }
 
                 // A confirmation / message box owns input while open — let it handle its own keys.
                 // The DoNext / DoBack guards stop the page from advancing on a stray keypress; we
@@ -128,6 +137,17 @@ namespace RimWorldAccess
                     // from the initial meme picker), let it announce instead of double-speaking.
                     if (IdeoBuilderHubState.HasAnnouncedOpening)
                         IdeoBuilderHubState.AnnounceCurrentSection();
+                }
+
+                // Just returned from a modal text edit (name / adjective / member name). The modal
+                // owns no Unity control, so the page lost IMGUI keyboard focus while it was open;
+                // reclaim it or the hub stays dead to input until the user alt-tabs (same focus-loss
+                // remedy as the sub-editor return path above). The edit's own callback already
+                // rebuilt and re-announced the section, so here we ONLY restore focus.
+                if (textEditWasOpen)
+                {
+                    textEditWasOpen = false;
+                    Find.WindowStack.Notify_ManuallySetFocus(__instance);
                 }
 
                 IdeoBuilderHubState.AnnounceOpeningIfNeeded();
@@ -544,7 +564,10 @@ namespace RimWorldAccess
         static void Postfix(Window __instance)
         {
             if (__instance is Page_ConfigureIdeo)
+            {
+                IdeoBuilderHubPatch.textEditWasOpen = false;
                 IdeoBuilderHubState.Close();
+            }
         }
     }
 

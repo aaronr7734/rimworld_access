@@ -1,8 +1,19 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
+
+06/24/2026
+
+CHANGES
+-------
+- Fixed a freeze in the custom ideoligion builder where, after typing a name,
+  adjective, or member name in Simplified Chinese and pressing Enter, the mod stopped responding to
+  keys until you switched windows and back.
+- Fixed body parts in the health tab reading their condition and injuries twice.
+
 06/22/2026
 
 CHANGES
 -------
+
 - Fixed the background music not starting after you create a new world and
   colony. You no longer have to restart the game for it to play.
 - Fixed entering custom numbers for bills at a workstation. Typing a quantity

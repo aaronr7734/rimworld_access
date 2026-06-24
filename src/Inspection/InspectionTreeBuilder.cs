@@ -3163,12 +3163,9 @@ namespace RimWorldAccess
                     parentItem.IsExpandable = false;
                 }
 
-                // Build collapsed summary from all children
-                var childLabels = parentItem.Children.Select(c => c.Label).ToList();
-                if (childLabels.Count > 0)
-                {
-                    parentItem.Label += $": {string.Join(". ", childLabels)}";
-                }
+                // Children only — the caller folds the collapsed summary into the body part
+                // label (see the AddChild site in BuildHealthChildren), matching the capacities
+                // pattern. Folding here too would speak the status twice.
                 return;
             }
 
@@ -3207,12 +3204,9 @@ namespace RimWorldAccess
                 AddChild(parentItem, hediffItem);
             }
 
-            // Build collapsed summary from all children
-            var multiChildLabels = parentItem.Children.Select(c => c.Label).ToList();
-            if (multiChildLabels.Count > 0)
-            {
-                parentItem.Label += $": {string.Join(". ", multiChildLabels)}";
-            }
+            // No fold here — the caller folds the collapsed summary from these children into the
+            // body part label (matching the capacities pattern). Each hediff child already folds
+            // its own detail summary above; folding the parent here too would duplicate the status.
         }
 
         /// <summary>
