@@ -144,19 +144,19 @@ namespace RimWorldAccess
 
             if (slotGroup.parent is Zone_Stockpile stockpile)
             {
-                return $"in {stockpile.label}";
+                return (string)"RimWorldAccess.Inspection.Inventory.Location.InStockpile".Translate(stockpile.label);
             }
 
             if (slotGroup.parent is Building_Storage building)
             {
                 if (building is IStorageGroupMember member && member.Group != null)
                 {
-                    return $"at {member.Group.RenamableLabel}";
+                    return (string)"RimWorldAccess.Inspection.Inventory.Location.AtStorageGroup".Translate(member.Group.RenamableLabel);
                 }
-                return $"on {building.Label}";
+                return (string)"RimWorldAccess.Inspection.Inventory.Location.OnBuilding".Translate(building.Label);
             }
 
-            return $"at ({thing.Position.x}, {thing.Position.z})";
+            return (string)"RimWorldAccess.Inspection.Inventory.Location.OnGround".Translate(thing.Position.x, thing.Position.z);
         }
 
         /// <summary>
@@ -267,7 +267,7 @@ namespace RimWorldAccess
                     CarrierPawn = carrier,
                     IsForbidden = false,
                     IsTainted = GetIsTainted(item),
-                    LocationLabel = $"carried by {carrier.LabelShort}",
+                    LocationLabel = (string)"RimWorldAccess.Inspection.Inventory.Location.CarriedBy".Translate(carrier.LabelShort),
                     IsMinifiedThing = isMinified
                 });
             }

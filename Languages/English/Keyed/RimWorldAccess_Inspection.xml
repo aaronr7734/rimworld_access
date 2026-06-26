@@ -342,6 +342,15 @@
   <RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix> (forbidden)</RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix>
   <RimWorldAccess.Inspection.Inventory.Label.StackLine>{0} x{1}, {2}{3}</RimWorldAccess.Inspection.Inventory.Label.StackLine>
 
+  <!-- Stack location phrases (InventoryHelper.GetLocationLabel). Each is a whole phrase:
+       OnGround {0}=x {1}=z; InStockpile {0}=stockpile name; AtStorageGroup {0}=group name;
+       OnBuilding {0}=building label; CarriedBy {0}=pawn name. -->
+  <RimWorldAccess.Inspection.Inventory.Location.OnGround>at ({0}, {1})</RimWorldAccess.Inspection.Inventory.Location.OnGround>
+  <RimWorldAccess.Inspection.Inventory.Location.InStockpile>in {0}</RimWorldAccess.Inspection.Inventory.Location.InStockpile>
+  <RimWorldAccess.Inspection.Inventory.Location.AtStorageGroup>at {0}</RimWorldAccess.Inspection.Inventory.Location.AtStorageGroup>
+  <RimWorldAccess.Inspection.Inventory.Location.OnBuilding>on {0}</RimWorldAccess.Inspection.Inventory.Location.OnBuilding>
+  <RimWorldAccess.Inspection.Inventory.Location.CarriedBy>carried by {0}</RimWorldAccess.Inspection.Inventory.Location.CarriedBy>
+
   <!-- =================================================================
        Fishing zone configuration menu (FishingZoneMenuState).
        Odyssey-DLC fishing zones; the menu is opened by pressing Enter

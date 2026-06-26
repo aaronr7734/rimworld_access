@@ -341,6 +341,14 @@
   <RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix> (contaminado)</RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix>
   <RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix> (prohibido)</RimWorldAccess.Inspection.Inventory.Label.StackForbiddenSuffix>
   <RimWorldAccess.Inspection.Inventory.Label.StackLine>{0} x{1}, {2}{3}</RimWorldAccess.Inspection.Inventory.Label.StackLine>
+  <!-- Stack location phrases (InventoryHelper.GetLocationLabel). Each is a whole phrase:
+       OnGround {0}=x {1}=z; InStockpile {0}=stockpile name; AtStorageGroup {0}=group name;
+       OnBuilding {0}=building label; CarriedBy {0}=pawn name. -->
+  <RimWorldAccess.Inspection.Inventory.Location.OnGround>en ({0}, {1})</RimWorldAccess.Inspection.Inventory.Location.OnGround>
+  <RimWorldAccess.Inspection.Inventory.Location.InStockpile>en {0}</RimWorldAccess.Inspection.Inventory.Location.InStockpile>
+  <RimWorldAccess.Inspection.Inventory.Location.AtStorageGroup>en {0}</RimWorldAccess.Inspection.Inventory.Location.AtStorageGroup>
+  <RimWorldAccess.Inspection.Inventory.Location.OnBuilding>en {0}</RimWorldAccess.Inspection.Inventory.Location.OnBuilding>
+  <RimWorldAccess.Inspection.Inventory.Location.CarriedBy>transportado por {0}</RimWorldAccess.Inspection.Inventory.Location.CarriedBy>
 
   <!-- =================================================================
        Fishing zone configuration menu (FishingZoneMenuState).

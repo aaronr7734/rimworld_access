@@ -6,6 +6,7 @@ CHANGES
 -------
 - Fixed digits typed into a quantity chooser also passing through to the screen
   behind it. Typeahead no longer leaks past quantity choosers.
+- Fixed the inventory showing item locations ("on", "carried by", etc.) in English for non-English players.
 
 06/24/2026
 
