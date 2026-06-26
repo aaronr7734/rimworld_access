@@ -659,6 +659,9 @@ namespace RimWorldAccess
 
         public static void HandleTypeahead(char c)
         {
+            // During numeric input the digit's KeyCode event is buffered by the state's own input
+            // handler; swallow the twin character event here so it doesn't trigger a stray search.
+            if (isNumericInputMode) return;
             var labels = GetItemLabels();
             if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
             {

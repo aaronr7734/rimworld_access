@@ -121,17 +121,26 @@ namespace RimWorldAccess
             // UnifiedKeyboardPatch, which TryDispatchChar shadowed and never reached.
             TypeaheadDispatcher.Register(4.78, () => HealthTabState.IsActive, c => HealthTabState.HandleCharacterInput(c));
 
+            // The quantity menu (caravan/transport/split loading, etc.) is a numeric overlay that
+            // reads digits via its own KeyCode handler. It is registered here at top precedence
+            // purely to OWN the twin layout-aware character event for each typed digit: it swallows
+            // that event so it can never fall through to whatever list is active beneath (a transfer
+            // dialog, an inspection tree, anything) and announce a stray match. The handler is a
+            // no-op — the digit is already buffered via the KeyCode channel. Because this consumer
+            // is the first one checked while the menu is open, the transfer-dialog consumers below
+            // no longer need to enumerate `!QuantityMenuState.IsActive`; this self-owning swallow is
+            // the single source of truth, so a future quantity-chooser parent can't reintroduce the
+            // leak by forgetting that gate.
+            TypeaheadDispatcher.Register(0.25, () => QuantityMenuState.IsActive, c => { });
+
             // Migrated typeahead consumers (formerly inline RequestCharacter sites)
-            // The quantity menu (numeric entry) and an inspection overlay can open ON TOP of
-            // these transfer dialogs while they stay active. The quantity menu reads digits via
-            // its own KeyCode handler, so the dispatcher must NOT route those digits to the
-            // dialog's list typeahead beneath it; likewise an inspection overlay (higher number,
-            // so it would otherwise lose) must own the search. Gates mirror the KeyCode-channel
-            // gates in UnifiedKeyboardPatch (lines ~829/844/884).
-            TypeaheadDispatcher.Register(3.6, () => TransportPodLoadingState.IsActive && !QuantityMenuState.IsActive && !WindowlessInspectionState.IsActive, c => TransportPodLoadingState.HandleTypeahead(c));
+            // An inspection overlay can open ON TOP of these transfer dialogs while they stay
+            // active; it has a higher priority number, so it would otherwise lose the search to the
+            // dialog beneath. Gate the dialog off while inspection is up so the overlay owns input.
+            TypeaheadDispatcher.Register(3.6, () => TransportPodLoadingState.IsActive && !WindowlessInspectionState.IsActive, c => TransportPodLoadingState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.7, () => GearEquipMenuState.IsActive, c => GearEquipMenuState.HandleTypeahead(c));
-            TypeaheadDispatcher.Register(3.8, () => CaravanFormationState.IsActive && !QuantityMenuState.IsActive && !WindowlessInspectionState.IsActive, c => CaravanFormationState.HandleTypeahead(c));
-            TypeaheadDispatcher.Register(3.9, () => SplitCaravanState.IsActive && !QuantityMenuState.IsActive && !WindowlessInspectionState.IsActive, c => SplitCaravanState.HandleTypeahead(c));
+            TypeaheadDispatcher.Register(3.8, () => CaravanFormationState.IsActive && !WindowlessInspectionState.IsActive, c => CaravanFormationState.HandleTypeahead(c));
+            TypeaheadDispatcher.Register(3.9, () => SplitCaravanState.IsActive && !WindowlessInspectionState.IsActive, c => SplitCaravanState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.4, () => IdeologyTabState.IsActive, c => IdeologyTabState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.5, () => GizmoNavigationState.IsActive, c => GizmoNavigationState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.6, () => PawnAreaMenuState.IsActive, c => PawnAreaMenuState.HandleTypeahead(c));
@@ -143,11 +152,12 @@ namespace RimWorldAccess
             // and the list stays active beneath it. Gate the list off so typing while editing a
             // bill searches the editor, not the list ("Add bill..." was stealing the 'a' key).
             TypeaheadDispatcher.Register(3.65, () => BillsMenuState.IsActive && !BillConfigState.IsActive, c => BillsMenuState.HandleTypeahead(c));
-            // While a numeric field is being edited (Enter pressed on Repeat/Target count, etc.),
-            // digits arrive as a separate layout-aware character event with keyCode == None. That
-            // event must reach the numeric buffer, NOT the typeahead search — so gate the consumer
-            // off during numeric input mode.
-            TypeaheadDispatcher.Register(3.66, () => BillConfigState.IsActive && !BillConfigState.IsNumericInputMode, c => BillConfigState.HandleTypeahead(c));
+            // Stays active even during numeric input mode so it remains the input owner: the
+            // twin character event for a typed digit is swallowed inside HandleTypeahead rather
+            // than falling through to a lower-priority consumer beneath (the inspection tree),
+            // which would announce a stray match. (The digit itself reaches the numeric buffer
+            // via the KeyCode channel in BuildingInspectPatch.)
+            TypeaheadDispatcher.Register(3.66, () => BillConfigState.IsActive, c => BillConfigState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.67, () => FishingZoneMenuState.IsActive, c => FishingZoneMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.68, () => StorytellerSelectionState.IsActive, c => StorytellerSelectionState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(3.70, () => TradeNavigationState.IsActive, c => TradeNavigationState.HandleTypeahead(c));

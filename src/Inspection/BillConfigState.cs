@@ -725,6 +725,13 @@ namespace RimWorldAccess
         public static void HandleTypeahead(char c)
         {
             if (!isActive) return;
+            // While a numeric field is being edited, the digit's KeyCode event is routed to the
+            // numeric buffer by BuildingInspectPatch. Unity also fires a twin layout-aware
+            // character event (keyCode == None) for the same keypress, which arrives here. Swallow
+            // it: this consumer stays the active input owner, so the char isn't dispatched to a
+            // lower-priority consumer beneath us (e.g. the inspection tree the bill editor opened
+            // from, which would announce a stray "Overview" match).
+            if (isNumericInputMode) return;
             if (!ProcessTypeaheadCharacter(c))
             {
                 typeahead.SpeakNoMatches();

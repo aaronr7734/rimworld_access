@@ -574,6 +574,9 @@ namespace RimWorldAccess
         public static void HandleTypeahead(char c)
         {
             if (!isActive) return;
+            // During numeric input the digit's KeyCode event is buffered by BuildingInspectPatch;
+            // swallow the twin character event here so it doesn't trigger a stray typeahead search.
+            if (isNumericInputMode) return;
             if (!ProcessTypeaheadCharacter(c))
             {
                 typeahead.SpeakNoMatches();

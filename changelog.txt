@@ -1,5 +1,12 @@
 RimWorld Access - Changelog for Aaron's Unofficial Patch
 
+06/26/2026
+
+CHANGES
+-------
+- Fixed digits typed into a quantity chooser also passing through to the screen
+  behind it. Typeahead no longer leaks past quantity choosers.
+
 06/24/2026
 
 CHANGES
