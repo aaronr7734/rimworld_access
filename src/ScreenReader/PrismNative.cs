@@ -90,13 +90,23 @@ namespace RimWorldAccess
     }
 
     /// <summary>
-    /// PrismConfig struct matching the C header layout.
-    /// In Prism v0.11+, this is just a single byte for version (PRISM_CONFIG_VERSION = 2).
+    /// PrismConfig struct matching the C header layout for Prism v0.17
+    /// (PRISM_CONFIG_VERSION = 3). Returned by value from prism_config_init,
+    /// so the managed layout must match the native one exactly: natural
+    /// alignment (version padded to pointer alignment), 48 bytes on 64-bit.
+    /// The C bool is bound as a byte to keep the struct blittable.
     /// </summary>
-    [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 1)]
+    [StructLayout(LayoutKind.Sequential)]
     public struct PrismConfig
     {
         public byte version;
+        public IntPtr registry;
+        public IntPtr availabilityCallback;
+        public IntPtr availabilityUserdata;
+        public uint availabilityPollIntervalMs;
+        public uint availabilityDebounceSamples;
+        public uint availabilityBackoffMaxMs;
+        public byte availabilityAutoPowerManage;
     }
 
     /// <summary>

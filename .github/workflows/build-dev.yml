@@ -29,11 +29,13 @@ jobs:
         shell: bash
         env:
           # Pinned deliberately. Pulling "latest" silently ships upstream Prism
-          # regressions to players: v0.16.2 broke NVDA backend detection
-          # (ethindp/prism#49), causing acquire_best() to select a
-          # non-functional NVDA over a running JAWS. Bump only after verifying
-          # the target release on Windows.
-          PRISM_VERSION: v0.16.1
+          # regressions to players (v0.16.2 once broke NVDA backend detection,
+          # ethindp/prism#49). Bump only after verifying the target release,
+          # and keep the PrismConfig struct in PrismNative.cs in sync with the
+          # target's PRISM_CONFIG_VERSION — the struct is returned by value,
+          # so a layout mismatch corrupts the stack. Must match PrismVersion
+          # in rimworld_access.csproj.
+          PRISM_VERSION: v0.17.0
         run: |
           mkdir -p native
           base="https://github.com/ethindp/prism/releases/download/${PRISM_VERSION}"
