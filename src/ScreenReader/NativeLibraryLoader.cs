@@ -74,19 +74,85 @@ namespace RimWorldAccess
 
         #region Unix P/Invoke
 
-        // On macOS, libdl functions are in libSystem. On Linux, they're in libdl.
-        // Mono resolves "dl" correctly on both platforms.
-        [DllImport("dl", EntryPoint = "dlopen")]
-        private static extern IntPtr unix_dlopen(string filename, int flags);
+        // On macOS, Mono resolves "dl" to libdl.dylib. On Linux, Mono probes
+        // "dl"/"libdl.so"/"libdl", but glibc 2.34+ distros only ship the
+        // versioned SONAME libdl.so.2 (the bare libdl.so symlink comes from
+        // dev packages), so the versioned name must be tried first there.
+        private static class Libdl
+        {
+            [DllImport("dl", EntryPoint = "dlopen")]
+            internal static extern IntPtr dlopen(string filename, int flags);
 
-        [DllImport("dl", EntryPoint = "dlsym")]
-        private static extern IntPtr unix_dlsym(IntPtr handle, string symbol);
+            [DllImport("dl", EntryPoint = "dlsym")]
+            internal static extern IntPtr dlsym(IntPtr handle, string symbol);
 
-        [DllImport("dl", EntryPoint = "dlclose")]
-        private static extern int unix_dlclose(IntPtr handle);
+            [DllImport("dl", EntryPoint = "dlclose")]
+            internal static extern int dlclose(IntPtr handle);
 
-        [DllImport("dl", EntryPoint = "dlerror")]
-        private static extern IntPtr unix_dlerror();
+            [DllImport("dl", EntryPoint = "dlerror")]
+            internal static extern IntPtr dlerror();
+        }
+
+        private static class Libdl2
+        {
+            [DllImport("libdl.so.2", EntryPoint = "dlopen")]
+            internal static extern IntPtr dlopen(string filename, int flags);
+
+            [DllImport("libdl.so.2", EntryPoint = "dlsym")]
+            internal static extern IntPtr dlsym(IntPtr handle, string symbol);
+
+            [DllImport("libdl.so.2", EntryPoint = "dlclose")]
+            internal static extern int dlclose(IntPtr handle);
+
+            [DllImport("libdl.so.2", EntryPoint = "dlerror")]
+            internal static extern IntPtr dlerror();
+        }
+
+        private static bool useVersionedLibdl = IsLinux;
+
+        private static IntPtr unix_dlopen(string filename, int flags)
+        {
+            if (useVersionedLibdl)
+            {
+                try { return Libdl2.dlopen(filename, flags); }
+                catch (DllNotFoundException) { useVersionedLibdl = false; }
+                catch (EntryPointNotFoundException) { useVersionedLibdl = false; }
+            }
+            return Libdl.dlopen(filename, flags);
+        }
+
+        private static IntPtr unix_dlsym(IntPtr handle, string symbol)
+        {
+            if (useVersionedLibdl)
+            {
+                try { return Libdl2.dlsym(handle, symbol); }
+                catch (DllNotFoundException) { useVersionedLibdl = false; }
+                catch (EntryPointNotFoundException) { useVersionedLibdl = false; }
+            }
+            return Libdl.dlsym(handle, symbol);
+        }
+
+        private static int unix_dlclose(IntPtr handle)
+        {
+            if (useVersionedLibdl)
+            {
+                try { return Libdl2.dlclose(handle); }
+                catch (DllNotFoundException) { useVersionedLibdl = false; }
+                catch (EntryPointNotFoundException) { useVersionedLibdl = false; }
+            }
+            return Libdl.dlclose(handle);
+        }
+
+        private static IntPtr unix_dlerror()
+        {
+            if (useVersionedLibdl)
+            {
+                try { return Libdl2.dlerror(); }
+                catch (DllNotFoundException) { useVersionedLibdl = false; }
+                catch (EntryPointNotFoundException) { useVersionedLibdl = false; }
+            }
+            return Libdl.dlerror();
+        }
 
         // dlopen flags
         private const int RTLD_NOW = 2;
