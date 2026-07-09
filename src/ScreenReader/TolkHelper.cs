@@ -318,6 +318,15 @@ namespace RimWorldAccess
             if (prismLibraryHandle == IntPtr.Zero)
             {
                 string error = NativeLibraryLoader.GetLastError();
+                foreach (string line in NativeLibraryLoader.GetLoadFailureDiagnostics(libraryPath))
+                {
+                    Log.Error($"[RimWorld Access] {line}");
+                }
+                string ldLibraryPath = Environment.GetEnvironmentVariable("LD_LIBRARY_PATH");
+                if (!string.IsNullOrEmpty(ldLibraryPath))
+                {
+                    Log.Message($"[RimWorld Access] LD_LIBRARY_PATH: {ldLibraryPath}");
+                }
                 throw new DllNotFoundException($"Failed to load {libraryName}: {error}");
             }
 
@@ -451,6 +460,12 @@ namespace RimWorldAccess
         public static bool ShouldInterruptOnKeyPress =>
             isInitialized && !useTolk && activeBackendName == "AVSpeech";
 
+        // Last results of the stop/speak hot paths. Failures are logged only
+        // when the error state changes, so a dead backend doesn't flood the
+        // log with one warning per utterance.
+        private static PrismError lastStopError = PrismError.Ok;
+        private static PrismError lastSpeakError = PrismError.Ok;
+
         /// <summary>
         /// Stops any currently playing speech. Used to manually interrupt backends
         /// that don't interrupt on key press (e.g., AVSpeech on macOS).
@@ -462,7 +477,18 @@ namespace RimWorldAccess
 
             try
             {
-                PrismNative.prism_backend_stop?.Invoke(prismBackend);
+                if (PrismNative.prism_backend_stop == null)
+                    return;
+
+                PrismError result = PrismNative.prism_backend_stop(prismBackend);
+                if (result != lastStopError)
+                {
+                    if (result != PrismError.Ok)
+                    {
+                        Log.Warning($"[RimWorld Access] Stopping speech failed: {PrismNative.GetErrorString(result)}");
+                    }
+                    lastStopError = result;
+                }
             }
             catch (Exception ex)
             {
@@ -557,12 +583,21 @@ namespace RimWorldAccess
                 try
                 {
                     PrismError result = PrismNative.prism_backend_output(prismBackend, pointer, interrupt);
-                    if (result != PrismError.Ok)
+                    if (result == PrismError.NotImplemented && PrismNative.prism_backend_speak != null)
                     {
-                        if (result == PrismError.NotImplemented && PrismNative.prism_backend_speak != null)
+                        result = PrismNative.prism_backend_speak(prismBackend, pointer, interrupt);
+                    }
+                    if (result != lastSpeakError)
+                    {
+                        if (result != PrismError.Ok)
                         {
-                            PrismNative.prism_backend_speak(prismBackend, pointer, interrupt);
+                            Log.Warning($"[RimWorld Access] Speech output failed: {PrismNative.GetErrorString(result)}");
                         }
+                        else
+                        {
+                            Log.Message("[RimWorld Access] Speech output recovered.");
+                        }
+                        lastSpeakError = result;
                     }
                 }
                 finally

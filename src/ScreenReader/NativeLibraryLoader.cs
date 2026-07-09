@@ -155,9 +155,16 @@ namespace RimWorldAccess
         }
 
         // dlopen flags
+        private const int RTLD_LAZY = 1;
         private const int RTLD_NOW = 2;
 
         #endregion
+
+        // dlerror message captured immediately after a failed dlopen; libc's
+        // per-thread dlerror state is reset by any successful dl call, and
+        // Mono resolving a lazy P/Invoke import performs its own dl calls, so
+        // reading dlerror later (e.g. from GetLastError) returns nothing.
+        private static string lastUnixLoadError;
 
         /// <summary>
         /// Loads a native library from the specified path.
@@ -171,7 +178,19 @@ namespace RimWorldAccess
             }
             else
             {
-                return unix_dlopen(path, RTLD_NOW);
+                // Force Mono to resolve the dlerror import (and clear stale
+                // state) before dlopen, so the read below can't be wiped by
+                // import resolution.
+                unix_dlerror();
+                IntPtr handle = unix_dlopen(path, RTLD_NOW);
+                if (handle == IntPtr.Zero)
+                {
+                    IntPtr error = unix_dlerror();
+                    lastUnixLoadError = error != IntPtr.Zero
+                        ? Marshal.PtrToStringAnsi(error)
+                        : null;
+                }
+                return handle;
             }
         }
 
@@ -261,6 +280,110 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Diagnoses a failed library load on Linux by probing each of the
+        /// library's declared dependencies (DT_NEEDED) individually. Returns
+        /// one line per finding; empty when no problems are found or the
+        /// format is not ELF (e.g. on macOS).
+        /// </summary>
+        public static System.Collections.Generic.List<string> GetLoadFailureDiagnostics(string path)
+        {
+            var lines = new System.Collections.Generic.List<string>();
+            if (IsWindows)
+            {
+                return lines;
+            }
+
+            try
+            {
+                foreach (string needed in ReadElfNeededEntries(path))
+                {
+                    IntPtr probe = unix_dlopen(needed, RTLD_LAZY);
+                    if (probe != IntPtr.Zero)
+                    {
+                        unix_dlclose(probe);
+                        continue;
+                    }
+                    IntPtr error = unix_dlerror();
+                    string reason = error != IntPtr.Zero
+                        ? Marshal.PtrToStringAnsi(error)
+                        : "unknown reason";
+                    lines.Add($"Missing dependency: {needed} ({reason})");
+                }
+            }
+            catch (Exception ex)
+            {
+                lines.Add($"Dependency scan failed: {ex.Message}");
+            }
+            return lines;
+        }
+
+        /// <summary>
+        /// Reads the DT_NEEDED (required shared library) names from an ELF
+        /// file's .dynamic section. Returns an empty list for non-ELF files.
+        /// </summary>
+        private static System.Collections.Generic.List<string> ReadElfNeededEntries(string path)
+        {
+            var needed = new System.Collections.Generic.List<string>();
+            byte[] data = File.ReadAllBytes(path);
+
+            // ELF magic + 64-bit little-endian class; anything else is not a
+            // file we know how to scan.
+            if (data.Length < 0x40 ||
+                data[0] != 0x7F || data[1] != (byte)'E' || data[2] != (byte)'L' || data[3] != (byte)'F' ||
+                data[4] != 2 || data[5] != 1)
+            {
+                return needed;
+            }
+
+            long shoff = BitConverter.ToInt64(data, 0x28);
+            int shentsize = BitConverter.ToUInt16(data, 0x3A);
+            int shnum = BitConverter.ToUInt16(data, 0x3C);
+
+            long dynamicOff = 0, dynamicSize = 0, dynstrOff = 0;
+            for (int i = 0; i < shnum; i++)
+            {
+                long off = shoff + (long)i * shentsize;
+                uint type = BitConverter.ToUInt32(data, (int)off + 0x04);
+                long sectionOff = BitConverter.ToInt64(data, (int)off + 0x18);
+                long sectionSize = BitConverter.ToInt64(data, (int)off + 0x20);
+                if (type == 6) // SHT_DYNAMIC
+                {
+                    dynamicOff = sectionOff;
+                    dynamicSize = sectionSize;
+                    // sh_link points at the section holding the dynamic strings
+                    uint link = BitConverter.ToUInt32(data, (int)off + 0x28);
+                    long linkHdr = shoff + (long)link * shentsize;
+                    dynstrOff = BitConverter.ToInt64(data, (int)linkHdr + 0x18);
+                }
+            }
+            if (dynamicOff == 0 || dynstrOff == 0)
+            {
+                return needed;
+            }
+
+            for (long off = dynamicOff; off < dynamicOff + dynamicSize; off += 16)
+            {
+                long tag = BitConverter.ToInt64(data, (int)off);
+                long val = BitConverter.ToInt64(data, (int)off + 8);
+                if (tag == 0) // DT_NULL: end of table
+                {
+                    break;
+                }
+                if (tag == 1) // DT_NEEDED: val is an offset into the string table
+                {
+                    long strOff = dynstrOff + val;
+                    int end = (int)strOff;
+                    while (end < data.Length && data[end] != 0)
+                    {
+                        end++;
+                    }
+                    needed.Add(System.Text.Encoding.ASCII.GetString(data, (int)strOff, end - (int)strOff));
+                }
+            }
+            return needed;
+        }
+
+        /// <summary>
         /// Gets the last native error message (platform-specific).
         /// </summary>
         public static string GetLastError()
@@ -272,6 +395,12 @@ namespace RimWorldAccess
             }
             else
             {
+                if (lastUnixLoadError != null)
+                {
+                    string captured = lastUnixLoadError;
+                    lastUnixLoadError = null;
+                    return captured;
+                }
                 IntPtr error = unix_dlerror();
                 if (error != IntPtr.Zero)
                 {
