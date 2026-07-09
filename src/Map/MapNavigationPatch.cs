@@ -18,6 +18,9 @@ namespace RimWorldAccess
     {
         private static bool hasAnnouncedThisFrame = false;
         private static int lastProcessedFrame = -1;
+        private static IntVec3 lastMouseCell = IntVec3.Invalid;
+        private static int lastMouseCellMapId = -1;
+        private static float lastArrowKeyPressTime = 0f;
 
         /// <summary>
         /// Updates the map navigation suppression flag based on active menus.
@@ -120,6 +123,8 @@ namespace RimWorldAccess
             if (Find.CurrentMap == null)
             {
                 MapNavigationState.Reset();
+                lastMouseCell = IntVec3.Invalid;
+                lastMouseCellMapId = -1;
                 return true; // Let original run
             }
 
@@ -192,9 +197,123 @@ namespace RimWorldAccess
             // - Frame deduplication
             // - Map changes check and initialization
             // - Map switching with Shift+comma/period
+            // - Mouse exploration announcements while holding Left Shift
+
+            if (!MapNavigationState.SuppressMapNavigation && Find.CurrentMap != null)
+            {
+                bool shiftHeldForMouse = Input.GetKey(KeyCode.LeftShift);
+
+                if (shiftHeldForMouse)
+                {
+                    IntVec3 mouseCell = UI.MouseCell();
+                    if (mouseCell.InBounds(Find.CurrentMap))
+                    {
+                        bool mouseCellChanged = mouseCell != lastMouseCell || Find.CurrentMap.uniqueID != lastMouseCellMapId;
+                        float timeSinceArrowKey = Time.time - lastArrowKeyPressTime;
+                        bool keyboardIdle = timeSinceArrowKey > 0.5f;
+
+                        if (mouseCellChanged && keyboardIdle)
+                        {
+                            string tileInfo = TileInfoHelper.GetTileSummary(mouseCell, Find.CurrentMap);
+
+                            if (ZoneCreationState.IsInCreationMode)
+                            {
+                                if (ZoneCreationState.IsInPreviewMode && ZoneCreationState.PreviewCells.Contains(mouseCell))
+                                {
+                                    tileInfo = "Preview, " + tileInfo;
+                                }
+                                else if (ZoneCreationState.IsCellSelected(mouseCell))
+                                {
+                                    tileInfo = "Selected, " + tileInfo;
+                                }
+                            }
+                            else if (AreaPaintingState.IsActive)
+                            {
+                                if (AreaPaintingState.IsInPreviewMode && AreaPaintingState.PreviewCells.Contains(mouseCell))
+                                {
+                                    tileInfo = "Preview, " + tileInfo;
+                                }
+                                else if (AreaPaintingState.StagedCells.Contains(mouseCell))
+                                {
+                                    tileInfo = "Selected, " + tileInfo;
+                                }
+                            }
+                            else if (ArchitectState.IsInPlacementMode)
+                            {
+                                if (ShapePlacementState.IsActive && ShapePlacementState.PreviewCells.Contains(mouseCell))
+                                {
+                                    if (ShapePlacementState.FirstPoint.HasValue && mouseCell == ShapePlacementState.FirstPoint.Value)
+                                    {
+                                        tileInfo = "First point, " + tileInfo;
+                                    }
+                                    else if (ShapePlacementState.CurrentPhase == PlacementPhase.Previewing &&
+                                             ShapePlacementState.SecondPoint.HasValue && mouseCell == ShapePlacementState.SecondPoint.Value)
+                                    {
+                                        tileInfo = "Second point, " + tileInfo;
+                                    }
+                                }
+                                else if (ArchitectState.SelectedCells.Contains(mouseCell))
+                                {
+                                    tileInfo = "Selected, " + tileInfo;
+                                }
+                            }
+
+                            if (tileInfo != MapNavigationState.LastAnnouncedInfo)
+                            {
+                                TolkHelper.Speak(tileInfo, SpeechPriority.High);
+                                MapNavigationState.LastAnnouncedInfo = tileInfo;
+                                hasAnnouncedThisFrame = true;
+                            }
+
+                            lastMouseCell = mouseCell;
+                            lastMouseCellMapId = Find.CurrentMap.uniqueID;
+                        }
+                    }
+                    else if (lastMouseCell.IsValid || lastMouseCellMapId != -1)
+                    {
+                        lastMouseCell = IntVec3.Invalid;
+                        lastMouseCellMapId = -1;
+                    }
+                }
+                else if (lastMouseCell.IsValid || lastMouseCellMapId != -1)
+                {
+                    lastMouseCell = IntVec3.Invalid;
+                    lastMouseCellMapId = -1;
+                }
+            }
 
             // Let original CameraDriver.Update() run for non-arrow-key functionality
             // (zoom, following, etc.)
+            return true;
+        }
+
+        public static void NotifyArrowKeyNavigation()
+        {
+            lastArrowKeyPressTime = Time.time;
+        }
+
+        /// <summary>
+        /// Moves the keyboard cursor to the last valid cell discovered by mouse exploration.
+        /// Returns true if the cursor was moved.
+        /// </summary>
+        public static bool MoveCursorToLastMouseCell()
+        {
+            if (Find.CurrentMap == null || !lastMouseCell.IsValid || lastMouseCellMapId != Find.CurrentMap.uniqueID)
+            {
+                TolkHelper.Speak("No valid mouse position", SpeechPriority.Normal);
+                return false;
+            }
+
+            if (!lastMouseCell.InBounds(Find.CurrentMap))
+            {
+                TolkHelper.Speak("No valid mouse position", SpeechPriority.Normal);
+                return false;
+            }
+
+            MapNavigationState.CurrentCursorPosition = lastMouseCell;
+            MapNavigationState.CurrentCameraMode = CameraFollowMode.Cursor;
+            Find.CameraDriver?.JumpToCurrentMapLoc(lastMouseCell);
+            MapArrowKeyHandler.AnnouncePosition(lastMouseCell, Find.CurrentMap);
             return true;
         }
 
