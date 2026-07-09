@@ -93,7 +93,8 @@ namespace RimWorldAccess
                 // History tab states
                 HistoryState.IsActive ||
                 HistoryStatisticsState.IsActive ||
-                HistoryMessagesState.IsActive;
+                HistoryMessagesState.IsActive ||
+                QualityBuilderMenuState.IsActive;
                 // Note: TransportPodSelectionState, GizmoZoneEditState, and ShelfLinkingState are
                 // NOT included - they use the map cursor (arrow keys) for cell selection.
         }

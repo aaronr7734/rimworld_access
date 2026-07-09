@@ -324,6 +324,8 @@ namespace RimWorldAccess
                 || HistoryState.IsActive
                 || HistoryStatisticsState.IsActive
                 || HistoryMessagesState.IsActive
+                // Quality Builder menu
+                || QualityBuilderMenuState.IsActive
                 // Building placement modes
                 || ViewingModeState.IsActive
                 || ShapePlacementState.IsActive
