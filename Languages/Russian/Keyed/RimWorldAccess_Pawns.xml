@@ -575,6 +575,7 @@
   <RimWorldAccess.Pawns.Health.NameHeader>{0}</RimWorldAccess.Pawns.Health.NameHeader>
   <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}</RimWorldAccess.Pawns.Health.Capacity>
   <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}</RimWorldAccess.Pawns.Health.PartHealth>
+  <RimWorldAccess.Pawns.Health.Severity>Тяжесть</RimWorldAccess.Pawns.Health.Severity>
 
   <!-- Needs. -->
   <RimWorldAccess.Pawns.Needs.NoTracker>{0}: нет данных о нуждах</RimWorldAccess.Pawns.Needs.NoTracker>

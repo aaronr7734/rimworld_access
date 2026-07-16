@@ -575,6 +575,7 @@
   <RimWorldAccess.Pawns.Health.NameHeader>{0}</RimWorldAccess.Pawns.Health.NameHeader>
   <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}</RimWorldAccess.Pawns.Health.Capacity>
   <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}</RimWorldAccess.Pawns.Health.PartHealth>
+  <RimWorldAccess.Pawns.Health.Severity>严重程度</RimWorldAccess.Pawns.Health.Severity>
 
   <!-- Needs. -->
   <RimWorldAccess.Pawns.Needs.NoTracker>{0}: 无需求追踪器</RimWorldAccess.Pawns.Needs.NoTracker>
