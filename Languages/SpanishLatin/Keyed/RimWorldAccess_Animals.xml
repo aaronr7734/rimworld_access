@@ -42,6 +42,11 @@
   <RimWorldAccess.Animals.Paint.Checked>marcado</RimWorldAccess.Animals.Paint.Checked>
   <RimWorldAccess.Animals.Paint.Unchecked>desmarcado</RimWorldAccess.Animals.Paint.Unchecked>
 
+  <!-- PenStatus column values (AnimalsMenuHelper.GetPenStatus). -->
+  <RimWorldAccess.Animals.Value.InPen>en el corral</RimWorldAccess.Animals.Value.InPen>
+  <RimWorldAccess.Animals.Value.OutsidePen>fuera del corral</RimWorldAccess.Animals.Value.OutsidePen>
+  <RimWorldAccess.Animals.Value.NoPenAssigned>sin corral asignado</RimWorldAccess.Animals.Value.NoPenAssigned>
+
   <!-- =================================================================
        AnimalsMenuHelper column headers (colony animals tab).
        "Name" and "Age" are hard-coded English labels that don't have
@@ -56,6 +61,7 @@
   <RimWorldAccess.Animals.Column.BondInfo>Vínculo</RimWorldAccess.Animals.Column.BondInfo>
   <RimWorldAccess.Animals.Column.Sterile>Estéril</RimWorldAccess.Animals.Column.Sterile>
   <RimWorldAccess.Animals.Column.MedicalCare>Atención médica</RimWorldAccess.Animals.Column.MedicalCare>
+  <RimWorldAccess.Animals.Column.PenStatus>Estado del corral</RimWorldAccess.Animals.Column.PenStatus>
 
   <!-- =================================================================
        Training status (AnimalsMenuHelper.GetTrainingStatus and
