@@ -338,20 +338,20 @@ namespace RimWorldAccess
             {
                 Color raw = DefaultColorProp != null ? (Color)DefaultColorProp.GetValue(currentDialog) : Color.white;
                 Color result = ApplyForcedValue(raw);
-                TolkHelper.SpeakData((string)"RimWorldAccess.Building.ColorPicker.DefaultOption".Translate(
-                    DescribeColor(result)) + " " + PositionSuffix(selectedIndex, hueIndex));
+                string baseText = (string)"RimWorldAccess.Building.ColorPicker.DefaultOption".Translate(DescribeColor(result));
+                TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, hueIndex));
             }
             else if (showDarklight && selectedIndex == 1)
             {
-                TolkHelper.SpeakData((string)"RimWorldAccess.Building.ColorPicker.DarklightOption".Translate(
-                    DescribeColor(DarklightUtility.DefaultDarklight)) + " " + PositionSuffix(selectedIndex, hueIndex));
+                string baseText = (string)"RimWorldAccess.Building.ColorPicker.DarklightOption".Translate(
+                    DescribeColor(DarklightUtility.DefaultDarklight));
+                TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, hueIndex));
             }
             else if (selectedIndex >= paletteStart && selectedIndex < paletteStart + palette.Count)
             {
                 int paletteIndex = selectedIndex - paletteStart;
-                string desc = DescribeColor(palette[paletteIndex]);
-                string position = PositionSuffix(selectedIndex, hueIndex);
-                TolkHelper.SpeakData(desc + " " + position);
+                string baseText = DescribeColor(palette[paletteIndex]);
+                TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, hueIndex));
             }
             else if (selectedIndex == hueIndex)
             {
@@ -377,7 +377,11 @@ namespace RimWorldAccess
             }
         }
 
-        private static string PositionSuffix(int index, int count) => MenuHelper.FormatPosition(index, count);
+        private static string WithPosition(string baseText, int index, int count)
+        {
+            string position = MenuHelper.FormatPosition(index, count);
+            return string.IsNullOrEmpty(position) ? baseText : $"{baseText}. {position}";
+        }
 
         /// <summary>
         /// Describes a color by its hue/saturation (brightness is fixed by the dialog, so it carries
