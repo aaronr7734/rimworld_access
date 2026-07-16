@@ -442,18 +442,28 @@ namespace RimWorldAccess
                     string desc = degree.description;
                     if (!string.IsNullOrEmpty(desc))
                     {
-                        // Convert {PAWN_*} to [PAWN_*] so GrammarResolver handles both formats
-                        desc = Regex.Replace(desc, @"\{(PAWN_\w+)\}", "[$1]");
+                        try
+                        {
+                            // Convert {PAWN_*} to [PAWN_*] so GrammarResolver handles both formats
+                            string resolvedDesc = Regex.Replace(desc, @"\{(PAWN_\w+)\}", "[$1]");
 
-                        // Resolve using game's grammar system with generic female colonist
-                        var request = default(GrammarRequest);
-                        request.Includes.Add(RulePackDefOf.DynamicWrapper);
-                        request.Rules.Add(new Rule_String("RULE", desc));
-                        request.Rules.AddRange(GrammarUtility.RulesForPawn(
-                            "PAWN", null, null, PawnKindDefOf.Colonist, Verse.Gender.Female,
-                            null, 25, 25, "", false, false, false, null, false, "",
-                            null, false));
-                        desc = GrammarResolver.Resolve("r_root", request);
+                            // Resolve using game's grammar system with generic female colonist
+                            var request = default(GrammarRequest);
+                            request.Includes.Add(RulePackDefOf.DynamicWrapper);
+                            request.Rules.Add(new Rule_String("RULE", resolvedDesc));
+                            request.Rules.AddRange(GrammarUtility.RulesForPawn(
+                                "PAWN", null, null, PawnKindDefOf.Colonist, Verse.Gender.Female,
+                                null, 25, 25, "", false, false, false, null, false, "",
+                                null, false));
+                            desc = GrammarResolver.Resolve("r_root", request);
+                        }
+                        catch (Exception)
+                        {
+                            // Some vanilla trait degree descriptions (e.g. Traits_Spectrum.xml)
+                            // null-ref inside GrammarResolver because no real pawn Name is
+                            // supplied above. Keep the raw description rather than aborting the
+                            // whole options list, which used to prevent the picker from opening.
+                        }
                     }
 
                     var option = new FloatMenuOption(label, () =>
