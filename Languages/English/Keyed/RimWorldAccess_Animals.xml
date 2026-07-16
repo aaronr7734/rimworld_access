@@ -35,6 +35,10 @@
   <!-- BondBroken is wrapped in parentheses after the "Bonded to X" text. -->
   <RimWorldAccess.Animals.Value.BondBroken>bond broken</RimWorldAccess.Animals.Value.BondBroken>
   <RimWorldAccess.Animals.Value.Scheduled>Scheduled</RimWorldAccess.Animals.Value.Scheduled>
+  <!-- PenStatus column values (AnimalsMenuHelper.GetPenStatus). -->
+  <RimWorldAccess.Animals.Value.InPen>in pen</RimWorldAccess.Animals.Value.InPen>
+  <RimWorldAccess.Animals.Value.OutsidePen>outside pen</RimWorldAccess.Animals.Value.OutsidePen>
+  <RimWorldAccess.Animals.Value.NoPenAssigned>no pen assigned</RimWorldAccess.Animals.Value.NoPenAssigned>
 
   <!-- Paint value labels. AnimalsMenuHelper.GetPaintValueLabel and
        WildlifeMenuHelper.GetPaintValueLabel return these for checkbox
@@ -56,6 +60,7 @@
   <RimWorldAccess.Animals.Column.BondInfo>Bond</RimWorldAccess.Animals.Column.BondInfo>
   <RimWorldAccess.Animals.Column.Sterile>Sterile</RimWorldAccess.Animals.Column.Sterile>
   <RimWorldAccess.Animals.Column.MedicalCare>Medical care</RimWorldAccess.Animals.Column.MedicalCare>
+  <RimWorldAccess.Animals.Column.PenStatus>Pen status</RimWorldAccess.Animals.Column.PenStatus>
 
   <!-- =================================================================
        Training status (AnimalsMenuHelper.GetTrainingStatus and

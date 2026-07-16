@@ -31,7 +31,8 @@ namespace RimWorldAccess
             Slaughter,
             MedicalCare,
             ReleaseToWild,
-            AllowedArea
+            AllowedArea,
+            PenStatus
         }
 
         private static List<TrainableDef> cachedTrainables = null;
@@ -125,6 +126,7 @@ namespace RimWorldAccess
             columns.Add(ColumnType.MedicalCare);
             columns.Add(ColumnType.ReleaseToWild);
             columns.Add(ColumnType.AllowedArea);
+            columns.Add(ColumnType.PenStatus);
 
             return columns;
         }
@@ -226,6 +228,7 @@ namespace RimWorldAccess
                 case ColumnType.MedicalCare: return "RimWorldAccess.Animals.Column.MedicalCare".Translate().Resolve();
                 case ColumnType.ReleaseToWild: return "DesignatorReleaseAnimalToWild".Translate().Resolve();
                 case ColumnType.AllowedArea: return "AllowedArea".Translate().Resolve();
+                case ColumnType.PenStatus: return "RimWorldAccess.Animals.Column.PenStatus".Translate().Resolve();
                 default: return type.ToString().Replace("_", " ");
             }
         }
@@ -335,9 +338,24 @@ namespace RimWorldAccess
                     return GetReleaseToWildStatus(pawn);
                 case ColumnType.AllowedArea:
                     return GetAllowedArea(pawn);
+                case ColumnType.PenStatus:
+                    return GetPenStatus(pawn);
                 default:
                     return "RimWorldAccess.Animals.Value.Unknown".Translate().ToString();
             }
+        }
+
+        public static string GetPenStatus(Pawn pawn)
+        {
+            CompAnimalPenMarker pen = AnimalPenUtility.GetCurrentPenOf(pawn, allowUnenclosedPens: true);
+            if (pen == null)
+                return "RimWorldAccess.Animals.Value.NoPenAssigned".Translate().ToString();
+
+            Region pawnRegion = pawn.GetRegion();
+            bool inPen = pawnRegion != null && pen.PenState.ContainsConnectedRegion(pawnRegion);
+            return inPen
+                ? "RimWorldAccess.Animals.Value.InPen".Translate().ToString()
+                : "RimWorldAccess.Animals.Value.OutsidePen".Translate().ToString();
         }
 
         // Check if column is interactive (can be changed with Enter key)
