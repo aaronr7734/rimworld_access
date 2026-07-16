@@ -10,7 +10,9 @@
     Files contributing strings:
       - MainMenuAccessibilityPatch.cs   (the main menu shell)
       - LoadingScreenAccessibilityPatch (the load-screen tip + events)
-      - ModListState.cs / ModSettingsDialogPatch.cs
+      - ModListState.cs / ModSettingsDialogPatch.cs /
+        ModSettingsMenuState.cs / ModSettingsCaptureState.cs /
+        ModSettingsWidgetPatches.cs
       - WindowlessScenarioLoadState.cs / WindowlessScenarioSaveState.cs
       - ScenarioSelectionPatch.cs / ScenarioNavigationState.cs
       - ScenarioBuilderState.cs / ScenarioBuilderPatch.cs /
@@ -72,9 +74,32 @@
        {0} = the mod's display name (when known).
        ================================================================= -->
   <RimWorldAccess.ModSettings.OpenedFor>Configuración del mod {0}. Presiona Escape para cerrar.</RimWorldAccess.ModSettings.OpenedFor>
-  <RimWorldAccess.ModSettings.OpenedGeneric>Diálogo de configuración del mod abierto. Presiona Escape para cerrar.</RimWorldAccess.ModSettings.OpenedGeneric>
   <RimWorldAccess.ModSettings.Closed>Configuración del mod cerrada</RimWorldAccess.ModSettings.Closed>
   <RimWorldAccess.ModSettings.UnknownMod>Mod desconocido</RimWorldAccess.ModSettings.UnknownMod>
+
+  <!-- =================================================================
+       Menú sin ventana de configuración del mod (ModSettingsMenuState +
+       ModSettingsCaptureState + ModSettingsWidgetPatches). Hace que los
+       controles propios del mod (casillas, botones, botones de radio,
+       deslizadores, etiquetas) sean navegables por teclado y lector de
+       pantalla, interceptándolos mientras se dibujan cada cuadro.
+       {0} = anuncio de apertura del diálogo, {1} = anuncio del primer
+       elemento navegable. {0}/{1} en las cadenas de elementos = etiqueta
+       del control / estado activado-desactivado-seleccionado / porcentaje.
+       ================================================================= -->
+  <RimWorldAccess.ModSettings.OpeningWithItem>{0} ... {1}</RimWorldAccess.ModSettings.OpeningWithItem>
+  <RimWorldAccess.ModSettings.Menu.NoSettings>No se pudo leer la configuración de este mod. Puede que use controles que esta función aún no admite.</RimWorldAccess.ModSettings.Menu.NoSettings>
+  <RimWorldAccess.ModSettings.Menu.Checkbox>casilla</RimWorldAccess.ModSettings.Menu.Checkbox>
+  <RimWorldAccess.ModSettings.Menu.Button>botón</RimWorldAccess.ModSettings.Menu.Button>
+  <RimWorldAccess.ModSettings.Menu.RadioButton>botón de radio</RimWorldAccess.ModSettings.Menu.RadioButton>
+  <RimWorldAccess.ModSettings.Menu.Slider>deslizador</RimWorldAccess.ModSettings.Menu.Slider>
+  <RimWorldAccess.ModSettings.Menu.On>activado</RimWorldAccess.ModSettings.Menu.On>
+  <RimWorldAccess.ModSettings.Menu.Off>desactivado</RimWorldAccess.ModSettings.Menu.Off>
+  <RimWorldAccess.ModSettings.Menu.Selected>seleccionado</RimWorldAccess.ModSettings.Menu.Selected>
+  <RimWorldAccess.ModSettings.Menu.NotSelected>no seleccionado</RimWorldAccess.ModSettings.Menu.NotSelected>
+  <RimWorldAccess.ModSettings.Menu.CheckboxToggled>{0}, {1}</RimWorldAccess.ModSettings.Menu.CheckboxToggled>
+  <RimWorldAccess.ModSettings.Menu.Activated>{0}, activado</RimWorldAccess.ModSettings.Menu.Activated>
+  <RimWorldAccess.ModSettings.Menu.RadioSelected>{0}, seleccionado</RimWorldAccess.ModSettings.Menu.RadioSelected>
 
   <!-- =================================================================
        Mod list / mod manager (ModListState).
