@@ -1038,6 +1038,34 @@
   <RimWorldAccess.Building.PlanColor.Purple>Purple</RimWorldAccess.Building.PlanColor.Purple>
   <RimWorldAccess.Building.PlanColor.Pink>Pink</RimWorldAccess.Building.PlanColor.Pink>
 
+  <!-- Accessible color picker (src/Building/ColorPickerAccessibilityState.cs). Wraps vanilla's
+       Dialog_ColorPickerBase (the light "change color" gizmo's Dialog_GlowerColorPicker, and
+       Dialog_AllowedAreaColorPicker, which shares the identical mouse-only UI). Presents the 54
+       preset swatches plus Default/Darklight as a flat navigable list, and Hue/Saturation as
+       step-adjustable controls (brightness is fixed by the dialog itself). Fixes GitHub issue #57. -->
+  <!-- {0} = current color description, {1} = previous color description, {2} = swatch count. -->
+  <RimWorldAccess.Building.ColorPicker.Opened>Color picker opened. Current color: {0}. Previous color: {1}. {2} preset swatches, plus Default, hue, and saturation controls. Up and down arrows navigate, left and right arrows adjust hue or saturation when focused there, Enter selects or applies, Escape cancels.</RimWorldAccess.Building.ColorPicker.Opened>
+  <!-- {0} = hue degrees, {1} = saturation percent. -->
+  <RimWorldAccess.Building.ColorPicker.HueSat>Hue {0} degrees, saturation {1} percent</RimWorldAccess.Building.ColorPicker.HueSat>
+  <RimWorldAccess.Building.ColorPicker.White>White</RimWorldAccess.Building.ColorPicker.White>
+  <!-- {0} = color description. Spoken when Default/Darklight/a swatch is chosen with Enter. -->
+  <RimWorldAccess.Building.ColorPicker.Selected>Color set to {0}</RimWorldAccess.Building.ColorPicker.Selected>
+  <!-- {0} = color description, spoken while navigating onto the Default item. -->
+  <RimWorldAccess.Building.ColorPicker.DefaultOption>Default: {0}</RimWorldAccess.Building.ColorPicker.DefaultOption>
+  <!-- {0} = color description, spoken while navigating onto the Darklight item. -->
+  <RimWorldAccess.Building.ColorPicker.DarklightOption>Darklight: {0}</RimWorldAccess.Building.ColorPicker.DarklightOption>
+  <RimWorldAccess.Building.ColorPicker.Darklight>Darklight</RimWorldAccess.Building.ColorPicker.Darklight>
+  <!-- {0} = current hue in degrees, spoken while navigating onto or adjusting the hue stepper. -->
+  <RimWorldAccess.Building.ColorPicker.HueStepper>Adjust hue: {0} degrees. Use left and right arrow to change.</RimWorldAccess.Building.ColorPicker.HueStepper>
+  <RimWorldAccess.Building.ColorPicker.HueChanged>Hue: {0} degrees</RimWorldAccess.Building.ColorPicker.HueChanged>
+  <!-- {0} = current saturation percent, spoken while navigating onto or adjusting the saturation stepper. -->
+  <RimWorldAccess.Building.ColorPicker.SatStepper>Adjust saturation: {0} percent. Use left and right arrow to change.</RimWorldAccess.Building.ColorPicker.SatStepper>
+  <RimWorldAccess.Building.ColorPicker.SatChanged>Saturation: {0} percent</RimWorldAccess.Building.ColorPicker.SatChanged>
+  <RimWorldAccess.Building.ColorPicker.Accept>Accept and apply color</RimWorldAccess.Building.ColorPicker.Accept>
+  <RimWorldAccess.Building.ColorPicker.Cancel>Cancel without saving</RimWorldAccess.Building.ColorPicker.Cancel>
+  <!-- {0} = color description. Spoken when Accept is activated. -->
+  <RimWorldAccess.Building.ColorPicker.Accepted>Color applied: {0}</RimWorldAccess.Building.ColorPicker.Accepted>
+
   <!-- Plan management announcements (src/Building/PlanActionHelper.cs). -->
   <RimWorldAccess.Building.Plan.Hidden>Plan hidden</RimWorldAccess.Building.Plan.Hidden>
   <!-- {0} = plan name. -->

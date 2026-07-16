@@ -824,6 +824,20 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY -0.212: Handle accessible color picker (light/area) dialog if active =====
+            // Dialog_ColorPickerBase (Dialog_GlowerColorPicker / Dialog_AllowedAreaColorPicker) is a
+            // modal, mouse-only vanilla window left in the real WindowStack (see
+            // ColorPickerAccessibilityState / ColorPickerAccessibilityPatch in Building/, mirroring
+            // SliderDialogState). Must be near the top so it absorbs input before anything below.
+            if (ColorPickerAccessibilityState.IsActive)
+            {
+                if (ColorPickerAccessibilityState.HandleInput(Event.current))
+                {
+                    Event.current.Use();
+                    return;
+                }
+            }
+
             // ===== PRIORITY -0.21: Handle Anomaly Settings dialog if active =====
             // Modal dialog opened from the storyteller selection page (Tab → Anomaly Settings → Enter).
             // MUST be near the top of the routing chain because absorbInputAroundWindow modals
