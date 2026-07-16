@@ -10,7 +10,6 @@ A few shortcuts make navigation faster:
 
 - **R** jumps the cursor to a random valid starting tile and reads its details. A generated world holds tens of thousands of tiles, so this lands you somewhere new each time you press it.
 - **Space** re-announces the current tile.
-- **Ctrl+Up/Down/Left/Right** jumps to the next biome boundary in that direction, useful for finding the edge of a desert or the start of a forest.
 
 ## Reading tile details
 

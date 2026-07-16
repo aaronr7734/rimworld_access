@@ -2,7 +2,7 @@
 
 Screen reader accessibility for RimWorld. Uses the Tolk library to communicate with NVDA, JAWS, and other screen readers. Falls back to Windows SAPI if no screen reader is detected.
 
-> **Note:** This mod is an early version. Errors may be present. This documentation is a rough overview—for detailed questions and clarifications, join the [Discord server](https://discord.gg/Aecaqnbr).
+> **Note:** This mod is an early version. Errors may be present. This documentation is a rough overview—for detailed questions and clarifications, join the [Discord server](https://discord.gg/XdxfyvSKaT).
 
 > **Bug Reports:** Bug reports involving mods other than RimWorld Access are currently unsupported. Please test with only Harmony and RimWorld Access enabled before reporting issues.
 
