@@ -859,6 +859,21 @@ namespace RimWorldAccess
                 }
             }
 
+            // Game-start mode: move pawn across the Selected/Left Behind boundary
+            if (StartingPawnState.Context == PawnEditorContext.GameStart)
+            {
+                bool isSelected = pawnIndex < Find.GameInitData.startingPawnCount;
+                string toggleLabel = isSelected
+                    ? "RimWorldAccess.StartingPawn.MoveToLeftBehind".Translate().ToString()
+                    : "RimWorldAccess.StartingPawn.MoveToSelected".Translate().ToString();
+                var toggleOption = new FloatMenuOption(toggleLabel, () =>
+                {
+                    StartingPawnState.ToggleSelectedPawnAt(pawnIndex);
+                });
+                toggleOption.tooltip = new TipSignal("Delete");
+                options.Add(toggleOption);
+            }
+
             // Biotech: Developmental stage and xenotype selectors
             if (ModsConfig.BiotechActive)
             {

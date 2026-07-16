@@ -498,6 +498,10 @@
   <RimWorldAccess.StartingPawn.PawnAdded>Pawn added</RimWorldAccess.StartingPawn.PawnAdded>
   <RimWorldAccess.StartingPawn.PawnRemoved>{0} removed</RimWorldAccess.StartingPawn.PawnRemoved>
   <RimWorldAccess.StartingPawn.LabelRandomize>{0}, {1}</RimWorldAccess.StartingPawn.LabelRandomize>
+  <RimWorldAccess.StartingPawn.MinimumSelectedPawns>Minimum {0} selected</RimWorldAccess.StartingPawn.MinimumSelectedPawns>
+  <RimWorldAccess.StartingPawn.MovedToSection>{0} moved to {1}</RimWorldAccess.StartingPawn.MovedToSection>
+  <RimWorldAccess.StartingPawn.MoveToLeftBehind>Move to left behind</RimWorldAccess.StartingPawn.MoveToLeftBehind>
+  <RimWorldAccess.StartingPawn.MoveToSelected>Move to selected</RimWorldAccess.StartingPawn.MoveToSelected>
 
   <!-- Tree-item composition for the starting pawn editor (FormatItemAnnouncement).
        Splits into per-shape keys so the order of {label}/{state}/{position} can

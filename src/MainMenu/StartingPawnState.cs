@@ -237,10 +237,13 @@ namespace RimWorldAccess
                 return true;
             }
 
-            // Delete: Remove current pawn (wanderer only)
-            if (key == KeyCode.Delete && Context == PawnEditorContext.Wanderer)
+            // Delete: Remove current pawn (wanderer) or toggle Selected/Left Behind (game start)
+            if (key == KeyCode.Delete)
             {
-                RemoveWandererPawn();
+                if (Context == PawnEditorContext.Wanderer)
+                    RemoveWandererPawn();
+                else
+                    ToggleSelectedState();
                 return true;
             }
 
@@ -921,6 +924,75 @@ namespace RimWorldAccess
                 announceParts.Add("RimWorldAccess.StartingPawn.NeighborBefore".Translate(nextName));
 
             TolkHelper.SpeakData(string.Join(", ", announceParts));
+            treeNav.ReannounceCurrentItem();
+        }
+
+        private static void ToggleSelectedState()
+        {
+            ToggleSelectedPawnAt(GetCurrentPawnIndex());
+        }
+
+        /// <summary>
+        /// Moves the pawn at <paramref name="pawnIdx"/> across the Selected/Left Behind
+        /// boundary — the keyboard equivalent of dragging a pawn across the group divider
+        /// in vanilla. A Selected pawn moves to the top of Left Behind (freeing its slot for
+        /// another pawn to be moved in); a Left Behind pawn moves to the bottom of Selected
+        /// (filling a slot). Game-start only — the wanderer dialog has no Selected/Left Behind
+        /// split, so it keeps using RemoveWandererPawn/AddWandererPawn instead.
+        /// </summary>
+        public static void ToggleSelectedPawnAt(int pawnIdx)
+        {
+            if (Context != PawnEditorContext.GameStart) return;
+
+            var pawns = Find.GameInitData.startingAndOptionalPawns;
+            if (pawnIdx < 0 || pawnIdx >= pawns.Count) return;
+
+            int startingCount = Find.GameInitData.startingPawnCount;
+            bool wasSelected = pawnIdx < startingCount;
+
+            // Never leave zero selected colonists via a keyboard action — mirrors the
+            // minimum-1 floor RemoveWandererPawn enforces for its own (unsplit) list.
+            if (wasSelected && startingCount <= 1)
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("RimWorldAccess.StartingPawn.MinimumSelectedPawns".Loc(1));
+                return;
+            }
+
+            var pawn = pawns[pawnIdx];
+
+            // Move the pawn to sit exactly on the boundary, then flip startingPawnCount to
+            // put it on the other side. Same Insert-then-RemoveAt idiom as vanilla's
+            // ReorderableWidget callback in Page_ConfigureStartingPawns.DrawPawnList; passing
+            // matching from/to into StartingPawnUtility.ReorderRequests keeps the per-pawn
+            // generation requests list in lockstep with the reordered pawns list.
+            int from = pawnIdx;
+            int to = startingCount;
+            pawns.Insert(to, pawn);
+            pawns.RemoveAt((from < to) ? from : (from + 1));
+            StartingPawnUtility.ReorderRequests(from, to);
+
+            Find.GameInitData.startingPawnCount = wasSelected ? startingCount - 1 : startingCount + 1;
+
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            RebuildTree();
+
+            // Navigate to the pawn's new position (its index shifted by the move above).
+            int newIdx = pawns.IndexOf(pawn);
+            foreach (var item in treeNav.VisibleItems)
+            {
+                var ptd = StartingPawnHelper.GetPawnData(item);
+                if (ptd != null && ptd.NodeType == PawnNodeType.Pawn && ptd.PawnIndex == newIdx)
+                {
+                    treeNav.SetSelectedIndex(FindVisibleIndex(item));
+                    break;
+                }
+            }
+
+            string sectionLabel = wasSelected
+                ? "StartingPawnsLeftBehind".Translate().ToString()
+                : "StartingPawnsSelected".Translate().ToString();
+            TolkHelper.SpeakData("RimWorldAccess.StartingPawn.MovedToSection".Translate(pawn.LabelShort, sectionLabel));
             treeNav.ReannounceCurrentItem();
         }
 
