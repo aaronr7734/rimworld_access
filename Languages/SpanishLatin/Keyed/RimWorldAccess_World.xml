@@ -56,6 +56,8 @@
   <RimWorldAccess.World.SwitchedToLayer>Cambiaste a la capa {0}.</RimWorldAccess.World.SwitchedToLayer>
   <RimWorldAccess.World.SwitchedToLayerSpace>Cambiaste a la capa {0}. Capa del espacio.</RimWorldAccess.World.SwitchedToLayerSpace>
   <RimWorldAccess.World.NoHomeSettlement>No se encontró un asentamiento base</RimWorldAccess.World.NoHomeSettlement>
+  <RimWorldAccess.World.Jump.BiomeBoundary>Saltaste {0} casillas hasta el límite del bioma</RimWorldAccess.World.Jump.BiomeBoundary>
+  <RimWorldAccess.World.Jump.NoBiomeBoundary>No se encontró un cambio de bioma en esa dirección</RimWorldAccess.World.Jump.NoBiomeBoundary>
   <RimWorldAccess.World.NoPlayerCaravans>No se encontraron caravanas del jugador</RimWorldAccess.World.NoPlayerCaravans>
   <RimWorldAccess.World.NoCaravansAtAll>No se encontraron caravanas</RimWorldAccess.World.NoCaravansAtAll>
   <RimWorldAccess.World.NoTileSelected>Ningún cuadro seleccionado</RimWorldAccess.World.NoTileSelected>

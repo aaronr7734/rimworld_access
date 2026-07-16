@@ -672,11 +672,13 @@ namespace RimWorldAccess
                 tileInfo = AppendSentence(tileInfo, biomeDesc);
             }
 
-            // Optional lead-in (e.g. a scanner "Jumped N tiles dir to center" cue), so the move
-            // delta and the full tile description are spoken as one utterance.
+            // Optional trailer (e.g. a scanner "Jumped N tiles dir to center" cue, or the
+            // biome-boundary jump cue), so the move delta and the full tile description are
+            // spoken as one utterance. The tile itself leads - it's what confirms arrival on a
+            // map with no terrain sound - with the "how you got here" delta read afterward.
             if (!string.IsNullOrEmpty(prefix))
             {
-                tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}";
+                tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{tileInfo}. {prefix}";
             }
 
             TolkHelper.SpeakData(tileInfo);
