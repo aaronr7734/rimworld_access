@@ -3180,7 +3180,9 @@ namespace RimWorldAccess
                     hediffName += $" x{count}";
 
                 bool hasExpandableContent = !string.IsNullOrWhiteSpace(representative.TipStringExtra)
-                                         || !string.IsNullOrWhiteSpace(representative.Description);
+                                         || !string.IsNullOrWhiteSpace(representative.Description)
+                                         || !string.IsNullOrEmpty(representative.SeverityLabel)
+                                         || representative.TryGetComp<HediffComp_Immunizable>() != null;
 
                 var hediffItem = new InspectionTreeItem
                 {

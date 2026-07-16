@@ -34,6 +34,13 @@ Pawn information, character tabs, policies, and assignments.
 ## Architecture
 PawnSelectionState integrates with scanner. ColonistBarState provides page-based bar navigation with Alt+Arrow/number keys, reordering via ColonistBar.Reorder(), and mech section after colonist pages. Quick info shortcuts (Alt+M/H/N) work without opening tabs. Full tabs navigate detailed character info.
 
+### HealthTabHelper.GetComprehensiveHediffEffects
+Builds the hediff detail children shown in the inspection tree's Health tab (consumed by `InspectionTreeBuilder.BuildHediffDetailChildren`). Beyond vanilla's `Hediff.TipStringExtra` (functional effects), it explicitly reads:
+- `Hediff.SeverityLabel` — vanilla only populates this for lethal/`alwaysShowSeverity` hediffs, and it's never part of `TipStringExtra`, so it's read directly and prefixed with the `RimWorldAccess.Pawns.Health.Severity` key.
+- `HediffComp_Immunizable.Immunity` — read directly rather than relying on the comp's own `CompTipStringExtra` (which vanilla suppresses once `Hidden`, not naturally-developable, or fully immune). Duplicate immunity lines from `TipStringExtra` are filtered out.
+
+Both were lost when PR #62 rewrote this method to rely solely on `TipStringExtra` (fixed for issue #81 — see git history on `HealthTabHelper.cs` around commit `335af70` for the original implementation this restores).
+
 ### PawnSkillsTableState
 - Global Alt+P opens a read-only 2D table: rows = colonists (colonist bar order), columns = Name + all SkillDefs (vanilla SkillUI order, `listOrder` descending)
 - Built on `TabularMenuHelper<Pawn>` (same pattern as WorkTableState). Cell value: `"[passion, ]{level}, {LevelDescriptor}"` or `"incapable"` for disabled skills

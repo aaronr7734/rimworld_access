@@ -576,6 +576,10 @@
   <RimWorldAccess.Pawns.Health.Capacity>{0}: {1}</RimWorldAccess.Pawns.Health.Capacity>
   <RimWorldAccess.Pawns.Health.PartHealth>{0}: {1}/{2}</RimWorldAccess.Pawns.Health.PartHealth>
 
+  <!-- Hediff detail line prefix for vanilla's Hediff.SeverityLabel (e.g. "Severity: 54%"),
+       used in the inspection tree's hediff detail children (HealthTabHelper.GetComprehensiveHediffEffects). -->
+  <RimWorldAccess.Pawns.Health.Severity>Severity</RimWorldAccess.Pawns.Health.Severity>
+
   <!-- Needs. -->
   <RimWorldAccess.Pawns.Needs.NoTracker>{0}: No needs tracker</RimWorldAccess.Pawns.Needs.NoTracker>
   <RimWorldAccess.Pawns.Needs.Header>{0}'s Needs</RimWorldAccess.Pawns.Needs.Header>

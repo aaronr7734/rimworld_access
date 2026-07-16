@@ -356,7 +356,9 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Gets comprehensive effect information for a hediff, focusing on functional impacts.
-        /// Uses vanilla's TipStringExtra for consistency with what sighted players see.
+        /// Uses vanilla's TipStringExtra for consistency with what sighted players see, plus
+        /// explicit severity and immunity readouts (see below) that TipStringExtra alone does
+        /// not reliably surface.
         /// </summary>
         public static string GetComprehensiveHediffEffects(Hediff hediff, Pawn pawn)
         {
@@ -371,11 +373,41 @@ namespace RimWorldAccess
                 sb.AppendLine("PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper());
             }
 
+            // Severity - vanilla's own formatted severity string (e.g. "54%"). Vanilla only
+            // populates this for hediffs that can kill or that opt into always showing it
+            // (def.alwaysShowSeverity); it is never included in TipStringExtra, so it must be
+            // read directly. This was dropped by PR #62's TipStringExtra-only rewrite.
+            string severityLabel = hediff.SeverityLabel;
+            if (!string.IsNullOrEmpty(severityLabel))
+            {
+                sb.AppendLine($"{"RimWorldAccess.Pawns.Health.Severity".Translate()}: {severityLabel}");
+            }
+
+            // Immunity progress - read HediffComp_Immunizable directly rather than relying on
+            // TipStringExtra's indirect CompTipStringExtra aggregation, which vanilla hides once
+            // Hidden, not naturally-developable, or already fully immune. Also dropped by #62.
+            string immunityLabel = null;
+            var immunizable = hediff.TryGetComp<HediffComp_Immunizable>();
+            if (immunizable != null && pawn?.health?.immunity != null)
+            {
+                immunityLabel = $"{"Immunity".Translate()}: {immunizable.Immunity.ToStringPercent("0.#")}";
+                sb.AppendLine(immunityLabel);
+            }
+
             // Use vanilla's TipStringExtra - this is what sighted players see in tooltips
             string tipExtra = hediff.TipStringExtra;
             if (!string.IsNullOrEmpty(tipExtra))
             {
                 string cleaned = tipExtra.StripTags().Trim();
+                if (immunityLabel != null && !string.IsNullOrEmpty(cleaned))
+                {
+                    // Drop any redundant immunity line TipStringExtra may already contain -
+                    // we announced it explicitly above.
+                    string immunityKeyword = "Immunity".Translate();
+                    cleaned = string.Join("\n", cleaned
+                        .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Where(line => !line.Contains(immunityKeyword)));
+                }
                 if (!string.IsNullOrEmpty(cleaned))
                 {
                     sb.AppendLine(cleaned);
