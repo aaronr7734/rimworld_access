@@ -600,6 +600,21 @@
   <RimWorldAccess.Map.Tile.Room.StatWithStage>{0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
   <RimWorldAccess.Map.Tile.Room.Stat>{0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
 
+  <!-- Requisitos de sala por título real (DLC Royalty). Se agregan al informe de estadísticas
+       de la sala cuando esta pertenece a un noble con título: la sala del trono del noble al que
+       está asignado un trono, o el dormitorio de un propietario con título. La etiqueta de cada
+       requisito viene del juego e incluye su progreso (por ejemplo, "Brasero 0 / 2"); el recuento
+       y la lista de faltantes se verifican con las pruebas del propio juego, así que el informe
+       coincide con la lista de requisitos del trono que ve un jugador vidente.
+       {0} = nombre del noble, {1} = etiqueta del título. -->
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Sala del trono de {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Dormitorio de {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>todos los requisitos cumplidos</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <!-- {0} = requisitos cumplidos, {1} = requisitos totales. -->
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>{0} de {1} requisitos cumplidos</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <!-- {0} = lista de requisitos no cumplidos separada por punto y coma. -->
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>faltan: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
+
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->
   <RimWorldAccess.Map.Tile.TempControl.Cooler>enfría al {0}, calienta al {1}</RimWorldAccess.Map.Tile.TempControl.Cooler>

@@ -600,6 +600,20 @@
   <RimWorldAccess.Map.Tile.Room.StatWithStage>{0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
   <RimWorldAccess.Map.Tile.Room.Stat>{0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
 
+  <!-- Royal title room requirements (Royalty DLC). Appended to the room-stats readout when a
+       room serves a titled noble: the throne room of the noble a throne is assigned to, or the
+       bedroom of a titled owner. Each requirement label comes from the game and already includes
+       its progress (e.g. "Brazier 0 / 2"); the count and missing list are checked with the game's
+       own tests, so the readout matches the throne's requirement checklist a sighted player sees.
+       {0} = noble's name, {1} = title label. -->
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Throne room for {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Bedroom for {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>all requirements met</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <!-- {0} = met count, {1} = total count. -->
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>{0} of {1} requirements met</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <!-- {0} = semicolon-separated list of unmet requirement labels. -->
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>missing: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
+
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->
   <RimWorldAccess.Map.Tile.TempControl.Cooler>cooling {0}, heating {1}</RimWorldAccess.Map.Tile.TempControl.Cooler>
