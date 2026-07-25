@@ -162,6 +162,13 @@ namespace RimWorldAccess
         /// <summary>Records a widget drawn this frame and returns its DrawIndex.</summary>
         public static int RecordWidget(CapturedWidget.Kind kind, string label, bool boolValue = false, float floatValue = 0f, float min = 0f, float max = 0f)
         {
+            // Skip blank/whitespace-only standalone labels: mods draw them purely as vertical
+            // spacers, so recording them just litters navigation with empty items. Dropping them
+            // also improves label adoption - a slider/text field preceded by a spacer then a real
+            // label now adopts the real label instead of the empty spacer.
+            if (kind == CapturedWidget.Kind.Label && string.IsNullOrWhiteSpace(label))
+                return -1;
+
             int index = nextDrawIndex++;
             currentFrameWidgets.Add(new CapturedWidget
             {
@@ -187,7 +194,7 @@ namespace RimWorldAccess
         /// </summary>
         public static int RecordSlider(string label, float val, float min, float max)
         {
-            if (string.IsNullOrEmpty(label) && currentFrameWidgets.Count > 0)
+            if (string.IsNullOrEmpty(label) && currentFrameWidgets.Count > 1)
             {
                 var last = currentFrameWidgets[currentFrameWidgets.Count - 1];
                 if (last.WidgetKind == CapturedWidget.Kind.Label)
@@ -210,7 +217,7 @@ namespace RimWorldAccess
         public static int RecordTextField(string text)
         {
             string label = null;
-            if (currentFrameWidgets.Count > 0)
+            if (currentFrameWidgets.Count > 1)
             {
                 var last = currentFrameWidgets[currentFrameWidgets.Count - 1];
                 if (last.WidgetKind == CapturedWidget.Kind.Label)
@@ -238,7 +245,7 @@ namespace RimWorldAccess
         public static int RecordIntEntry(int value, int multiplier, int min)
         {
             string label = null;
-            if (currentFrameWidgets.Count > 0)
+            if (currentFrameWidgets.Count > 1)
             {
                 var last = currentFrameWidgets[currentFrameWidgets.Count - 1];
                 if (last.WidgetKind == CapturedWidget.Kind.Label)

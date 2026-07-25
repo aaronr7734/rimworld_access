@@ -18,6 +18,10 @@ namespace RimWorldAccess
     {
         private static bool isActive;
         private static Dialog_ModSettings currentDialog;
+        // The mod's settings-category name, used to strip the redundant title label that
+        // Dialog_ModSettings itself draws as the very first widget every frame (we already
+        // announce the mod name on open).
+        private static string boundModName;
         private static List<CapturedWidget> items = new List<CapturedWidget>();
         private static int selectedIndex;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
@@ -58,7 +62,8 @@ namespace RimWorldAccess
         public static void Open(Dialog_ModSettings dialog, string modName, List<CapturedWidget> capturedItems)
         {
             currentDialog = dialog;
-            items = capturedItems ?? new List<CapturedWidget>();
+            boundModName = modName;
+            items = StripLeadingTitle(capturedItems ?? new List<CapturedWidget>());
             selectedIndex = 0;
             isActive = true;
             typeahead.ClearSearch();
@@ -69,6 +74,7 @@ namespace RimWorldAccess
         {
             isActive = false;
             currentDialog = null;
+            boundModName = null;
             items = new List<CapturedWidget>();
             selectedIndex = 0;
             typeahead.ClearSearch();
@@ -91,7 +97,7 @@ namespace RimWorldAccess
             // Framework wrapper dialog that draws nothing we capture) so its empty frame can't
             // clobber the menu we bound to.
             if (!ReferenceEquals(dialog, currentDialog)) return;
-            items = capturedItems ?? new List<CapturedWidget>();
+            items = StripLeadingTitle(capturedItems ?? new List<CapturedWidget>());
             if (selectedIndex >= items.Count)
                 selectedIndex = System.Math.Max(0, items.Count - 1);
 
@@ -171,6 +177,25 @@ namespace RimWorldAccess
                     return i;
             }
             return -1;
+        }
+
+        /// <summary>
+        /// Drops the leading title label that Dialog_ModSettings draws itself (always the first
+        /// widget, equal to the mod's settings-category name) so it doesn't show up as a dead
+        /// first item - we already announce the mod name on open. Returns a new list (never
+        /// mutates the shared capture snapshot); DrawIndex values on the remaining items are
+        /// untouched, so pending-activation correlation is unaffected.
+        /// </summary>
+        private static List<CapturedWidget> StripLeadingTitle(List<CapturedWidget> src)
+        {
+            if (src != null && src.Count > 0
+                && src[0].WidgetKind == CapturedWidget.Kind.Label
+                && !string.IsNullOrEmpty(boundModName)
+                && src[0].Label == boundModName)
+            {
+                return src.GetRange(1, src.Count - 1);
+            }
+            return src;
         }
 
         // ============================================================
@@ -626,7 +651,12 @@ namespace RimWorldAccess
         /// </summary>
         private static string BuildItemAnnouncement(CapturedWidget item, bool includePosition)
         {
-            var parts = new List<string> { item.Label };
+            // Lead with the caption only when there is one; some mods draw sliders/fields whose
+            // label is supplied by a custom method we can't capture, leaving it blank - starting
+            // the announcement with an empty string just produced a stray leading comma.
+            bool hasLabel = !string.IsNullOrWhiteSpace(item.Label);
+            var parts = new List<string>();
+            if (hasLabel) parts.Add(item.Label);
 
             switch (item.WidgetKind)
             {
@@ -646,10 +676,13 @@ namespace RimWorldAccess
                         : "RimWorldAccess.ModSettings.Menu.NotSelected".Translate().ToString());
                     break;
                 case CapturedWidget.Kind.Slider:
-                    // No separate value part: mods bake the current value into the slider's
-                    // label ("Volume: 100%"), so item.Label already carries it. Appending our
-                    // own raw number would just be a confusing, differently-formatted duplicate.
+                    // Normally mods bake the current value into the slider's label ("Volume: 100%"),
+                    // so item.Label already carries it and appending our own raw number would be a
+                    // confusing differently-formatted duplicate. But when the label is blank (a mod
+                    // drew it with a custom method we couldn't capture) there'd be nothing to read,
+                    // so supply the raw value as a fallback.
                     parts.Add("RimWorldAccess.ModSettings.Menu.Slider".Translate().ToString());
+                    if (!hasLabel) parts.Add(item.FloatValue.ToString());
                     break;
                 case CapturedWidget.Kind.TextField:
                     parts.Add("RimWorldAccess.ModSettings.Menu.TextField".Translate().ToString());

@@ -129,7 +129,11 @@ namespace RimWorldAccess
         {
             if (string.IsNullOrEmpty(buttonLabel)) return label ?? "";
             if (string.IsNullOrEmpty(label)) return buttonLabel;
-            return label + ": " + buttonLabel;
+            // Many mods' labels already end with their own colon ("Storage Priority:"); don't add a
+            // second one ("Storage Priority:: value").
+            string trimmed = label.TrimEnd();
+            if (trimmed.EndsWith(":")) trimmed = trimmed.Substring(0, trimmed.Length - 1).TrimEnd();
+            return trimmed + ": " + buttonLabel;
         }
 
         [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.ButtonTextLabeled))]
