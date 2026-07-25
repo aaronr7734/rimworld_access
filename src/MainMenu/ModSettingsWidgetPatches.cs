@@ -108,6 +108,78 @@ namespace RimWorldAccess
         }
 
         // ============================================================
+        // Listing_Standard.ButtonTextLabeled / ButtonTextLabeledPct - a "label: current value"
+        // row whose value side is a button. Mods use these for dropdown-style settings: clicking
+        // opens a FloatMenu of choices. We capture them as an activatable Button whose label reads
+        // "{label}: {value}" so a screen-reader user hears both the setting and its current value;
+        // activating returns true, the mod opens its FloatMenu, and DialogInterceptionPatch routes
+        // that FloatMenu into the accessible windowless menu (gated on ModSettingsMenuState.IsActive).
+        // The display string is rebuilt identically in the Postfix so the pending-activation label
+        // check still matches.
+        // ============================================================
+
+        /// <summary>Builds the "{label}: {value}" caption used for a labeled-button (dropdown) row.
+        /// A blank buttonLabel falls back to just the label.</summary>
+        internal static string FormatButtonLabeled(string label, string buttonLabel)
+        {
+            if (string.IsNullOrEmpty(buttonLabel)) return label ?? "";
+            if (string.IsNullOrEmpty(label)) return buttonLabel;
+            return label + ": " + buttonLabel;
+        }
+
+        [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.ButtonTextLabeled))]
+        [HarmonyPrefix]
+        public static void ListingButtonTextLabeled_Prefix(string label, string buttonLabel, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.EnterWidget()) return;
+            __state = ModSettingsCaptureState.RecordWidget(CapturedWidget.Kind.Button, FormatButtonLabeled(label, buttonLabel));
+        }
+
+        [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.ButtonTextLabeled))]
+        [HarmonyPostfix]
+        public static void ListingButtonTextLabeled_Postfix(string label, string buttonLabel, int __state, ref bool __result)
+        {
+            if (!ModSettingsCaptureState.Capturing) return;
+            try
+            {
+                if (__state >= 0 && ModSettingsCaptureState.TryConsumePendingActivation(__state, FormatButtonLabeled(label, buttonLabel), CapturedWidget.Kind.Button))
+                    __result = true;
+            }
+            finally
+            {
+                ModSettingsCaptureState.ExitWidget();
+            }
+        }
+
+        [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.ButtonTextLabeledPct))]
+        [HarmonyPrefix]
+        public static void ListingButtonTextLabeledPct_Prefix(string label, string buttonLabel, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.EnterWidget()) return;
+            __state = ModSettingsCaptureState.RecordWidget(CapturedWidget.Kind.Button, FormatButtonLabeled(label, buttonLabel));
+        }
+
+        [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.ButtonTextLabeledPct))]
+        [HarmonyPostfix]
+        public static void ListingButtonTextLabeledPct_Postfix(string label, string buttonLabel, int __state, ref bool __result)
+        {
+            if (!ModSettingsCaptureState.Capturing) return;
+            try
+            {
+                if (__state >= 0 && ModSettingsCaptureState.TryConsumePendingActivation(__state, FormatButtonLabeled(label, buttonLabel), CapturedWidget.Kind.Button))
+                    __result = true;
+            }
+            finally
+            {
+                ModSettingsCaptureState.ExitWidget();
+            }
+        }
+
+        // ============================================================
         // Listing_Standard.RadioButton(string, bool, float, string, float?)
         // Calls the (unpatched) 7-param RadioButton overload -> Widgets.RadioButtonLabeled
         // -> Widgets.Label internally.

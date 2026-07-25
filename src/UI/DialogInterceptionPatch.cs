@@ -37,8 +37,10 @@ namespace RimWorldAccess
             // Special handling for FloatMenu when:
             // 1. Executing a gizmo (e.g., long-range scanner mineral selection)
             // 2. Confirming a transport pod destination (arrival options)
+            // 3. A mod-settings dropdown row (ButtonTextLabeled) opened its choice menu - route it
+            //    into the accessible windowless menu instead of an unreachable on-screen FloatMenu.
             if (window is FloatMenu floatMenu &&
-                (GizmoNavigationState.IsExecutingGizmo || TransportPodLaunchState.IsConfirmingDestination))
+                (GizmoNavigationState.IsExecutingGizmo || TransportPodLaunchState.IsConfirmingDestination || ModSettingsMenuState.IsActive))
             {
                 // Extract options from the FloatMenu and open windowless version
                 var optionsField = typeof(FloatMenu).GetField("options",

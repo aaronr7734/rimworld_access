@@ -66,6 +66,9 @@ namespace RimWorldAccess
             try
             {
                 if (!ModSettingsMenuState.IsActive) return;
+                // While a dropdown's windowless FloatMenu or a modal text-edit session is open on
+                // top of us, that overlay owns the keyboard - don't also steer the settings list.
+                if (WindowlessFloatMenuState.IsActive || TextInputManager.IsActive) return;
                 if (Event.current.type != EventType.KeyDown) return;
 
                 KeyCode key = Event.current.keyCode;
