@@ -311,6 +311,11 @@ namespace RimWorldAccess
                 || PawnSkillsTableState.IsActive
                 || MechsMenuState.IsActive
                 || ModListState.IsActive
+                // Third-party mod settings dialog (Dialog_ModSettings windowless menu). Must be
+                // listed so KeyboardIsolationPatch blocks vanilla keybindings (camera pan on arrows,
+                // letter shortcuts) while it's open in-game — otherwise it works at the main menu
+                // (no game keybindings to leak to) but not in a loaded game.
+                || ModSettingsMenuState.IsActive
                 || StorytellerSelectionState.IsActive
                 || PlaySettingsMenuState.IsActive
                 || AreaPaintingState.IsActive
