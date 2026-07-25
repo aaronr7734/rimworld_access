@@ -22,6 +22,12 @@ namespace RimWorldAccess
         private static int selectedIndex;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
 
+        // One reusable modal text-edit session, opened when the user activates a text field or
+        // types an exact value into an integer entry. While it is active it registers as
+        // TextInputManager.Active and owns the keyboard (UnifiedKeyboardPatch priority -1.6); the
+        // dialog underneath keeps drawing/capturing so the committed value applies on a later frame.
+        private static readonly TextInputController textController = new TextInputController();
+
         // After a slider adjust, the mod redraws the slider's label with the new value a frame
         // or two later. Rather than announce a raw computed number now (which won't match how
         // the mod formats it - "1.3" vs "130%"), we wait for that refreshed label and announce
@@ -249,13 +255,13 @@ namespace RimWorldAccess
 
             if (key == KeyCode.LeftArrow)
             {
-                AdjustSlider(-1);
+                AdjustCurrent(-1);
                 return true;
             }
 
             if (key == KeyCode.RightArrow)
             {
-                AdjustSlider(1);
+                AdjustCurrent(1);
                 return true;
             }
 
@@ -287,6 +293,10 @@ namespace RimWorldAccess
         public static void HandleTypeahead(char c)
         {
             if (!isActive || items.Count == 0) return;
+            // The typeahead dispatch (UnifiedKeyboardPatch priority -1.5) is a different path from
+            // the dialog Input_Prefix, so it must independently stand down while a modal text-edit
+            // session owns the keyboard - otherwise a typed character would also jump the list.
+            if (TextInputManager.IsActive || WindowlessFloatMenuState.IsActive) return;
 
             var labels = GetLabels();
             if (typeahead.ProcessCharacterInput(c, labels, out int newIndex))
@@ -391,6 +401,14 @@ namespace RimWorldAccess
                     TolkHelper.SpeakData("RimWorldAccess.ModSettings.Menu.RadioSelected".Translate(item.Label));
                     break;
                 }
+                case CapturedWidget.Kind.TextField:
+                    BeginTextEdit(item, numericOnly: false);
+                    break;
+                case CapturedWidget.Kind.IntEntry:
+                    // Left/Right step by the field's multiplier; Enter lets the user type an exact
+                    // value, which is far faster than stepping to a large number one press at a time.
+                    BeginTextEdit(item, numericOnly: true);
+                    break;
                 case CapturedWidget.Kind.Slider:
                 case CapturedWidget.Kind.Label:
                 default:
@@ -399,6 +417,92 @@ namespace RimWorldAccess
                     AnnounceCurrent();
                     break;
             }
+        }
+
+        /// <summary>
+        /// Opens the modal text editor on the current text field / integer entry. The committed
+        /// value is queued back through the widget patches: as a raw string for a text field, or
+        /// as a parsed, floored integer for an IntEntry (non-numeric input is ignored).
+        /// </summary>
+        private static void BeginTextEdit(CapturedWidget item, bool numericOnly)
+        {
+            int drawIndex = item.DrawIndex;
+            string label = item.Label;
+            string current = numericOnly ? item.IntValue.ToString() : (item.StringValue ?? "");
+            int min = item.MinInt;
+
+            var spec = new TextFieldSpec(
+                labelKey: "RimWorldAccess.TextInput.LabelDefault",
+                maxLength: null,
+                minLength: 0);
+
+            System.Action<string> onConfirm;
+            if (numericOnly)
+            {
+                onConfirm = newText =>
+                {
+                    if (int.TryParse(newText, out int n))
+                    {
+                        if (n < min) n = min;
+                        ModSettingsCaptureState.SetPendingFloat(drawIndex, label, CapturedWidget.Kind.IntEntry, n);
+                    }
+                };
+            }
+            else
+            {
+                onConfirm = newText =>
+                    ModSettingsCaptureState.SetPendingString(drawIndex, label, CapturedWidget.Kind.TextField, newText);
+            }
+
+            textController.Begin(
+                current,
+                spec,
+                onConfirm,
+                onCancel: null,
+                replaceOnType: true,
+                modal: true,
+                announceOnCommit: true,
+                displayLabel: string.IsNullOrEmpty(label) ? null : label);
+        }
+
+        /// <summary>Routes a Left/Right press to whatever the current control adjusts: a slider's
+        /// value or an integer entry's value. Other kinds ignore horizontal input.</summary>
+        private static void AdjustCurrent(int direction)
+        {
+            if (items.Count == 0 || selectedIndex < 0 || selectedIndex >= items.Count) return;
+            var item = items[selectedIndex];
+            if (item.WidgetKind == CapturedWidget.Kind.IntEntry)
+                AdjustIntEntry(item, direction);
+            else
+                AdjustSlider(direction);
+        }
+
+        /// <summary>
+        /// Steps an integer entry by its multiplier (the "1x" button's amount), floored at its
+        /// minimum. The value is known locally, so we announce it directly rather than waiting for
+        /// the mod to redraw a label (IntEntry has none of its own).
+        /// </summary>
+        private static void AdjustIntEntry(CapturedWidget item, int direction)
+        {
+            int baseValue = item.IntValue;
+            if (ModSettingsCaptureState.TryGetPendingFloat(item.DrawIndex, out float pending))
+                baseValue = Mathf.RoundToInt(pending);
+
+            int step = item.Multiplier < 1 ? 1 : item.Multiplier;
+            int newValue = baseValue + direction * step;
+            if (newValue < item.MinInt) newValue = item.MinInt;
+
+            if (newValue == baseValue)
+            {
+                // Already at the floor going down - just re-read the current value.
+                TolkHelper.SpeakData(BuildItemAnnouncement(item, includePosition: false));
+                return;
+            }
+
+            ModSettingsCaptureState.SetPendingFloat(item.DrawIndex, item.Label, CapturedWidget.Kind.IntEntry, newValue);
+            // Keep the shadow value in step so rapid presses compound and the announcement is right.
+            item.IntValue = newValue;
+            TolkHelper.SpeakData(item.Label + ", " + newValue);
         }
 
         private static void AdjustSlider(int direction)
@@ -546,6 +650,16 @@ namespace RimWorldAccess
                     // label ("Volume: 100%"), so item.Label already carries it. Appending our
                     // own raw number would just be a confusing, differently-formatted duplicate.
                     parts.Add("RimWorldAccess.ModSettings.Menu.Slider".Translate().ToString());
+                    break;
+                case CapturedWidget.Kind.TextField:
+                    parts.Add("RimWorldAccess.ModSettings.Menu.TextField".Translate().ToString());
+                    parts.Add(string.IsNullOrEmpty(item.StringValue)
+                        ? "RimWorldAccess.TextInput.Empty".Translate().ToString()
+                        : item.StringValue);
+                    break;
+                case CapturedWidget.Kind.IntEntry:
+                    parts.Add("RimWorldAccess.ModSettings.Menu.IntEntry".Translate().ToString());
+                    parts.Add(item.IntValue.ToString());
                     break;
                 case CapturedWidget.Kind.Label:
                 default:

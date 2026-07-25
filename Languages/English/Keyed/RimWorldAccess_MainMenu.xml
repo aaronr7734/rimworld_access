@@ -91,6 +91,8 @@
   <RimWorldAccess.ModSettings.Menu.Button>button</RimWorldAccess.ModSettings.Menu.Button>
   <RimWorldAccess.ModSettings.Menu.RadioButton>radio button</RimWorldAccess.ModSettings.Menu.RadioButton>
   <RimWorldAccess.ModSettings.Menu.Slider>slider</RimWorldAccess.ModSettings.Menu.Slider>
+  <RimWorldAccess.ModSettings.Menu.TextField>text field</RimWorldAccess.ModSettings.Menu.TextField>
+  <RimWorldAccess.ModSettings.Menu.IntEntry>number</RimWorldAccess.ModSettings.Menu.IntEntry>
   <RimWorldAccess.ModSettings.Menu.On>on</RimWorldAccess.ModSettings.Menu.On>
   <RimWorldAccess.ModSettings.Menu.Off>off</RimWorldAccess.ModSettings.Menu.Off>
   <RimWorldAccess.ModSettings.Menu.Selected>selected</RimWorldAccess.ModSettings.Menu.Selected>

@@ -17,7 +17,9 @@ namespace RimWorldAccess
             Button,
             RadioButton,
             Slider,
-            Label
+            Label,
+            TextField,
+            IntEntry
         }
 
         public Kind WidgetKind;
@@ -27,6 +29,14 @@ namespace RimWorldAccess
         public float Min;
         public float Max;
         public int DrawIndex;
+
+        // TextField only: the current text the field is showing.
+        public string StringValue;
+
+        // IntEntry only: current value, the step each Left/Right press applies, and the floor.
+        public int IntValue;
+        public int Multiplier;
+        public int MinInt;
     }
 
     /// <summary>
@@ -65,6 +75,7 @@ namespace RimWorldAccess
             public CapturedWidget.Kind WidgetKind;
             public bool? TargetBool;
             public float? TargetFloat;
+            public string TargetString;
             public int FramesRemaining;
         }
 
@@ -188,6 +199,67 @@ namespace RimWorldAccess
             return RecordWidget(CapturedWidget.Kind.Slider, label, floatValue: val, min: min, max: max);
         }
 
+        /// <summary>
+        /// Records a text field. Like sliders, a bare text field (Widgets.TextField / TextArea,
+        /// which is also the leaf every numeric field bottoms out in) carries no label of its own -
+        /// the mod draws a separate Label just before it (e.g. "Max stack: " then the field, or
+        /// TextFieldNumericLabeled's own left-half Label). Adopt that immediately-preceding
+        /// standalone Label as the field's caption and drop it, so the control reads as one
+        /// "Max stack, text field, 75" entry instead of a dead label plus an unlabeled field.
+        /// </summary>
+        public static int RecordTextField(string text)
+        {
+            string label = null;
+            if (currentFrameWidgets.Count > 0)
+            {
+                var last = currentFrameWidgets[currentFrameWidgets.Count - 1];
+                if (last.WidgetKind == CapturedWidget.Kind.Label)
+                {
+                    label = last.Label;
+                    currentFrameWidgets.RemoveAt(currentFrameWidgets.Count - 1);
+                }
+            }
+            int index = nextDrawIndex++;
+            currentFrameWidgets.Add(new CapturedWidget
+            {
+                WidgetKind = CapturedWidget.Kind.TextField,
+                Label = label ?? "",
+                StringValue = text ?? "",
+                DrawIndex = index
+            });
+            return index;
+        }
+
+        /// <summary>
+        /// Records an integer +/- entry (Widgets.IntEntry / Listing_Standard.IntEntry). Adopts a
+        /// preceding standalone Label as its caption exactly like a text field, since IntEntry
+        /// draws no label of its own.
+        /// </summary>
+        public static int RecordIntEntry(int value, int multiplier, int min)
+        {
+            string label = null;
+            if (currentFrameWidgets.Count > 0)
+            {
+                var last = currentFrameWidgets[currentFrameWidgets.Count - 1];
+                if (last.WidgetKind == CapturedWidget.Kind.Label)
+                {
+                    label = last.Label;
+                    currentFrameWidgets.RemoveAt(currentFrameWidgets.Count - 1);
+                }
+            }
+            int index = nextDrawIndex++;
+            currentFrameWidgets.Add(new CapturedWidget
+            {
+                WidgetKind = CapturedWidget.Kind.IntEntry,
+                Label = label ?? "",
+                IntValue = value,
+                Multiplier = multiplier < 1 ? 1 : multiplier,
+                MinInt = min,
+                DrawIndex = index
+            });
+            return index;
+        }
+
         /// <summary>Queues a ref-bool write (checkbox toggle) for the widget patches to apply
         /// the next time they see a matching (DrawIndex, Label, Kind).</summary>
         public static void SetPendingBool(int drawIndex, string label, CapturedWidget.Kind kind, bool targetValue)
@@ -212,6 +284,21 @@ namespace RimWorldAccess
                 Label = label,
                 WidgetKind = kind,
                 TargetFloat = targetValue,
+                FramesRemaining = PendingActionTimeoutFrames
+            };
+        }
+
+        /// <summary>Queues a text write for the widget patches to apply the next time they see a
+        /// matching (DrawIndex, Label, Kind) - overriding the field's returned string so the mod's
+        /// own "x = TextField(...)" / numeric-parse code reads the edited value.</summary>
+        public static void SetPendingString(int drawIndex, string label, CapturedWidget.Kind kind, string targetValue)
+        {
+            pendingAction = new PendingAction
+            {
+                DrawIndex = drawIndex,
+                Label = label,
+                WidgetKind = kind,
+                TargetString = targetValue,
                 FramesRemaining = PendingActionTimeoutFrames
             };
         }
@@ -283,6 +370,25 @@ namespace RimWorldAccess
             if (pendingAction == null || pendingAction.DrawIndex != drawIndex || pendingAction.TargetFloat == null)
                 return false;
             target = pendingAction.TargetFloat.Value;
+            return true;
+        }
+
+        /// <summary>
+        /// If a pending text write targets this exact (drawIndex, kind), consumes it and outputs
+        /// the new string. Like the slider consumer, this matches on (DrawIndex, Kind) only, not
+        /// the label: the leaf Widgets.TextField patch that applies the write has no access to the
+        /// adopted caption, and a single queued action correlated by draw order is unambiguous.
+        /// </summary>
+        public static bool TryConsumePendingString(int drawIndex, CapturedWidget.Kind kind, out string newValue)
+        {
+            newValue = null;
+            if (pendingAction == null || pendingAction.DrawIndex != drawIndex || pendingAction.WidgetKind != kind)
+                return false;
+            if (pendingAction.TargetString == null)
+                return false;
+
+            newValue = pendingAction.TargetString;
+            pendingAction = null;
             return true;
         }
 

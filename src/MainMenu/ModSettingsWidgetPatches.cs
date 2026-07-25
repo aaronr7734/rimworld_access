@@ -1,4 +1,5 @@
 using System;
+using System.Text.RegularExpressions;
 using HarmonyLib;
 using UnityEngine;
 using Verse;
@@ -35,8 +36,12 @@ namespace RimWorldAccess
     ///
     /// Overloads are disambiguated by explicit argument-type arrays where more than one
     /// overload shares a name (verified against the RimWorld 1.6 reference assembly).
-    /// The raw Widgets.HorizontalSlider is intentionally not patched - out of scope for
-    /// this pass, same as text fields and dropdowns.
+    ///
+    /// <b>Coverage:</b> checkboxes, buttons, radio buttons, sliders, labels, labeled-button
+    /// dropdown rows (ButtonTextLabeled/Pct), text fields (Widgets.TextField / TextArea - the
+    /// leaf every string AND generic-numeric field bottoms out in), and integer +/- entries
+    /// (IntEntry). Fully custom hand-drawn controls and two-handle range sliders
+    /// (Widgets.IntRange / FloatRange) remain out of scope.
     /// </summary>
     [HarmonyPatch]
     public static class ModSettingsWidgetPatches
@@ -481,6 +486,153 @@ namespace RimWorldAccess
             if (!ModSettingsCaptureState.Capturing) return;
             if (!ModSettingsCaptureState.AtTopLevel) return;
             ModSettingsCaptureState.RecordWidget(CapturedWidget.Kind.Label, label);
+        }
+
+        // ============================================================
+        // Text fields. Widgets.TextField / TextArea are the LEAF every text-like control bottoms
+        // out in - not just direct string fields, but also the generic numeric fields
+        // (TextFieldNumeric<T> -> TextField) and the labeled wrappers (TextEntryLabeled /
+        // TextFieldNumericLabeled draw a Widgets.Label then call TextField). Patching only these
+        // leaves therefore captures every text/numeric field WITHOUT touching the generic
+        // TextFieldNumeric<T> methods (which Harmony cannot reliably patch for value-type T).
+        //
+        // Like the leaf Widgets.Label, these never call another patched widget, so they check
+        // AtTopLevel instead of Enter/Exit-ing the depth: a TextField called INSIDE a composite we
+        // record as one control (IntEntry's inner numeric field) is not top-level and is skipped,
+        // while one reached only through an unpatched generic wrapper is top-level and records,
+        // adopting the standalone Label the mod drew just before it as its caption. Applying a
+        // pending edit overrides the returned string; the mod's own "x = TextField(...)" or
+        // numeric re-parse then reads the edited value.
+        // ============================================================
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.TextField),
+            new Type[] { typeof(Rect), typeof(string) })]
+        [HarmonyPrefix]
+        public static void WidgetsTextField_Prefix(string text, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.AtTopLevel) return;
+            __state = ModSettingsCaptureState.RecordTextField(text);
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.TextField),
+            new Type[] { typeof(Rect), typeof(string) })]
+        [HarmonyPostfix]
+        public static void WidgetsTextField_Postfix(string text, int __state, ref string __result)
+        {
+            if (!ModSettingsCaptureState.Capturing || __state < 0) return;
+            if (ModSettingsCaptureState.TryConsumePendingString(__state, CapturedWidget.Kind.TextField, out string newValue))
+                __result = newValue;
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.TextField),
+            new Type[] { typeof(Rect), typeof(string), typeof(int), typeof(Regex) })]
+        [HarmonyPrefix]
+        public static void WidgetsTextFieldValidated_Prefix(string text, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.AtTopLevel) return;
+            __state = ModSettingsCaptureState.RecordTextField(text);
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.TextField),
+            new Type[] { typeof(Rect), typeof(string), typeof(int), typeof(Regex) })]
+        [HarmonyPostfix]
+        public static void WidgetsTextFieldValidated_Postfix(int __state, ref string __result)
+        {
+            if (!ModSettingsCaptureState.Capturing || __state < 0) return;
+            if (ModSettingsCaptureState.TryConsumePendingString(__state, CapturedWidget.Kind.TextField, out string newValue))
+                __result = newValue;
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.TextArea))]
+        [HarmonyPrefix]
+        public static void WidgetsTextArea_Prefix(string text, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.AtTopLevel) return;
+            __state = ModSettingsCaptureState.RecordTextField(text);
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.TextArea))]
+        [HarmonyPostfix]
+        public static void WidgetsTextArea_Postfix(string text, int __state, ref string __result)
+        {
+            if (!ModSettingsCaptureState.Capturing || __state < 0) return;
+            if (ModSettingsCaptureState.TryConsumePendingString(__state, CapturedWidget.Kind.TextField, out string newValue))
+                __result = newValue;
+        }
+
+        // ============================================================
+        // Integer +/- entry. IntEntry draws four ButtonText (-10/-1/+1/+10) plus an inner numeric
+        // TextField; recording those as separate controls would be useless noise, so we record the
+        // whole IntEntry as ONE control (adjusted with Left/Right in the menu) and use the depth
+        // guard so its inner buttons/field are skipped. Both the Listing_Standard wrapper (which
+        // carries the min floor) and the raw Widgets overload are patched; the wrapper is the
+        // outer call when used, so it wins and contributes the floor.
+        // ============================================================
+
+        [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.IntEntry))]
+        [HarmonyPrefix]
+        public static void ListingIntEntry_Prefix(int val, int multiplier, int min, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.EnterWidget()) return;
+            __state = ModSettingsCaptureState.RecordIntEntry(val, multiplier, min);
+        }
+
+        [HarmonyPatch(typeof(Listing_Standard), nameof(Listing_Standard.IntEntry))]
+        [HarmonyPostfix]
+        public static void ListingIntEntry_Postfix(ref int val, ref string editBuffer, int min, int __state)
+        {
+            if (!ModSettingsCaptureState.Capturing) return;
+            try
+            {
+                if (__state >= 0 && ModSettingsCaptureState.TryConsumePendingFloat(__state, CapturedWidget.Kind.IntEntry, out float newValue))
+                {
+                    int applied = Mathf.Max(min, Mathf.RoundToInt(newValue));
+                    val = applied;
+                    editBuffer = applied.ToString();
+                }
+            }
+            finally
+            {
+                ModSettingsCaptureState.ExitWidget();
+            }
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.IntEntry))]
+        [HarmonyPrefix]
+        public static void WidgetsIntEntry_Prefix(int value, int multiplier, out int __state)
+        {
+            __state = -1;
+            if (!ModSettingsCaptureState.Capturing) return;
+            if (!ModSettingsCaptureState.EnterWidget()) return;
+            __state = ModSettingsCaptureState.RecordIntEntry(value, multiplier, 0);
+        }
+
+        [HarmonyPatch(typeof(Widgets), nameof(Widgets.IntEntry))]
+        [HarmonyPostfix]
+        public static void WidgetsIntEntry_Postfix(ref int value, ref string editBuffer, int __state)
+        {
+            if (!ModSettingsCaptureState.Capturing) return;
+            try
+            {
+                if (__state >= 0 && ModSettingsCaptureState.TryConsumePendingFloat(__state, CapturedWidget.Kind.IntEntry, out float newValue))
+                {
+                    int applied = Mathf.RoundToInt(newValue);
+                    value = applied;
+                    editBuffer = applied.ToString();
+                }
+            }
+            finally
+            {
+                ModSettingsCaptureState.ExitWidget();
+            }
         }
     }
 }
