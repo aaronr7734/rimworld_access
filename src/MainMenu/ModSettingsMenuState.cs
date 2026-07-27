@@ -678,11 +678,14 @@ namespace RimWorldAccess
                 case CapturedWidget.Kind.Slider:
                     // Normally mods bake the current value into the slider's label ("Volume: 100%"),
                     // so item.Label already carries it and appending our own raw number would be a
-                    // confusing differently-formatted duplicate. But when the label is blank (a mod
-                    // drew it with a custom method we couldn't capture) there'd be nothing to read,
-                    // so supply the raw value as a fallback.
+                    // confusing differently-formatted duplicate. Some mods instead label the slider
+                    // with a bare caption and draw the value as separate text ("Minimum free space
+                    // to consider hauling" + a standalone "20%"), which left the slider announced
+                    // with no value at all. Reading the label for a digit tells the two apart: no
+                    // number in the caption means we have to supply one.
                     parts.Add("RimWorldAccess.ModSettings.Menu.Slider".Translate().ToString());
-                    if (!hasLabel) parts.Add(item.FloatValue.ToString());
+                    if (!hasLabel || !item.Label.Any(char.IsDigit))
+                        parts.Add(item.FloatValue.ToString());
                     break;
                 case CapturedWidget.Kind.TextField:
                     parts.Add("RimWorldAccess.ModSettings.Menu.TextField".Translate().ToString());
