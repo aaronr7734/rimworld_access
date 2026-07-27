@@ -678,7 +678,9 @@ namespace RimWorldAccess
             // map with no terrain sound - with the "how you got here" delta read afterward.
             if (!string.IsNullOrEmpty(prefix))
             {
-                tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{tileInfo}. {prefix}";
+                // AppendSentence, not a raw ". " join: a biome description already ends in a
+                // period, and doubling it makes the screen reader stumble over "..".
+                tileInfo = AppendSentence(tileInfo, prefix);
             }
 
             TolkHelper.SpeakData(tileInfo);
