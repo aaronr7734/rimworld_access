@@ -347,6 +347,12 @@ namespace RimWorldAccess
 
         public static string GetPenStatus(Pawn pawn)
         {
+            // Most tame animals — dogs, cats, squirrels — never belong to a pen. Saying "no pen
+            // assigned" for them reads as a setup the player forgot, so answer the prior question
+            // first: does this animal need penning at all?
+            if (!AnimalPenUtility.NeedsToBeManagedByRope(pawn))
+                return "RimWorldAccess.Animals.Value.PenNotNeeded".Translate().ToString();
+
             CompAnimalPenMarker pen = AnimalPenUtility.GetCurrentPenOf(pawn, allowUnenclosedPens: true);
             if (pen == null)
                 return "RimWorldAccess.Animals.Value.NoPenAssigned".Translate().ToString();

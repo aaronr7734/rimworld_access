@@ -39,6 +39,7 @@
   <RimWorldAccess.Animals.Value.InPen>in pen</RimWorldAccess.Animals.Value.InPen>
   <RimWorldAccess.Animals.Value.OutsidePen>outside pen</RimWorldAccess.Animals.Value.OutsidePen>
   <RimWorldAccess.Animals.Value.NoPenAssigned>no pen assigned</RimWorldAccess.Animals.Value.NoPenAssigned>
+  <RimWorldAccess.Animals.Value.PenNotNeeded>does not need a pen</RimWorldAccess.Animals.Value.PenNotNeeded>
 
   <!-- Paint value labels. AnimalsMenuHelper.GetPaintValueLabel and
        WildlifeMenuHelper.GetPaintValueLabel return these for checkbox

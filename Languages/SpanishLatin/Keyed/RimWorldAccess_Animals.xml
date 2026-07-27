@@ -46,6 +46,7 @@
   <RimWorldAccess.Animals.Value.InPen>en el corral</RimWorldAccess.Animals.Value.InPen>
   <RimWorldAccess.Animals.Value.OutsidePen>fuera del corral</RimWorldAccess.Animals.Value.OutsidePen>
   <RimWorldAccess.Animals.Value.NoPenAssigned>sin corral asignado</RimWorldAccess.Animals.Value.NoPenAssigned>
+  <RimWorldAccess.Animals.Value.PenNotNeeded>no necesita corral</RimWorldAccess.Animals.Value.PenNotNeeded>
 
   <!-- =================================================================
        AnimalsMenuHelper column headers (colony animals tab).
