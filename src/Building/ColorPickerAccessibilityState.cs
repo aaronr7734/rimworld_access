@@ -179,13 +179,13 @@ namespace RimWorldAccess
 
             if (key == KeyCode.Home)
             {
-                selectedIndex = 0;
+                selectedIndex = MenuHelper.JumpToFirst();
                 AnnounceCurrent();
                 return true;
             }
             if (key == KeyCode.End)
             {
-                selectedIndex = totalCount - 1;
+                selectedIndex = MenuHelper.JumpToLast(totalCount);
                 AnnounceCurrent();
                 return true;
             }
@@ -332,55 +332,67 @@ namespace RimWorldAccess
 
         private static void AnnounceCurrent()
         {
-            // Default, Darklight, and palette swatches occupy the contiguous range [0, hueIndex),
-            // so selectedIndex is already the position within that range — hueIndex is the count.
+            // Up/Down walk one flat list of totalCount items — the swatches and the four controls
+            // alike — so every item reports its position against that same total. Positioning the
+            // swatches against their own sub-count instead would leave a user who hears the last
+            // swatch ("54 of 54") surprised that four more items follow.
+            string baseText;
+
             if (selectedIndex == 0)
             {
                 Color raw = DefaultColorProp != null ? (Color)DefaultColorProp.GetValue(currentDialog) : Color.white;
                 Color result = ApplyForcedValue(raw);
-                string baseText = (string)"RimWorldAccess.Building.ColorPicker.DefaultOption".Translate(DescribeColor(result));
-                TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, hueIndex));
+                baseText = (string)"RimWorldAccess.Building.ColorPicker.DefaultOption".Translate(DescribeColor(result));
             }
             else if (showDarklight && selectedIndex == 1)
             {
-                string baseText = (string)"RimWorldAccess.Building.ColorPicker.DarklightOption".Translate(
+                baseText = (string)"RimWorldAccess.Building.ColorPicker.DarklightOption".Translate(
                     DescribeColor(DarklightUtility.DefaultDarklight));
-                TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, hueIndex));
             }
             else if (selectedIndex >= paletteStart && selectedIndex < paletteStart + palette.Count)
             {
-                int paletteIndex = selectedIndex - paletteStart;
-                string baseText = DescribeColor(palette[paletteIndex]);
-                TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, hueIndex));
+                baseText = DescribeColor(palette[selectedIndex - paletteStart]);
             }
             else if (selectedIndex == hueIndex)
             {
                 Color.RGBToHSV(GetColor(), out float h, out _, out _);
                 int hueDeg = Mathf.RoundToInt(h * 360f) % 360;
-                TolkHelper.SpeakData(
-                    (string)"RimWorldAccess.Building.ColorPicker.HueStepper".Translate(hueDeg.ToString()));
+                baseText = (string)"RimWorldAccess.Building.ColorPicker.HueStepper".Translate(hueDeg.ToString());
             }
             else if (selectedIndex == satIndex)
             {
                 Color.RGBToHSV(GetColor(), out _, out float s, out _);
                 int satPct = Mathf.RoundToInt(s * 100f);
-                TolkHelper.SpeakData(
-                    (string)"RimWorldAccess.Building.ColorPicker.SatStepper".Translate(satPct.ToString()));
+                baseText = (string)"RimWorldAccess.Building.ColorPicker.SatStepper".Translate(satPct.ToString());
             }
             else if (selectedIndex == acceptIndex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.ColorPicker.Accept".Loc());
+                baseText = "RimWorldAccess.Building.ColorPicker.Accept".Loc().ToString();
             }
             else if (selectedIndex == cancelIndex)
             {
-                TolkHelper.Speak("RimWorldAccess.Building.ColorPicker.Cancel".Loc());
+                baseText = "RimWorldAccess.Building.ColorPicker.Cancel".Loc().ToString();
             }
+            else
+            {
+                return;
+            }
+
+            TolkHelper.SpeakData(WithPosition(baseText, selectedIndex, totalCount));
         }
 
         private static string WithPosition(string baseText, int index, int count)
         {
             string position = MenuHelper.FormatPosition(index, count);
-            return string.IsNullOrEmpty(position) ? baseText : $"{baseText}. {position}";
+            if (string.IsNullOrEmpty(position))
+                return baseText;
+
+            // The stepper strings end in a period of their own; adding another before the
+            // position leaves a ".." for the screen reader to stumble over.
+            string trimmed = (baseText ?? "").TrimEnd();
+            return trimmed.EndsWith(".")
+                ? $"{trimmed} {position}"
+                : $"{trimmed}. {position}";
         }
 
         /// <summary>
