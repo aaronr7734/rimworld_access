@@ -758,4 +758,8 @@
   <RimWorldAccess.StartingPawn.EditPawnFilter>编辑角色筛选器...</RimWorldAccess.StartingPawn.EditPawnFilter>
   <RimWorldAccess.StartingPawn.AddPawn>添加角色</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>移除角色</RimWorldAccess.StartingPawn.RemovePawn>
+  <RimWorldAccess.StartingPawn.MinimumSelectedPawns>最少已选择{0}个</RimWorldAccess.StartingPawn.MinimumSelectedPawns>
+  <RimWorldAccess.StartingPawn.MovedToSection>{0}已移动到{1}</RimWorldAccess.StartingPawn.MovedToSection>
+  <RimWorldAccess.StartingPawn.MoveToLeftBehind>移动到留守</RimWorldAccess.StartingPawn.MoveToLeftBehind>
+  <RimWorldAccess.StartingPawn.MoveToSelected>移动到已选择</RimWorldAccess.StartingPawn.MoveToSelected>
 </LanguageData>
