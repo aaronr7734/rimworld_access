@@ -1035,4 +1035,18 @@
   <RimWorldAccess.Building.Plan.Desc.Rename>重命名此计划。</RimWorldAccess.Building.Plan.Desc.Rename>
   <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>切换此计划在地图上的可见性。</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
   <RimWorldAccess.Building.Plan.Desc.Expand>通过绘制更多格来扩展此计划。</RimWorldAccess.Building.Plan.Desc.Expand>
+  <RimWorldAccess.Building.ColorPicker.Opened>颜色选择器已打开。当前颜色：{0}。之前颜色：{1}。共有{2}个预设色块，另有默认、色相和饱和度控件。上下箭头用于导航，聚焦时左右箭头调整色相或饱和度，Enter选择或应用，Escape取消。</RimWorldAccess.Building.ColorPicker.Opened>
+  <RimWorldAccess.Building.ColorPicker.HueSat>色相{0}度，饱和度{1}%</RimWorldAccess.Building.ColorPicker.HueSat>
+  <RimWorldAccess.Building.ColorPicker.White>白色</RimWorldAccess.Building.ColorPicker.White>
+  <RimWorldAccess.Building.ColorPicker.Selected>颜色已设置为{0}</RimWorldAccess.Building.ColorPicker.Selected>
+  <RimWorldAccess.Building.ColorPicker.DefaultOption>默认：{0}</RimWorldAccess.Building.ColorPicker.DefaultOption>
+  <RimWorldAccess.Building.ColorPicker.DarklightOption>暗光：{0}</RimWorldAccess.Building.ColorPicker.DarklightOption>
+  <RimWorldAccess.Building.ColorPicker.Darklight>暗光</RimWorldAccess.Building.ColorPicker.Darklight>
+  <RimWorldAccess.Building.ColorPicker.HueStepper>调整色相：{0}度。使用左右箭头更改。</RimWorldAccess.Building.ColorPicker.HueStepper>
+  <RimWorldAccess.Building.ColorPicker.HueChanged>色相：{0}度</RimWorldAccess.Building.ColorPicker.HueChanged>
+  <RimWorldAccess.Building.ColorPicker.SatStepper>调整饱和度：{0}%。使用左右箭头更改。</RimWorldAccess.Building.ColorPicker.SatStepper>
+  <RimWorldAccess.Building.ColorPicker.SatChanged>饱和度：{0}%</RimWorldAccess.Building.ColorPicker.SatChanged>
+  <RimWorldAccess.Building.ColorPicker.Accept>确认并应用颜色</RimWorldAccess.Building.ColorPicker.Accept>
+  <RimWorldAccess.Building.ColorPicker.Cancel>取消且不保存</RimWorldAccess.Building.ColorPicker.Cancel>
+  <RimWorldAccess.Building.ColorPicker.Accepted>颜色已应用：{0}</RimWorldAccess.Building.ColorPicker.Accepted>
 </LanguageData>

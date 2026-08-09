@@ -1036,4 +1036,18 @@
   <RimWorldAccess.Building.Plan.Desc.Rename>Переименовать эту планировку.</RimWorldAccess.Building.Plan.Desc.Rename>
   <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Показать или скрыть эту планировку на карте.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
   <RimWorldAccess.Building.Plan.Desc.Expand>Расширить эту планировку, добавив клетки.</RimWorldAccess.Building.Plan.Desc.Expand>
+  <RimWorldAccess.Building.ColorPicker.Opened>Открыт выбор цвета. Текущий цвет: {0}. Предыдущий цвет: {1}. {2} готовых образцов цвета, а также элементы управления «По умолчанию», оттенком и насыщенностью. Стрелки вверх и вниз для навигации, стрелки влево и вправо изменяют оттенок или насыщенность при фокусе на них, Enter выбирает или применяет, Escape отменяет.</RimWorldAccess.Building.ColorPicker.Opened>
+  <RimWorldAccess.Building.ColorPicker.HueSat>Оттенок {0} градусов, насыщенность {1} процентов</RimWorldAccess.Building.ColorPicker.HueSat>
+  <RimWorldAccess.Building.ColorPicker.White>Белый</RimWorldAccess.Building.ColorPicker.White>
+  <RimWorldAccess.Building.ColorPicker.Selected>Цвет установлен: {0}</RimWorldAccess.Building.ColorPicker.Selected>
+  <RimWorldAccess.Building.ColorPicker.DefaultOption>По умолчанию: {0}</RimWorldAccess.Building.ColorPicker.DefaultOption>
+  <RimWorldAccess.Building.ColorPicker.DarklightOption>Светящийся в темноте: {0}</RimWorldAccess.Building.ColorPicker.DarklightOption>
+  <RimWorldAccess.Building.ColorPicker.Darklight>Светящийся в темноте</RimWorldAccess.Building.ColorPicker.Darklight>
+  <RimWorldAccess.Building.ColorPicker.HueStepper>Настройка оттенка: {0} градусов. Используйте стрелки влево и вправо для изменения.</RimWorldAccess.Building.ColorPicker.HueStepper>
+  <RimWorldAccess.Building.ColorPicker.HueChanged>Оттенок: {0} градусов</RimWorldAccess.Building.ColorPicker.HueChanged>
+  <RimWorldAccess.Building.ColorPicker.SatStepper>Настройка насыщенности: {0} процентов. Используйте стрелки влево и вправо для изменения.</RimWorldAccess.Building.ColorPicker.SatStepper>
+  <RimWorldAccess.Building.ColorPicker.SatChanged>Насыщенность: {0} процентов</RimWorldAccess.Building.ColorPicker.SatChanged>
+  <RimWorldAccess.Building.ColorPicker.Accept>Принять и применить цвет</RimWorldAccess.Building.ColorPicker.Accept>
+  <RimWorldAccess.Building.ColorPicker.Cancel>Отменить без сохранения</RimWorldAccess.Building.ColorPicker.Cancel>
+  <RimWorldAccess.Building.ColorPicker.Accepted>Цвет применён: {0}</RimWorldAccess.Building.ColorPicker.Accepted>
 </LanguageData>
