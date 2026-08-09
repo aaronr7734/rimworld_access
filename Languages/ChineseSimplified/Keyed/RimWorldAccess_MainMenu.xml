@@ -758,4 +758,19 @@
   <RimWorldAccess.StartingPawn.EditPawnFilter>编辑角色筛选器...</RimWorldAccess.StartingPawn.EditPawnFilter>
   <RimWorldAccess.StartingPawn.AddPawn>添加角色</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>移除角色</RimWorldAccess.StartingPawn.RemovePawn>
+  <RimWorldAccess.ModSettings.OpeningWithItem>{0}……{1}</RimWorldAccess.ModSettings.OpeningWithItem>
+  <RimWorldAccess.ModSettings.Menu.NoSettings>无法读取此模组的设置。它可能使用了此功能尚不支持的控件。</RimWorldAccess.ModSettings.Menu.NoSettings>
+  <RimWorldAccess.ModSettings.Menu.Checkbox>复选框</RimWorldAccess.ModSettings.Menu.Checkbox>
+  <RimWorldAccess.ModSettings.Menu.Button>按钮</RimWorldAccess.ModSettings.Menu.Button>
+  <RimWorldAccess.ModSettings.Menu.RadioButton>单选按钮</RimWorldAccess.ModSettings.Menu.RadioButton>
+  <RimWorldAccess.ModSettings.Menu.Slider>滑块</RimWorldAccess.ModSettings.Menu.Slider>
+  <RimWorldAccess.ModSettings.Menu.TextField>文本框</RimWorldAccess.ModSettings.Menu.TextField>
+  <RimWorldAccess.ModSettings.Menu.IntEntry>数字</RimWorldAccess.ModSettings.Menu.IntEntry>
+  <RimWorldAccess.ModSettings.Menu.On>开</RimWorldAccess.ModSettings.Menu.On>
+  <RimWorldAccess.ModSettings.Menu.Off>关</RimWorldAccess.ModSettings.Menu.Off>
+  <RimWorldAccess.ModSettings.Menu.Selected>已选中</RimWorldAccess.ModSettings.Menu.Selected>
+  <RimWorldAccess.ModSettings.Menu.NotSelected>未选中</RimWorldAccess.ModSettings.Menu.NotSelected>
+  <RimWorldAccess.ModSettings.Menu.CheckboxToggled>{0}，{1}</RimWorldAccess.ModSettings.Menu.CheckboxToggled>
+  <RimWorldAccess.ModSettings.Menu.Activated>{0}，已激活</RimWorldAccess.ModSettings.Menu.Activated>
+  <RimWorldAccess.ModSettings.Menu.RadioSelected>{0}，已选中</RimWorldAccess.ModSettings.Menu.RadioSelected>
 </LanguageData>

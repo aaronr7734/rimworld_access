@@ -145,6 +145,7 @@ namespace RimWorldAccess
             TypeaheadDispatcher.Register(4.5, () => GizmoNavigationState.IsActive, c => GizmoNavigationState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.6, () => PawnAreaMenuState.IsActive, c => PawnAreaMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.7, () => ModListState.IsActive, c => ModListState.HandleTypeahead(c));
+            TypeaheadDispatcher.Register(4.71, () => ModSettingsMenuState.IsActive, c => ModSettingsMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.8, () => AreaSelectionMenuState.IsActive, c => AreaSelectionMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.85, () => ShapeSelectionMenuState.IsActive, c => ShapeSelectionMenuState.HandleTypeahead(c));
             TypeaheadDispatcher.Register(4.9, () => MenuNavigationState.IsActive, c => MenuNavigationState.HandleTypeahead(c));

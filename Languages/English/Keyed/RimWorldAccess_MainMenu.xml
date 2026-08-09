@@ -10,7 +10,9 @@
     Files contributing strings:
       - MainMenuAccessibilityPatch.cs   (the main menu shell)
       - LoadingScreenAccessibilityPatch (the load-screen tip + events)
-      - ModListState.cs / ModSettingsDialogPatch.cs
+      - ModListState.cs / ModSettingsDialogPatch.cs /
+        ModSettingsMenuState.cs / ModSettingsCaptureState.cs /
+        ModSettingsWidgetPatches.cs
       - WindowlessScenarioLoadState.cs / WindowlessScenarioSaveState.cs
       - ScenarioSelectionPatch.cs / ScenarioNavigationState.cs
       - ScenarioBuilderState.cs / ScenarioBuilderPatch.cs /
@@ -72,9 +74,32 @@
        {0} = the mod's display name (when known).
        ================================================================= -->
   <RimWorldAccess.ModSettings.OpenedFor>Mod settings for {0}. Press Escape to close.</RimWorldAccess.ModSettings.OpenedFor>
-  <RimWorldAccess.ModSettings.OpenedGeneric>Mod settings dialog opened. Press Escape to close.</RimWorldAccess.ModSettings.OpenedGeneric>
   <RimWorldAccess.ModSettings.Closed>Mod settings closed</RimWorldAccess.ModSettings.Closed>
   <RimWorldAccess.ModSettings.UnknownMod>Unknown mod</RimWorldAccess.ModSettings.UnknownMod>
+
+  <!-- =================================================================
+       Mod settings windowless menu (ModSettingsMenuState + ModSettingsCaptureState +
+       ModSettingsWidgetPatches). Makes each mod's own settings widgets
+       (checkboxes, buttons, radio buttons, sliders, labels) keyboard/screen-reader
+       navigable by shadowing them as they're drawn each frame. {0} = the dialog-open
+       announcement, {1} = the first navigable item's announcement. {0}/{1} in the
+       item strings below = control label / on-off-selected state / percent value.
+       ================================================================= -->
+  <RimWorldAccess.ModSettings.OpeningWithItem>{0} ... {1}</RimWorldAccess.ModSettings.OpeningWithItem>
+  <RimWorldAccess.ModSettings.Menu.NoSettings>This mod's settings could not be read. It may use controls this feature does not yet support.</RimWorldAccess.ModSettings.Menu.NoSettings>
+  <RimWorldAccess.ModSettings.Menu.Checkbox>checkbox</RimWorldAccess.ModSettings.Menu.Checkbox>
+  <RimWorldAccess.ModSettings.Menu.Button>button</RimWorldAccess.ModSettings.Menu.Button>
+  <RimWorldAccess.ModSettings.Menu.RadioButton>radio button</RimWorldAccess.ModSettings.Menu.RadioButton>
+  <RimWorldAccess.ModSettings.Menu.Slider>slider</RimWorldAccess.ModSettings.Menu.Slider>
+  <RimWorldAccess.ModSettings.Menu.TextField>text field</RimWorldAccess.ModSettings.Menu.TextField>
+  <RimWorldAccess.ModSettings.Menu.IntEntry>number</RimWorldAccess.ModSettings.Menu.IntEntry>
+  <RimWorldAccess.ModSettings.Menu.On>on</RimWorldAccess.ModSettings.Menu.On>
+  <RimWorldAccess.ModSettings.Menu.Off>off</RimWorldAccess.ModSettings.Menu.Off>
+  <RimWorldAccess.ModSettings.Menu.Selected>selected</RimWorldAccess.ModSettings.Menu.Selected>
+  <RimWorldAccess.ModSettings.Menu.NotSelected>not selected</RimWorldAccess.ModSettings.Menu.NotSelected>
+  <RimWorldAccess.ModSettings.Menu.CheckboxToggled>{0}, {1}</RimWorldAccess.ModSettings.Menu.CheckboxToggled>
+  <RimWorldAccess.ModSettings.Menu.Activated>{0}, activated</RimWorldAccess.ModSettings.Menu.Activated>
+  <RimWorldAccess.ModSettings.Menu.RadioSelected>{0}, selected</RimWorldAccess.ModSettings.Menu.RadioSelected>
 
   <!-- =================================================================
        Mod list / mod manager (ModListState).

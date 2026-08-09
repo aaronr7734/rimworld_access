@@ -838,6 +838,33 @@ namespace RimWorldAccess
                 }
             }
 
+            // ===== PRIORITY -0.209: Handle Dialog_ModSettings windowless menu if active =====
+            // The mod-settings menu's own input is also wired in ModSettingsDialogPatch.Input_Prefix,
+            // but that runs from Dialog_ModSettings.DoWindowContents — LATER in the frame than this
+            // UIRoot prefix. At the main menu nothing else is IsActive, so the keys survive to the
+            // dialog's own prefix and it works. In-game, though, the map/inspection/gizmo handlers
+            // below are IsActive and eat the arrow/Enter keys first, so the settings menu never sees
+            // them (bug: "works from main menu, dead in-game"). Dialog_ModSettings is a modal,
+            // input-absorbing window, so we take first crack here and absorb — matching vanilla's
+            // absorbInputAroundWindow. We stand down while a dropdown's windowless FloatMenu is
+            // layered on top (handled at priority 5 below); the modal text-edit session already
+            // returned at priority -1.6, and typeahead letters at priority -1.5, so neither reaches
+            // this point. The dialog's own Input_Prefix stays as a harmless fallback (its KeyDown
+            // guard sees the event already consumed here).
+            if (ModSettingsMenuState.IsActive && !WindowlessFloatMenuState.IsActive)
+            {
+                bool msShift = Event.current.shift;
+                bool msCtrl = Event.current.control;
+                bool msAlt = KeyboardHelper.IsAltHeld;
+                if (ModSettingsMenuState.HandleInput(key, msShift, msCtrl, msAlt))
+                {
+                    Event.current.Use();
+                }
+                // Absorb regardless: while the modal settings dialog is up, in-game handlers below
+                // must not act on the key (vanilla already blocks gameplay input around this window).
+                return;
+            }
+
             // ===== PRIORITY 0: Handle world object selection if active =====
             if (WorldObjectSelectionState.IsActive && !WindowlessDialogState.IsActive)
             {
