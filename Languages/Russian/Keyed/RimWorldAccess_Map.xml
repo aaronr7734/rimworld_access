@@ -663,4 +663,9 @@
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <RimWorldAccess.Map.Tile.Plan>{0}: {1}</RimWorldAccess.Map.Tile.Plan>
   <RimWorldAccess.Map.Scanner.CatName.Plans>Планировки</RimWorldAccess.Map.Scanner.CatName.Plans>
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Тронный зал для {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Спальня для {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>все требования соблюдены</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>выполнено {0} из {1} требований</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>не хватает: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 </LanguageData>

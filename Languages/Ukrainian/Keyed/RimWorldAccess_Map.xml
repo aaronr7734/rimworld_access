@@ -658,4 +658,9 @@
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <RimWorldAccess.Map.Tile.Plan>{0}, {1}</RimWorldAccess.Map.Tile.Plan>
   <RimWorldAccess.Map.Scanner.CatName.Plans>Плани</RimWorldAccess.Map.Scanner.CatName.Plans>
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Тронна зала для {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Спальня для {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>усі вимоги виконано</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>виконано {0} з {1} вимог</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>бракує: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 </LanguageData>
