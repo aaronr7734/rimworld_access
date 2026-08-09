@@ -1053,4 +1053,20 @@
   <RimWorldAccess.Building.Plan.Desc.Rename>Renombra esta planificación.</RimWorldAccess.Building.Plan.Desc.Rename>
   <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Alterna la visibilidad de esta planificación en el mapa.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
   <RimWorldAccess.Building.Plan.Desc.Expand>Expande esta planificación dibujando más cuadros.</RimWorldAccess.Building.Plan.Desc.Expand>
+
+  <!-- Accessible color picker (src/Building/ColorPickerAccessibilityState.cs). -->
+  <RimWorldAccess.Building.ColorPicker.Opened>Selector de color abierto. Color actual: {0}. Color anterior: {1}. {2} muestras predefinidas, más los controles de Predeterminado, matiz y saturación. Las flechas arriba y abajo navegan, izquierda y derecha ajustan el matiz o la saturación cuando están enfocados, Enter selecciona o aplica, Escape cancela.</RimWorldAccess.Building.ColorPicker.Opened>
+  <RimWorldAccess.Building.ColorPicker.HueSat>Matiz {0} grados, saturación {1} por ciento</RimWorldAccess.Building.ColorPicker.HueSat>
+  <RimWorldAccess.Building.ColorPicker.White>Blanco</RimWorldAccess.Building.ColorPicker.White>
+  <RimWorldAccess.Building.ColorPicker.Selected>Color establecido a {0}</RimWorldAccess.Building.ColorPicker.Selected>
+  <RimWorldAccess.Building.ColorPicker.DefaultOption>Predeterminado: {0}</RimWorldAccess.Building.ColorPicker.DefaultOption>
+  <RimWorldAccess.Building.ColorPicker.DarklightOption>Oscuridad: {0}</RimWorldAccess.Building.ColorPicker.DarklightOption>
+  <RimWorldAccess.Building.ColorPicker.Darklight>Oscuridad</RimWorldAccess.Building.ColorPicker.Darklight>
+  <RimWorldAccess.Building.ColorPicker.HueStepper>Ajustar matiz: {0} grados. Usa las flechas izquierda y derecha para cambiar.</RimWorldAccess.Building.ColorPicker.HueStepper>
+  <RimWorldAccess.Building.ColorPicker.HueChanged>Matiz: {0} grados</RimWorldAccess.Building.ColorPicker.HueChanged>
+  <RimWorldAccess.Building.ColorPicker.SatStepper>Ajustar saturación: {0} por ciento. Usa las flechas izquierda y derecha para cambiar.</RimWorldAccess.Building.ColorPicker.SatStepper>
+  <RimWorldAccess.Building.ColorPicker.SatChanged>Saturación: {0} por ciento</RimWorldAccess.Building.ColorPicker.SatChanged>
+  <RimWorldAccess.Building.ColorPicker.Accept>Aceptar y aplicar color</RimWorldAccess.Building.ColorPicker.Accept>
+  <RimWorldAccess.Building.ColorPicker.Cancel>Cancelar sin guardar</RimWorldAccess.Building.ColorPicker.Cancel>
+  <RimWorldAccess.Building.ColorPicker.Accepted>Color aplicado: {0}</RimWorldAccess.Building.ColorPicker.Accepted>
 </LanguageData>

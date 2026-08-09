@@ -1032,4 +1032,18 @@
   <RimWorldAccess.Building.Plan.Desc.Rename>Перейменувати цей маркер планування.</RimWorldAccess.Building.Plan.Desc.Rename>
   <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Перемкнути видимість цього маркера планування на мапі.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
   <RimWorldAccess.Building.Plan.Desc.Expand>Розширити цей маркер планування, намалювавши більше клітинок.</RimWorldAccess.Building.Plan.Desc.Expand>
+  <RimWorldAccess.Building.ColorPicker.Opened>Відкрито вибір кольору. Поточний колір: {0}. Попередній колір: {1}. {2} готових зразків кольору, а також елементи керування «За замовчуванням», відтінком і насиченістю. Стрілки вгору і вниз для навігації, стрілки ліворуч і праворуч змінюють відтінок або насиченість, коли на них фокус, Enter вибирає або застосовує, Escape скасовує.</RimWorldAccess.Building.ColorPicker.Opened>
+  <RimWorldAccess.Building.ColorPicker.HueSat>Відтінок {0} градусів, насиченість {1} відсотків</RimWorldAccess.Building.ColorPicker.HueSat>
+  <RimWorldAccess.Building.ColorPicker.White>Білий</RimWorldAccess.Building.ColorPicker.White>
+  <RimWorldAccess.Building.ColorPicker.Selected>Колір встановлено: {0}</RimWorldAccess.Building.ColorPicker.Selected>
+  <RimWorldAccess.Building.ColorPicker.DefaultOption>За замовчуванням: {0}</RimWorldAccess.Building.ColorPicker.DefaultOption>
+  <RimWorldAccess.Building.ColorPicker.DarklightOption>Світіння в темряві: {0}</RimWorldAccess.Building.ColorPicker.DarklightOption>
+  <RimWorldAccess.Building.ColorPicker.Darklight>Світіння в темряві</RimWorldAccess.Building.ColorPicker.Darklight>
+  <RimWorldAccess.Building.ColorPicker.HueStepper>Налаштування відтінку: {0} градусів. Використовуйте стрілки ліворуч і праворуч для зміни.</RimWorldAccess.Building.ColorPicker.HueStepper>
+  <RimWorldAccess.Building.ColorPicker.HueChanged>Відтінок: {0} градусів</RimWorldAccess.Building.ColorPicker.HueChanged>
+  <RimWorldAccess.Building.ColorPicker.SatStepper>Налаштування насиченості: {0} відсотків. Використовуйте стрілки ліворуч і праворуч для зміни.</RimWorldAccess.Building.ColorPicker.SatStepper>
+  <RimWorldAccess.Building.ColorPicker.SatChanged>Насиченість: {0} відсотків</RimWorldAccess.Building.ColorPicker.SatChanged>
+  <RimWorldAccess.Building.ColorPicker.Accept>Прийняти й застосувати колір</RimWorldAccess.Building.ColorPicker.Accept>
+  <RimWorldAccess.Building.ColorPicker.Cancel>Скасувати без збереження</RimWorldAccess.Building.ColorPicker.Cancel>
+  <RimWorldAccess.Building.ColorPicker.Accepted>Колір застосовано: {0}</RimWorldAccess.Building.ColorPicker.Accepted>
 </LanguageData>

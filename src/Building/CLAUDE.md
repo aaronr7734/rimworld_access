@@ -33,6 +33,21 @@ self-contained).
 **Areas** - `AreaPatch.cs`, `AreaPaintingState.cs`, `WindowlessAreaState.cs`
 Allowed areas and home zone management.
 
+**Color Picker** - `ColorPickerAccessibilityState.cs`, `ColorPickerAccessibilityPatch.cs`
+Accessible replacement for vanilla's mouse-only `Dialog_ColorPickerBase` window (the light "change
+color" gizmo's `Dialog_GlowerColorPicker`, plus `Dialog_AllowedAreaColorPicker`, which shares the
+same UI). Unlike `PlanColorHelper`/`PaintColorHelper` (which intercept the designator/gizmo so the
+real dialog never opens), this leaves the real vanilla window in the WindowStack — same pattern as
+`SliderDialogState`/`SliderDialogPatch` for `Dialog_Slider` — and drives it entirely via reflection
+on `Dialog_ColorPickerBase`'s protected members (`color`, `PickableColors`, `DefaultColor`,
+`ShowDarklight`, `ForcedColorValue`, `SaveColor`). Presents Default, Darklight (if supported), and
+the 54 preset swatches as a flat navigable list (Up/Down), plus step-adjustable Hue/Saturation
+controls (Left/Right nudge in 15°/5% steps when focused there; brightness is fixed by the dialog
+itself so no Value control is needed). Enter applies the focused swatch/preset as the working color
+without closing (mirrors clicking a vanilla swatch) or activates Accept/Cancel. No
+`Window.OnCancelKeyPressed`/`OnAcceptKeyPressed` patch is needed — see the design notes on
+`ColorPickerAccessibilityState` for why. Wired in `UnifiedKeyboardPatch` at priority -0.212.
+
 **Analysis** - `ObstacleDetector.cs`, `EnclosureDetector.cs`
 Find obstacles blocking placement; detect rooms formed by blueprints.
 
