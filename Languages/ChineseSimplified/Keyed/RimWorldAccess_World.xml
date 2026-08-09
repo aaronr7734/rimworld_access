@@ -765,4 +765,6 @@
   <RimWorldAccess.Stat.VisibilityUnknown>可见度: 未知</RimWorldAccess.Stat.VisibilityUnknown>
   <RimWorldAccess.World.JumpedTilesDirection>向{1}跳转了 {0} 格</RimWorldAccess.World.JumpedTilesDirection>
   <RimWorldAccess.World.JumpedTiles>跳转了 {0} 格</RimWorldAccess.World.JumpedTiles>
+  <RimWorldAccess.World.Jump.BiomeBoundary>跳跃了{0}个地块到生物群落边界</RimWorldAccess.World.Jump.BiomeBoundary>
+  <RimWorldAccess.World.Jump.NoBiomeBoundary>该方向未找到生物群落变化</RimWorldAccess.World.Jump.NoBiomeBoundary>
 </LanguageData>

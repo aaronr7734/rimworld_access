@@ -765,4 +765,6 @@
   <RimWorldAccess.Stat.VisibilityUnknown>Заметность: неизвестно</RimWorldAccess.Stat.VisibilityUnknown>
   <RimWorldAccess.World.JumpedTilesDirection>Переход на {0} {0_numCase ? клетку : клетки : клеток} на {1}</RimWorldAccess.World.JumpedTilesDirection>
   <RimWorldAccess.World.JumpedTiles>Переход на {0} {0_numCase ? клетку : клетки : клеток}</RimWorldAccess.World.JumpedTiles>
+  <RimWorldAccess.World.Jump.BiomeBoundary>Прыжок на {0} клеток до границы биома</RimWorldAccess.World.Jump.BiomeBoundary>
+  <RimWorldAccess.World.Jump.NoBiomeBoundary>В этом направлении изменений биома не найдено</RimWorldAccess.World.Jump.NoBiomeBoundary>
 </LanguageData>
