@@ -79,11 +79,15 @@ namespace RimWorldAccess
 
             // Note: CaravanInspectState input is handled by UnifiedKeyboardPatch at priority 0
 
-            // Handle arrow key navigation
+            // Handle arrow key navigation. Ctrl+Arrow walks in that direction until the
+            // primary biome changes, instead of moving a single tile.
             if (key == KeyCode.UpArrow || key == KeyCode.DownArrow ||
                 key == KeyCode.LeftArrow || key == KeyCode.RightArrow)
             {
-                WorldNavigationState.HandleArrowKey(key);
+                if (ctrl)
+                    WorldNavigationState.JumpToNextBiomeBoundary(key);
+                else
+                    WorldNavigationState.HandleArrowKey(key);
                 Event.current.Use();
                 return;
             }

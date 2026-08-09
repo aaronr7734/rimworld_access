@@ -51,6 +51,9 @@
   <RimWorldAccess.World.OpenInstructions>World map. {0}</RimWorldAccess.World.OpenInstructions>
   <RimWorldAccess.World.NearPole>Near {0} pole - using relative directions</RimWorldAccess.World.NearPole>
   <RimWorldAccess.World.LeavingPole>Leaving pole territory - using compass directions</RimWorldAccess.World.LeavingPole>
+  <!-- Ctrl+Arrow biome-boundary jump cue: {0} = tile count walked to reach the new biome. -->
+  <RimWorldAccess.World.Jump.BiomeBoundary>Jumped {0} tiles to biome boundary</RimWorldAccess.World.Jump.BiomeBoundary>
+  <RimWorldAccess.World.Jump.NoBiomeBoundary>No biome change found in that direction</RimWorldAccess.World.Jump.NoBiomeBoundary>
   <RimWorldAccess.World.LayerSwitchFailed>Cannot switch to {0}: {1}</RimWorldAccess.World.LayerSwitchFailed>
   <RimWorldAccess.World.NoOtherLayers>No other layers available</RimWorldAccess.World.NoOtherLayers>
   <RimWorldAccess.World.SwitchedToLayer>Switched to {0} layer.</RimWorldAccess.World.SwitchedToLayer>

@@ -762,4 +762,6 @@
   <RimWorldAccess.Stat.VisibilityUnknown>Помітність: невідомо</RimWorldAccess.Stat.VisibilityUnknown>
   <RimWorldAccess.World.JumpedTilesDirection>Перейдено на {0} плиток {1}</RimWorldAccess.World.JumpedTilesDirection>
   <RimWorldAccess.World.JumpedTiles>Перейдено на {0} плиток</RimWorldAccess.World.JumpedTiles>
+  <RimWorldAccess.World.Jump.BiomeBoundary>Стрибок на {0} клітинок до межі біома</RimWorldAccess.World.Jump.BiomeBoundary>
+  <RimWorldAccess.World.Jump.NoBiomeBoundary>У цьому напрямку змін біома не знайдено</RimWorldAccess.World.Jump.NoBiomeBoundary>
 </LanguageData>

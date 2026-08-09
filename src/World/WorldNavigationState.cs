@@ -387,6 +387,45 @@ namespace RimWorldAccess
         }
 
         /// <summary>
+        /// Finds the neighbor of the given tile that best aligns with a desired 3D direction.
+        /// Shared by single-step arrow movement and the Ctrl+Arrow biome-boundary jump, which
+        /// walks this same lookup in a loop while holding the direction fixed.
+        /// </summary>
+        private static PlanetTile FindNeighborTowardDirection(PlanetTile from, UnityEngine.Vector3 desiredDirection)
+        {
+            if (Find.WorldGrid == null)
+                return PlanetTile.Invalid;
+
+            List<PlanetTile> neighbors = new List<PlanetTile>();
+            Find.WorldGrid.GetTileNeighbors(from, neighbors);
+
+            if (neighbors.Count == 0)
+                return PlanetTile.Invalid;
+
+            UnityEngine.Vector3 fromPos = Find.WorldGrid.GetTileCenter(from);
+
+            PlanetTile bestNeighbor = PlanetTile.Invalid;
+            float bestDot = -2f; // Start with impossibly low value
+
+            foreach (PlanetTile neighbor in neighbors)
+            {
+                UnityEngine.Vector3 neighborPos = Find.WorldGrid.GetTileCenter(neighbor);
+                UnityEngine.Vector3 directionToNeighbor = (neighborPos - fromPos).normalized;
+
+                // Calculate how well this neighbor aligns with desired direction
+                float dot = UnityEngine.Vector3.Dot(directionToNeighbor, desiredDirection);
+
+                if (dot > bestDot)
+                {
+                    bestDot = dot;
+                    bestNeighbor = neighbor;
+                }
+            }
+
+            return bestNeighbor;
+        }
+
+        /// <summary>
         /// Moves the selection to a neighboring tile in the specified direction.
         /// Uses camera's current orientation to determine which neighbor is "up/down/left/right".
         /// </summary>
@@ -398,34 +437,7 @@ namespace RimWorldAccess
             if (Find.WorldGrid == null)
                 return false;
 
-            // Get neighbors of current tile
-            List<PlanetTile> neighbors = new List<PlanetTile>();
-            Find.WorldGrid.GetTileNeighbors(currentSelectedTile, neighbors);
-
-            if (neighbors.Count == 0)
-                return false;
-
-            // Get current tile's 3D position
-            UnityEngine.Vector3 currentPos = Find.WorldGrid.GetTileCenter(currentSelectedTile);
-
-            // Find the neighbor that's closest to the desired direction
-            PlanetTile bestNeighbor = PlanetTile.Invalid;
-            float bestDot = -2f; // Start with impossibly low value
-
-            foreach (PlanetTile neighbor in neighbors)
-            {
-                UnityEngine.Vector3 neighborPos = Find.WorldGrid.GetTileCenter(neighbor);
-                UnityEngine.Vector3 directionToNeighbor = (neighborPos - currentPos).normalized;
-
-                // Calculate how well this neighbor aligns with desired direction
-                float dot = UnityEngine.Vector3.Dot(directionToNeighbor, desiredDirection);
-
-                if (dot > bestDot)
-                {
-                    bestDot = dot;
-                    bestNeighbor = neighbor;
-                }
-            }
+            PlanetTile bestNeighbor = FindNeighborTowardDirection(currentSelectedTile, desiredDirection);
 
             if (!bestNeighbor.Valid)
                 return false;
@@ -660,11 +672,15 @@ namespace RimWorldAccess
                 tileInfo = AppendSentence(tileInfo, biomeDesc);
             }
 
-            // Optional lead-in (e.g. a scanner "Jumped N tiles dir to center" cue), so the move
-            // delta and the full tile description are spoken as one utterance.
+            // Optional trailer (e.g. a scanner "Jumped N tiles dir to center" cue, or the
+            // biome-boundary jump cue), so the move delta and the full tile description are
+            // spoken as one utterance. The tile itself leads - it's what confirms arrival on a
+            // map with no terrain sound - with the "how you got here" delta read afterward.
             if (!string.IsNullOrEmpty(prefix))
             {
-                tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}";
+                // AppendSentence, not a raw ". " join: a biome description already ends in a
+                // period, and doubling it makes the screen reader stumble over "..".
+                tileInfo = AppendSentence(tileInfo, prefix);
             }
 
             TolkHelper.SpeakData(tileInfo);
@@ -684,35 +700,110 @@ namespace RimWorldAccess
             if (Find.WorldGrid == null)
                 return;
 
-            // Calculate geographic north/east using the same method as the scanner
-            // This ensures arrow keys match the directions shown in the scanner
-            UnityEngine.Vector3 currentPos = Find.WorldGrid.GetTileCenter(currentSelectedTile);
-            UnityEngine.Vector3 up = currentPos.normalized; // "Up" is away from planet center
-            UnityEngine.Vector3 north = UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3.up, up).normalized;
-            UnityEngine.Vector3 east = UnityEngine.Vector3.Cross(up, north).normalized;
-
-            UnityEngine.Vector3 desiredDirection = UnityEngine.Vector3.zero;
-
-            switch (key)
-            {
-                case UnityEngine.KeyCode.UpArrow:
-                    desiredDirection = north;
-                    break;
-                case UnityEngine.KeyCode.DownArrow:
-                    desiredDirection = -north; // South
-                    break;
-                case UnityEngine.KeyCode.RightArrow:
-                    desiredDirection = east;
-                    break;
-                case UnityEngine.KeyCode.LeftArrow:
-                    desiredDirection = -east; // West
-                    break;
-            }
+            UnityEngine.Vector3 desiredDirection = GetCompassDirection(currentSelectedTile, key);
 
             if (desiredDirection != UnityEngine.Vector3.zero)
             {
                 MoveInDirection(desiredDirection);
             }
+        }
+
+        /// <summary>
+        /// Maps an arrow key to a geographic compass direction (3D vector) relative to the
+        /// given tile. Shared by single-step arrow movement and the Ctrl+Arrow biome-boundary
+        /// jump, which computes this once and holds it fixed for the whole walk.
+        /// </summary>
+        private static UnityEngine.Vector3 GetCompassDirection(PlanetTile fromTile, UnityEngine.KeyCode key)
+        {
+            // Calculate geographic north/east using the same method as the scanner
+            // This ensures arrow keys match the directions shown in the scanner
+            UnityEngine.Vector3 currentPos = Find.WorldGrid.GetTileCenter(fromTile);
+            UnityEngine.Vector3 up = currentPos.normalized; // "Up" is away from planet center
+            UnityEngine.Vector3 north = UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3.up, up).normalized;
+            UnityEngine.Vector3 east = UnityEngine.Vector3.Cross(up, north).normalized;
+
+            switch (key)
+            {
+                case UnityEngine.KeyCode.UpArrow:
+                    return north;
+                case UnityEngine.KeyCode.DownArrow:
+                    return -north; // South
+                case UnityEngine.KeyCode.RightArrow:
+                    return east;
+                case UnityEngine.KeyCode.LeftArrow:
+                    return -east; // West
+                default:
+                    return UnityEngine.Vector3.zero;
+            }
+        }
+
+        /// <summary>
+        /// Maximum tiles to walk while searching for a biome change before giving up.
+        /// Bounded by the planet's tile count so a single-biome world (or a dead-end near a
+        /// pole) always terminates instead of scanning forever.
+        /// </summary>
+        private const int MaxBiomeJumpSteps = 2000;
+
+        /// <summary>
+        /// Ctrl+Arrow: walks tile-by-tile in the arrow's compass direction (same math as
+        /// HandleArrowKey, computed once and held fixed) until the primary biome differs from
+        /// the starting tile, then jumps there. Stops and announces if it runs off the edge of
+        /// a dead-end (e.g. a pole singularity), wraps back to the start without a change, or
+        /// hits MaxBiomeJumpSteps.
+        /// </summary>
+        public static void JumpToNextBiomeBoundary(UnityEngine.KeyCode key)
+        {
+            if (!isInitialized || !currentSelectedTile.Valid)
+                return;
+
+            if (Find.WorldGrid == null)
+                return;
+
+            PlanetTile startTile = currentSelectedTile;
+            UnityEngine.Vector3 desiredDirection = GetCompassDirection(startTile, key);
+            if (desiredDirection == UnityEngine.Vector3.zero)
+                return;
+
+            BiomeDef startBiome = startTile.Tile?.PrimaryBiome;
+            int maxSteps = UnityEngine.Mathf.Min(Find.WorldGrid.TilesCount, MaxBiomeJumpSteps);
+
+            PlanetTile searchTile = startTile;
+            for (int step = 0; step < maxSteps; step++)
+            {
+                PlanetTile next = FindNeighborTowardDirection(searchTile, desiredDirection);
+
+                // Dead end (e.g. pole singularity) or wrapped all the way around the planet
+                // without finding a change - give up rather than looping forever.
+                if (!next.Valid || (int)next == (int)searchTile || (int)next == (int)startTile)
+                    break;
+
+                searchTile = next;
+
+                BiomeDef biome = searchTile.Tile?.PrimaryBiome;
+                if (biome != null && biome != startBiome)
+                {
+                    currentSelectedTile = searchTile;
+                    SyncSelectionWithGame();
+
+                    if (Find.WorldCameraDriver != null)
+                        Find.WorldCameraDriver.JumpTo(currentSelectedTile);
+
+                    UpdatePoleStatus();
+
+                    if (context == WorldNavContext.InGame)
+                        RoutePlannerState.CheckOffRoute(currentSelectedTile);
+
+                    if (context == WorldNavContext.WorldGen)
+                        StartingSiteContext.OnTileChanged();
+
+                    float dist = Find.WorldGrid.ApproxDistanceInTiles(startTile, currentSelectedTile);
+                    string prefix = "RimWorldAccess.World.Jump.BiomeBoundary".Translate(dist.ToString("F0")).ToString();
+                    AnnounceTile(prefix);
+                    return;
+                }
+            }
+
+            TolkHelper.Speak("RimWorldAccess.World.Jump.NoBiomeBoundary".Loc(), SpeechPriority.Normal);
         }
 
         /// <summary>
