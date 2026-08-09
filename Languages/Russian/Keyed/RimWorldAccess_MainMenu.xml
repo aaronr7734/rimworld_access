@@ -759,4 +759,6 @@
   <RimWorldAccess.StartingPawn.AddPawn>Добавить персонажа</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>Убрать персонажа</RimWorldAccess.StartingPawn.RemovePawn>
 
+  <RimWorldAccess.PawnFilter.TraitEffects>Эффекты: {0}.</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>Не может: {0}</RimWorldAccess.PawnFilter.TraitCannotDo>
 </LanguageData>
