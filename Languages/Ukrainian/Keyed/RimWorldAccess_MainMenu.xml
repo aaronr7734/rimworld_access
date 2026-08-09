@@ -758,4 +758,8 @@
   <RimWorldAccess.StartingPawn.EditPawnFilter>Редагувати фільтр персонажів...</RimWorldAccess.StartingPawn.EditPawnFilter>
   <RimWorldAccess.StartingPawn.AddPawn>Додати персонажа</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>Видалити персонажа</RimWorldAccess.StartingPawn.RemovePawn>
+  <RimWorldAccess.StartingPawn.MinimumSelectedPawns>Мінімум вибрано: {0}</RimWorldAccess.StartingPawn.MinimumSelectedPawns>
+  <RimWorldAccess.StartingPawn.MovedToSection>{0} переміщено до {1}</RimWorldAccess.StartingPawn.MovedToSection>
+  <RimWorldAccess.StartingPawn.MoveToLeftBehind>Перемістити до залишених</RimWorldAccess.StartingPawn.MoveToLeftBehind>
+  <RimWorldAccess.StartingPawn.MoveToSelected>Перемістити до вибраних</RimWorldAccess.StartingPawn.MoveToSelected>
 </LanguageData>
