@@ -227,4 +227,9 @@
        ValueOnly: {0} = value, {1} = position. -->
   <RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>{0}: {1}. {2}</RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>
   <RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>{0}. {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>
+  <RimWorldAccess.Animals.Value.InPen>в загоне</RimWorldAccess.Animals.Value.InPen>
+  <RimWorldAccess.Animals.Value.OutsidePen>вне загона</RimWorldAccess.Animals.Value.OutsidePen>
+  <RimWorldAccess.Animals.Value.NoPenAssigned>загон не назначен</RimWorldAccess.Animals.Value.NoPenAssigned>
+  <RimWorldAccess.Animals.Value.PenNotNeeded>загон не требуется</RimWorldAccess.Animals.Value.PenNotNeeded>
+  <RimWorldAccess.Animals.Column.PenStatus>Статус загона</RimWorldAccess.Animals.Column.PenStatus>
 </LanguageData>

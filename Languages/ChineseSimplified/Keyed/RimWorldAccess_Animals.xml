@@ -226,4 +226,9 @@
        ValueOnly: {0} = value, {1} = position. -->
   <RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>{0}: {1}. {2}</RimWorldAccess.Animals.AutoSlaughter.Cell.NameWithoutColumn>
   <RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>{0}. {1}</RimWorldAccess.Animals.AutoSlaughter.Cell.ValueOnly>
+  <RimWorldAccess.Animals.Value.InPen>在畜栏内</RimWorldAccess.Animals.Value.InPen>
+  <RimWorldAccess.Animals.Value.OutsidePen>在畜栏外</RimWorldAccess.Animals.Value.OutsidePen>
+  <RimWorldAccess.Animals.Value.NoPenAssigned>未分配畜栏</RimWorldAccess.Animals.Value.NoPenAssigned>
+  <RimWorldAccess.Animals.Value.PenNotNeeded>不需要畜栏</RimWorldAccess.Animals.Value.PenNotNeeded>
+  <RimWorldAccess.Animals.Column.PenStatus>畜栏状态</RimWorldAccess.Animals.Column.PenStatus>
 </LanguageData>

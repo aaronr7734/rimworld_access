@@ -222,4 +222,9 @@
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>Порожньо</RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>Недійсне число. Використовуйте мінус 1 для необмеженого значення</RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>Скасовано</RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>
+  <RimWorldAccess.Animals.Value.InPen>у загоні</RimWorldAccess.Animals.Value.InPen>
+  <RimWorldAccess.Animals.Value.OutsidePen>поза загоном</RimWorldAccess.Animals.Value.OutsidePen>
+  <RimWorldAccess.Animals.Value.NoPenAssigned>загін не призначено</RimWorldAccess.Animals.Value.NoPenAssigned>
+  <RimWorldAccess.Animals.Value.PenNotNeeded>загін не потрібен</RimWorldAccess.Animals.Value.PenNotNeeded>
+  <RimWorldAccess.Animals.Column.PenStatus>Статус загону</RimWorldAccess.Animals.Column.PenStatus>
 </LanguageData>
