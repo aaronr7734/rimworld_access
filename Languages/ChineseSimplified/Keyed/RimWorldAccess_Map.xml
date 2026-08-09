@@ -662,4 +662,9 @@
   <RimWorldAccess.Map.Tile.PaintSuffix>, {0}</RimWorldAccess.Map.Tile.PaintSuffix>
   <RimWorldAccess.Map.Tile.Plan>{0}{1}</RimWorldAccess.Map.Tile.Plan>
   <RimWorldAccess.Map.Scanner.CatName.Plans>计划</RimWorldAccess.Map.Scanner.CatName.Plans>
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>{0}的王座厅，{1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>{0}的卧室，{1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>所有要求已满足</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>已满足{0}/{1}项要求</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>缺少：{0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 </LanguageData>

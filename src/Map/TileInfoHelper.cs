@@ -593,6 +593,13 @@ namespace RimWorldAccess
                     AppendStat(statDef);
             }
 
+            // Royalty: if this room serves a titled noble (a throne assigned to them, or a bed
+            // they own), append the met/missing breakdown of their title's room requirements —
+            // the throne checklist a sighted player sees but a screen reader otherwise can't.
+            string titleRequirements = RoomRequirementsHelper.GetTitleRequirementsInfo(room);
+            if (!string.IsNullOrEmpty(titleRequirements))
+                builder.Add(titleRequirements, Separator.Period);
+
             return builder.Build();
         }
 
