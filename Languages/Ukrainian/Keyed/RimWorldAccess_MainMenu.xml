@@ -758,4 +758,6 @@
   <RimWorldAccess.StartingPawn.EditPawnFilter>Редагувати фільтр персонажів...</RimWorldAccess.StartingPawn.EditPawnFilter>
   <RimWorldAccess.StartingPawn.AddPawn>Додати персонажа</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>Видалити персонажа</RimWorldAccess.StartingPawn.RemovePawn>
+  <RimWorldAccess.PawnFilter.TraitEffects>Ефекти: {0}.</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>Не може: {0}</RimWorldAccess.PawnFilter.TraitCannotDo>
 </LanguageData>

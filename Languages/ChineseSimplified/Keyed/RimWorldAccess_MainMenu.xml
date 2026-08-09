@@ -758,4 +758,6 @@
   <RimWorldAccess.StartingPawn.EditPawnFilter>编辑角色筛选器...</RimWorldAccess.StartingPawn.EditPawnFilter>
   <RimWorldAccess.StartingPawn.AddPawn>添加角色</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>移除角色</RimWorldAccess.StartingPawn.RemovePawn>
+  <RimWorldAccess.PawnFilter.TraitEffects>效果：{0}。</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>无法执行：{0}</RimWorldAccess.PawnFilter.TraitCannotDo>
 </LanguageData>

@@ -569,6 +569,9 @@
   <RimWorldAccess.PawnFilter.SectionConditions>Conditions</RimWorldAccess.PawnFilter.SectionConditions>
   <RimWorldAccess.PawnFilter.SectionActions>Actions</RimWorldAccess.PawnFilter.SectionActions>
   <RimWorldAccess.PawnFilter.TraitEntryFormat>{0}: {1} {2}</RimWorldAccess.PawnFilter.TraitEntryFormat>
+  <!-- Gameplay-effect summary appended to a trait degree's description in the trait picker tooltip. -->
+  <RimWorldAccess.PawnFilter.TraitEffects>Effects: {0}.</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>Cannot do: {0}</RimWorldAccess.PawnFilter.TraitCannotDo>
   <RimWorldAccess.PawnFilter.WorkAllowNone>Allow none</RimWorldAccess.PawnFilter.WorkAllowNone>
 
   <!-- =================================================================

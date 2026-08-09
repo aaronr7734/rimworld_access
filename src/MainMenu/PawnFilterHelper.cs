@@ -269,6 +269,40 @@ namespace RimWorldAccess
             return $"({"Male".Translate()}: {malePct:F1}%, {"Female".Translate()}: {femalePct:F1}%)";
         }
 
+        /// <summary>
+        /// Summarizes a trait degree's concrete gameplay effects (stat modifiers, skill gains,
+        /// disabled work) for the picker tooltip - the flavor description alone doesn't tell a
+        /// player what the trait actually does mechanically.
+        /// </summary>
+        private static string GetTraitDegreeEffectsSummary(TraitDef traitDef, TraitDegreeData degree)
+        {
+            var effects = new List<string>();
+
+            if (degree.statOffsets != null)
+                foreach (var so in degree.statOffsets)
+                    effects.Add($"{so.stat.LabelCap} {so.ValueToStringAsOffset}");
+
+            if (degree.statFactors != null)
+                foreach (var sf in degree.statFactors)
+                    effects.Add($"{sf.stat.LabelCap} {sf.ToStringAsFactor}");
+
+            if (degree.skillGains != null)
+                foreach (var gain in degree.skillGains)
+                    effects.Add($"{gain.skill.skillLabel.CapitalizeFirst()} {(gain.amount >= 0 ? "+" : "")}{gain.amount}");
+
+            if (traitDef.disabledWorkTags != WorkTags.None)
+            {
+                var tagLabels = traitDef.disabledWorkTags.GetAllSelectedItems<WorkTags>()
+                    .Where(t => t != WorkTags.None)
+                    .Select(t => t.LabelTranslated().CapitalizeFirst());
+                effects.Add(((string)"RimWorldAccess.PawnFilter.TraitCannotDo".Translate(string.Join(", ", tagLabels))));
+            }
+
+            return effects.Count > 0
+                ? (string)"RimWorldAccess.PawnFilter.TraitEffects".Translate(string.Join("; ", effects))
+                : "";
+        }
+
         public static string FormatSkillLabel(SkillFilter skill)
         {
             string skillName = skill.Skill.skillLabel.CapitalizeFirst();
@@ -442,18 +476,45 @@ namespace RimWorldAccess
                     string desc = degree.description;
                     if (!string.IsNullOrEmpty(desc))
                     {
-                        // Convert {PAWN_*} to [PAWN_*] so GrammarResolver handles both formats
-                        desc = Regex.Replace(desc, @"\{(PAWN_\w+)\}", "[$1]");
+                        try
+                        {
+                            // Some translations (notably Spanish) use a {PAWN_gender ? masc : fem}
+                            // ternary for grammatical gender agreement that predates/bypasses
+                            // GrammarResolver entirely - it's not [RULE] syntax, so left alone it
+                            // either throws inside Resolve() or (as here) is never touched by the
+                            // simple {PAWN_x} conversion below, leaking the raw "{PAWN_gender ? o :
+                            // a}" text verbatim. Resolve it ourselves first, picking the branch that
+                            // matches the fake pawn's gender (Male, see below) so it agrees with
+                            // GrammarResolver's own gender-dependent rules (e.g. [PAWN_pronoun]) and
+                            // with the generic "colono"-style fallback text it uses when no name is
+                            // supplied - both of which default to masculine regardless of the Gender
+                            // we pass, so mixing in a feminine branch here produced mismatched
+                            // agreement ("El colono es ... hermosa ... atraída a él").
+                            string resolvedDesc = Regex.Replace(
+                                desc,
+                                @"\{PAWN_gender\s*\?([^:{}]*):([^{}]*)\}",
+                                m => m.Groups[1].Value.Trim());
 
-                        // Resolve using game's grammar system with generic female colonist
-                        var request = default(GrammarRequest);
-                        request.Includes.Add(RulePackDefOf.DynamicWrapper);
-                        request.Rules.Add(new Rule_String("RULE", desc));
-                        request.Rules.AddRange(GrammarUtility.RulesForPawn(
-                            "PAWN", null, null, PawnKindDefOf.Colonist, Verse.Gender.Female,
-                            null, 25, 25, "", false, false, false, null, false, "",
-                            null, false));
-                        desc = GrammarResolver.Resolve("r_root", request);
+                            // Convert {PAWN_*} to [PAWN_*] so GrammarResolver handles both formats
+                            resolvedDesc = Regex.Replace(resolvedDesc, @"\{(PAWN_\w+)\}", "[$1]");
+
+                            // Resolve using game's grammar system with a generic male colonist
+                            var request = default(GrammarRequest);
+                            request.Includes.Add(RulePackDefOf.DynamicWrapper);
+                            request.Rules.Add(new Rule_String("RULE", resolvedDesc));
+                            request.Rules.AddRange(GrammarUtility.RulesForPawn(
+                                "PAWN", null, null, PawnKindDefOf.Colonist, Verse.Gender.Male,
+                                null, 25, 25, "", false, false, false, null, false, "",
+                                null, false));
+                            desc = GrammarResolver.Resolve("r_root", request);
+                        }
+                        catch (Exception)
+                        {
+                            // Some vanilla trait degree descriptions (e.g. Traits_Spectrum.xml)
+                            // null-ref inside GrammarResolver because no real pawn Name is
+                            // supplied above. Keep the raw description rather than aborting the
+                            // whole options list, which used to prevent the picker from opening.
+                        }
                     }
 
                     var option = new FloatMenuOption(label, () =>
@@ -466,6 +527,10 @@ namespace RimWorldAccess
                         });
                         onTraitAdded?.Invoke();
                     });
+
+                    string effectsSummary = GetTraitDegreeEffectsSummary(traitDef, degree);
+                    if (!string.IsNullOrEmpty(effectsSummary))
+                        desc = string.IsNullOrEmpty(desc) ? effectsSummary : $"{desc} {effectsSummary}";
 
                     if (!string.IsNullOrEmpty(desc))
                         option.tooltip = new TipSignal(desc);

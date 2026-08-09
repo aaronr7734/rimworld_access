@@ -569,6 +569,8 @@
   <RimWorldAccess.PawnFilter.SectionConditions>Condiciones</RimWorldAccess.PawnFilter.SectionConditions>
   <RimWorldAccess.PawnFilter.SectionActions>Acciones</RimWorldAccess.PawnFilter.SectionActions>
   <RimWorldAccess.PawnFilter.TraitEntryFormat>{0}: {1} {2}</RimWorldAccess.PawnFilter.TraitEntryFormat>
+  <RimWorldAccess.PawnFilter.TraitEffects>Efectos: {0}.</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>No puede hacer: {0}</RimWorldAccess.PawnFilter.TraitCannotDo>
   <RimWorldAccess.PawnFilter.WorkAllowNone>No permitir ninguno</RimWorldAccess.PawnFilter.WorkAllowNone>
 
   <!-- =================================================================
