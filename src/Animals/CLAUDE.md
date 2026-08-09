@@ -54,7 +54,8 @@ Both menus use `TabularMenuHelper<Pawn>` (from UI module) for shared navigation:
 - Cell announcement building
 
 ### AnimalsMenuState (Colony Animals)
-- 14+ columns (Name, Bond, Master, Slaughter, training columns, etc.)
+- 15+ columns (Name, Bond, Master, Slaughter, Pen Status, training columns, etc.)
+- **Pen Status** column (last column): read-only. `AnimalsMenuHelper.GetPenStatus` calls `AnimalPenUtility.GetCurrentPenOf` for the animal's assigned pen, then checks `CompAnimalPenMarker.PenState.ContainsConnectedRegion(pawn.GetRegion())` to report "in pen" / "outside pen" / "no pen assigned"
 - Dynamic training columns based on TrainableDef
 - Submenu system for Master, AllowedArea, MedicalCare, FoodRestriction
 - Default sort: Name ascending
