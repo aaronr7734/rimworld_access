@@ -759,4 +759,19 @@
   <RimWorldAccess.StartingPawn.AddPawn>Добавить персонажа</RimWorldAccess.StartingPawn.AddPawn>
   <RimWorldAccess.StartingPawn.RemovePawn>Убрать персонажа</RimWorldAccess.StartingPawn.RemovePawn>
 
+  <RimWorldAccess.ModSettings.OpeningWithItem>{0} ... {1}</RimWorldAccess.ModSettings.OpeningWithItem>
+  <RimWorldAccess.ModSettings.Menu.NoSettings>Не удалось прочитать настройки этого мода. Возможно, он использует элементы управления, которые эта функция пока не поддерживает.</RimWorldAccess.ModSettings.Menu.NoSettings>
+  <RimWorldAccess.ModSettings.Menu.Checkbox>флажок</RimWorldAccess.ModSettings.Menu.Checkbox>
+  <RimWorldAccess.ModSettings.Menu.Button>кнопка</RimWorldAccess.ModSettings.Menu.Button>
+  <RimWorldAccess.ModSettings.Menu.RadioButton>переключатель</RimWorldAccess.ModSettings.Menu.RadioButton>
+  <RimWorldAccess.ModSettings.Menu.Slider>ползунок</RimWorldAccess.ModSettings.Menu.Slider>
+  <RimWorldAccess.ModSettings.Menu.TextField>текстовое поле</RimWorldAccess.ModSettings.Menu.TextField>
+  <RimWorldAccess.ModSettings.Menu.IntEntry>число</RimWorldAccess.ModSettings.Menu.IntEntry>
+  <RimWorldAccess.ModSettings.Menu.On>вкл</RimWorldAccess.ModSettings.Menu.On>
+  <RimWorldAccess.ModSettings.Menu.Off>выкл</RimWorldAccess.ModSettings.Menu.Off>
+  <RimWorldAccess.ModSettings.Menu.Selected>выбрано</RimWorldAccess.ModSettings.Menu.Selected>
+  <RimWorldAccess.ModSettings.Menu.NotSelected>не выбрано</RimWorldAccess.ModSettings.Menu.NotSelected>
+  <RimWorldAccess.ModSettings.Menu.CheckboxToggled>{0}, {1}</RimWorldAccess.ModSettings.Menu.CheckboxToggled>
+  <RimWorldAccess.ModSettings.Menu.Activated>{0}, активировано</RimWorldAccess.ModSettings.Menu.Activated>
+  <RimWorldAccess.ModSettings.Menu.RadioSelected>{0}, выбрано</RimWorldAccess.ModSettings.Menu.RadioSelected>
 </LanguageData>
