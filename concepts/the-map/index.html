@@ -1924,6 +1924,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog archive (pre-2.0)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2088,18 +2144,23 @@
 <h2 id="jumping-to-coordinates-ctrlg">Jumping to coordinates (Ctrl+G)<a class="headerlink" href="#jumping-to-coordinates-ctrlg" title="Permanent link">&para;</a></h2>
 <p>Press <strong>Ctrl+G</strong> to open the coordinate-jump dialog. Type an X coordinate, press <strong>Comma</strong> or <strong>Space</strong> to advance to the Z field, type a Z coordinate, and press <strong>Enter</strong> to jump. Leaving a field blank keeps the current coordinate. Entering <code>+N</code> or <code>-N</code> moves that many tiles relative to the current position. <strong>Escape</strong> cancels.</p>
 <h2 id="jump-modes-covering-ground-fast">Jump modes: covering ground fast<a class="headerlink" href="#jump-modes-covering-ground-fast" title="Permanent link">&para;</a></h2>
-<p>Tile-by-tile movement is fine for close work, but crossing the map one step at a time is slow. Jump modes let a single keypress leap to the next thing in a given direction. Two jump modes are available:</p>
+<p>Tile-by-tile movement is fine for close work, but crossing the map one step at a time is slow. Jump modes let a single keypress leap to the next thing in a given direction. Four jump modes are available:</p>
 <ul>
 <li><strong>Preset distance:</strong> jumps a fixed number of tiles in the direction you choose.</li>
-<li><strong>Adjacent to wall:</strong> jumps to the next tile adjacent to a wall in the chosen direction.</li>
+<li><strong>Impassable:</strong> jumps to the last tile a colonist could walk to that way, stopping before a wall, a rock face, deep water, or anything else that would block a pawn.</li>
+<li><strong>Terrain:</strong> jumps to the next tile whose ground is different, so a stretch of sand or a paved floor crosses in one press.</li>
+<li><strong>Structure:</strong> jumps to the next tile whose building is different, so a run of marble wall crosses in one press and lands where that wall changes or ends. Standing on open ground, it finds the next building instead.</li>
 </ul>
+<p>Blueprints and frames count as the thing they will become, so a colony under construction navigates like the one being built.</p>
 <p>Controls:</p>
 <ul>
 <li><strong>Ctrl+arrow</strong> jumps in that direction using the active mode.</li>
-<li><strong>Shift+Up / Shift+Down</strong> cycle to the next or previous jump mode. The cursor does not move; the mod announces the new mode.</li>
+<li><strong>Shift+Up / Shift+Down</strong> cycle to the next or previous jump mode. The cursor does not move; the mod announces the new mode. In the three scanning modes, where there is no distance to adjust, Shift+Left and Shift+Right repeat the mode name.</li>
 <li><strong>Shift+Left / Shift+Right</strong> adjust the preset distance by 1.</li>
 <li><strong>Shift+Ctrl+Left / Shift+Ctrl+Right</strong> adjust the preset distance by 10.</li>
 </ul>
+<p>The scanning modes cover an unpredictable number of tiles, so they announce the distance before describing where the cursor landed, for example "7 tiles. Marble wall." When there is nothing to jump to, the mod says so and stays put: "blocked", "no terrain change that way", "no structure change that way", or "map boundary".</p>
+<p>No jump crosses into unexplored ground. A scan stops at the fog line, so a jump never tells you what is hiding in the dark.</p>
 <p>Jump modes are also used when sizing a wall or zone during building placement. See the <a href="../../building/architect/">Architect menu page</a> for that flow.</p>
 <h2 id="controlling-time">Controlling time<a class="headerlink" href="#controlling-time" title="Permanent link">&para;</a></h2>
 <p>RimWorld runs in real time when unpaused. You will pause often to think and give orders.</p>

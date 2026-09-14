@@ -1952,6 +1952,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog archive (pre-2.0)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2148,7 +2204,7 @@
 <p>For a manual designator like a door, the flow is shorter: position the cursor, <strong>Space</strong> to place, <strong>Enter</strong> to confirm.</p>
 <p><strong>Shift+Space</strong> removes the last point you placed, or removes a blueprint when the cursor is over one.</p>
 <h3 id="jump-modes-for-precise-distances">Jump modes for precise distances<a class="headerlink" href="#jump-modes-for-precise-distances" title="Permanent link">&para;</a></h3>
-<p>Two jump modes are available during building:</p>
+<p>The same four jump modes are available during building. The two that matter most for laying out a shape:</p>
 <p><strong>Preset distance</strong> (the default) moves the cursor by a fixed number of tiles per <strong>Ctrl+arrow</strong> press.</p>
 <ul>
 <li><strong>Shift+Left</strong> and <strong>Shift+Right</strong> decrease or increase the preset distance by 1.</li>
@@ -2156,7 +2212,7 @@
 </ul>
 <p>So to lay out a 12-tile wall: set the preset distance to 12 with <strong>Shift+Right</strong> (pressing it until the mod announces 12), press <strong>Space</strong> to set the first point, then <strong>Ctrl+Right</strong> to jump 12 tiles east, <strong>Space</strong> again, and <strong>Enter</strong> to place.</p>
 <p>The jump distance counts the starting tile, so a distance of 13 moves the cursor 14 tiles including the start. To enclose a 12-by-12 interior, set the jump distance to 13: the walls form a 14-by-14 exterior, and the two wall tiles on each side leave 12 by 12 of open floor inside.</p>
-<p><strong>Adjacent to wall</strong> jumps the cursor to the next wall-adjacent tile in that direction, which is handy when you want to pick up exactly where an existing structure ends.</p>
+<p><strong>Impassable</strong> jumps the cursor to the last tile a colonist could walk to in that direction, which is handy when you want to pick up exactly where an existing structure ends. <strong>Terrain</strong> and <strong>Structure</strong> jump to the next tile whose ground or building is different, which is the quick way to find the far corner of a room or the end of a wall you already built. See <a href="../../concepts/the-map/">the map page</a> for all four.</p>
 <p><strong>Shift+Up</strong> and <strong>Shift+Down</strong> cycle through all available jump modes. These keys change the mode; they do not move the cursor.</p>
 <p>For jump modes in other contexts (navigating the map outside of building), see <a href="../../concepts/the-map/">the map</a>.</p>
 <h3 id="building-more-than-one-shape-at-once">Building more than one shape at once<a class="headerlink" href="#building-more-than-one-shape-at-once" title="Permanent link">&para;</a></h3>

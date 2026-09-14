@@ -1690,6 +1690,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#the-classic-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The classic view
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#browsing-the-goods" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1733,6 +1744,17 @@
     <span class="md-ellipsis">
       
         Checking the running deal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-table-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The table view
       
     </span>
   </a>
@@ -2025,6 +2047,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog archive (pre-2.0)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2148,6 +2226,17 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
+  <a href="#the-classic-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The classic view
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#browsing-the-goods" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2191,6 +2280,17 @@
     <span class="md-ellipsis">
       
         Checking the running deal
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#the-table-view" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        The table view
       
     </span>
   </a>
@@ -2284,46 +2384,50 @@
 <p>Build a comms console and an orbital trade beacon (both require the Microelectronics research), and trade ships passing overhead become reachable. When a ship is in range, send a colonist to the comms console: press <strong><code>]</code></strong> on the console and pick the ship. Only items within range of a beacon can be sold this way; anything you buy drops in by pod onto the beacon's open tiles. See the wiki's <a href="https://rimworldwiki.com/wiki/Comms_console">Comms console article</a> for details.</p>
 <h2 id="inside-the-trade-window">Inside the trade window<a class="headerlink" href="#inside-the-trade-window" title="Permanent link">&para;</a></h2>
 <p>When the window opens, the mod announces who you are dealing with and the two keys you will reach for most, for example "Trading with Bob's Caravan (bulk goods trader). Alt+B for balance, Alt+A to accept." The game pauses while you trade.</p>
-<p>The window is organized into tabs. Move between them with <strong>Left</strong> and <strong>Right</strong>:</p>
+<p>There are two ways to look at the same window. The classic view is the default; press <strong>Ctrl+Tab</strong> (Option+Tab on macOS) to switch to the table view and back at any time. The mod remembers the view you used last, and Options &gt; RimWorld Access has a Default Trade View setting as well.</p>
+<h3 id="the-classic-view">The classic view<a class="headerlink" href="#the-classic-view" title="Permanent link">&para;</a></h3>
+<p>The window is organized into sections. <strong>Left</strong> and <strong>Right</strong> move between the three goods sections, with the trade summary in the middle. <strong>Tab</strong> and <strong>Shift+Tab</strong> hop between the goods area and the toolbar, and bring you back to the section and row you left:</p>
 <ul>
-<li><strong>The trader's items</strong> (leftmost tab, named after the trader): what they have for sale.</li>
-<li><strong>Trade Summary</strong>: a running list of everything queued so far, plus a balance line. This tab only appears once you have queued at least one item.</li>
-<li><strong>Your items</strong>: what your colony or caravan can sell.</li>
+<li><strong>The trader's items</strong> (first section, named after the trader): what they have for sale. Entering it tells you how much silver the trader will have once the current deal goes through.</li>
+<li><strong>Trade Summary</strong>: a running list of everything queued so far, plus a balance line. This section only appears once you have queued at least one item.</li>
+<li><strong>Your items</strong>: what your colony or caravan can sell. Entering it tells you how much silver you will have after the deal.</li>
+<li><strong>The toolbar</strong> (Tab): the game's two sort dropdowns, then Accept, Reset, Cancel, Sellable Items, the gift toggle, and Switch to Table View. Left and Right walk the buttons here, and Enter presses one.</li>
 </ul>
-<p>Each tab remembers your cursor position when you switch away and back.</p>
+<p>Each section remembers your cursor position when you switch away and back. If the section you left has emptied in the meantime, you land at the top of the nearest one.</p>
 <h3 id="browsing-the-goods">Browsing the goods<a class="headerlink" href="#browsing-the-goods" title="Permanent link">&para;</a></h3>
 <p><strong>Up</strong> and <strong>Down</strong> move through the list. <strong>Home</strong> jumps to the first item; <strong>End</strong> jumps to the last. Start typing to jump to an item by name (typeahead works here as elsewhere); <strong>Backspace</strong> edits the search and <strong>Escape</strong> clears it.</p>
-<p>Each item is announced with its name, quantity available, and price. Items both sides carry show both prices at once so you can compare directions.</p>
-<p>The mod does not yet tell you whether a given price is a good deal or a bad one. In the visual window, RimWorld colors favorable prices and unfavorable ones differently, and that signal is not announced today. To judge a price for now, open the price breakdown described below, or check the wiki for typical market values.</p>
+<p>Each item is announced with its name and anything you have queued on it, then the counts and prices, then the description. Items both sides carry show both prices at once so you can compare directions. When RimWorld colors a price as a good or bad deal in the visual window, the announcement says so: "great deal" or "pricey" when you are buying, "good offer" or "poor offer" when you are selling. The counts, prices, and description live in the details part of the announcement, so the Configure Spoken Announcements screen can move them or turn them off.</p>
 <h3 id="reading-prices-and-your-silver">Reading prices and your silver<a class="headerlink" href="#reading-prices-and-your-silver" title="Permanent link">&para;</a></h3>
 <p>Silver is the currency for almost all trades. (Royal tribute collectors trade for <a href="https://rimworldwiki.com/wiki/Trading">honor instead</a>; the mod says "favor" in place of silver in that case.)</p>
 <p>To hear how much silver each side has, press <strong>Alt+B</strong>: "You have X silver. Trader has Y silver." Worth checking before a large buy, since a trader can only pay you with the silver they are carrying.</p>
-<p>For the full reason behind a single item's price, put the cursor on the item and press <strong>Tab</strong>. That opens a navigable price breakdown showing the market value, trader markup, your colonist's Social bonus, and so on. <strong>Alt+P</strong> also opens the same breakdown. To open the full <a href="../../concepts/info-card/">info card</a> for an item, press <strong>Alt+I</strong>.</p>
+<p>For the full reason behind a single item's price, put the cursor on the item and press <strong>Alt+P</strong>. That opens a navigable price breakdown showing the market value, trader markup, your colonist's Social bonus, and so on. In the trader's list it explains the buying price; in your list, the selling price. To open the full <a href="../../concepts/info-card/">info card</a> for an item, press <strong>Alt+I</strong>.</p>
 <h2 id="buying-and-selling">Buying and selling<a class="headerlink" href="#buying-and-selling" title="Permanent link">&para;</a></h2>
-<p>Each item starts at a quantity of zero. Negative quantities mean you are selling; positive quantities mean you are buying. The announcements say "Buying 10" or "Selling 5" plainly.</p>
-<p>Press <strong>Enter</strong> to drop into quantity mode for the current item. In quantity mode:</p>
+<p>Each item starts at a quantity of zero. In the trader's list, adding to the quantity buys; in your list, adding sells. The announcements say "Buying 10" or "Selling 5" plainly, followed by the running total, for example "Buying 10 Steel, value 43 silver."</p>
+<p>Press <strong>Enter</strong> to drop into the quantity chooser for the current item. Inside it:</p>
 <ul>
 <li><strong>Up</strong> and <strong>Down</strong> change the amount by one.</li>
 <li><strong>Shift+Up / Shift+Down</strong> change it by ten.</li>
 <li><strong>Ctrl+Up / Ctrl+Down</strong> change it by a hundred.</li>
-<li>Type a number directly to buy that many. To sell, press <strong>-</strong> first, then type the quantity. <strong>Backspace</strong> fixes a typo.</li>
+<li>Type a number to set that amount. In the trader's list a bare number buys; in your list it sells. Lead with <strong>-</strong> to sell or <strong>+</strong> to buy regardless, for example <code>-10</code> sells ten. <strong>Backspace</strong> fixes a typo.</li>
 <li><strong>Home</strong> sets the maximum sell amount; <strong>End</strong> sets the maximum buy amount.</li>
-<li><strong>Enter</strong> or <strong>Escape</strong> exits quantity mode and returns to the list.</li>
+<li><strong>Enter</strong> or <strong>Escape</strong> returns to the list.</li>
 </ul>
-<p>Without entering quantity mode, <strong>-</strong> decreases and <strong>+</strong> (or <strong>=</strong>) increases the current item's amount by one. The mod reads back the running total as you adjust, for example "Buying 10 Steel, value 43 silver."</p>
+<p>Without opening the chooser, <strong>-</strong> decreases and <strong>+</strong> (or <strong>=</strong>) increases the current item's amount by one, <strong>Shift+Up / Shift+Down</strong> by ten, <strong>Ctrl+Up / Ctrl+Down</strong> by a hundred, and <strong>Shift+Home / Shift+End</strong> jump to the maximum sell or buy.</p>
 <p>To zero out an item, press <strong>Delete</strong> or <strong>Alt+R</strong>. To wipe every pending trade and start clean, press <strong>Shift+Alt+R</strong>.</p>
 <h3 id="checking-the-running-deal">Checking the running deal<a class="headerlink" href="#checking-the-running-deal" title="Permanent link">&para;</a></h3>
-<p>Once you have queued at least one item, switch to the Trade Summary tab to see the whole deal: what you are buying, what you are selling, and a balance line at the bottom. The balance reads "Net balance: Spending 50 silver," "Net balance: Receiving 100 silver," or "Net balance: Balanced trade." If you remove the last queued item, this tab empties and the mod returns you to the previous tab.</p>
+<p>Once you have queued at least one item, Tab to the Trade Summary section to hear the whole deal: what you are buying, what you are selling, and a balance line at the end. The balance reads "Net balance: Spending 50 silver," "Net balance: Receiving 100 silver," or "Net balance: Balanced trade," and Enter on it reads both sides' silver. If you remove the last queued item, this section empties and the mod returns you to the goods.</p>
+<h3 id="the-table-view">The table view<a class="headerlink" href="#the-table-view" title="Permanent link">&para;</a></h3>
+<p>The table view is the same window as one sortable list laid out the way the game draws it. <strong>Up</strong> and <strong>Down</strong> move through the rows, <strong>Left</strong> and <strong>Right</strong> move between the columns (name, your count, sell price, trade amount, buy price, the trader's count, mass, market value), and Enter on a column header sorts by that column. Every trading key above works here too.</p>
 <h2 id="completing-the-trade">Completing the trade<a class="headerlink" href="#completing-the-trade" title="Permanent link">&para;</a></h2>
 <p>Press <strong>Alt+A</strong> to accept. The mod confirms with "Trade completed successfully," your colonist hands over the goods, and anything you bought is delivered. You can also close the window and return to the same trader later while they are still around.</p>
 <p>If the trader does not have enough silver to cover what you are selling, the mod warns you and asks for confirmation before proceeding. A trader can only pay with the silver they are carrying. They pay what they can, and you do not receive goods to make up the difference, so check their silver with <strong>Alt+B</strong> before a large sale.</p>
-<p>To leave without trading, press <strong>Escape</strong>. (If you are in quantity mode, the first Escape exits quantity mode; the second closes the window.) The mod announces "Trade cancelled."</p>
+<p>To leave without trading, press <strong>Escape</strong>. (If you are in the quantity chooser, the first Escape closes it; the second closes the window.) The mod announces "Trade cancelled."</p>
 <h3 id="giving-gifts">Giving gifts<a class="headerlink" href="#giving-gifts" title="Permanent link">&para;</a></h3>
-<p>Press <strong>Alt+G</strong> to toggle gift mode. In gift mode you hand items over for goodwill rather than silver. The balance line shows the goodwill you will gain, for example "Goodwill +15." You cannot gift to a hostile faction or while trading for royal favor, and the mod will tell you if you try.</p>
+<p>Press <strong>Alt+G</strong> to toggle gift mode. In gift mode you hand items over for goodwill rather than silver, so the mod moves you to your items, and silver itself joins that list so you can gift some. The balance line shows the goodwill you will gain, for example "Goodwill +15." You cannot gift to a hostile faction or while trading for royal favor, and the mod will tell you if you try.</p>
 <h2 id="previewing-what-a-settlement-will-buy">Previewing what a settlement will buy<a class="headerlink" href="#previewing-what-a-settlement-will-buy" title="Permanent link">&para;</a></h2>
 <p>Before sending a caravan on a long trip, you can check what a settlement wants. On the <a href="../world-map/">world map</a>, navigate to the settlement, press <strong>G</strong> for its gizmos, and choose Show Sellable Items. This opens a read-only list:</p>
 <ul>
-<li><strong>Left / Right</strong>: switch between category tabs.</li>
+<li><strong>Tab / Shift+Tab</strong>: switch between category tabs.</li>
 <li><strong>Up / Down</strong>: move through items; <strong>Home</strong> and <strong>End</strong> jump to the ends.</li>
 <li>Type to search by name; <strong>Backspace</strong> edits the search; <strong>Escape</strong> clears it, then closes the window.</li>
 </ul>

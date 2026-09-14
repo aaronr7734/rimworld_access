@@ -948,6 +948,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#copying-a-colonists-priorities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copying a colonist's priorities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-execution-order-works" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1957,6 +1968,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../reference/changelog-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog archive (pre-2.0)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2062,6 +2129,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#copying-a-colonists-priorities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Copying a colonist's priorities
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#how-execution-order-works" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -2149,24 +2227,33 @@
 <li><strong>Manual priority mode</strong> lets you set a number from 1 to 4 on each job, giving you direct control over the order. It is more work up front, but it is the only way to say "doctor first, haul only when there is nothing better to do." The docs assume manual mode once you are ready for it.</li>
 </ul>
 <h2 id="setting-priorities-in-manual-mode-focused-view">Setting priorities in manual mode (focused view)<a class="headerlink" href="#setting-priorities-in-manual-mode-focused-view" title="Permanent link">&para;</a></h2>
-<p>In manual mode, in the focused view, jobs are organized by priority column:</p>
+<p>In manual mode, in the focused view, jobs are organized by priority level:</p>
 <ul>
-<li><strong>Up/Down</strong> move between priority levels (columns 1 through 4, plus Disabled).</li>
+<li><strong>Up/Down</strong> move between priority levels (1 through 4, plus Disabled).</li>
 <li><strong>Left/Right</strong> move between jobs within the current priority level.</li>
 <li><strong>Tab/Shift+Tab</strong> move to the next or previous pawn.</li>
 </ul>
+<p>You can also start typing a job's name to jump straight to it, wherever it currently sits. While a search is running, <strong>Up/Down</strong> step through the matches, and <strong>Enter</strong> or <strong>Shift+Enter</strong> settles on the one you are hearing without closing the menu.</p>
 <p>To set a priority, press a number key:</p>
 <ul>
 <li><strong>1</strong> is the highest priority.</li>
 <li><strong>2</strong>, <strong>3</strong>, and <strong>4</strong> step down from there.</li>
 <li><strong>0</strong> turns the job off entirely.</li>
 </ul>
+<p><strong>Enter</strong> and <strong>Escape</strong> both save and close the tab.</p>
 <p>As you arrow left and right through a priority level, the mod announces each job's name, skill level, passion, a description, and the specific sub-tasks it includes, in the order the pawn performs them. Some of those sub-tasks are spoken with an "E" in front. The "E" is a spoken marker, not a key you press: it flags a task the game treats as an emergency (such as firefighting or rescuing a downed colonist), which a pawn will drop other work to attend to.</p>
 <h2 id="bulk-operations-and-bracket-cycling">Bulk operations and bracket cycling<a class="headerlink" href="#bulk-operations-and-bracket-cycling" title="Permanent link">&para;</a></h2>
 <p>These keys work the same in both the focused view and the table view.</p>
 <p><strong><code>[</code></strong> cycles the current job's priority up (lower number, more important). <strong><code>]</code></strong> cycles it down (higher number, less important).</p>
 <p>Add <strong>Shift</strong> to apply the same cycle to every eligible colonist at once: <strong>Shift+<code>[</code></strong> raises the priority for every pawn, <strong>Shift+<code>]</code></strong> lowers it for every pawn.</p>
 <p><strong>Shift+number</strong> (0 through 4) sets that job to the chosen priority for every eligible colonist at once.</p>
+<h2 id="copying-a-colonists-priorities">Copying a colonist's priorities<a class="headerlink" href="#copying-a-colonists-priorities" title="Permanent link">&para;</a></h2>
+<p>Once one colonist's jobs are set the way you want them, you can hand the whole set to someone else. These keys work in the focused view and the table view alike, and they use the same clipboard as the copy and paste buttons a sighted player clicks.</p>
+<ul>
+<li><strong>Ctrl+C</strong> copies the priorities of the colonist you are on.</li>
+<li><strong>Ctrl+V</strong> pastes them onto the colonist you are on.</li>
+</ul>
+<p>Paste needs a copy first, so pressing <strong>Ctrl+V</strong> before anything has been copied just says so. Jobs a colonist can never do are left alone.</p>
 <h2 id="how-execution-order-works">How execution order works<a class="headerlink" href="#how-execution-order-works" title="Permanent link">&para;</a></h2>
 <p>The game runs all priority-1 jobs first, reading them left to right across the row, then all priority-2 jobs left to right, and so on down to 4. Two jobs at the same priority number resolve by their left-to-right position. This is why the order within a priority level matters alongside the number.</p>
 <h2 id="table-view">Table view<a class="headerlink" href="#table-view" title="Permanent link">&para;</a></h2>

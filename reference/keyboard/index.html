@@ -2096,6 +2096,62 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog-archive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog archive (pre-2.0)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -2542,7 +2598,7 @@
 </tr>
 </tbody>
 </table>
-<p>Two jump modes are documented here: <strong>Preset Distance</strong> (the default) and <strong>Adjacent to Wall</strong>. Cycle between them with <strong>Shift+Up / Shift+Down</strong>.</p>
+<p>Four jump modes are available: <strong>Preset Distance</strong> (the default), <strong>Impassable</strong>, <strong>Terrain</strong>, and <strong>Structure</strong>. Cycle between them with <strong>Shift+Up / Shift+Down</strong>. See <a href="../../concepts/the-map/">the map page</a> for what each one lands on.</p>
 <h3 id="tile-info-number-keys">Tile info (number keys)<a class="headerlink" href="#tile-info-number-keys" title="Permanent link">&para;</a></h3>
 <p>The mod announces much of this automatically as you arrow around. These keys are on-demand spot checks for the detail you want.</p>
 <table>
@@ -2632,7 +2688,7 @@
 </tr>
 <tr>
 <td><strong>Alt+C</strong></td>
-<td>Jump the camera to the selected pawn (or open a chooser if several are selected)</td>
+<td>Jump the cursor to the selected pawn and keep it riding along (or open a chooser if several are selected)</td>
 </tr>
 </tbody>
 </table>
@@ -3060,7 +3116,7 @@
 </table>
 <p><strong>Enter does not settle a tile from the in-game world map.</strong> Settling is done via a gizmo on the caravan. See <a href="../../world/caravans/">Caravans</a> and <a href="../../world/world-map/">The world map</a>.</p>
 <h2 id="trade-window">Trade window<a class="headerlink" href="#trade-window" title="Permanent link">&para;</a></h2>
-<p>When trading with a visiting trader, a settlement, or an orbital trader, the <a href="../../world/trading/">trade screen</a> uses these. Negative quantities sell; positive quantities buy.</p>
+<p>When trading with a visiting trader, a settlement, or an orbital trader, the <a href="../../world/trading/">trade screen</a> uses these. The classic view (the default) is three sections you Tab between; the table view is one sortable list with a column cursor.</p>
 <table>
 <thead>
 <tr>
@@ -3071,7 +3127,19 @@
 <tbody>
 <tr>
 <td><strong>Up / Down</strong></td>
-<td>Move through the goods, or adjust the quantity by 1 in quantity mode</td>
+<td>Move through the goods, or adjust the quantity by 1 in the quantity chooser</td>
+</tr>
+<tr>
+<td><strong>Left / Right</strong></td>
+<td>Switch sections in the classic view (the trader's items, the trade summary, your items); move between columns in the table view; walk the toolbar</td>
+</tr>
+<tr>
+<td><strong>Tab / Shift+Tab</strong></td>
+<td>Hop between the goods and the toolbar, returning to the section and row you left</td>
+</tr>
+<tr>
+<td><strong>+ / -</strong></td>
+<td>Adjust the quantity by 1</td>
 </tr>
 <tr>
 <td><strong>Shift+Up / Shift+Down</strong></td>
@@ -3082,20 +3150,24 @@
 <td>Adjust the quantity by 100</td>
 </tr>
 <tr>
-<td><strong>Left / Right</strong></td>
-<td>Switch tabs</td>
-</tr>
-<tr>
-<td><strong>Enter</strong></td>
-<td>Enter or leave quantity mode for the current item</td>
+<td><strong>Shift+Home / Shift+End</strong></td>
+<td>Max sell or max buy; plain <strong>Home / End</strong> do the same inside the quantity chooser</td>
 </tr>
 <tr>
 <td><strong>Home / End</strong></td>
-<td>Max sell or max buy in quantity mode, or jump to the first or last item</td>
+<td>Jump to the first or last item</td>
+</tr>
+<tr>
+<td><strong>Enter</strong></td>
+<td>Open or leave the quantity chooser for the current item; on the balance line, read both sides' silver</td>
 </tr>
 <tr>
 <td><strong>Type a number</strong></td>
-<td>Set a quantity (lead with <code>-</code> to sell); <code>+</code> and <code>-</code> nudge by one</td>
+<td>In the quantity chooser, set a quantity (lead with <code>-</code> to sell, <code>+</code> to buy)</td>
+</tr>
+<tr>
+<td><strong>Ctrl+Tab</strong></td>
+<td>Switch between the classic and table views</td>
 </tr>
 <tr>
 <td><strong>Alt+A</strong></td>
@@ -3106,12 +3178,16 @@
 <td>Announce the silver (or favor) on each side</td>
 </tr>
 <tr>
-<td><strong>Tab</strong></td>
+<td><strong>Alt+P</strong></td>
 <td>Price breakdown for the current item</td>
 </tr>
 <tr>
 <td><strong>Alt+I</strong></td>
 <td>Info card for the current item</td>
+</tr>
+<tr>
+<td><strong>Alt+L</strong></td>
+<td>Open the trader's sellable-items list</td>
 </tr>
 <tr>
 <td><strong>Alt+G</strong></td>
