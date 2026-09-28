@@ -586,6 +586,7 @@
        ================================================================= -->
   <RimWorldAccess.Pawns.SkillsTable.Opened>技能, {0} 名殖民者, {1} 项技能</RimWorldAccess.Pawns.SkillsTable.Opened>
   <RimWorldAccess.Pawns.SkillsTable.Closed>已关闭技能表</RimWorldAccess.Pawns.SkillsTable.Closed>
+  <RimWorldAccess.DrugPolicy.NeedsScheduled>勾选“{0}”后即可编辑。</RimWorldAccess.DrugPolicy.NeedsScheduled>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

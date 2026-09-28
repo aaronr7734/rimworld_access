@@ -608,6 +608,7 @@
        ================================================================= -->
   <RimWorldAccess.Pawns.SkillsTable.Opened>Beceriler, {0} kolonici, {1} beceri</RimWorldAccess.Pawns.SkillsTable.Opened>
   <RimWorldAccess.Pawns.SkillsTable.Closed>Beceri tablosu kapatıldı</RimWorldAccess.Pawns.SkillsTable.Closed>
+  <RimWorldAccess.DrugPolicy.NeedsScheduled>Düzenlemek için {0} seçeneğini işaretleyin.</RimWorldAccess.DrugPolicy.NeedsScheduled>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

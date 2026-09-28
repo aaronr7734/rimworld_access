@@ -601,6 +601,7 @@
        ================================================================= -->
   <RimWorldAccess.Pawns.SkillsTable.Opened>Skills, {0} colonists, {1} skills</RimWorldAccess.Pawns.SkillsTable.Opened>
   <RimWorldAccess.Pawns.SkillsTable.Closed>Skills table closed</RimWorldAccess.Pawns.SkillsTable.Closed>
+  <RimWorldAccess.DrugPolicy.NeedsScheduled>Check {0} to edit.</RimWorldAccess.DrugPolicy.NeedsScheduled>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

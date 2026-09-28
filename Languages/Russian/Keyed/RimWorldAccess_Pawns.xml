@@ -588,6 +588,7 @@
        ================================================================= -->
   <RimWorldAccess.Pawns.SkillsTable.Opened>Навыки, {0_numCase ? поселенец : поселенца : поселенцев}, {1_numCase ? навык : навыка : навыков}</RimWorldAccess.Pawns.SkillsTable.Opened>
   <RimWorldAccess.Pawns.SkillsTable.Closed>Таблица навыков закрыта</RimWorldAccess.Pawns.SkillsTable.Closed>
+  <RimWorldAccess.DrugPolicy.NeedsScheduled>Отметьте «{0}», чтобы изменить.</RimWorldAccess.DrugPolicy.NeedsScheduled>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

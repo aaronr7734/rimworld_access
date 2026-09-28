@@ -576,6 +576,7 @@
        ================================================================= -->
   <RimWorldAccess.Pawns.SkillsTable.Opened>Навички, {0} колоністів, {1} навичок</RimWorldAccess.Pawns.SkillsTable.Opened>
   <RimWorldAccess.Pawns.SkillsTable.Closed>Таблицю навичок закрито</RimWorldAccess.Pawns.SkillsTable.Closed>
+  <RimWorldAccess.DrugPolicy.NeedsScheduled>Позначте «{0}», щоб змінити.</RimWorldAccess.DrugPolicy.NeedsScheduled>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

@@ -252,13 +252,14 @@ namespace RimWorldAccess.Shell
             c.Register(InputAction.ForScreen("thingFilter", "thingFilter.disallowAll",
                 new List<KeyChord> { KeyChord.Of(KeyCode.D, ctrl: true) }));
             // Shared tree.*/filterTree.* ids are registered exactly once (Part7.cs).
+            // "+"/"-" step the focused numeric or slider cell (Left/Right stay column navigation); the shifted twins are because "+" is Shift+Equals, as in trade.quantity.increase.
             c.Register(InputAction.ForScreen("drugPolicy", "drugPolicy.settingDecrease",
-                new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow) }));
+                new List<KeyChord> { KeyChord.Of(KeyCode.Minus), KeyChord.Of(KeyCode.KeypadMinus) }));
             c.Register(InputAction.ForScreen("drugPolicy", "drugPolicy.settingIncrease",
-                new List<KeyChord> { KeyChord.Of(KeyCode.RightArrow) }));
-            // In DrugSettings mode Space is identical to Enter (ToggleSetting).
-            c.Register(InputAction.ForScreen("drugPolicy", "drugPolicy.toggleSetting",
-                new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
+                new List<KeyChord> {
+                    KeyChord.Of(KeyCode.Plus), KeyChord.Of(KeyCode.KeypadPlus), KeyChord.Of(KeyCode.Equals),
+                    KeyChord.Of(KeyCode.Plus, shift: true), KeyChord.Of(KeyCode.KeypadPlus, shift: true), KeyChord.Of(KeyCode.Equals, shift: true)
+                }));
             // Vanilla's DoEntryRow draws a per-drug Widgets.InfoCardButton next to the drug name
             // (Dialog_ManageDrugPolicies.cs:180-186).
             c.Register(InputAction.ForScreen("drugPolicy", "drugPolicy.infoCard",

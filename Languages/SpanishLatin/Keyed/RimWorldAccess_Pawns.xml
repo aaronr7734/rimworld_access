@@ -588,6 +588,7 @@
        ================================================================= -->
   <RimWorldAccess.Pawns.SkillsTable.Opened>Habilidades, {0} colonos, {1} habilidades</RimWorldAccess.Pawns.SkillsTable.Opened>
   <RimWorldAccess.Pawns.SkillsTable.Closed>Tabla de habilidades cerrada</RimWorldAccess.Pawns.SkillsTable.Closed>
+  <RimWorldAccess.DrugPolicy.NeedsScheduled>Marca «{0}» para editar.</RimWorldAccess.DrugPolicy.NeedsScheduled>
 
   <!-- =================================================================
        Drug policy editor (DrugPolicyEditorState) announcement glue.

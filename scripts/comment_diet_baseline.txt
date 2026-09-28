@@ -937,7 +937,7 @@
 46	src/Shell/Screens/DevToolTargeting.Game.cs
 75	src/Shell/Screens/DevTweakValuesScope.Game.cs
 28	src/Shell/Screens/DialogFrameShared.Game.cs
-132	src/Shell/Screens/DrugPolicyDialogScope.Game.cs
+119	src/Shell/Screens/DrugPolicyDialogScope.Game.cs
 78	src/Shell/Screens/DryadCasteScope.Game.cs
 66	src/Shell/Screens/EditDeityDialogScope.Game.cs
 83	src/Shell/Screens/EditPreceptDialogScope.Game.cs

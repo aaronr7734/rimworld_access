@@ -1,7 +1,7 @@
-using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess.Shell
 {
@@ -10,96 +10,59 @@ namespace RimWorldAccess.Shell
     /// <c>DoContentsRect</c> draws the drug grid rather than a ThingFilterUI panel. The grid is
     /// content region 1 of the one window; region 0 stays the policy list.
     ///
-    /// The region's SHAPE toggles between the drug list and one drug's settings — the same
-    /// "same region toggles shape" trick <c>AnimalsScope</c> uses for its submenu, and the shape
-    /// this screen already had as a windowless scope. <see cref="savedDrugIndex"/> remembers the
-    /// drug row across the settings sub-mode's lifetime, because one <c>ListModel</c> cursor is
-    /// serving two logically different indices.
+    /// The drug list is a real table over vanilla's own eight columns, in vanilla's own order, each
+    /// carrying the tooltip vanilla attaches to it in DoColumnLabels. Every setting is edited in the
+    /// grid itself: Up/Down move between drugs, Left/Right between columns, Space or Enter toggle a
+    /// checkbox cell, and on a numeric or slider cell "+"/"-" step the value in place while Enter
+    /// opens an in-place chooser (Up/Down step, digits type where the value is a plain number, Enter
+    /// or Escape closes). Alt+I opens the focused drug's info card.
     ///
-    /// ELEMENT SEMANTICS. Every row announces as the vanilla widget it actually is, with
-    /// <c>Dialog_ManageDrugPolicies.DoEntryRow</c> as the authority: "Keep in inventory" is its
-    /// <c>Widgets.TextFieldNumeric</c> bounded by <c>PawnUtility.GetMaxAllowedToPickUp</c> (a Stepper
-    /// here, since Left/Right step it); the three usage rows are its <c>Widgets.Checkbox</c> calls;
-    /// "Frequency" is its <c>FrequencyHorizontalSlider(0.1f, 25f)</c> and the two thresholds its
-    /// <c>HorizontalSlider(0.01f, 1f)</c> calls. The drug list is a real table over vanilla's own
-    /// eight columns, in vanilla's own order, each carrying the tooltip vanilla attaches to it.
+    /// ELEMENT SEMANTICS, with <c>Dialog_ManageDrugPolicies.DoEntryRow</c> as the authority: "Keep in
+    /// inventory" is its <c>Widgets.TextFieldNumeric</c> bounded by
+    /// <c>PawnUtility.GetMaxAllowedToPickUp</c>; the three usage columns are its <c>Widgets.Checkbox</c>
+    /// calls; "Frequency" is its <c>FrequencyHorizontalSlider(0.1f, 25f)</c> and the two thresholds its
+    /// <c>HorizontalSlider(0.01f, 1f)</c> calls, shown only while a drug is scheduled.
     ///
-    /// <c>drugPolicy.settingDecrease</c>/<c>settingIncrease</c>/<c>toggleSetting</c>/<c>infoCard</c>
-    /// stay their OWN action ids rather than folding into the base's generic Left/Right adjust, so an
-    /// existing rebinding of these ids keeps working.
+    /// WHY THE MUTATIONS ARE MUTATION-C, NOT A VANILLA WIDGET CALL: <c>Widgets.Checkbox</c> and the
+    /// sliders are immediate-mode — they mutate their <c>ref</c> field and play their sound only when
+    /// their invisible button sees a real mouse-down inside its rect during a draw pass. There is no
+    /// delegate to invoke; forging that mouse event mid-draw is the window-pass ordering trap the
+    /// doctrine forbids. So this writes the identical fields with the identical clamps and plays the
+    /// identical sound (<c>Checkbox_TurnedOn/Off</c>, <c>DragSlider</c>) the widget would.
     ///
-    /// ESCAPE. In the settings sub-mode Escape returns to the drug list, and this scope both
-    /// claims AND owns it, the symmetry a real window's Escape needs. In list mode it does neither,
-    /// so one Escape closes the window through vanilla's own path, exactly as it does from
-    /// every other region of this window.
+    /// The chooser is an in-place mode on THIS scope, never a second scope: the class remarks on
+    /// <see cref="PolicyDialogScope"/> forbid layering a scope over the real window. While it is open
+    /// the region reports zero columns (<see cref="ContentColumnCount"/>), which freezes Left/Right,
+    /// and every operation runs off <see cref="chooseRow"/>/<see cref="chooseColumn"/> rather than the
+    /// model cursor; <see cref="EndChoose"/> re-seats the cursor from those.
     /// </summary>
     public sealed class DrugPolicyDialogScope : PolicyDialogScope
     {
         private const int DrugsRegion = FirstContentsRegion;
 
-        private enum Mode { DrugList, DrugSettings }
-
-        private enum SettingType
-        {
-            TakeToInventory,
-            AllowForAddiction,
-            AllowForJoy,
-            AllowScheduled,
-            Frequency,
-            MoodThreshold,
-            JoyThreshold
-        }
-
-        private sealed class DrugSetting
-        {
-            public SettingType Type;
-            public string Label;
-            public string Tooltip;
-        }
-
-        // Harvested from the vanilla slider calls this screen stands in for.
-        private const float MinFrequency = 0.1f;
-        private const float MaxFrequency = 25f;
+        // Harvested from the vanilla threshold slider calls this screen stands in for.
         private const float MinThreshold = 0.01f;
         private const float MaxThreshold = 1f;
 
         private DrugPolicy policy;
-        private Mode mode = Mode.DrugList;
 
-        /// <summary>The drug row remembered across the Settings sub-mode's lifetime — see the class remarks.</summary>
-        private int savedDrugIndex = -1;
-
-        private readonly List<DrugSetting> currentSettings = new List<DrugSetting>();
+        // In-place chooser state. All three are meaningful only while choosing.
+        private bool choosing;
+        private int chooseRow;
+        private DrugColumn chooseColumn;
+        private string numericBuffer = "";
 
         public DrugPolicyDialogScope(Window dialog) : base(dialog)
         {
-            Claim(SharedMenuGrammar.Cancel, delegate { ReturnToDrugList(); }, when: ClaimsSubModeCancel);
-
-            Claim("drugPolicy.settingDecrease", delegate { AdjustSetting(-1); }, when: DrugSettingsMode);
-            Claim("drugPolicy.settingIncrease", delegate { AdjustSetting(1); }, when: DrugSettingsMode);
-            Claim("drugPolicy.toggleSetting", delegate { ToggleSetting(); }, when: DrugSettingsMode);
+            Claim("drugPolicy.settingDecrease", delegate { StepCell(-1); }, when: CanStep);
+            Claim("drugPolicy.settingIncrease", delegate { StepCell(1); }, when: CanStep);
             Claim("drugPolicy.infoCard", delegate { OpenInfoCard(); },
                 when: delegate { return Model.RegionIndex == DrugsRegion; });
-        }
-
-        private bool DrugSettingsMode()
-        {
-            return mode == Mode.DrugSettings;
-        }
-
-        /// <summary>Escape belongs to this scope only while the settings sub-mode is open.</summary>
-        private bool ClaimsSubModeCancel()
-        {
-            return mode == Mode.DrugSettings && !TypeaheadHasActiveSearch;
-        }
-
-        /// <summary>
-        /// The other half of the claim above: a scope that claims Escape must own it, or vanilla's
-        /// own GUI pass closes the window before the dispatcher sees the key.
-        /// </summary>
-        public override bool OwnsCancel
-        {
-            get { return base.OwnsCancel || ClaimsSubModeCancel(); }
+            Claim(SharedMenuGrammar.Cancel, delegate { ShellFrameStamps.MarkCancelConsumed(); EndChoose(); },
+                when: delegate { return choosing; });
+            Claim(SharedMenuGrammar.SearchBackspace, delegate { BackspaceChoose(); },
+                when: delegate { return choosing && numericBuffer.Length > 0; });
+            RegisterPopTeardown(EndChooseSilently);
         }
 
         internal bool Owns(Window window)
@@ -107,31 +70,28 @@ namespace RimWorldAccess.Shell
             return ReferenceEquals(window, dialog);
         }
 
+        /// <summary>Escape closes the chooser first; only outside it does vanilla close the window.</summary>
+        public override bool OwnsCancel
+        {
+            get { return choosing || base.OwnsCancel; }
+        }
+
         // ------------------------------------------------------------------
-        // Focus ring. Vanilla highlights the selected POLICY but nothing in the
-        // drug grid, so the grid's rows and cells are ringed from the geometry
-        // DrugPolicyRowDrawPatch records off vanilla's own row method.
+        // Focus ring. Vanilla highlights the selected POLICY but nothing in the drug grid, so the
+        // grid's focused cell is ringed from the geometry DrugPolicyRowDrawPatch records off
+        // vanilla's own row method. While choosing, the ring holds the captured cell.
         // ------------------------------------------------------------------
 
-        /// <summary>
-        /// The drug row the ring belongs on: the cursor's row in list mode, and in the settings
-        /// sub-mode the drug being edited, whose row rect is the base for every cell rect.
-        /// -1 when the cursor is elsewhere in the window.
-        /// </summary>
+        /// <summary>The drug row the ring belongs on, or -1 when the cursor is off any drug (the header, or another region).</summary>
         internal int FocusedDrugIndex
         {
             get
             {
-                if (mode == Mode.DrugSettings)
-                {
-                    return savedDrugIndex;
-                }
                 if (Model.RegionIndex != DrugsRegion)
                 {
                     return -1;
                 }
-                ListModel drugs = Model.Region(DrugsRegion);
-                return drugs != null ? drugs.Index : -1;
+                return choosing ? chooseRow : DrugListDataRow();
             }
         }
 
@@ -141,47 +101,40 @@ namespace RimWorldAccess.Shell
             {
                 return base.FocusedContentRect();
             }
-            if (mode == Mode.DrugSettings)
+            Rect cell = FocusedCellRect();
+            if (cell.width > 0f && cell.height > 0f)
             {
-                Rect cell = FocusedSettingCellRect();
-                if (cell.width > 0f && cell.height > 0f)
-                {
-                    return cell;
-                }
+                return cell;
             }
             return DrugPolicyRowDrawPatch.RowRect();
         }
 
-        /// <summary>Empty when the focused setting's widget is not drawn this frame, which sends the ring back to the whole row.</summary>
-        private Rect FocusedSettingCellRect()
+        /// <summary>Empty on the name column or when the focused cell's widget is not drawn this frame, which sends the ring back to the whole row.</summary>
+        private Rect FocusedCellRect()
         {
-            ListModel rows = Model.Region(DrugsRegion);
-            int index = rows == null ? -1 : rows.Index;
-            if (index < 0 || index >= currentSettings.Count)
+            int row = choosing ? chooseRow : DrugListDataRow();
+            if (row < 0)
             {
                 return default(Rect);
             }
-            return DrugPolicyRowDrawPatch.CellRect(CellFor(currentSettings[index].Type));
-        }
-
-        private static DrugRowCell CellFor(SettingType type)
-        {
-            switch (type)
+            switch (choosing ? chooseColumn : CurrentColumn())
             {
-                case SettingType.AllowForAddiction:
-                    return DrugRowCell.AllowForAddiction;
-                case SettingType.AllowForJoy:
-                    return DrugRowCell.AllowForJoy;
-                case SettingType.AllowScheduled:
-                    return DrugRowCell.AllowScheduled;
-                case SettingType.Frequency:
-                    return DrugRowCell.Frequency;
-                case SettingType.MoodThreshold:
-                    return DrugRowCell.MoodThreshold;
-                case SettingType.JoyThreshold:
-                    return DrugRowCell.JoyThreshold;
+                case DrugColumn.TakeToInventory:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.TakeToInventory);
+                case DrugColumn.ForAddiction:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.AllowForAddiction);
+                case DrugColumn.ForJoy:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.AllowForJoy);
+                case DrugColumn.Scheduled:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.AllowScheduled);
+                case DrugColumn.Frequency:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.Frequency);
+                case DrugColumn.MoodThreshold:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.MoodThreshold);
+                case DrugColumn.JoyThreshold:
+                    return DrugPolicyRowDrawPatch.CellRect(DrugRowCell.JoyThreshold);
                 default:
-                    return DrugRowCell.TakeToInventory;
+                    return default(Rect);
             }
         }
 
@@ -194,20 +147,8 @@ namespace RimWorldAccess.Shell
             get { return 1; }
         }
 
-        /// <summary>
-        /// The region name carries the LEVEL: vanilla's own dialog title over the drug list, the
-        /// drug's own label while its settings are open. No new key either way.
-        /// </summary>
         protected override string ContentsRegionName(int region)
         {
-            if (mode == Mode.DrugSettings)
-            {
-                DrugPolicyEntry entry = CurrentEntry();
-                if (entry != null && entry.drug != null)
-                {
-                    return entry.drug.LabelCap.ToString();
-                }
-            }
             return "DrugPolicyTitle".Translate().ToString();
         }
 
@@ -219,18 +160,15 @@ namespace RimWorldAccess.Shell
         protected override void RebuildContents()
         {
             policy = Selected as DrugPolicy;
-            mode = Mode.DrugList;
-            savedDrugIndex = -1;
-            currentSettings.Clear();
         }
 
         // ------------------------------------------------------------------
-        // Typeahead: the drug list only, letters only.
+        // Typeahead: the drug names, letters only.
         // ------------------------------------------------------------------
 
         protected override bool ContentRegionSearchable(int region)
         {
-            return region == PoliciesRegion || (region == DrugsRegion && mode == Mode.DrugList);
+            return region == PoliciesRegion || region == DrugsRegion;
         }
 
         protected override bool TypeaheadAcceptsDigits
@@ -239,7 +177,7 @@ namespace RimWorldAccess.Shell
         }
 
         // ------------------------------------------------------------------
-        // Rows.
+        // Rows: one per drug, the name as the row's identity.
         // ------------------------------------------------------------------
 
         protected override int ContentItemCount(int region)
@@ -248,9 +186,7 @@ namespace RimWorldAccess.Shell
             {
                 return base.ContentItemCount(region);
             }
-            return mode == Mode.DrugList
-                ? (policy == null ? 0 : policy.Count)
-                : currentSettings.Count;
+            return policy == null ? 0 : policy.Count;
         }
 
         protected override ElementDescription DescribeContentItem(int region, int index)
@@ -259,89 +195,17 @@ namespace RimWorldAccess.Shell
             {
                 return base.DescribeContentItem(region, index);
             }
-
             var d = new ElementDescription();
-            if (mode == Mode.DrugList)
+            if (policy != null && index >= 0 && index < policy.Count)
             {
-                if (policy != null && index >= 0 && index < policy.Count)
-                {
-                    ThingDef drug = policy[index].drug;
-                    d.Label = drug != null ? drug.LabelCap.ToString() : "";
-                }
-                return d;
+                ThingDef drug = policy[index].drug;
+                d.Label = drug != null ? drug.LabelCap.ToString() : "";
             }
-
-            DrugPolicyEntry entry = CurrentEntry();
-            if (entry == null || index < 0 || index >= currentSettings.Count)
-            {
-                return d;
-            }
-
-            DrugSetting setting = currentSettings[index];
-            d.Label = setting.Label;
-            d.Extras = setting.Tooltip;
-            DescribeSetting(d, entry, setting.Type);
             return d;
         }
 
-        /// <summary>Gives a settings row the role and live state of the vanilla widget DoEntryRow draws for it — see the class remarks for the map.</summary>
-        private static void DescribeSetting(ElementDescription d, DrugPolicyEntry entry, SettingType type)
-        {
-            switch (type)
-            {
-                case SettingType.TakeToInventory:
-                    d.Role = ElementRole.Stepper;
-                    d.Value = entry.takeToInventory.ToString();
-                    d.AtMinimum = entry.takeToInventory <= 0;
-                    d.AtMaximum = entry.takeToInventory >= PawnUtility.GetMaxAllowedToPickUp(entry.drug);
-                    break;
-
-                case SettingType.AllowForAddiction:
-                    SetCheckbox(d, entry.allowedForAddiction);
-                    break;
-
-                case SettingType.AllowForJoy:
-                    SetCheckbox(d, entry.allowedForJoy);
-                    break;
-
-                case SettingType.AllowScheduled:
-                    SetCheckbox(d, entry.allowScheduled);
-                    break;
-
-                case SettingType.Frequency:
-                    d.Role = ElementRole.Slider;
-                    d.Value = FormatFrequency(entry.daysFrequency);
-                    d.AtMinimum = entry.daysFrequency <= MinFrequency;
-                    d.AtMaximum = entry.daysFrequency >= MaxFrequency;
-                    break;
-
-                case SettingType.MoodThreshold:
-                    SetThresholdSlider(d, entry.onlyIfMoodBelow);
-                    break;
-
-                case SettingType.JoyThreshold:
-                    SetThresholdSlider(d, entry.onlyIfJoyBelow);
-                    break;
-            }
-        }
-
-        private static void SetCheckbox(ElementDescription d, bool on)
-        {
-            d.Role = ElementRole.Checkbox;
-            d.Check = on ? CheckState.Checked : CheckState.Unchecked;
-        }
-
-        private static void SetThresholdSlider(ElementDescription d, float value)
-        {
-            d.Role = ElementRole.Slider;
-            d.Value = FormatThreshold(value);
-            d.AtMinimum = value <= MinThreshold;
-            d.AtMaximum = value >= MaxThreshold;
-        }
-
         // ------------------------------------------------------------------
-        // Table contract for the drug list: vanilla's own eight columns, in vanilla's own order, each
-        // with the tooltip vanilla attaches to it in DoColumnLabels.
+        // Table contract: vanilla's own eight columns, in vanilla's own order.
         // ------------------------------------------------------------------
 
         private enum DrugColumn
@@ -356,16 +220,14 @@ namespace RimWorldAccess.Shell
             JoyThreshold,
         }
 
+        /// <summary>Zero while choosing flattens the region so Left/Right cannot leave the edited cell; eight otherwise.</summary>
         protected override int ContentColumnCount(int region)
         {
             if (region != DrugsRegion)
             {
                 return base.ContentColumnCount(region);
             }
-            // Settings sub-mode is a flat list of setting rows, not a table: a nonzero count here
-            // makes the chassis read cells through the list-mode ContentCellText, which knows only
-            // the drug grid and would speak the drug name in place of each setting.
-            return mode == Mode.DrugList ? 8 : 0;
+            return choosing ? 0 : 8;
         }
 
         protected override TableColumnInfo ContentColumnInfo(int region, int column)
@@ -450,135 +312,382 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        // ------------------------------------------------------------------
+        // In-cell editing. Enter/Space on a checkbox toggles; Enter on a numeric or slider cell
+        // opens the in-place chooser; Enter/Space while choosing closes it.
+        // ------------------------------------------------------------------
+
+        protected override bool ActivateContentCell(int region, int row, int column)
+        {
+            if (region != DrugsRegion || policy == null || row < 0 || row >= policy.Count)
+            {
+                return false;
+            }
+            DrugPolicyEntry entry = policy[row];
+            switch ((DrugColumn)column)
+            {
+                case DrugColumn.ForAddiction:
+                    if (!entry.drug.IsAddictiveDrug)
+                    {
+                        return false;
+                    }
+                    ToggleCheckbox(row, ref entry.allowedForAddiction);
+                    return true;
+                case DrugColumn.ForJoy:
+                    if (!entry.drug.IsPleasureDrug)
+                    {
+                        return false;
+                    }
+                    ToggleCheckbox(row, ref entry.allowedForJoy);
+                    return true;
+                case DrugColumn.Scheduled:
+                    ToggleCheckbox(row, ref entry.allowScheduled);
+                    return true;
+                case DrugColumn.Frequency:
+                case DrugColumn.MoodThreshold:
+                case DrugColumn.JoyThreshold:
+                    if (!entry.allowScheduled)
+                    {
+                        SpeakNeedsScheduled();
+                        return true;
+                    }
+                    goto case DrugColumn.TakeToInventory;
+                case DrugColumn.TakeToInventory:
+                    BeginChoose(row, (DrugColumn)column);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Enter/Space while choosing (the region is flattened, so activation lands here) closes the chooser.</summary>
         protected override void ActivateContentItem(int region, int index)
         {
-            if (region != DrugsRegion)
+            if (choosing)
             {
-                base.ActivateContentItem(region, index);
+                EndChoose();
                 return;
             }
-            if (mode == Mode.DrugList)
+            base.ActivateContentItem(region, index);
+        }
+
+        // MUTATION-C: mirrors Dialog_ManageDrugPolicies.DoEntryRow's Widgets.Checkbox(ref
+        // entry.allowedForAddiction/allowedForJoy/allowScheduled, ...) (Dialog_ManageDrugPolicies.cs:
+        // 192,197,200), which flips the ref bool directly with no gated setter; the sound is the one
+        // Widgets.ToggleInvisibleDraggable plays on that flip (Widgets.cs:1259,1263).
+        private void ToggleCheckbox(int row, ref bool flag)
+        {
+            flag = !flag;
+            (flag ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff).PlayOneShotOnCamera();
+            SpeakCellValue(row, CurrentColumn());
+        }
+
+        // ------------------------------------------------------------------
+        // Stepping: "+"/"-" in place, and Up/Down/Home/End while choosing.
+        // ------------------------------------------------------------------
+
+        /// <summary>Side-effect free: the "+"/"-" claims are always live while choosing, else only on an adjustable cell.</summary>
+        private bool CanStep()
+        {
+            if (choosing)
             {
-                EnterDrugSettings();
+                return true;
+            }
+            if (Model.RegionIndex != DrugsRegion)
+            {
+                return false;
+            }
+            DrugPolicyEntry entry = CurrentDrugEntry();
+            if (entry == null)
+            {
+                return false;
+            }
+            switch (CurrentColumn())
+            {
+                case DrugColumn.TakeToInventory:
+                case DrugColumn.Frequency:
+                case DrugColumn.MoodThreshold:
+                case DrugColumn.JoyThreshold:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        private void SpeakNeedsScheduled()
+        {
+            string label = ContentColumnInfo(DrugsRegion, (int)DrugColumn.Scheduled).Label;
+            TolkHelper.SpeakData("RimWorldAccess.DrugPolicy.NeedsScheduled".Translate(label).ToString());
+        }
+
+        /// <summary>One step of the focused numeric or slider cell; direction +1 raises the value, -1 lowers it.</summary>
+        private void StepCell(int direction)
+        {
+            int row;
+            DrugColumn column;
+            if (choosing)
+            {
+                row = chooseRow;
+                column = chooseColumn;
             }
             else
             {
-                ToggleSetting();
+                RefreshModel();
+                row = DrugListDataRow();
+                column = CurrentColumn();
             }
-        }
-
-        /// <summary>The drug currently being edited, valid in either mode — see the class remarks.</summary>
-        private int CurrentDrugIndex
-        {
-            get
+            if (policy == null || row < 0 || row >= policy.Count)
             {
-                if (mode == Mode.DrugSettings)
+                return;
+            }
+            numericBuffer = "";
+            DrugPolicyEntry entry = policy[row];
+            if (column != DrugColumn.TakeToInventory && !entry.allowScheduled)
+            {
+                SpeakNeedsScheduled();
+                return;
+            }
+            bool changed;
+            SoundDef sound;
+            // MUTATION-C: TakeToInventory mirrors the bounds of DoEntryRow's Widgets.TextFieldNumeric(...,
+            // 0f, PawnUtility.GetMaxAllowedToPickUp(entry.drug)) (Dialog_ManageDrugPolicies.cs:188);
+            // Frequency and the thresholds hand-step over the bounds of the same method's
+            // Widgets.FrequencyHorizontalSlider(0.1f, 25f) and Widgets.HorizontalSlider(0.01f, 1f) calls
+            // (Dialog_ManageDrugPolicies.cs:204,206,208) — a drag slider has no discrete-step vehicle for
+            // the keyboard, so the bounds are harvested and the step is ours. Sounds are the widget's own.
+            switch (column)
+            {
+                case DrugColumn.TakeToInventory:
                 {
-                    return savedDrugIndex;
+                    int max = PawnUtility.GetMaxAllowedToPickUp(entry.drug);
+                    int next = Mathf.Clamp(entry.takeToInventory + direction, 0, max);
+                    changed = next != entry.takeToInventory;
+                    entry.takeToInventory = next;
+                    sound = SoundDefOf.Tick_Tiny;
+                    break;
                 }
-                ListModel drugs = Model.Region(DrugsRegion);
-                return drugs != null ? drugs.Index : -1;
-            }
-        }
-
-        /// <summary>The live entry <see cref="CurrentDrugIndex"/> points at, or null.</summary>
-        private DrugPolicyEntry CurrentEntry()
-        {
-            int idx = CurrentDrugIndex;
-            if (policy == null || idx < 0 || idx >= policy.Count)
-            {
-                return null;
-            }
-            return policy[idx];
-        }
-
-        // ------------------------------------------------------------------
-        // Mode transitions. The region's NAME carries the level, so AnnounceRegion is what makes
-        // entering and leaving the settings sound like a transition rather than a cursor move.
-        // ------------------------------------------------------------------
-
-        private void EnterDrugSettings()
-        {
-            RefreshModel();
-            ListModel drugs = Model.Region(DrugsRegion);
-            int drugIdx = drugs == null ? -1 : drugs.Index;
-            if (policy == null || drugIdx < 0 || drugIdx >= policy.Count)
-            {
-                return;
-            }
-
-            BuildSettingsForCurrentDrug(drugIdx);
-            if (currentSettings.Count == 0)
-            {
-                return;
-            }
-
-            savedDrugIndex = drugIdx;
-            mode = Mode.DrugSettings;
-            RefreshModel();
-            Model.Region(DrugsRegion)?.MoveTo(0);
-            AnnounceRegion();
-        }
-
-        private void ReturnToDrugList()
-        {
-            mode = Mode.DrugList;
-            currentSettings.Clear();
-            RefreshModel();
-            if (policy != null && savedDrugIndex >= 0 && savedDrugIndex < policy.Count)
-            {
-                Model.Region(DrugsRegion)?.MoveTo(savedDrugIndex);
-            }
-            AnnounceRegion();
-        }
-
-        // ------------------------------------------------------------------
-        // Settings mutation.
-        // ------------------------------------------------------------------
-
-        private void ToggleSetting()
-        {
-            int drugIdx = CurrentDrugIndex;
-            if (policy == null || drugIdx < 0 || drugIdx >= policy.Count)
-            {
-                return;
-            }
-            RefreshModel();
-            ListModel drugs = Model.Region(DrugsRegion);
-            int settingIdx = drugs == null ? -1 : drugs.Index;
-            if (currentSettings.Count == 0 || settingIdx < 0 || settingIdx >= currentSettings.Count)
-            {
-                return;
-            }
-
-            DrugPolicyEntry entry = policy[drugIdx];
-            DrugSetting setting = currentSettings[settingIdx];
-
-            // MUTATION-C: mirrors Dialog_ManageDrugPolicies.DoEntryRow's
-            // Widgets.Checkbox(ref entry.allowedForAddiction/allowedForJoy/
-            // allowScheduled, ...) calls (Dialog_ManageDrugPolicies.cs:192,197,200);
-            // vanilla toggles these bools directly with no gated setter.
-            switch (setting.Type)
-            {
-                case SettingType.AllowForAddiction:
-                    entry.allowedForAddiction = !entry.allowedForAddiction;
+                case DrugColumn.Frequency:
+                {
+                    float next = AdjustDrugFrequency(entry.daysFrequency, direction);
+                    changed = next != entry.daysFrequency;
+                    entry.daysFrequency = next;
+                    sound = SoundDefOf.DragSlider;
                     break;
-                case SettingType.AllowForJoy:
-                    entry.allowedForJoy = !entry.allowedForJoy;
+                }
+                case DrugColumn.MoodThreshold:
+                {
+                    float next = Mathf.Clamp(entry.onlyIfMoodBelow + direction * 0.05f, MinThreshold, MaxThreshold);
+                    changed = next != entry.onlyIfMoodBelow;
+                    entry.onlyIfMoodBelow = next;
+                    sound = SoundDefOf.DragSlider;
                     break;
-                case SettingType.AllowScheduled:
-                    entry.allowScheduled = !entry.allowScheduled;
-                    // Frequency/threshold visibility depends on this; RefreshModel's SetCount clamps
-                    // the region cursor if the list shrank.
-                    BuildSettingsForCurrentDrug(drugIdx);
-                    RefreshModel();
+                }
+                case DrugColumn.JoyThreshold:
+                {
+                    float next = Mathf.Clamp(entry.onlyIfJoyBelow + direction * 0.05f, MinThreshold, MaxThreshold);
+                    changed = next != entry.onlyIfJoyBelow;
+                    entry.onlyIfJoyBelow = next;
+                    sound = SoundDefOf.DragSlider;
                     break;
+                }
                 default:
                     return;
             }
+            if (changed)
+            {
+                sound.PlayOneShotOnCamera();
+            }
+            SpeakCellValue(row, column);
+        }
 
+        // ------------------------------------------------------------------
+        // The in-place chooser: opened with Enter, driven by Up/Down/Home/End/"+"/"-" and typed
+        // digits, closed with Enter or Escape. Every change is already live in the entry.
+        // ------------------------------------------------------------------
+
+        private void BeginChoose(int row, DrugColumn column)
+        {
+            choosing = true;
+            chooseRow = row;
+            chooseColumn = column;
+            numericBuffer = "";
+            SoundDefOf.Click.PlayOneShotOnCamera();
+            RefreshModel();
+            SpeakCellValue(row, column);
+        }
+
+        private void EndChoose()
+        {
+            if (!choosing)
+            {
+                return;
+            }
+            choosing = false;
+            numericBuffer = "";
+            SoundDefOf.Click.PlayOneShotOnCamera();
+            RefreshModel();
+            TableModel table = Model.Table(DrugsRegion);
+            if (table != null)
+            {
+                table.Rows.MoveTo(chooseRow + 1);
+                table.MoveToColumn((int)chooseColumn);
+            }
             AnnounceCurrentItem();
         }
+
+        private void EndChooseSilently()
+        {
+            choosing = false;
+            numericBuffer = "";
+        }
+
+        /// <summary>Up/Down step the value (Up raises); Home/End jump to the bottom/top of the range.</summary>
+        protected override void MoveItem(int delta)
+        {
+            if (!choosing)
+            {
+                base.MoveItem(delta);
+                return;
+            }
+            StepCell(delta < 0 ? 1 : -1);
+        }
+
+        protected override void MoveItemEdge(bool first)
+        {
+            if (!choosing)
+            {
+                base.MoveItemEdge(first);
+                return;
+            }
+            StepCell(first ? -1000 : 1000);
+        }
+
+        /// <summary>Tab is inert while choosing so a region cycle cannot strand an open editor.</summary>
+        protected override void MoveRegion(bool forward)
+        {
+            if (choosing)
+            {
+                return;
+            }
+            base.MoveRegion(forward);
+        }
+
+        /// <summary>While choosing, digits type an exact value on the columns that take one; all characters are consumed so typeahead never engages.</summary>
+        public override bool HandleChar(char c)
+        {
+            if (!choosing)
+            {
+                return base.HandleChar(c);
+            }
+            if (char.IsDigit(c))
+            {
+                AppendChooseDigit(c);
+            }
+            return true;
+        }
+
+        private void AppendChooseDigit(char c)
+        {
+            if (chooseColumn != DrugColumn.TakeToInventory
+                && chooseColumn != DrugColumn.MoodThreshold
+                && chooseColumn != DrugColumn.JoyThreshold)
+            {
+                return; // Frequency is a labeled ladder, not a plain number: arrow-only.
+            }
+            if (numericBuffer.Length >= 6)
+            {
+                return;
+            }
+            numericBuffer += c;
+            ApplyTypedChoose();
+            SpeakCellValue(chooseRow, chooseColumn);
+        }
+
+        private void BackspaceChoose()
+        {
+            numericBuffer = numericBuffer.Substring(0, numericBuffer.Length - 1);
+            ApplyTypedChoose();
+            SpeakCellValue(chooseRow, chooseColumn);
+        }
+
+        // MUTATION-C: same clamps as StepCell, applied to a typed value — TakeToInventory as a whole
+        // count, the thresholds as a whole percent of the slider's 0.01..1 range.
+        private void ApplyTypedChoose()
+        {
+            if (policy == null || chooseRow < 0 || chooseRow >= policy.Count
+                || !int.TryParse(numericBuffer, out int typed))
+            {
+                return;
+            }
+            DrugPolicyEntry entry = policy[chooseRow];
+            switch (chooseColumn)
+            {
+                case DrugColumn.TakeToInventory:
+                    entry.takeToInventory = Mathf.Clamp(typed, 0, PawnUtility.GetMaxAllowedToPickUp(entry.drug));
+                    break;
+                case DrugColumn.MoodThreshold:
+                    entry.onlyIfMoodBelow = Mathf.Clamp(typed / 100f, MinThreshold, MaxThreshold);
+                    break;
+                case DrugColumn.JoyThreshold:
+                    entry.onlyIfJoyBelow = Mathf.Clamp(typed / 100f, MinThreshold, MaxThreshold);
+                    break;
+            }
+        }
+
+        private void SpeakCellValue(int row, DrugColumn column)
+        {
+            string value = ContentCellText(DrugsRegion, row, (int)column);
+            if (!string.IsNullOrEmpty(value))
+            {
+                TolkHelper.SpeakData(value);
+            }
+        }
+
+        /// <summary>Opens the info card for the focused drug, mirroring vanilla's per-row InfoCardButton.</summary>
+        private void OpenInfoCard()
+        {
+            DrugPolicyEntry entry = CurrentDrugEntry();
+            if (entry != null)
+            {
+                InfoCardState.TryOpenInfoCardForDef(entry.drug);
+            }
+        }
+
+        // ------------------------------------------------------------------
+        // Cursor helpers.
+        // ------------------------------------------------------------------
+
+        /// <summary>
+        /// The policy index the drug-list cursor points at: the table row cursor counts the header
+        /// at index 0, so the data row is one less, matching vanilla's own 0-based DoEntryRow. -1
+        /// off any drug.
+        /// </summary>
+        private int DrugListDataRow()
+        {
+            ListModel drugs = Model.Region(DrugsRegion);
+            if (drugs == null)
+            {
+                return -1;
+            }
+            int dataRow = Model.Table(DrugsRegion) != null ? drugs.Index - 1 : drugs.Index;
+            return dataRow >= 0 && policy != null && dataRow < policy.Count ? dataRow : -1;
+        }
+
+        private DrugColumn CurrentColumn()
+        {
+            TableModel table = Model.Table(DrugsRegion);
+            return (DrugColumn)(table != null ? table.ColumnIndex : 0);
+        }
+
+        private DrugPolicyEntry CurrentDrugEntry()
+        {
+            int row = DrugListDataRow();
+            return row >= 0 ? policy[row] : null;
+        }
+
+        // ------------------------------------------------------------------
+        // Value formatting and stepping.
+        // ------------------------------------------------------------------
 
         /// <summary>
         /// Steps daysFrequency through the discrete values vanilla's FrequencyHorizontalSlider
@@ -586,13 +695,11 @@ namespace RimWorldAccess.Shell
         /// values 2..10 below it. Direction +1 moves toward less frequent, -1 toward more frequent,
         /// bottoming out at vanilla's 0.1 minFreq floor.
         /// </summary>
-        // MUTATION-C: hand-copied discrete stepping over the same range
-        // vanilla's Widgets.FrequencyHorizontalSlider(minFreq: 0.1f,
-        // maxFreq: 25f, roundToInt: true) covers by continuous drag
-        // (Dialog_ManageDrugPolicies.cs:204); no discrete-step vehicle exists
-        // in vanilla for keyboard-driven adjustment, so the bounds (0.1..25)
-        // are harvested from the slider call and the step logic is
-        // hand-written to match its labeled value set (see doc comment above).
+        // MUTATION-C: hand-copied discrete stepping over the same range vanilla's
+        // Widgets.FrequencyHorizontalSlider(minFreq: 0.1f, maxFreq: 25f, roundToInt: true) covers by
+        // continuous drag (Dialog_ManageDrugPolicies.cs:204); no discrete-step vehicle exists in
+        // vanilla for keyboard-driven adjustment, so the bounds (0.1..25) are harvested from the
+        // slider call and the step logic is hand-written to match its labeled value set.
         private static float AdjustDrugFrequency(float freq, int direction)
         {
             const float MinFreq = 0.1f;
@@ -618,149 +725,6 @@ namespace RimWorldAccess.Shell
             newTimesPerDay = Mathf.Clamp(newTimesPerDay, 2, maxTimesPerDay);
             return 1f / newTimesPerDay;
         }
-
-        private void AdjustSetting(int direction)
-        {
-            int drugIdx = CurrentDrugIndex;
-            if (policy == null || drugIdx < 0 || drugIdx >= policy.Count)
-            {
-                return;
-            }
-            RefreshModel();
-            ListModel drugs = Model.Region(DrugsRegion);
-            int settingIdx = drugs == null ? -1 : drugs.Index;
-            if (currentSettings.Count == 0 || settingIdx < 0 || settingIdx >= currentSettings.Count)
-            {
-                return;
-            }
-
-            DrugPolicyEntry entry = policy[drugIdx];
-            DrugSetting setting = currentSettings[settingIdx];
-
-            // MUTATION-C: MoodThreshold/JoyThreshold hand-copy discrete
-            // stepping over the bounds of Dialog_ManageDrugPolicies.DoEntryRow's
-            // Widgets.HorizontalSlider(..., min: 0.01f, max: 1f, ...) calls
-            // (Dialog_ManageDrugPolicies.cs:206,208) — continuous drag has no
-            // discrete-step vehicle, so the 0.01/1f bounds are harvested from
-            // the slider call and the 0.05f step is our own keyboard
-            // granularity. TakeToInventory mirrors the same file's
-            // Widgets.TextFieldNumeric(ref entry.takeToInventory, ...,
-            // 0f, PawnUtility.GetMaxAllowedToPickUp(entry.drug)) bounds
-            // (Dialog_ManageDrugPolicies.cs:188) exactly.
-            switch (setting.Type)
-            {
-                case SettingType.Frequency:
-                    entry.daysFrequency = AdjustDrugFrequency(entry.daysFrequency, direction);
-                    break;
-
-                case SettingType.MoodThreshold:
-                    entry.onlyIfMoodBelow += direction * 0.05f;
-                    entry.onlyIfMoodBelow = Mathf.Clamp(entry.onlyIfMoodBelow, 0.01f, 1f);
-                    break;
-
-                case SettingType.JoyThreshold:
-                    entry.onlyIfJoyBelow += direction * 0.05f;
-                    entry.onlyIfJoyBelow = Mathf.Clamp(entry.onlyIfJoyBelow, 0.01f, 1f);
-                    break;
-
-                case SettingType.TakeToInventory:
-                    int maxPickup = PawnUtility.GetMaxAllowedToPickUp(entry.drug);
-                    entry.takeToInventory = Mathf.Clamp(entry.takeToInventory + direction, 0, maxPickup);
-                    break;
-
-                default:
-                    return;
-            }
-
-            AnnounceCurrentItem();
-        }
-
-        /// <summary>
-        /// Opens the info card for the selected drug, mirroring vanilla's per-row InfoCardButton.
-        /// Available in both modes, since vanilla's button lives on the row itself.
-        /// </summary>
-        private void OpenInfoCard()
-        {
-            int drugIdx = CurrentDrugIndex;
-            if (policy == null || drugIdx < 0 || drugIdx >= policy.Count)
-            {
-                return;
-            }
-            InfoCardState.TryOpenInfoCardForDef(policy[drugIdx].drug);
-        }
-
-        // ------------------------------------------------------------------
-        // Settings list builder.
-        // ------------------------------------------------------------------
-
-        /// <summary>One of vanilla's three icon-only usage checkboxes, named from its own tip.</summary>
-        private static DrugSetting UsageCheckbox(SettingType type, string tipKey)
-        {
-            string label;
-            string description;
-            SplitUsageTip(tipKey, out label, out description);
-            return new DrugSetting { Type = type, Label = label, Tooltip = description };
-        }
-
-        private void BuildSettingsForCurrentDrug(int drugIdx)
-        {
-            currentSettings.Clear();
-            if (policy == null || drugIdx < 0 || drugIdx >= policy.Count)
-            {
-                return;
-            }
-            DrugPolicyEntry entry = policy[drugIdx];
-
-            currentSettings.Add(new DrugSetting
-            {
-                Type = SettingType.TakeToInventory,
-                Label = "TakeToInventoryColumnLabel".Translate(),
-                Tooltip = "TakeToInventoryColumnDesc".Translate()
-            });
-
-            // Addiction and joy checkboxes appear only where vanilla's DoEntryRow draws them.
-            if (entry.drug.IsAddictiveDrug)
-            {
-                currentSettings.Add(UsageCheckbox(SettingType.AllowForAddiction, "DrugUsageTipForAddiction"));
-            }
-
-            if (entry.drug.IsPleasureDrug)
-            {
-                currentSettings.Add(UsageCheckbox(SettingType.AllowForJoy, "DrugUsageTipForJoy"));
-            }
-
-            currentSettings.Add(UsageCheckbox(SettingType.AllowScheduled, "DrugUsageTipScheduled"));
-
-            // Frequency and the two thresholds show only while scheduled is on, as in DoEntryRow.
-            if (entry.allowScheduled)
-            {
-                currentSettings.Add(new DrugSetting
-                {
-                    Type = SettingType.Frequency,
-                    Label = "FrequencyColumnLabel".Translate(),
-                    Tooltip = "FrequencyColumnDesc".Translate()
-                });
-
-                currentSettings.Add(new DrugSetting
-                {
-                    Type = SettingType.MoodThreshold,
-                    Label = "MoodThresholdColumnLabel".Translate(),
-                    Tooltip = "MoodThresholdColumnDesc".Translate()
-                });
-
-                currentSettings.Add(new DrugSetting
-                {
-                    Type = SettingType.JoyThreshold,
-                    Label = "JoyThresholdColumnLabel".Translate(),
-                    Tooltip = "JoyThresholdColumnDesc".Translate()
-                });
-            }
-        }
-
-        // ------------------------------------------------------------------
-        // Value formatting. Every one of these is spoken by the shared composer,
-        // either as a settings row's Value or as a table cell.
-        // ------------------------------------------------------------------
 
         /// <summary>Vanilla's Widgets.FrequencyHorizontalSlider label formatting.</summary>
         private static string FormatFrequency(float freq)
