@@ -387,7 +387,7 @@
 7	src/Compat/VehicleFramework/VehicleStatRow.Game.cs
 70	src/Compat/VehicleFramework/VfAssignSeatsCompat.Game.cs
 75	src/Compat/VehicleFramework/VfAssignSeatsScope.Game.cs
-13	src/Compat/VehicleFramework/VfAutopilotCompat.Game.cs
+14	src/Compat/VehicleFramework/VfAutopilotCompat.Game.cs
 63	src/Compat/VehicleFramework/VfCaravanCompat.Game.cs
 20	src/Compat/VehicleFramework/VfCaravanRouteCompat.Game.cs
 36	src/Compat/VehicleFramework/VfCargoDialogAdapter.Game.cs

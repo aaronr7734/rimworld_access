@@ -58,8 +58,8 @@ namespace RimWorldAccess
                 harmony.Patch(getGizmos,
                     postfix: new HarmonyMethod(typeof(VfAutopilotCompat), nameof(GizmosPostfix)));
 
-                PatchJobReport(harmony, "Vehicles.JobGiver_GotoNearestHostile", nameof(AdvanceReportPostfix));
-                PatchJobReport(harmony, "Vehicles.JobGiver_RangedSupport", nameof(SupportReportPostfix));
+                advanceGiver = PatchJobReport(harmony, "Vehicles.JobGiver_GotoNearestHostile", nameof(AdvanceReportPostfix));
+                supportGiver = PatchJobReport(harmony, "Vehicles.JobGiver_RangedSupport", nameof(SupportReportPostfix));
             }
             catch (Exception ex)
             {
@@ -67,16 +67,26 @@ namespace RimWorldAccess
             }
         }
 
-        private static void PatchJobReport(Harmony harmony, string giverTypeName, string postfixName)
+        private static Type advanceGiver;
+        private static Type supportGiver;
+
+        /// <summary>An inherited TryGiveJob is patched on its declaring type; the postfixes check the instance's type.</summary>
+        private static Type PatchJobReport(Harmony harmony, string giverTypeName, string postfixName)
         {
-            MethodInfo tryGiveJob = AccessTools.Method(AccessTools.TypeByName(giverTypeName), "TryGiveJob");
-            if (tryGiveJob == null)
+            Type giver = AccessTools.TypeByName(giverTypeName);
+            MethodInfo tryGiveJob = giver == null ? null : AccessTools.Method(giver, "TryGiveJob");
+            if (tryGiveJob == null || tryGiveJob.IsAbstract)
             {
                 ModLogger.Error($"VfAutopilotCompat: {giverTypeName}.TryGiveJob did not resolve; its jobs keep the default report.");
-                return;
+                return null;
+            }
+            if (tryGiveJob.DeclaringType != giver)
+            {
+                tryGiveJob = AccessTools.DeclaredMethod(tryGiveJob.DeclaringType, "TryGiveJob");
             }
             harmony.Patch(tryGiveJob,
                 postfix: new HarmonyMethod(typeof(VfAutopilotCompat), postfixName));
+            return giver;
         }
 
         public static void GizmosPostfix(Pawn __instance, ref IEnumerable<Gizmo> __result)
@@ -114,18 +124,20 @@ namespace RimWorldAccess
             }
         }
 
-        public static void AdvanceReportPostfix(Pawn pawn, ref Job __result)
+        public static void AdvanceReportPostfix(ThinkNode_JobGiver __instance, Pawn pawn, ref Job __result)
         {
-            if (__result != null && pawn?.Faction != null && pawn.Faction.IsPlayer)
+            if (advanceGiver != null && advanceGiver.IsInstanceOfType(__instance)
+                && __result != null && pawn?.Faction != null && pawn.Faction.IsPlayer)
             {
                 __result.reportStringOverride =
                     "RimWorldAccess.Autopilot.Report.VehicleAdvance".Translate();
             }
         }
 
-        public static void SupportReportPostfix(Pawn pawn, ref Job __result)
+        public static void SupportReportPostfix(ThinkNode_JobGiver __instance, Pawn pawn, ref Job __result)
         {
-            if (__result == null || pawn?.Faction == null || !pawn.Faction.IsPlayer)
+            if (supportGiver == null || !supportGiver.IsInstanceOfType(__instance)
+                || __result == null || pawn?.Faction == null || !pawn.Faction.IsPlayer)
             {
                 return;
             }
