@@ -706,7 +706,7 @@
 113	src/Map/PointerWarpState.cs
 49	src/Map/ScannerCategorySchema.cs
 35	src/Map/ScannerDirectionHelper.cs
-134	src/Map/ScannerHelper.cs
+137	src/Map/ScannerHelper.cs
 32	src/Map/ScannerLabelBuilder.cs
 73	src/Map/ScannerModel.cs
 19	src/Map/ScannerSearchEngine.cs

@@ -208,6 +208,16 @@ namespace RimWorldAccess
                 if (cachedTerrainNatural != null && currentCellHash == lastCellHash && !fogDirty
                     && currentPollutionCount == lastPollutionCount)
                 {
+                    RefreshRegionDistances(cachedTerrainNatural, cursorPosition);
+                    RefreshRegionDistances(cachedTerrainConstructed, cursorPosition);
+                    RefreshRegionDistances(cachedMineableRare, cursorPosition);
+                    RefreshRegionDistances(cachedMineableStone, cursorPosition);
+                    RefreshRegionDistances(cachedMineableScanned, cursorPosition);
+                    RefreshRegionDistances(cachedPollutedItems, cursorPosition);
+                    RefreshRegionDistances(cachedFogItems, cursorPosition);
+                    RefreshRegionDistances(cachedRoofsThick, cursorPosition);
+                    RefreshRegionDistances(cachedRoofsThin, cursorPosition);
+
                     // Reuse cached cell data, mirroring each list into the category's "All".
                     terrainNaturalSubcat.Items.AddRange(cachedTerrainNatural);
                     terrainConstructedSubcat.Items.AddRange(cachedTerrainConstructed);
@@ -242,6 +252,11 @@ namespace RimWorldAccess
 
                     // Natural roofs only; thick vs thin is decided per def at grouping time.
                     var roofCellsByDef = new Dictionary<RoofDef, List<IntVec3>>();
+
+                    // Grouped into regions once here, as the mineables are: a map holds tens of
+                    // thousands of terrain cells, too many to re-sort and re-group on every refresh.
+                    var naturalTerrainByLabel = new Dictionary<string, List<IntVec3>>();
+                    var constructedTerrainByLabel = new Dictionary<string, List<IntVec3>>();
 
                     foreach (var cell in allCells)
                     {
@@ -286,8 +301,7 @@ namespace RimWorldAccess
                                         terrain.pathCost > 2;
                                     if (isInteresting)
                                     {
-                                        var terrainItem = new ScannerItem(cell, terrain.label, cursorPosition);
-                                        AddTo(terrainCategory, terrainNaturalSubcat, terrainItem);
+                                        AddCell(naturalTerrainByLabel, terrain.label, cell);
                                     }
                                 }
                                 else if (terrain.layerable || !terrain.natural)
@@ -295,8 +309,7 @@ namespace RimWorldAccess
                                     // Constructed floors only, never layered natural dirt.
                                     if (!terrain.natural)
                                     {
-                                        var terrainItem = new ScannerItem(cell, terrain.label, cursorPosition);
-                                        AddTo(terrainCategory, terrainConstructedSubcat, terrainItem);
+                                        AddCell(constructedTerrainByLabel, terrain.label, cell);
                                     }
                                 }
                             }
@@ -335,6 +348,9 @@ namespace RimWorldAccess
                             }
                         }
                     }
+
+                    AddTerrainRegions(naturalTerrainByLabel, terrainCategory, terrainNaturalSubcat, cursorPosition);
+                    AddTerrainRegions(constructedTerrainByLabel, terrainCategory, terrainConstructedSubcat, cursorPosition);
 
                     foreach (var kvp in mineableRareByDef)
                     {
@@ -849,6 +865,43 @@ namespace RimWorldAccess
         /// Flood-fills the contiguous 8-way region of <paramref name="validPositions"/> reachable
         /// from <paramref name="startPos"/>, via the shared <see cref="Clump.Fill{TTile}"/>.
         /// </summary>
+        private static void AddCell(Dictionary<string, List<IntVec3>> byLabel, string label, IntVec3 cell)
+        {
+            if (!byLabel.TryGetValue(label, out var cells))
+            {
+                cells = new List<IntVec3>();
+                byLabel[label] = cells;
+            }
+            cells.Add(cell);
+        }
+
+        private static void AddTerrainRegions(Dictionary<string, List<IntVec3>> byLabel, ScannerCategory category, ScannerSubcategory subcategory, IntVec3 cursorPosition)
+        {
+            foreach (var kvp in byLabel)
+            {
+                var regions = GroupTerrainByAdjacency(kvp.Value, cursorPosition);
+                if (regions.Count > 0)
+                    AddTo(category, subcategory, new ScannerItem(regions, kvp.Key, cursorPosition));
+            }
+        }
+
+        /// <summary>Re-measures cached region items from the current cursor, as a fresh grouping would, so their order stays live.</summary>
+        private static void RefreshRegionDistances(List<ScannerItem> items, IntVec3 cursorPosition)
+        {
+            if (items == null)
+                return;
+            foreach (var item in items)
+            {
+                if (!item.HasTerrainRegions)
+                    continue;
+                foreach (var region in item.TerrainRegions)
+                    region.Distance = (region.CenterPosition - cursorPosition).LengthHorizontal;
+                item.TerrainRegions = item.TerrainRegions.OrderBy(r => r.Distance).ToList();
+                item.Position = item.TerrainRegions[0].CenterPosition;
+                item.Distance = item.TerrainRegions[0].Distance;
+            }
+        }
+
         internal static HashSet<IntVec3> FloodFillTerrainRegion(IntVec3 startPos, HashSet<IntVec3> validPositions)
         {
             return Clump.Fill(startPos, validPositions, EightWayNeighbors);
