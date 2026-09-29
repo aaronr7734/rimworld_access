@@ -289,7 +289,10 @@ namespace RimWorldAccess
             }
             if (def.Worker is PawnColumnWorker_CombatPolicy)
             {
-                return ApplyGeneratedPayload(def, PawnColumnWorker_CombatPolicy.CurrentPolicy(sourcePawn), targetPawn);
+                // No policy is a real value here: the menu's first entry, None, carries a null
+                // payload, so the first-match apply lands on it rather than on Edit.
+                return PawnColumnHandlerRegistry.Resolve(def) is IGeneratedMenuSource source
+                    && source.TryApplyPayloadToTarget(def, targetPawn, PawnColumnWorker_CombatPolicy.CurrentPolicy(sourcePawn));
             }
             if (def.Worker is PawnColumnWorker_HuntPolicy)
             {
