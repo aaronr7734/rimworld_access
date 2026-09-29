@@ -129,6 +129,13 @@ namespace RimWorldAccess
             if (advanceGiver != null && advanceGiver.IsInstanceOfType(__instance)
                 && __result != null && pawn?.Faction != null && pawn.Faction.IsPlayer)
             {
+                // A multi-cell vehicle whose footprint already covers the goal finishes the Goto on
+                // its first tick and is handed it again, looping until VF strips its jobs.
+                if (__result.targetA.IsValid && pawn.OccupiedRect().ExpandedBy(1).Contains(__result.targetA.Cell))
+                {
+                    __result = null;
+                    return;
+                }
                 __result.reportStringOverride =
                     "RimWorldAccess.Autopilot.Report.VehicleAdvance".Translate();
             }
