@@ -145,6 +145,21 @@ namespace RimWorldAccess
             return launchable.FuelLevel;
         }
 
+        private static readonly System.Reflection.PropertyInfo minFuelLevelInGroupProperty =
+            HarmonyLib.AccessTools.Property(typeof(CompLaunchable), "MinFuelLevelInGroup");
+
+        /// <summary>The lowest fuel level in the launch group, which bounds the whole group's range in vanilla's launch gate.</summary>
+        public static float GetGroupFuelLevel(CompLaunchable launchable)
+        {
+            if (launchable == null)
+                return 0f;
+            if (!(launchable is CompLaunchable_TransportPod) && launchable.Refuelable == null)
+                return 0f;
+            if (minFuelLevelInGroupProperty != null)
+                return (float)minFuelLevelInGroupProperty.GetValue(launchable);
+            return launchable.FuelLevel;
+        }
+
         /// <summary>The fuel needed to launch a given distance.</summary>
         public static float CalculateFuelCost(CompLaunchable launchable, float distanceInTiles)
         {

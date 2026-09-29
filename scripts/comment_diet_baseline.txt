@@ -1178,10 +1178,10 @@
 7	src/Trade/TradeViewOpener.cs
 59	src/TransportPods/ITransferLoadDialog.cs
 56	src/TransportPods/LoadTransportersAdapter.cs
-37	src/TransportPods/TransportPodHelper.cs
-68	src/TransportPods/TransportPodLaunchState.cs
+38	src/TransportPods/TransportPodHelper.cs
+71	src/TransportPods/TransportPodLaunchState.cs
 18	src/TransportPods/TransportPodLoadingState.cs
-35	src/TransportPods/TransportPodPatch.cs
+39	src/TransportPods/TransportPodPatch.cs
 28	src/TransportPods/TransportPodSelectionState.cs
 16	src/UI/AnnouncementBuilder.cs
 17	src/UI/BulkSoundQueue.cs

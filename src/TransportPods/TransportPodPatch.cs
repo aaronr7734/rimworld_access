@@ -291,15 +291,34 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>Opens the launch-targeting state when a pod starts choosing its destination.</summary>
+        /// <summary>
+        /// Opens the launch-targeting state when a pod starts choosing its destination. Vanilla
+        /// begins world targeting inside this method, so the shuttle fallback below must stand
+        /// down for its duration or it speaks a second, wrong range first.
+        /// </summary>
         [HarmonyPatch(typeof(CompLaunchable))]
         [HarmonyPatch("StartChoosingDestination")]
         public static class CompLaunchable_StartChoosingDestination_Patch
         {
-            [HarmonyPostfix]
-            public static void Postfix(CompLaunchable __instance)
+            internal static bool Running;
+
+            [HarmonyPrefix]
+            public static void Prefix()
             {
-                TransportPodLaunchState.Open(__instance);
+                Running = true;
+            }
+
+            [HarmonyPostfix]
+            public static void Postfix(CompLaunchable __instance, float? overrideFuelLevel)
+            {
+                Running = false;
+                TransportPodLaunchState.Open(__instance, overrideFuelLevel);
+            }
+
+            [HarmonyFinalizer]
+            public static void Finalizer()
+            {
+                Running = false;
             }
         }
 
@@ -335,7 +354,7 @@ namespace RimWorldAccess
                 if (mouseAttachment != CompLaunchable.TargeterMouseAttachment)
                     return;
 
-                if (TransportPodLaunchState.IsActive)
+                if (TransportPodLaunchState.IsActive || CompLaunchable_StartChoosingDestination_Patch.Running)
                     return;
 
                 PlanetTile originTile = PlanetTile.Invalid;

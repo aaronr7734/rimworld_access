@@ -44,8 +44,11 @@ namespace RimWorldAccess
         /// <summary>Maximum launch distance at the current fuel level.</summary>
         public static float MaxRange => cachedMaxRange;
 
-        /// <summary>Opens the session for a CompLaunchable's StartChoosingDestination.</summary>
-        public static void Open(CompLaunchable launchable)
+        /// <summary>
+        /// Opens the session for a CompLaunchable's StartChoosingDestination. The fuel is what
+        /// vanilla's launch gate uses: the override when one is passed, else the group's emptiest pod.
+        /// </summary>
+        public static void Open(CompLaunchable launchable, float? overrideFuelLevel = null)
         {
             if (launchable == null)
             {
@@ -56,8 +59,8 @@ namespace RimWorldAccess
             currentLaunchable = launchable;
             isActive = true;
 
-            cachedFuelLevel = TransportPodHelper.GetFuelLevel(launchable);
-            cachedMaxRange = TransportPodHelper.GetMaxLaunchDistance(launchable);
+            cachedFuelLevel = overrideFuelLevel ?? TransportPodHelper.GetGroupFuelLevel(launchable);
+            cachedMaxRange = launchable.MaxLaunchDistanceAtFuelLevel(cachedFuelLevel);
 
             // Thing.Tile walks ParentHolder, so a caravan-held shuttle (parent.Map null) still
             // resolves. Without it the reachability cache stays empty and FilterToReachableItems
