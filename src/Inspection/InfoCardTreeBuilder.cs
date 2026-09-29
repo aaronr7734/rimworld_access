@@ -348,6 +348,16 @@ namespace RimWorldAccess
                         catch { }
                     }
 
+                    // Some entries (an animal's sex, its category) pass the value as the report
+                    // text, so the explanation says nothing the row has not already said.
+                    if (hasExplanation && !emptyValue
+                        && InspectTextUtility.SplitLines(explanationText.StripTags(), entryLabel)
+                            .All(line => InspectTextUtility.IsRedundantWith(line, value)))
+                    {
+                        hasExplanation = false;
+                        explanationText = null;
+                    }
+
                     if (emptyValue && !hasExplanation)
                         continue;
 
