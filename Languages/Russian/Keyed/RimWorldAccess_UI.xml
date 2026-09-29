@@ -410,4 +410,7 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Три отдельных списка: товары торговца, текущая сделка с её балансом и ваши товары. Перемещайтесь между ними стрелками влево и вправо.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Таблица</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Всё в одной сортируемой таблице, повторяющей окно торговли на экране.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Вид караванов и транспортных капсул по умолчанию</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>По одному списку на вкладку при формировании и разделении каравана и загрузке транспортных капсул. Вкладки переключаются стрелками влево и вправо, Tab переходит к сводке и кнопкам.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Каждая вкладка в виде сортируемой таблицы, повторяющей окно на экране.</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

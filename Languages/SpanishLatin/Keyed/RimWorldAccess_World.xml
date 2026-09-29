@@ -94,6 +94,8 @@
   <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>No se puede reformar la caravana en este momento</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
   <RimWorldAccess.Caravan.Form.OpeningReformation>Abriendo el cuadro de diálogo de reformación de caravana</RimWorldAccess.Caravan.Form.OpeningReformation>
   <RimWorldAccess.Caravan.Form.OpenInstructions>Cuadro de diálogo de formar caravana abierto. Tab para el resumen, Alt+I para inspeccionar, Alt+S para enviar.</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <!-- A column or icon value on a classic caravan, split or transport pod row: {0} is the game's own column or icon label, {1} its value. -->
+  <RimWorldAccess.Caravan.Classic.ColumnValue>{0}: {1}</RimWorldAccess.Caravan.Classic.ColumnValue>
   <RimWorldAccess.Caravan.Form.RouteStillNeeded>Aún no se eligió un destino. Activa el botón {0} para elegir uno antes de enviar.</RimWorldAccess.Caravan.Form.RouteStillNeeded>
   <RimWorldAccess.Caravan.Form.SummaryRegionName>Resumen</RimWorldAccess.Caravan.Form.SummaryRegionName>
   <RimWorldAccess.Caravan.Form.SummaryDestination>Destino: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>

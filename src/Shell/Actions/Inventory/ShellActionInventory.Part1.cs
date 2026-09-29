@@ -379,9 +379,24 @@ namespace RimWorldAccess.Shell
                 }));
             c.Register(InputAction.ForScreen("caravanFormation", "caravanFormation.decrement",
                 new List<KeyChord> { KeyChord.Of(KeyCode.Minus), KeyChord.Of(KeyCode.KeypadMinus) }));
-            // No modifier-arrow or modifier-Home/End quantity steps here: they would conflict with
-            // table row-painting and navigation. +/- and the Enter quantity chooser cover the
-            // same range.
+            // The modifier-arrow and modifier-Home/End steps are the shared transfer.* family.
+
+            // ---- the three transfer screens, both views -> TransferScreenScope ----
+            // Both views claim the swap; only the classic view claims the steps and range ends.
+            c.Register(InputAction.ForScreen("transfer", "transfer.swapView",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Tab, ctrl: true), KeyChord.Of(KeyCode.Tab, ctrl: true, shift: true) }));
+            c.Register(InputAction.ForScreen("transfer", "transfer.quantity.increaseTen",
+                new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("transfer", "transfer.quantity.decreaseTen",
+                new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("transfer", "transfer.quantity.increaseHundred",
+                new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, ctrl: true) }));
+            c.Register(InputAction.ForScreen("transfer", "transfer.quantity.decreaseHundred",
+                new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, ctrl: true) }));
+            c.Register(InputAction.ForScreen("transfer", "transfer.quantity.max",
+                new List<KeyChord> { KeyChord.Of(KeyCode.End, shift: true) }));
+            c.Register(InputAction.ForScreen("transfer", "transfer.quantity.min",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Home, shift: true) }));
 
             // ---- split caravan dialog -> SplitCaravanState ----
             // Same shape as caravanFormation minus the destination sub-mode and auto-provision.

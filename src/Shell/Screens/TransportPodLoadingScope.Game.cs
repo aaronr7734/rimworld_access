@@ -12,7 +12,8 @@ namespace RimWorldAccess.Shell
     /// <see cref="Dialog_EnterPortal"/>, unified behind <see cref="ITransferLoadDialog"/>.
     ///
     /// Regions: Pawns, Items, Summary (only when the adapter reports one; map portals have none),
-    /// plus the automatic Buttons region. Pawns and Items are full TABLE regions — an identity/count
+    /// plus the automatic Buttons region, shown as flat lists in the classic view and as tables in
+    /// the table view (see <see cref="TransferScreenScope"/>). In the table view Pawns and Items are full TABLE regions — an identity/count
     /// column plus the shared <see cref="TransferableTableColumns"/> data columns read off the
     /// dialog's own live TransferableOneWayWidget — and Summary is a 2-column stat table whose Enter
     /// opens the stat breakdown. <see cref="EnableSortChord"/> is false because Alt+S is this
@@ -29,7 +30,7 @@ namespace RimWorldAccess.Shell
     /// TransportPodPatch/PortalPatch as the sole cancel-blocking mechanism and each dialog's own
     /// OnAcceptKeyPressed override carrying its accept blocker (the Harmony declaring-type trap).
     /// </summary>
-    public sealed class TransportPodLoadingScope : ScreenScope
+    public sealed class TransportPodLoadingScope : TransferScreenScope
     {
         /// <summary>
         /// Which content region a region index maps to. An items-only dialog has no Pawns region at
@@ -68,6 +69,13 @@ namespace RimWorldAccess.Shell
         /// <see cref="ITransferLoadDialog"/> over a window type this scope never references.
         /// </summary>
         internal TransportPodLoadingScope(Window dialog, ITransferLoadDialog adapter)
+            : this(dialog, adapter, OpensClassic, swappedIn: false)
+        {
+        }
+
+        /// <summary>A swap reuses the adapter: compat adapters cannot be resolved again from the window.</summary>
+        private TransportPodLoadingScope(Window dialog, ITransferLoadDialog adapter, bool classic, bool swappedIn)
+            : base(classic, swappedIn)
         {
             this.dialog = dialog;
             this.adapter = adapter;
@@ -142,11 +150,6 @@ namespace RimWorldAccess.Shell
             get { return true; }
         }
 
-        protected override bool ContentRegionSearchable(int region)
-        {
-            return KindOf(region) != RegionKind.Summary;
-        }
-
         /// <summary>Alt+S is this screen's Accept chord — the shared sort chord must not shadow it. Enter on the header row still sorts.</summary>
         protected override bool EnableSortChord
         {
@@ -189,7 +192,7 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>Identity column plus this dialog's own data columns; Summary is a fixed name/value pair.</summary>
-        protected override int ContentColumnCount(int region)
+        protected override int TableColumnCount(int region)
         {
             if (adapter == null)
                 return 0;
@@ -229,7 +232,20 @@ namespace RimWorldAccess.Shell
             if (adapter == null)
                 return;
 
-            if (pawnRows.Count == 0 && itemRows.Count == 0)
+            if (Classic)
+            {
+                List<TransferableOneWay> all = adapter.GetAllTransferables() ?? new List<TransferableOneWay>();
+                pawnRows.Clear();
+                if (adapter.HasPawnsTab)
+                {
+                    foreach (TransferableOneWay t in ClassicListRows(PawnsWidget(), CaravanUIHelper.GetPawnSectionRows(all, null)))
+                        pawnRows.Add(new CaravanUIHelper.PawnSectionRow(t));
+                }
+                itemRows.Clear();
+                itemRows.AddRange(ClassicListRows(ItemsWidget(),
+                    all.Where(t => t.ThingDef.category != ThingCategory.Pawn).Select(t => new CaravanUIHelper.PawnSectionRow(t))));
+            }
+            else if (pawnRows.Count == 0 && itemRows.Count == 0)
             {
                 List<TransferableOneWay> all = adapter.GetAllTransferables() ?? new List<TransferableOneWay>();
                 pawnRows.AddRange(CaravanUIHelper.GetPawnSectionRows(all, PawnsWidget()));
@@ -259,12 +275,22 @@ namespace RimWorldAccess.Shell
             return AccessTools.Field(dialog.GetType(), "pawnsTransfer")?.GetValue(dialog) as TransferableOneWayWidget;
         }
 
-        protected override ElementDescription DescribeContentItem(int region, int index)
+        /// <summary>The dialog's live Items widget, by field name like <see cref="PawnsWidget"/>.</summary>
+        private TransferableOneWayWidget ItemsWidget()
+        {
+            if (dialog == null)
+                return null;
+            return AccessTools.Field(dialog.GetType(), "itemsTransfer")?.GetValue(dialog) as TransferableOneWayWidget;
+        }
+
+        protected override ElementDescription DescribeTransferItem(int region, int index)
         {
             ElementDescription d = new ElementDescription();
             if (KindOf(region) == RegionKind.Summary)
             {
-                d.Label = index >= 0 && index < summaryRows.Count ? (adapter?.GetStatName(index) ?? "") : "";
+                if (index < 0 || index >= summaryRows.Count)
+                    return d;
+                d.Label = Classic ? summaryRows[index] : (adapter?.GetStatName(index) ?? "");
                 return d;
             }
             if (KindOf(region) == RegionKind.Pawns)
@@ -533,6 +559,7 @@ namespace RimWorldAccess.Shell
                     }
                     actions.Add(new ScreenAction("DEV: Select everything", () => DevSelectEverything(loadAdapter)));
                 }
+                AddSwapAction(actions);
                 return actions;
             }
         }
@@ -589,12 +616,77 @@ namespace RimWorldAccess.Shell
             if (announcedOpen || adapter == null)
                 return;
             announcedOpen = true;
-            string tabCount = TabCountFragment();
-            string opening = adapter.OpenAnnouncement;
+            string tabCount = Classic || SwappedIn ? null : TabCountFragment();
+            string opening = SwappedIn ? SwappedInAnnouncement() : adapter.OpenAnnouncement;
             // One utterance, so SpeechSanitizer cleans the seams; separate Speak calls each sanitize
             // in isolation and leave stray periods.
             TolkHelper.SpeakData(string.IsNullOrEmpty(tabCount) ? opening : opening + ". " + tabCount);
             AnnounceCurrentItem();
+        }
+
+        protected override int ListRegionCount
+        {
+            get { return HasSummaryRegion ? regionKinds.Count - 1 : regionKinds.Count; }
+        }
+
+        protected override bool HasSummaryRegion
+        {
+            get { return regionKinds.Contains(RegionKind.Summary); }
+        }
+
+        protected override TransferableOneWay ListRowAt(int region, int row)
+        {
+            switch (KindOf(region))
+            {
+                case RegionKind.Pawns: return CurrentPawnRowTransferable(row);
+                case RegionKind.Items: return row >= 0 && row < itemRows.Count ? itemRows[row] : null;
+                default: return null;
+            }
+        }
+
+        protected override TransferableOneWayWidget ListWidget(int region)
+        {
+            switch (KindOf(region))
+            {
+                case RegionKind.Pawns: return PawnsWidget();
+                case RegionKind.Items: return ItemsWidget();
+                default: return null;
+            }
+        }
+
+        protected override TransferableTableColumns.WidgetView ListView(int region)
+        {
+            if (adapter == null)
+                return null;
+            switch (KindOf(region))
+            {
+                case RegionKind.Pawns: return adapter.PawnsView;
+                case RegionKind.Items: return adapter.ItemsView;
+                default: return null;
+            }
+        }
+
+        protected override TransferScreenScope CreateOtherView()
+        {
+            return new TransportPodLoadingScope(dialog, adapter, !Classic, swappedIn: true);
+        }
+
+        protected override bool CanStepQuantity()
+        {
+            return AllowQuantityShortcuts();
+        }
+
+        protected override void StepQuantity(int delta)
+        {
+            AdjustQuantityBy(delta);
+        }
+
+        protected override void SetQuantityExtreme(bool max)
+        {
+            if (max)
+                TransferableQuantityHelper.SetToMax(CurrentTransferable, NotifyChanged);
+            else
+                TransferableQuantityHelper.SetToZero(CurrentTransferable, NotifyChanged);
         }
 
         private void TogglePawnSelection(TransferableOneWay transferable)
@@ -686,8 +778,7 @@ namespace RimWorldAccess.Shell
         private void OpenStatBreakdown()
         {
             RefreshModel();
-            TableModel table = Model.CurrentTable;
-            int row = table == null ? -1 : table.Rows.Index - 1;
+            int row = CurrentContentRow();
             var statInfo = adapter != null && row >= 0
                 ? adapter.GetStatExplanation(row)
                 : null;
@@ -767,10 +858,7 @@ namespace RimWorldAccess.Shell
             RegionKind? kind = KindOf(Model.RegionIndex);
             if (kind != RegionKind.Pawns && kind != RegionKind.Items)
                 return null;
-            TableModel table = Model.CurrentTable;
-            if (table == null)
-                return null;
-            int row = table.Rows.Index - 1;
+            int row = CurrentContentRow();
             if (kind == RegionKind.Pawns)
                 return CurrentPawnRowTransferable(row);
             return row >= 0 && row < itemRows.Count ? itemRows[row] : null;
@@ -778,8 +866,7 @@ namespace RimWorldAccess.Shell
 
         private Pawn SelectedPawn()
         {
-            TableModel table = Model.CurrentTable;
-            int row = table == null ? -1 : table.Rows.Index - 1;
+            int row = CurrentContentRow();
             if (KindOf(Model.RegionIndex) == RegionKind.Pawns)
                 return CurrentPawnRowTransferable(row)?.AnyThing as Pawn;
             return CaravanUIHelper.GetSelectedPawn(itemRows, row);

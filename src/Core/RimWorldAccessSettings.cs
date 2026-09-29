@@ -41,6 +41,9 @@ namespace RimWorldAccess
         /// </summary>
         public TradeView DefaultTradeView = TradeView.Classic;
 
+        /// <summary>One view for the caravan formation, split and transport pod screens; Ctrl+Tab writes it.</summary>
+        public TransferView DefaultTransferView = TransferView.Classic;
+
         /// <summary>Announce a table region's shape on entry ("table, 5 columns, 8 rows").</summary>
         public bool AnnounceTableDimensions = true;
 
@@ -178,6 +181,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref AnnounceTerrain, "AnnounceTerrain", true);
             Scribe_Values.Look(ref DefaultWorkMenuView, "DefaultWorkMenuView", WorkMenuView.Focused);
             Scribe_Values.Look(ref DefaultTradeView, "DefaultTradeView", TradeView.Classic);
+            Scribe_Values.Look(ref DefaultTransferView, "DefaultTransferView", TransferView.Classic);
             Scribe_Values.Look(ref AnnounceTableDimensions, "AnnounceTableDimensions", true);
             Scribe_Values.Look(ref AnnounceTabCount, "AnnounceTabCount", true);
             Scribe_Values.Look(ref AnnounceRowColumnPosition, "AnnounceRowColumnPosition", true);
@@ -242,6 +246,13 @@ namespace RimWorldAccess
     /// deal, your goods), Table is vanilla's one sortable list with a column cursor.
     /// </summary>
     public enum TradeView
+    {
+        Classic,
+        Table
+    }
+
+    /// <summary>Classic is one flat list per tab, Left/Right switching tabs; Table is each tab as a sortable table.</summary>
+    public enum TransferView
     {
         Classic,
         Table

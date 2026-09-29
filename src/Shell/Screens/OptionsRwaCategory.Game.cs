@@ -162,6 +162,30 @@ namespace RimWorldAccess.Shell
                 Find.WindowStack.Add(new FloatMenu(options));
             }
 
+            TransferView currentTransferView = settings.DefaultTransferView;
+            if (listing.ButtonTextLabeledPct(
+                "RimWorldAccess.UI.Options.TransferView.Label".Translate(),
+                TransferViewValueLabel(currentTransferView),
+                0.6f, TextAnchor.MiddleLeft, null, TransferViewValueTooltip(currentTransferView)))
+            {
+                List<FloatMenuOption> options = new List<FloatMenuOption>();
+                foreach (TransferView value in (TransferView[])Enum.GetValues(typeof(TransferView)))
+                {
+                    TransferView localValue = value;
+                    options.Add(new FloatMenuOption(TransferViewValueLabel(localValue), delegate
+                    {
+                        if (RimWorldAccessMod_Settings.Settings != null)
+                        {
+                            RimWorldAccessMod_Settings.Settings.DefaultTransferView = localValue;
+                        }
+                    })
+                    {
+                        tooltip = new TipSignal(TransferViewValueTooltip(localValue)),
+                    });
+                }
+                Find.WindowStack.Add(new FloatMenu(options));
+            }
+
             bool forcedSlowdowns = settings.AnnounceForcedSlowdowns;
             listing.CheckboxLabeled(
                 "RimWorldAccess.UI.Options.ForcedSlowdowns.Label".Translate(),
@@ -327,6 +351,20 @@ namespace RimWorldAccess.Shell
             return (view == TradeView.Classic
                 ? "RimWorldAccess.UI.Options.TradeView.ClassicDesc"
                 : "RimWorldAccess.UI.Options.TradeView.TableDesc").Translate();
+        }
+
+        private static string TransferViewValueLabel(TransferView view)
+        {
+            return (view == TransferView.Classic
+                ? "RimWorldAccess.UI.Options.TradeView.Classic"
+                : "RimWorldAccess.UI.Options.TradeView.Table").Translate();
+        }
+
+        private static string TransferViewValueTooltip(TransferView view)
+        {
+            return (view == TransferView.Classic
+                ? "RimWorldAccess.UI.Options.TransferView.ClassicDesc"
+                : "RimWorldAccess.UI.Options.TransferView.TableDesc").Translate();
         }
     }
 

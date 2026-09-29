@@ -1,0 +1,1 @@
+Fixed Shift+Enter on a caravan or pod row pressing Send instead of taking as much as you can carry, and Alt+I on the split caravan's pawns tab opening the wrong info card. These screens also scroll now to keep the focused row visible.

@@ -377,4 +377,7 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>三个独立列表：贸易商的货物、进行中的交易及其收支、你自己的货物。用左右方向键在它们之间切换。</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>表格</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>单个可排序表格，包含全部内容，与屏幕上的交易窗口一致。</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>默认远行队与运输舱视图</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>组建远行队、拆分远行队和装载运输舱时，每个选项卡一个列表。用左右方向键切换选项卡，按 Tab 查看摘要和按钮。</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>每个选项卡显示为可排序表格，与屏幕上的窗口一致。</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

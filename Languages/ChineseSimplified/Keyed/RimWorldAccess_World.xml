@@ -91,6 +91,8 @@
   <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>此时无法重组远行队</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
   <RimWorldAccess.Caravan.Form.OpeningReformation>正在打开远行队重组对话框</RimWorldAccess.Caravan.Form.OpeningReformation>
   <RimWorldAccess.Caravan.Form.OpenInstructions>已打开组建远行队对话框。Tab 查看摘要，Alt+I 查看，Alt+S 派遣。</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <!-- A column or icon value on a classic caravan, split or transport pod row: {0} is the game's own column or icon label, {1} its value. -->
+  <RimWorldAccess.Caravan.Classic.ColumnValue>{0}: {1}</RimWorldAccess.Caravan.Classic.ColumnValue>
   <RimWorldAccess.Caravan.Form.RouteStillNeeded>尚未选择目的地。请先激活 {0} 按钮选择目的地，然后再派遣。</RimWorldAccess.Caravan.Form.RouteStillNeeded>
   <RimWorldAccess.Caravan.Form.SummaryRegionName>概要</RimWorldAccess.Caravan.Form.SummaryRegionName>
   <RimWorldAccess.Caravan.Form.SummaryDestination>目的地: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>

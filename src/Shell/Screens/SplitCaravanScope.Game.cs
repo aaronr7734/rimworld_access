@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HarmonyLib;
 using RimWorld;
 using RimWorld.Planet;
@@ -15,8 +16,10 @@ namespace RimWorldAccess.Shell
     /// destination sub-mode, no auto-provision, and the dialog never leaves the WindowStack, so
     /// <see cref="SplitCaravanState"/> is a thin bridge.
     ///
-    /// Regions: Pawns, Items, Travel supplies and Summary, plus the automatic Buttons region.
-    /// The first three are full TABLE regions — identity/count column plus the shared
+    /// Regions: Pawns, Items, Travel supplies and Summary, plus the automatic Buttons region,
+    /// shown as flat lists in the classic view and as tables in the table view (see
+    /// <see cref="TransferScreenScope"/>). The classic Summary reads one caravan at a time, the
+    /// new one first, and Left/Right flip it to the other. In the table view the first three are full TABLE regions — identity/count column plus the shared
     /// <see cref="TransferableTableColumns"/> data columns driven by the dialog's own widget
     /// draw flags. Summary is a 3-column stat table (name, new caravan, original caravan),
     /// mirroring the two stat panels vanilla itself draws side by side. Enter on a stat row
@@ -41,7 +44,7 @@ namespace RimWorldAccess.Shell
     /// here, but a pawn split out of a vehicle caravan can still be seat-assigned, so pawn-row
     /// mutations gate on <see cref="PawnLockedAnnounce"/>.
     /// </summary>
-    public sealed class SplitCaravanScope : ScreenScope
+    public sealed class SplitCaravanScope : TransferScreenScope
     {
         private const int PawnsRegion = 0;
         private const int ItemsRegion = 1;
@@ -67,9 +70,25 @@ namespace RimWorldAccess.Shell
         private readonly List<ScreenAction> actions = new List<ScreenAction>();
         private bool announcedOpen;
 
+        /// <summary>Which caravan the classic Summary is reading; the new one until Left/Right flips it.</summary>
+        private bool summaryShowsOriginal;
+        private bool announceSummaryCaravan;
+
         public SplitCaravanScope(Dialog_SplitCaravan dialog)
+            : this(dialog, OpensClassic, swappedIn: false)
+        {
+        }
+
+        private SplitCaravanScope(Dialog_SplitCaravan dialog, bool classic, bool swappedIn)
+            : base(classic, swappedIn)
         {
             this.dialog = dialog;
+
+            if (classic)
+            {
+                Claim(SharedMenuGrammar.NextHorizontal, delegate { FlipSummaryCaravan(); }, when: () => InSummaryRegion);
+                Claim(SharedMenuGrammar.PreviousHorizontal, delegate { FlipSummaryCaravan(); }, when: () => InSummaryRegion);
+            }
 
             Claim("splitCaravan.addMaxOrSelectAll", delegate { HandleShiftEnter(); }, when: NotSummaryRegion);
             Claim("splitCaravan.removeItem", delegate { HandleDeleteItem(); }, when: NotSummaryRegion);
@@ -104,11 +123,6 @@ namespace RimWorldAccess.Shell
         protected override bool EnableTypeahead
         {
             get { return true; }
-        }
-
-        protected override bool ContentRegionSearchable(int region)
-        {
-            return region != SummaryRegion;
         }
 
         internal bool HasActiveTypeahead
@@ -150,7 +164,7 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>Table region column counts: identity/count column (1) plus the shared data columns; Summary is a fixed 3-column (name, new caravan, original caravan) stat table.</summary>
-        protected override int ContentColumnCount(int region)
+        protected override int TableColumnCount(int region)
         {
             if (dialog == null)
                 return 0;
@@ -193,7 +207,20 @@ namespace RimWorldAccess.Shell
         {
             if (dialog == null)
                 return;
-            if (pawnRows.Count == 0 && itemRows.Count == 0 && supplyRows.Count == 0)
+            if (Classic)
+            {
+                List<TransferableOneWay> all = GetTransferables();
+                pawnRows.Clear();
+                foreach (TransferableOneWay t in ClassicListRows(ListWidget(PawnsRegion), CaravanUIHelper.GetPawnSectionRows(all, null)))
+                    pawnRows.Add(new CaravanUIHelper.PawnSectionRow(t));
+                itemRows.Clear();
+                itemRows.AddRange(ClassicListRows(ListWidget(ItemsRegion),
+                    CaravanUIHelper.FilterByCategory(all, CaravanUIHelper.TransferableCategory.Items).Select(t => new CaravanUIHelper.PawnSectionRow(t))));
+                supplyRows.Clear();
+                supplyRows.AddRange(ClassicListRows(ListWidget(SuppliesRegion),
+                    CaravanUIHelper.FilterByCategory(all, CaravanUIHelper.TransferableCategory.FoodAndMedicine).Select(t => new CaravanUIHelper.PawnSectionRow(t))));
+            }
+            else if (pawnRows.Count == 0 && itemRows.Count == 0 && supplyRows.Count == 0)
             {
                 List<TransferableOneWay> all = GetTransferables();
                 TransferableOneWayWidget pawnsWidget = pawnsTransferField?.GetValue(dialog) as TransferableOneWayWidget;
@@ -206,12 +233,12 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        protected override ElementDescription DescribeContentItem(int region, int index)
+        protected override ElementDescription DescribeTransferItem(int region, int index)
         {
             ElementDescription d = new ElementDescription();
             if (region == SummaryRegion)
             {
-                d.Label = StatShortName(index);
+                d.Label = Classic ? GetStatValueText(index, summaryShowsOriginal) : StatShortName(index);
                 return d;
             }
             if (region == PawnsRegion)
@@ -291,8 +318,8 @@ namespace RimWorldAccess.Shell
 
             if (region == SummaryRegion)
             {
-                // Row default (ActivateContentCell declined): explain the new caravan's value.
-                OpenStatBreakdown(index, isSource: false);
+                // Row default (ActivateContentCell declined): the caravan the classic Summary reads, else the new one.
+                OpenStatBreakdown(index, isSource: Classic && summaryShowsOriginal);
                 return;
             }
 
@@ -463,6 +490,7 @@ namespace RimWorldAccess.Shell
                 actions.Add(new ScreenAction("AcceptButton".Translate().ToString(), Split, "splitCaravan.split"));
                 actions.Add(new ScreenAction("ResetButton".Translate().ToString(), Reset, "splitCaravan.reset"));
                 actions.Add(new ScreenAction("CancelButton".Translate().ToString(), CloseDialog, SharedMenuGrammar.Cancel));
+                AddSwapAction(actions);
                 return actions;
             }
         }
@@ -493,8 +521,10 @@ namespace RimWorldAccess.Shell
             if (announcedOpen || dialog == null)
                 return;
             announcedOpen = true;
-            string tabCount = TabCountFragment();
-            string opening = "RimWorldAccess.Caravan.Split.OpenInstructions".Translate().ToString();
+            string tabCount = Classic || SwappedIn ? null : TabCountFragment();
+            string opening = SwappedIn
+                ? SwappedInAnnouncement()
+                : "RimWorldAccess.Caravan.Split.OpenInstructions".Translate().ToString();
             TolkHelper.SpeakData(string.IsNullOrEmpty(tabCount) ? opening : opening + ". " + tabCount);
 
             if (CaravanVehicleTab.Active)
@@ -511,6 +541,90 @@ namespace RimWorldAccess.Shell
         private bool NotSummaryRegion()
         {
             return Model.RegionIndex != SummaryRegion;
+        }
+
+        protected override int ListRegionCount
+        {
+            get { return SummaryRegion; }
+        }
+
+        protected override bool HasSummaryRegion
+        {
+            get { return true; }
+        }
+
+        protected override TransferableOneWay ListRowAt(int region, int row)
+        {
+            if (region == PawnsRegion)
+                return CurrentPawnRowTransferable(row);
+            if (region == ItemsRegion || region == SuppliesRegion)
+                return IndexedTransferable(RowsFor(region), row);
+            return null;
+        }
+
+        protected override TransferableOneWayWidget ListWidget(int region)
+        {
+            if (dialog == null)
+                return null;
+            System.Reflection.FieldInfo field = region == PawnsRegion ? pawnsTransferField
+                : region == ItemsRegion ? itemsTransferField
+                : region == SuppliesRegion ? foodAndMedicineTransferField
+                : null;
+            return field?.GetValue(dialog) as TransferableOneWayWidget;
+        }
+
+        protected override TransferableTableColumns.WidgetView ListView(int region)
+        {
+            return region < SummaryRegion ? WidgetViewFor(region) : null;
+        }
+
+        protected override TransferScreenScope CreateOtherView()
+        {
+            return new SplitCaravanScope(dialog, !Classic, swappedIn: true);
+        }
+
+        protected override bool CanStepQuantity()
+        {
+            return AllowQuantityShortcuts();
+        }
+
+        protected override void StepQuantity(int delta)
+        {
+            AdjustQuantityBy(delta);
+        }
+
+        protected override void SetQuantityExtreme(bool max)
+        {
+            if (Model.RegionIndex == PawnsRegion && PawnLockedAnnounce(CurrentTransferableForQuantity()))
+                return;
+            if (max)
+                TransferableQuantityHelper.SetToMax(CurrentTransferableForQuantity, NotifyTransferablesChanged);
+            else
+                TransferableQuantityHelper.SetToZero(CurrentTransferableForQuantity, NotifyTransferablesChanged);
+        }
+
+        /// <summary>Classic Summary Left/Right: the same stat for the other caravan, named once.</summary>
+        private void FlipSummaryCaravan()
+        {
+            summaryShowsOriginal = !summaryShowsOriginal;
+            announceSummaryCaravan = true;
+            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
+            AnnounceCurrentItem();
+        }
+
+        protected override string ContentRegionEntryDetail(int region)
+        {
+            return Classic && region == SummaryRegion ? CaravanLabel(summaryShowsOriginal) : null;
+        }
+
+        protected override string AnnouncePrefix(int region, int index)
+        {
+            if (region == SummaryRegion && announceSummaryCaravan)
+            {
+                announceSummaryCaravan = false;
+                return CaravanLabel(summaryShowsOriginal);
+            }
+            return base.AnnouncePrefix(region, index);
         }
 
         /// <summary>Items/Supplies row lists only — Pawns has its own header-aware row type, read via <see cref="CurrentPawnRowTransferable"/>.</summary>
@@ -573,8 +687,7 @@ namespace RimWorldAccess.Shell
         {
             TypeaheadReset();
             int region = Model.RegionIndex;
-            TableModel table = Model.CurrentTable;
-            int index = table == null ? -1 : table.Rows.Index - 1;
+            int index = CurrentContentRow();
 
             if (region == PawnsRegion)
             {
@@ -602,8 +715,7 @@ namespace RimWorldAccess.Shell
         {
             TypeaheadReset();
             int region = Model.RegionIndex;
-            TableModel table = Model.CurrentTable;
-            int index = table == null ? -1 : table.Rows.Index - 1;
+            int index = CurrentContentRow();
             bool isPawnTab = region == PawnsRegion;
 
             TransferableOneWay transferable = isPawnTab
@@ -624,22 +736,15 @@ namespace RimWorldAccess.Shell
             {
                 RefreshModel();
                 TableModel table = Model.CurrentTable;
-                int row = table == null ? -1 : table.Rows.Index - 1;
-                int column = table == null ? 0 : table.ColumnIndex;
-                OpenStatBreakdown(row, isSource: column == 2);
+                bool isSource = table == null ? summaryShowsOriginal : table.ColumnIndex == 2;
+                OpenStatBreakdown(CurrentContentRow(), isSource);
                 return;
             }
 
-            List<TransferableOneWay> rows = RowsFor(Model.RegionIndex);
-            TableModel dataTable = Model.CurrentTable;
-            int index = dataTable == null ? -1 : dataTable.Rows.Index - 1;
-            if (rows.Count > 0 && index >= 0 && index < rows.Count)
+            Thing thing = ListRowAt(Model.RegionIndex, CurrentContentRow())?.AnyThing;
+            if (thing != null)
             {
-                Thing thing = rows[index].AnyThing;
-                if (thing != null)
-                {
-                    Find.WindowStack.Add(new Dialog_InfoCard(thing));
-                }
+                Find.WindowStack.Add(new Dialog_InfoCard(thing));
             }
         }
 
@@ -669,8 +774,7 @@ namespace RimWorldAccess.Shell
         {
             if (Model.RegionIndex == SummaryRegion)
                 return null;
-            TableModel table = Model.CurrentTable;
-            int index = table == null ? -1 : table.Rows.Index - 1;
+            int index = CurrentContentRow();
             if (Model.RegionIndex == PawnsRegion)
                 return CurrentPawnRowTransferable(index)?.AnyThing as Pawn;
             return CaravanUIHelper.GetSelectedPawn(RowsFor(Model.RegionIndex), index);
@@ -776,8 +880,7 @@ namespace RimWorldAccess.Shell
             int currentRegion = Model.RegionIndex;
             if (currentRegion != PawnsRegion && currentRegion != ItemsRegion && currentRegion != SuppliesRegion)
                 return null;
-            TableModel table = Model.CurrentTable;
-            int index = table == null ? -1 : table.Rows.Index - 1;
+            int index = CurrentContentRow();
             if (currentRegion == PawnsRegion)
                 return CurrentPawnRowTransferable(index);
             return IndexedTransferable(RowsFor(currentRegion), index);

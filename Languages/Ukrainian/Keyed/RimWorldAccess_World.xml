@@ -91,6 +91,8 @@
   <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>Зараз неможливо переформувати караван</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
   <RimWorldAccess.Caravan.Form.OpeningReformation>Відкриття діалогу переформування каравану</RimWorldAccess.Caravan.Form.OpeningReformation>
   <RimWorldAccess.Caravan.Form.OpenInstructions>Діалог формування каравану відкрито. Tab — зведення, Alt+I — огляд, Alt+S — відправити.</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <!-- A column or icon value on a classic caravan, split or transport pod row: {0} is the game's own column or icon label, {1} its value. -->
+  <RimWorldAccess.Caravan.Classic.ColumnValue>{0}: {1}</RimWorldAccess.Caravan.Classic.ColumnValue>
   <RimWorldAccess.Caravan.Form.RouteStillNeeded>Призначення ще не вибрано. Активуйте кнопку {0}, щоб вибрати його перед відправленням.</RimWorldAccess.Caravan.Form.RouteStillNeeded>
   <RimWorldAccess.Caravan.Form.SummaryRegionName>Зведення</RimWorldAccess.Caravan.Form.SummaryRegionName>
   <RimWorldAccess.Caravan.Form.SummaryDestination>Призначення: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>

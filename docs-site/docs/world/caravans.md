@@ -18,19 +18,30 @@ If you are not using auto-provision, set the single destination waypoint and pre
 
 ## The formation screen
 
-The formation screen is where you choose who and what travels. **Left** and **Right** move between the tabs (pawns, items, supplies). Press **Tab** to reach the summary and info view, and Tab again to return.
+The formation screen is where you choose who and what travels. It opens in the **classic view**: one list per tab. **Left** and **Right** move between the tabs (pawns, items, travel supplies), and **Up** and **Down** move through the list. Press **Tab** to reach the summary, Tab again for the buttons (Send, Cancel, Reset, Change route), and once more to return to the tab and row you left. **Shift+Tab** goes the other way.
+
+Prefer a table? Press **Ctrl+Tab** (**Option+Tab** on a Mac) to switch to the **table view**, where each tab is a sortable table with one column per value. The screen remembers the view you used last, and so do the split caravan and transport pod screens. You can also pick the default in **Options > RimWorld Access**.
+
+Each row says its name and how many you are taking, then everything the game shows next to it: mass, market value, days until it rots, nutrition, foraging, food eaten per day, ideoligion, xenotype, the little animal icons (rideable, bonded, pregnant, sick), and the description. Moving from colonists to slaves or animals announces the new section. The screen scrolls to keep your row visible, so anyone watching sees it highlighted.
 
 ### Choosing pawns and goods
 
 On the pawns tab, **Space** or **Enter** selects a colonist or animal to bring. Animals with identical name, age, gender, and medical status are grouped into one entry; press **Enter** on a group to pick how many to take. Other animals each get their own slot.
 
-On the items and supplies tabs, **Space** or **Enter** on an entry opens a quantity chooser. In the chooser, **Up** and **Down** change the amount by one, **Home** sets the minimum and **End** the maximum, or type a number directly; **Enter** confirms. Back on the list, **Shift+Enter** takes as many as you can carry within the remaining capacity. Pack animals such as alpacas and buffalo raise that capacity.
+On the items and supplies tabs, **Space** or **Enter** on an entry opens a quantity chooser. In the chooser, **Up** and **Down** change the amount by one, **Home** sets the minimum and **End** the maximum, or type a number directly; **Enter** confirms. Back on the list:
+
+- **Plus** and **Minus** change the amount by one.
+- **Shift+Up** and **Shift+Down** change it by ten, **Ctrl+Up** and **Ctrl+Down** by a hundred.
+- **Shift+Home** takes none and **Shift+End** takes all.
+- **Shift+Enter** takes as many as you can carry within the remaining capacity. Pack animals such as alpacas and buffalo raise that capacity.
+- **Delete** puts the whole row back.
+- **Alt+I** opens the info card, and **Alt+H**, **Alt+M**, **Alt+N**, **Alt+G** and **Alt+K** read a pawn's health, mood, needs, gear and top skills.
 
 Load real food, medicine, and meals on the supplies tab. Colonists can forage in forests and shrublands, but rarely enough to feed the whole group, so pack food rather than relying on it.
 
 ### The summary view
 
-Press **Tab** to reach the summary view. It shows the numbers that decide whether the trip succeeds: total mass, carry capacity, speed, food on hand, foraging rate, visibility, and more. Press **Alt+I** on most values to open the [info card](../concepts/info-card.md) for a breakdown.
+Press **Tab** to reach the summary view. It shows the numbers that decide whether the trip succeeds: total mass and carry capacity, speed, food on hand, foraging rate, visibility, and the destination. Press **Enter** or **Alt+I** on most values for a breakdown.
 
 ## Auto-provision
 

@@ -113,6 +113,9 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Three separate lists: the trader's goods, the deal in progress and its balance, and your own goods. Move between them with the left and right arrows.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Table</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Everything in one sortable table, matching the on-screen trade window.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Default Caravan and Transport Pod View</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>One list per tab for forming caravans, splitting caravans and loading transport pods. Move between the tabs with the left and right arrows, and press Tab for the summary and the buttons.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Each tab as a sortable table, matching the on-screen window.</RimWorldAccess.UI.Options.TransferView.TableDesc>
   <RimWorldAccess.UI.Options.ForcedSlowdowns.Label>Announce Forced Slowdowns From Threats</RimWorldAccess.UI.Options.ForcedSlowdowns.Label>
   <RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>When on, announces when the game forces Normal speed because of a nearby threat, and when the slowdown lifts. Only fires if your chosen speed is faster than Normal.</RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>
 

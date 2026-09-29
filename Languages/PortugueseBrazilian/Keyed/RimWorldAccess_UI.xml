@@ -481,4 +481,7 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Três listas separadas: os itens do comerciante, a negociação em andamento com seu saldo e os seus itens. Navegue entre elas com as setas esquerda e direita.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Tabela</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Tudo em uma única tabela ordenável, igual à janela de negociação exibida na tela.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Visualização Padrão de Caravanas e Cápsulas de Transporte</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>Uma lista por aba para formar caravanas, dividir caravanas e carregar cápsulas de transporte. Mude de aba com as setas esquerda e direita, e pressione Tab para o resumo e os botões.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Cada aba como uma tabela ordenável, igual à janela exibida na tela.</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

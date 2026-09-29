@@ -8,7 +8,7 @@ To launch a group of pods, select a loaded transport pod and press **G** for its
 
 ### Loading
 
-Pod loading uses the same interface as [caravan formation](caravans.md): the pawns, items, and supplies tabs, navigated the same way. **Left** and **Right** switch between tabs, **Tab** reaches the summary view, and **Space** or **Enter** selects a pawn or opens the quantity chooser for an item. **Shift+Enter** takes as many as you can carry. See [caravans](caravans.md) for the full rundown.
+Pod loading uses the same interface as [caravan formation](caravans.md), with a pawns tab and an items tab. **Left** and **Right** switch between tabs, **Tab** reaches the summary and then the buttons, and **Space** or **Enter** selects a pawn or opens the quantity chooser for an item. **Shift+Enter** takes as many as you can carry. **Ctrl+Tab** switches between the classic lists and the table view. Map portals, such as pit gates and ancient complexes, load the same way but have no summary. See [caravans](caravans.md) for the full rundown.
 
 When packed, press **Alt+S** to launch.
 

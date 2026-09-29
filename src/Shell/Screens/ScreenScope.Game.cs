@@ -179,7 +179,7 @@ namespace RimWorldAccess.Shell
             ClaimFallback(SharedMenuGrammar.ActivateAlias, e => ActivateCurrent(), when: ActivateAliasClaimable);
             // Claimed only when this screen names a proceed button at all (declared id or captured
             // action), so a screen with neither never sees the chord.
-            Claim(SharedMenuGrammar.ActivateDefault, e => OnActivateDefaultChord(), when: () => HasDefaultAccept);
+            Claim(SharedMenuGrammar.ActivateDefault, e => OnActivateDefaultChord(), when: () => HasDefaultAccept && !ContentOwnsActivateDefault);
             Claim(SharedMenuGrammar.NextHorizontal, e => OnHorizontal(1), when: HorizontalClaimable);
             Claim(SharedMenuGrammar.PreviousHorizontal, e => OnHorizontal(-1), when: HorizontalClaimable);
             Claim(SharedMenuGrammar.SortColumn, e => ToggleSortCurrentColumn(), when: SortChordClaimable);

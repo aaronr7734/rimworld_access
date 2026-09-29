@@ -755,6 +755,12 @@ namespace RimWorldAccess.Shell
             get { return null; }
         }
 
+        /// <summary>True where the row owns Shift+Enter: the proceed claim, registered first, stands down for the subclass's.</summary>
+        protected virtual bool ContentOwnsActivateDefault
+        {
+            get { return false; }
+        }
+
         /// <summary>Whether this screen names a proceed button at all, by either channel.</summary>
         private bool HasDefaultAccept
         {

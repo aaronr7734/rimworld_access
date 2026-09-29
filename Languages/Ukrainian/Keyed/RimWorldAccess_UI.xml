@@ -466,4 +466,7 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Три окремі списки: товари торговця, поточна угода з її балансом і ваші товари. Переходьте між ними стрілками ліворуч і праворуч.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Таблиця</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Усе в одній таблиці з сортуванням, як у вікні торгівлі на екрані.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Типовий вигляд караванів і транспортних капсул</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>По одному списку на вкладку під час формування й поділу каравану та завантаження транспортних капсул. Перемикайте вкладки стрілками вліво і вправо, натисніть Tab для зведення та кнопок.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Кожна вкладка як таблиця з сортуванням, як у вікні на екрані.</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

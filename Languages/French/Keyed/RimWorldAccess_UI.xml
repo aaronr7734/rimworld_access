@@ -481,4 +481,7 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Trois listes séparées : les marchandises du commerçant, l'échange en cours et son solde, et vos propres marchandises. Passez de l'une à l'autre avec les flèches gauche et droite.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Tableau</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Tout réuni dans un même tableau triable, à l'image de la fenêtre de commerce affichée à l'écran.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Vue par défaut des caravanes et capsules de transport</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>Une liste par onglet pour former une caravane, diviser une caravane et charger des capsules de transport. Passez d'un onglet à l'autre avec les flèches gauche et droite, et appuyez sur Tab pour le résumé et les boutons.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Chaque onglet sous forme de tableau triable, à l'image de la fenêtre affichée à l'écran.</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

@@ -94,6 +94,8 @@
   <RimWorldAccess.Caravan.Form.CannotReformAtThisTime>Şu anda kervan yenilenemez</RimWorldAccess.Caravan.Form.CannotReformAtThisTime>
   <RimWorldAccess.Caravan.Form.OpeningReformation>Kervan yenileme penceresi açılıyor</RimWorldAccess.Caravan.Form.OpeningReformation>
   <RimWorldAccess.Caravan.Form.OpenInstructions>Kervan kurma penceresi açıldı. Özet için Tab, incelemek için Alt+I, göndermek için Alt+S.</RimWorldAccess.Caravan.Form.OpenInstructions>
+  <!-- A column or icon value on a classic caravan, split or transport pod row: {0} is the game's own column or icon label, {1} its value. -->
+  <RimWorldAccess.Caravan.Classic.ColumnValue>{0}: {1}</RimWorldAccess.Caravan.Classic.ColumnValue>
   <RimWorldAccess.Caravan.Form.RouteStillNeeded>Henüz hedef seçilmedi. Göndermeden önce birini seçmek için {0} düğmesine bas.</RimWorldAccess.Caravan.Form.RouteStillNeeded>
   <RimWorldAccess.Caravan.Form.SummaryRegionName>Özet</RimWorldAccess.Caravan.Form.SummaryRegionName>
   <RimWorldAccess.Caravan.Form.SummaryDestination>Hedef: {0}</RimWorldAccess.Caravan.Form.SummaryDestination>

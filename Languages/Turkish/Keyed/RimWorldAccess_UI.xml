@@ -481,4 +481,7 @@
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Üç ayrı liste: tüccarın malları, bakiyesiyle birlikte devam eden anlaşma ve senin malların. Aralarında sol ve sağ ok tuşlarıyla geçiş yap.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Tablo</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Her şey tek bir sıralanabilir tabloda, ekrandaki ticaret penceresiyle aynı düzende.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Varsayılan kervan ve taşıma kapsülü görünümü</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>Kervan kurarken, kervan ayırırken ve taşıma kapsülü yüklerken her sekme için bir liste. Sekmeler arasında sol ve sağ oklarla geçin, özet ve düğmeler için Tab tuşuna basın.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Her sekme, ekrandaki pencereyle aynı düzende sıralanabilir bir tablo olarak.</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

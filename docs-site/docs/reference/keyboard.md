@@ -233,6 +233,9 @@ Biome is announced when you arrow onto a tile, not via a number key.
 | **`]`** | Act on the tile: travel to, trade with, attack, settle, and so on |
 | **G** | Open the selected caravan's gizmos: settle, split, rest, merge |
 | **Delete** | Remove a pawn or item from the caravan |
+| **Ctrl+Tab** | In caravan formation, caravan splitting and pod loading, switch between the classic lists and the table view |
+| **Shift+Up / Shift+Down** | In the classic caravan and pod lists, take ten more or ten fewer (Ctrl for a hundred) |
+| **Shift+Home / Shift+End** | In the classic caravan and pod lists, take none or all |
 | **F8** | Toggle the world view off and return to the colony |
 | **Alt+Home** | Jump to your colony |
 | **Alt+J** | Toggle world-map scanner auto-jump mode |

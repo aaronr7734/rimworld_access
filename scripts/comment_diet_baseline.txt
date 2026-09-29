@@ -429,7 +429,7 @@
 14	src/Compat/WantsAndQuirks/WqWantsTabAdapter.Game.cs
 33	src/Core/GameStartPatch.cs
 24	src/Core/ModLogger.cs
-107	src/Core/RimWorldAccessSettings.cs
+109	src/Core/RimWorldAccessSettings.cs
 15	src/Core/RimWorldAccessVersion.cs
 108	src/Core/StateResetRegistry.cs
 28	src/Core/VanillaAccess.cs
@@ -915,7 +915,7 @@
 64	src/Shell/Screens/BillsScope.Game.cs
 69	src/Shell/Screens/CapturedExtrasRows.cs
 77	src/Shell/Screens/CaravanDrugPoliciesScope.Game.cs
-198	src/Shell/Screens/CaravanFormationScope.Game.cs
+202	src/Shell/Screens/CaravanFormationScope.Game.cs
 101	src/Shell/Screens/CaravanInspectScope.Game.cs
 65	src/Shell/Screens/CaravanOverlayScopes.Game.cs
 5	src/Shell/Screens/CheckboxFloatMenuOption.cs
@@ -1042,7 +1042,7 @@
 27	src/Shell/Screens/ScreenScope.DebugSurface.Game.cs
 121	src/Shell/Screens/ScreenScope.Extras.Game.cs
 308	src/Shell/Screens/ScreenScope.Game.cs
-212	src/Shell/Screens/ScreenScope.Regions.Game.cs
+213	src/Shell/Screens/ScreenScope.Regions.Game.cs
 117	src/Shell/Screens/ScreenScope.Typeahead.Game.cs
 61	src/Shell/Screens/ScreenScopeDrawPatch.Game.cs
 18	src/Shell/Screens/SelectXenogermScope.Game.cs
@@ -1050,7 +1050,7 @@
 41	src/Shell/Screens/ShapeSelectionScope.Game.cs
 15	src/Shell/Screens/SliderDialogScope.Game.cs
 70	src/Shell/Screens/SliderDialogState.cs
-101	src/Shell/Screens/SplitCaravanScope.Game.cs
+105	src/Shell/Screens/SplitCaravanScope.Game.cs
 226	src/Shell/Screens/StartingPawnScreenScope.Game.cs
 141	src/Shell/Screens/StartingSiteScreenScope.Game.cs
 60	src/Shell/Screens/StorageSettingsScope.Game.cs
@@ -1068,8 +1068,9 @@
 70	src/Shell/Screens/ThingFilterMenuScope.Game.cs
 83	src/Shell/Screens/TradeClassicScope.Game.cs
 82	src/Shell/Screens/TradeScope.Game.cs
+75	src/Shell/Screens/TransferScreenScope.Game.cs
 95	src/Shell/Screens/TransferableTableColumns.Game.cs
-101	src/Shell/Screens/TransportPodLoadingScope.Game.cs
+104	src/Shell/Screens/TransportPodLoadingScope.Game.cs
 10	src/Shell/Screens/TreeRegionScope.DebugSurface.Game.cs
 232	src/Shell/Screens/TreeRegionScope.Game.cs
 83	src/Shell/Screens/TreeStatePreserve.Game.cs
@@ -1198,6 +1199,7 @@
 25	src/UI/QuantityMenuRingPatch.cs
 23	src/UI/SliderDialogPatch.cs
 40	src/UI/TransferableQuantityHelper.cs
+11	src/UI/TransferableWidgetLayout.Game.cs
 207	src/UI/TreeNavigationHelper.cs
 45	src/UI/TwoLevelMenuHelper.cs
 54	src/UI/TypeaheadSearchHelper.cs
