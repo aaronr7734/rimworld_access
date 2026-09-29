@@ -915,7 +915,7 @@
 64	src/Shell/Screens/BillsScope.Game.cs
 69	src/Shell/Screens/CapturedExtrasRows.cs
 77	src/Shell/Screens/CaravanDrugPoliciesScope.Game.cs
-205	src/Shell/Screens/CaravanFormationScope.Game.cs
+206	src/Shell/Screens/CaravanFormationScope.Game.cs
 101	src/Shell/Screens/CaravanInspectScope.Game.cs
 65	src/Shell/Screens/CaravanOverlayScopes.Game.cs
 5	src/Shell/Screens/CheckboxFloatMenuOption.cs
@@ -1224,7 +1224,7 @@
 28	src/World/CaravanVehicleTab.Game.cs
 37	src/World/ExternalWorldTargeting.cs
 95	src/World/GearEquipMenuState.cs
-108	src/World/RoutePlannerState.cs
+109	src/World/RoutePlannerState.cs
 23	src/World/SplitCaravanPatch.cs
 17	src/World/SplitCaravanState.cs
 22	src/World/StatBreakdownState.cs

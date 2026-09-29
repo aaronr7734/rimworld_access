@@ -115,7 +115,12 @@ namespace RimWorldAccess
             }
 
             planner.Start(formCaravanDialog);
+            AnnounceCaravanRouteStart();
+        }
 
+        /// <summary>The prompt and fresh route tracking for a caravan route choice the planner has just started, whoever started it.</summary>
+        public static void AnnounceCaravanRouteStart()
+        {
             ResetRouteTracking();
 
             string addWaypointsPrompt = "RoutePlannerAddOneOrMoreWaypoints".Translate();

@@ -735,9 +735,15 @@ namespace RimWorldAccess.Shell
             // VF transpiles the vanilla route button to reroute vehicle caravans through its own
             // planner; this mod-owned button bypasses that transpile, so ask VF for the same
             // decision when it is present.
-            if (VfCaravanRouteCompat.StartRoutePlanning(dialog))
-                return;
-            Find.WorldRoutePlanner.Start(dialog);
+            if (!VfCaravanRouteCompat.StartRoutePlanning(dialog))
+            {
+                Find.WorldRoutePlanner.Start(dialog);
+            }
+            // VF's own vehicle planner announces through its scope; the vanilla planner has no voice of its own.
+            if (Find.WorldRoutePlanner.Active)
+            {
+                RoutePlannerState.AnnounceCaravanRouteStart();
+            }
         }
 
         // ------------------------------------------------------------------
