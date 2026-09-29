@@ -254,6 +254,9 @@ namespace RimWorldAccess.Shell
                     return d;
                 }
                 d.Label = CaravanAnnouncementHelper.BuildItemAnnouncement(row.Transferable, index, pawnRows.Count, includePosition: false);
+                // Vehicle Framework draws a seated pawn's checkbox read-only.
+                d.ReadOnly = CaravanVehicleTab.Active && row.Transferable.AnyThing is Pawn seated
+                    && CaravanVehicleTab.Provider.IsPawnSeatLocked(seated, out _);
                 return d;
             }
             List<TransferableOneWay> rows = RowsFor(region);
@@ -462,8 +465,8 @@ namespace RimWorldAccess.Shell
         protected override void OnRegionChanged(MoveResult result)
         {
             int region = Model.RegionIndex;
-            // Region indexes 0/1/2 match the dialog's own tab values; Summary has no tab.
-            if (dialog != null && region != SummaryRegion)
+            // Region indexes 0/1/2 match the dialog's own tab values; Summary and Buttons have none.
+            if (dialog != null && region < SummaryRegion)
             {
                 SyncGameTab(region);
             }

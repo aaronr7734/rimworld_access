@@ -322,7 +322,11 @@ namespace RimWorldAccess.Shell
             if (hasVehiclesRegion && region == vehiclesRegion)
             {
                 if (index >= 0 && index < vehicleRows.Count)
+                {
                     d.Label = CaravanVehicleTab.Provider.DescribeRow(vehicleRows[index]);
+                    if (Classic)
+                        d.Extras = VehicleRowDetail(vehicleRows[index]);
+                }
                 return d;
             }
             if (region == pawnsRegion)
@@ -338,6 +342,9 @@ namespace RimWorldAccess.Shell
                     return d;
                 }
                 d.Label = CaravanAnnouncementHelper.BuildItemAnnouncement(row.Transferable, index, pawnRows.Count, includePosition: false);
+                // Vehicle Framework draws a seated pawn's checkbox read-only.
+                d.ReadOnly = hasVehiclesRegion && row.Transferable.AnyThing is Pawn seated
+                    && CaravanVehicleTab.Provider.IsPawnSeatLocked(seated, out _);
                 return d;
             }
             List<TransferableOneWay> rows = RowsFor(region);
@@ -582,9 +589,9 @@ namespace RimWorldAccess.Shell
                 CaravanVehicleTab.Provider.SyncTab(true, 0);
                 return;
             }
-            // Summary has no visual-tab counterpart: leave the dialog on whichever tab was last
-            // synced.
-            if (region == summaryRegion)
+            // Summary and the Buttons region have no visual tab: leave the dialog on whichever tab
+            // was last synced.
+            if (region >= summaryRegion)
                 return;
             // Region indices are offset by one whenever the Vehicles region exists (see the class
             // remarks), so re-derive the 0/1/2 vanilla tab index.
@@ -844,6 +851,22 @@ namespace RimWorldAccess.Shell
         protected override TransferableTableColumns.WidgetView ListView(int region)
         {
             return region == pawnsRegion || region == itemsRegion || region == suppliesRegion ? WidgetViewFor(region) : null;
+        }
+
+        /// <summary>The card's stat lines; column 0, the selected state, is already in the row label.</summary>
+        private static string VehicleRowDetail(TransferableOneWay vehicle)
+        {
+            var parts = new List<string>();
+            for (int column = 1; column < CaravanVehicleTab.Provider.ColumnCount; column++)
+            {
+                string text = CaravanVehicleTab.Provider.CellText(vehicle, column);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    parts.Add("RimWorldAccess.Caravan.Classic.ColumnValue"
+                        .Translate(CaravanVehicleTab.Provider.ColumnInfo(column).Label, text).ToString());
+                }
+            }
+            return string.Join(". ", parts);
         }
 
         protected override TransferScreenScope CreateOtherView()

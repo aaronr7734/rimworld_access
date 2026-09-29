@@ -1,0 +1,1 @@
+Fixed the caravan formation and split caravan windows going blank on screen while the keyboard was on their buttons. Pawns seated in a vehicle now read as read-only, and in the classic view vehicle rows also read their speed, cargo capacity and value.
