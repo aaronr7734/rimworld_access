@@ -25,8 +25,8 @@ namespace RimWorldAccess.Shell
     /// press Unity polled and "click" one the game's GUI received, so a press with no click beside it
     /// never reached RimWorld; "pointer" lines mark every change in host focus and in whether the
     /// pointer is on the game's surface. A "scope" line reads "push"/"pop"/"attach" for genuine stack
-    /// transitions and "refloat" for a mirror re-floating a scope it already owns — the latter repeats
-    /// every OnGUI pass by design and can be filtered out when reading a log.
+    /// transitions and "refloat" for a mirror re-floating a scope it already owns; a per-pass mirror
+    /// re-float is traced only when it changes the effective top.
     /// </summary>
     public static class FlightRecorder
     {

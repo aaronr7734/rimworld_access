@@ -28,6 +28,7 @@ namespace RimWorldAccess.Shell
         private FocusScope baseScope;
         private int reconcileDepth;
         private FocusScope reconcilePreTop;
+        private FocusScope reconcileRefloated;
         private int refocusSuppressionDepth;
 
         /// <summary>True inside a <see cref="BeginReconcile"/>/<see cref="EndReconcile"/> bracket.</summary>
@@ -126,8 +127,9 @@ namespace RimWorldAccess.Shell
         /// Inside a <see cref="BeginReconcile"/> bracket a re-float reorders the stack but fires no
         /// focus events; <see cref="EndReconcile"/> fires them once, and only if the effective top
         /// changed, which is what stops per-frame mirror reconciles from re-announcing every frame.
-        /// A re-float traces as "refloat", not "push", so a mirror walk cannot bury genuine
-        /// transitions in the QA recorder.
+        /// A re-float traces as "refloat", not "push", and inside a reconcile bracket it traces
+        /// only from <see cref="EndReconcile"/>, when the batch changed the effective top: mirrors
+        /// re-float every pass, and tracing each one buries genuine transitions in the recorder.
         /// </summary>
         public void Push(FocusScope scope)
         {
@@ -155,7 +157,14 @@ namespace RimWorldAccess.Shell
                 scope.OnFocus();
                 scope.AfterFocusDispatch();
             }
-            ScopeTraceSink?.Invoke((refloat ? "refloat " : "push ") + scope.Name);
+            if (refloat && Reconciling)
+            {
+                reconcileRefloated = scope;
+            }
+            else
+            {
+                ScopeTraceSink?.Invoke((refloat ? "refloat " : "push ") + scope.Name);
+            }
         }
 
         /// <summary>
@@ -188,11 +197,17 @@ namespace RimWorldAccess.Shell
                 return;
             }
             FocusScope preTop = reconcilePreTop;
+            FocusScope refloated = reconcileRefloated;
             reconcilePreTop = null;
+            reconcileRefloated = null;
             FocusScope newTop = Top;
             if (ReferenceEquals(newTop, preTop))
             {
                 return;
+            }
+            if (newTop != null && ReferenceEquals(newTop, refloated))
+            {
+                ScopeTraceSink?.Invoke("refloat " + newTop.Name);
             }
             // A scope popped mid-batch already ran its teardowns, so OnUnfocus fires only when the
             // pre-batch top is still on the stack, merely buried.

@@ -759,6 +759,45 @@ public class FocusStackTests
     }
 
     [Fact]
+    public void Reconcile_RefloatTrace_OnlyWhenTheBatchChangesTheTop()
+    {
+        var core = new FocusStackCore();
+        var journal = new List<string>();
+        var a = new RecordingScope("trace-a", journal);
+        var b = new RecordingScope("trace-b", journal);
+        core.Push(a);
+        core.Push(b);
+
+        // The sink is static and other test classes run in parallel, so keep only this test's lines.
+        var trace = new List<string>();
+        Action<string> previous = FocusStackCore.ScopeTraceSink;
+        FocusStackCore.ScopeTraceSink = line =>
+        {
+            if (line.Contains("trace-"))
+            {
+                lock (trace) trace.Add(line);
+            }
+        };
+        try
+        {
+            core.BeginReconcile();
+            core.Push(a);
+            core.Push(b);
+            core.EndReconcile();
+            Assert.Empty(trace);
+
+            core.BeginReconcile();
+            core.Push(a);
+            core.EndReconcile();
+            Assert.Equal(new[] { "refloat trace-a" }, trace);
+        }
+        finally
+        {
+            FocusStackCore.ScopeTraceSink = previous;
+        }
+    }
+
+    [Fact]
     public void Reconcile_NewTopInsideBracket_FiresFocusEventsOnceAtEnd()
     {
         var core = new FocusStackCore();
