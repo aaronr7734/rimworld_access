@@ -348,10 +348,15 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>Ends the current job so a changed toggle takes effect immediately.</summary>
-        internal static void InterruptForRethink(Pawn pawn)
+        /// <summary>
+        /// Ends the current job so a changed setting takes effect now. A player-ordered job is
+        /// left to finish unless <paramref name="replacesPlayerOrder"/>: the autopilot's think node
+        /// only runs once the pawn needs a new job, so it takes over when that order ends.
+        /// </summary>
+        internal static void InterruptForRethink(Pawn pawn, bool replacesPlayerOrder = false)
         {
-            if (pawn.Spawned && pawn.Drafted && pawn.jobs != null)
+            if (pawn.Spawned && pawn.Drafted && pawn.jobs != null
+                && (replacesPlayerOrder || pawn.CurJob == null || !pawn.CurJob.playerForced))
             {
                 pawn.jobs.EndCurrentJob(Verse.AI.JobCondition.InterruptForced);
             }

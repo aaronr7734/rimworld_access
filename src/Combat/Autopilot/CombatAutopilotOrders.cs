@@ -133,7 +133,7 @@ namespace RimWorldAccess
                 }
                 if (!queue)
                 {
-                    CombatAutopilotGizmoPatch.InterruptForRethink(pawn);
+                    CombatAutopilotGizmoPatch.InterruptForRethink(pawn, replacesPlayerOrder: true);
                 }
             }
             if (count == 0)

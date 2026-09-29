@@ -1,0 +1,1 @@
+Turning on search and destroy, or changing a pawn's combat policy, patrol, hunting or autocast settings, no longer cancels an order you just gave. The pawn finishes it first, then the autopilot takes over. Engage orders still take effect right away.
