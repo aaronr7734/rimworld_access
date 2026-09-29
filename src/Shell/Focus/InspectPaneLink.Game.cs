@@ -79,6 +79,10 @@ namespace RimWorldAccess.Shell
                     return;
                 }
 
+                if (TryRehomeOnReplacement(row))
+                {
+                    return;
+                }
                 SyncSelection(row);
 
                 if (openTab == null)
@@ -95,6 +99,29 @@ namespace RimWorldAccess.Shell
             {
                 ModLogger.LimitedError("Inspect pane link reconcile error", ex);
             }
+        }
+
+        /// <summary>Vanilla moves the selection onto the thing that replaces a finished frame or
+        /// blueprint in place; the tree follows it as the drawn pane does.</summary>
+        private static bool TryRehomeOnReplacement(InspectionTreeItem row)
+        {
+            InspectionTreeItem node = row;
+            while (node != null && node.Type != InspectionTreeItem.ItemType.Object)
+            {
+                node = node.Parent;
+            }
+            if (!(node?.Data is Thing dead) || !dead.Destroyed)
+            {
+                return false;
+            }
+            Thing replacement = Find.Selector.SingleSelectedThing;
+            if (replacement == null || replacement == dead || !replacement.Spawned
+                || !replacement.OccupiedRect().Contains(dead.Position))
+            {
+                return false;
+            }
+            WindowlessInspectionState.RehomeOnReplacement(replacement);
+            return true;
         }
 
         /// <summary>

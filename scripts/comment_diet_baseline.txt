@@ -104,7 +104,7 @@
 53	src/Building/ZoneSelectionHelper.cs
 47	src/Building/ZoneUndoTracker.cs
 6	src/Combat/Autopilot/CombatAutopilotDebug.cs
-61	src/Combat/Autopilot/CombatAutopilotGizmos.cs
+65	src/Combat/Autopilot/CombatAutopilotGizmos.cs
 29	src/Combat/Autopilot/CombatAutopilotOrders.cs
 47	src/Combat/Autopilot/CombatAutopilotState.cs
 7	src/Combat/Autopilot/CombatPolicy.cs
@@ -622,7 +622,7 @@
 66	src/Inspection/ThingFilterHelper.cs
 55	src/Inspection/ThingFilterMenuState.cs
 73	src/Inspection/ThingFilterSessionCore.cs
-54	src/Inspection/WindowlessInspectionState.cs
+56	src/Inspection/WindowlessInspectionState.cs
 71	src/Inspection/WindowlessInventoryState.cs
 21	src/Learning/ConceptHelpOverrideDef.cs
 28	src/Learning/ConceptHelpOverrides.cs
@@ -843,7 +843,7 @@
 16	src/Shell/Focus/FocusStack.cs
 123	src/Shell/Focus/FocusStackCore.cs
 13	src/Shell/Focus/ICharSink.cs
-66	src/Shell/Focus/InspectPaneLink.Game.cs
+68	src/Shell/Focus/InspectPaneLink.Game.cs
 62	src/Shell/Focus/MainTabWindowLink.Game.cs
 56	src/Shell/Focus/MapOverlayScopes.Game.cs
 43	src/Shell/Focus/MapScope.Architect.Game.cs

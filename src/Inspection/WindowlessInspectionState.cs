@@ -22,6 +22,7 @@ namespace RimWorldAccess
         private static IntVec3 inspectionPosition;
         private static object parentObject = null;
         private static List<object> previousSelection = new List<object>();
+        private static bool openedAtCell;
 
         /// <summary>The tree the scope is presenting, kept here so a re-pushed scope can re-seed.</summary>
         private static InspectionTreeItem treeRoot;
@@ -119,6 +120,7 @@ namespace RimWorldAccess
                 var rootItem = InspectionTreeBuilder.BuildTree(objects);
 
                 IsActive = true;
+                openedAtCell = true;
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
                 PresentTree(rootItem, objects.Count == 1
@@ -172,6 +174,7 @@ namespace RimWorldAccess
                 var rootItem = InspectionTreeBuilder.BuildTree(objects);
 
                 IsActive = true;
+                openedAtCell = false;
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
                 // Only this path falls through to the row announcement when the lazy load yields
@@ -270,6 +273,7 @@ namespace RimWorldAccess
                 var rootItem = InspectionTreeBuilder.BuildTree(objects, mode);
 
                 IsActive = true;
+                openedAtCell = false;
                 SoundDefOf.TabOpen.PlayOneShotOnCamera();
 
                 PresentTree(rootItem, InspectionTreeOpening.SingleObject);
@@ -302,6 +306,25 @@ namespace RimWorldAccess
                     }
                 }
             }
+        }
+
+        /// <summary>Reopens on the thing that replaced the panel's object in place, keeping the
+        /// walk-back parent and the selection Escape restores.</summary>
+        internal static void RehomeOnReplacement(Thing replacement)
+        {
+            object parent = parentObject;
+            object[] restore = previousSelection.ToArray();
+            if (openedAtCell)
+            {
+                Open(inspectionPosition);
+            }
+            else
+            {
+                OpenForObject(replacement, parent);
+            }
+            parentObject = parent;
+            previousSelection.Clear();
+            previousSelection.AddRange(restore);
         }
 
         /// <summary>
