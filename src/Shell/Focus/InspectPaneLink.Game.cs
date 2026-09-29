@@ -123,7 +123,8 @@ namespace RimWorldAccess.Shell
             object obj = node.Data;
             if (obj is Thing thing)
             {
-                if (!Find.Selector.IsSelected(thing))
+                // A finished frame is destroyed under the open tree; Select would log every pass.
+                if (!thing.Destroyed && !Find.Selector.IsSelected(thing))
                 {
                     Find.Selector.ClearSelection();
                     Find.Selector.Select(thing, playSound: false, forceDesignatorDeselect: false);
