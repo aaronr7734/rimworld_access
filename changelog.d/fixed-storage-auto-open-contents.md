@@ -1,0 +1,1 @@
+Fixed the inspection panel jumping into Contents, reopening after you close it, and throwing an error on Escape with storage mods that open the Contents tab on selection, like Adaptive Storage Framework. You can leave that mod setting turned on.

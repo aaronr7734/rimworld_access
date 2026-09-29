@@ -290,15 +290,17 @@ namespace RimWorldAccess
 
             if (previousSelection.Count > 0)
             {
+                // Snapshot first: a mod's Select postfix can re-enter Open and rewrite the list.
+                object[] restore = previousSelection.ToArray();
+                previousSelection.Clear();
                 Find.Selector.ClearSelection();
-                foreach (var obj in previousSelection)
+                foreach (var obj in restore)
                 {
                     if (obj is Thing thing && thing.Spawned)
                     {
                         Find.Selector.Select(thing, playSound: false, forceDesignatorDeselect: false);
                     }
                 }
-                previousSelection.Clear();
             }
         }
 

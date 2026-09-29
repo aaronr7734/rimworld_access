@@ -16,11 +16,34 @@ namespace RimWorldAccess
     ///
     /// Stands down for the gene tabs, which <see cref="GeneInspectionPatch"/> claims for their own
     /// state, and under the info card or any foreground dialog, where the caller is a link inside
-    /// a modal the player is still driving.
+    /// a modal the player is still driving. Also stands down for an open fired from inside
+    /// <c>Selector.Select</c>: storage mods (Adaptive Storage Framework, LWM Deep Storage) open
+    /// their contents tab from a selection postfix, and the shell selects things constantly
+    /// (map cursor, tree rows, selection restore on close), so treating those as intent would
+    /// hijack the tree on every select. The drawn pane still opens the tab for the viewer.
     /// </summary>
     [HarmonyPatch(typeof(InspectPaneUtility), "OpenTab")]
     public static class InspectTabOpenBridgePatch
     {
+        private static int selectDepth;
+
+        [HarmonyPatch(typeof(Selector), nameof(Selector.Select))]
+        private static class SelectScopePatch
+        {
+            [HarmonyPrefix]
+            private static void Prefix()
+            {
+                selectDepth++;
+            }
+
+            [HarmonyFinalizer]
+            private static Exception Finalizer(Exception __exception)
+            {
+                selectDepth--;
+                return __exception;
+            }
+        }
+
         [HarmonyPostfix]
         public static void Postfix(Type inspectTabType, InspectTabBase __result)
         {
@@ -28,6 +51,7 @@ namespace RimWorldAccess
             {
                 // A null result means no such tab on the selected thing, so nothing opened.
                 if (__result == null || inspectTabType == null
+                    || selectDepth > 0
                     || Current.ProgramState != ProgramState.Playing
                     || InfoCardState.IsActive
                     || ShellGuards.ForeignDialogWindowAbove())
