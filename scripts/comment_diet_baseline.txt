@@ -915,7 +915,7 @@
 64	src/Shell/Screens/BillsScope.Game.cs
 69	src/Shell/Screens/CapturedExtrasRows.cs
 77	src/Shell/Screens/CaravanDrugPoliciesScope.Game.cs
-204	src/Shell/Screens/CaravanFormationScope.Game.cs
+205	src/Shell/Screens/CaravanFormationScope.Game.cs
 101	src/Shell/Screens/CaravanInspectScope.Game.cs
 65	src/Shell/Screens/CaravanOverlayScopes.Game.cs
 5	src/Shell/Screens/CheckboxFloatMenuOption.cs
@@ -1050,7 +1050,7 @@
 41	src/Shell/Screens/ShapeSelectionScope.Game.cs
 15	src/Shell/Screens/SliderDialogScope.Game.cs
 70	src/Shell/Screens/SliderDialogState.cs
-106	src/Shell/Screens/SplitCaravanScope.Game.cs
+110	src/Shell/Screens/SplitCaravanScope.Game.cs
 226	src/Shell/Screens/StartingPawnScreenScope.Game.cs
 141	src/Shell/Screens/StartingSiteScreenScope.Game.cs
 60	src/Shell/Screens/StorageSettingsScope.Game.cs
@@ -1068,7 +1068,7 @@
 70	src/Shell/Screens/ThingFilterMenuScope.Game.cs
 83	src/Shell/Screens/TradeClassicScope.Game.cs
 82	src/Shell/Screens/TradeScope.Game.cs
-75	src/Shell/Screens/TransferScreenScope.Game.cs
+76	src/Shell/Screens/TransferScreenScope.Game.cs
 95	src/Shell/Screens/TransferableTableColumns.Game.cs
 104	src/Shell/Screens/TransportPodLoadingScope.Game.cs
 10	src/Shell/Screens/TreeRegionScope.DebugSurface.Game.cs

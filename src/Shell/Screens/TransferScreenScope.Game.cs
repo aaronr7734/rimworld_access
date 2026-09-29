@@ -460,6 +460,21 @@ namespace RimWorldAccess.Shell
             return string.Join(". ", parts);
         }
 
+        /// <summary>A Vehicle Framework card's stat lines; column 0, the selected state, is already in the row label.</summary>
+        internal static string VehicleDetail(TransferableOneWay vehicle)
+        {
+            var parts = new List<string>();
+            for (int column = 1; column < CaravanVehicleTab.Provider.ColumnCount; column++)
+            {
+                string text = CaravanVehicleTab.Provider.CellText(vehicle, column);
+                if (!string.IsNullOrEmpty(text))
+                {
+                    parts.Add(Labelled(CaravanVehicleTab.Provider.ColumnInfo(column).Label, text));
+                }
+            }
+            return string.Join(". ", parts);
+        }
+
         private static string Labelled(string label, string value)
         {
             return "RimWorldAccess.Caravan.Classic.ColumnValue".Translate(label, value).ToString();

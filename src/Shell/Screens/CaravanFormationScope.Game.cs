@@ -325,7 +325,7 @@ namespace RimWorldAccess.Shell
                 {
                     d.Label = CaravanVehicleTab.Provider.DescribeRow(vehicleRows[index]);
                     if (Classic)
-                        d.Extras = VehicleRowDetail(vehicleRows[index]);
+                        d.Extras = TransferRowDetail.VehicleDetail(vehicleRows[index]);
                 }
                 return d;
             }
@@ -342,9 +342,13 @@ namespace RimWorldAccess.Shell
                     return d;
                 }
                 d.Label = CaravanAnnouncementHelper.BuildItemAnnouncement(row.Transferable, index, pawnRows.Count, includePosition: false);
-                // Vehicle Framework draws a seated pawn's checkbox read-only.
-                d.ReadOnly = hasVehiclesRegion && row.Transferable.AnyThing is Pawn seated
-                    && CaravanVehicleTab.Provider.IsPawnSeatLocked(seated, out _);
+                // Vehicle Framework draws a seated pawn's checkbox read-only; the composer speaks
+                // that state only for a role, and these rows have none.
+                if (hasVehiclesRegion && row.Transferable.AnyThing is Pawn seated
+                    && CaravanVehicleTab.Provider.IsPawnSeatLocked(seated, out _))
+                {
+                    d.Label += ", " + TranslatedShellVocabulary.Instance.Word(ElementStateWord.ReadOnly);
+                }
                 return d;
             }
             List<TransferableOneWay> rows = RowsFor(region);
@@ -657,11 +661,15 @@ namespace RimWorldAccess.Shell
             var method = AccessTools.Method(typeof(Dialog_FormCaravan), "DebugTryFormCaravanInstantly");
             if (method == null)
                 return;
+            // A formed caravan closes the dialog, and PostClose must not call that a cancellation.
+            CaravanFormationState.NoteSendAttempted();
             if ((bool)method.Invoke(dialog, null))
             {
                 SoundDefOf.Tick_High.PlayOneShotOnCamera();
                 dialog.Close(doCloseSound: false);
+                return;
             }
+            CaravanFormationState.ResetSendAttempted();
         }
 
         /// <summary>
@@ -851,22 +859,6 @@ namespace RimWorldAccess.Shell
         protected override TransferableTableColumns.WidgetView ListView(int region)
         {
             return region == pawnsRegion || region == itemsRegion || region == suppliesRegion ? WidgetViewFor(region) : null;
-        }
-
-        /// <summary>The card's stat lines; column 0, the selected state, is already in the row label.</summary>
-        private static string VehicleRowDetail(TransferableOneWay vehicle)
-        {
-            var parts = new List<string>();
-            for (int column = 1; column < CaravanVehicleTab.Provider.ColumnCount; column++)
-            {
-                string text = CaravanVehicleTab.Provider.CellText(vehicle, column);
-                if (!string.IsNullOrEmpty(text))
-                {
-                    parts.Add("RimWorldAccess.Caravan.Classic.ColumnValue"
-                        .Translate(CaravanVehicleTab.Provider.ColumnInfo(column).Label, text).ToString());
-                }
-            }
-            return string.Join(". ", parts);
         }
 
         protected override TransferScreenScope CreateOtherView()
