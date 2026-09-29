@@ -199,16 +199,15 @@ namespace RimWorldAccess
                 ShellBindingOverrideLines = new List<string>();
             Scribe_Values.Look(ref AnnounceHotkeyPart, "AnnounceHotkeyPart", true);
             // The combined type+state toggle was split into separate parts; seed both from the
-            // legacy value so a save that had silenced them stays silenced.
+            // legacy value so a save that had silenced them stays silenced. The saving default
+            // must stay true: Scribe_Values skips writing a value equal to its default.
+            bool legacyRoleState = true;
             if (Scribe.mode == LoadSaveMode.LoadingVars)
             {
-                bool legacyRoleState = true;
                 Scribe_Values.Look(ref legacyRoleState, "AnnounceRoleStatePart", true);
-                AnnounceRolePart = legacyRoleState;
-                AnnounceStatePart = legacyRoleState;
             }
-            Scribe_Values.Look(ref AnnounceRolePart, "AnnounceRolePart", AnnounceRolePart);
-            Scribe_Values.Look(ref AnnounceStatePart, "AnnounceStatePart", AnnounceStatePart);
+            Scribe_Values.Look(ref AnnounceRolePart, "AnnounceRolePart", legacyRoleState);
+            Scribe_Values.Look(ref AnnounceStatePart, "AnnounceStatePart", legacyRoleState);
             Scribe_Values.Look(ref AnnounceExtrasPart, "AnnounceExtrasPart", true);
             Scribe_Values.Look(ref AnnounceInteractionHints, "AnnounceInteractionHints", true);
             Scribe_Values.Look(ref HoverSpeech, "HoverSpeech", false);
