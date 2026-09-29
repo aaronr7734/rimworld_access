@@ -228,9 +228,9 @@
   <RimWorldAccess.Caravan.Inspect.ForagingPerDay>{0} ({1})/día</RimWorldAccess.Caravan.Inspect.ForagingPerDay>
   <RimWorldAccess.Caravan.Inspect.BedrollsInUse>{0} saco(s) de dormir en uso</RimWorldAccess.Caravan.Inspect.BedrollsInUse>
   <RimWorldAccess.Caravan.Inspect.NoBedrolls>Sin sacos de dormir</RimWorldAccess.Caravan.Inspect.NoBedrolls>
-  <RimWorldAccess.Caravan.Inspect.LocationCoords>Cuadro {0}, {1}N {2}E</RimWorldAccess.Caravan.Inspect.LocationCoords>
+  <!-- A place on the world map: {0} is the biome, {1} the game's own latitude and longitude, e.g. "49.40°N 1.80°E". -->
+  <RimWorldAccess.Caravan.Inspect.TilePlace>{0}, {1}</RimWorldAccess.Caravan.Inspect.TilePlace>
   <RimWorldAccess.Caravan.Inspect.MassUsageCapacity>{0} / {1} kg</RimWorldAccess.Caravan.Inspect.MassUsageCapacity>
-  <RimWorldAccess.Caravan.Inspect.TileNumber>Cuadro {0}</RimWorldAccess.Caravan.Inspect.TileNumber>
   <RimWorldAccess.Caravan.Inspect.TooltipMassCarried>Masa transportada: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipMassCarried>
   <RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>Capacidad de masa: {0} kg</RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>
   <RimWorldAccess.Caravan.Inspect.TooltipOverloaded>SOBRECARGADA - La caravana no puede moverse hasta que se reduzca la masa.</RimWorldAccess.Caravan.Inspect.TooltipOverloaded>

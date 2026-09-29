@@ -225,9 +225,9 @@
   <RimWorldAccess.Caravan.Inspect.ForagingPerDay>{0} ({1})/天</RimWorldAccess.Caravan.Inspect.ForagingPerDay>
   <RimWorldAccess.Caravan.Inspect.BedrollsInUse>正在使用 {0} 个睡袋</RimWorldAccess.Caravan.Inspect.BedrollsInUse>
   <RimWorldAccess.Caravan.Inspect.NoBedrolls>没有睡袋</RimWorldAccess.Caravan.Inspect.NoBedrolls>
-  <RimWorldAccess.Caravan.Inspect.LocationCoords>地块 {0}, 北纬 {1}, 东经 {2}</RimWorldAccess.Caravan.Inspect.LocationCoords>
+  <!-- A place on the world map: {0} is the biome, {1} the game's own latitude and longitude, e.g. "49.40°N 1.80°E". -->
+  <RimWorldAccess.Caravan.Inspect.TilePlace>{0}, {1}</RimWorldAccess.Caravan.Inspect.TilePlace>
   <RimWorldAccess.Caravan.Inspect.MassUsageCapacity>{0} / {1} 千克</RimWorldAccess.Caravan.Inspect.MassUsageCapacity>
-  <RimWorldAccess.Caravan.Inspect.TileNumber>地块 {0}</RimWorldAccess.Caravan.Inspect.TileNumber>
   <RimWorldAccess.Caravan.Inspect.TooltipMassCarried>已载重: {0} 千克</RimWorldAccess.Caravan.Inspect.TooltipMassCarried>
   <RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>载重能力: {0} 千克</RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>
   <RimWorldAccess.Caravan.Inspect.TooltipOverloaded>过载 - 在减轻载重前远行队无法移动。</RimWorldAccess.Caravan.Inspect.TooltipOverloaded>

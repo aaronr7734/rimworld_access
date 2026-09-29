@@ -225,9 +225,9 @@
   <RimWorldAccess.Caravan.Inspect.ForagingPerDay>{0} ({1})/день</RimWorldAccess.Caravan.Inspect.ForagingPerDay>
   <RimWorldAccess.Caravan.Inspect.BedrollsInUse>используется {0_numCase ? спальный мешок : спальных мешка : спальных мешков}</RimWorldAccess.Caravan.Inspect.BedrollsInUse>
   <RimWorldAccess.Caravan.Inspect.NoBedrolls>Спальных мешков нет</RimWorldAccess.Caravan.Inspect.NoBedrolls>
-  <RimWorldAccess.Caravan.Inspect.LocationCoords>Клетка {0}, {1} с. ш., {2} в. д.</RimWorldAccess.Caravan.Inspect.LocationCoords>
+  <!-- A place on the world map: {0} is the biome, {1} the game's own latitude and longitude, e.g. "49.40°N 1.80°E". -->
+  <RimWorldAccess.Caravan.Inspect.TilePlace>{0}, {1}</RimWorldAccess.Caravan.Inspect.TilePlace>
   <RimWorldAccess.Caravan.Inspect.MassUsageCapacity>{0} / {1} кг</RimWorldAccess.Caravan.Inspect.MassUsageCapacity>
-  <RimWorldAccess.Caravan.Inspect.TileNumber>Клетка {0}</RimWorldAccess.Caravan.Inspect.TileNumber>
   <RimWorldAccess.Caravan.Inspect.TooltipMassCarried>Переносимая масса: {0} кг</RimWorldAccess.Caravan.Inspect.TooltipMassCarried>
   <RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>Грузоподъёмность: {0} кг</RimWorldAccess.Caravan.Inspect.TooltipMassCapacity>
   <RimWorldAccess.Caravan.Inspect.TooltipOverloaded>ПЕРЕГРУЗКА — караван не может двигаться, пока масса не будет уменьшена.</RimWorldAccess.Caravan.Inspect.TooltipOverloaded>

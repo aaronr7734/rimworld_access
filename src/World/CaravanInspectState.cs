@@ -397,12 +397,18 @@ namespace RimWorldAccess
         private static string GetLocationString()
         {
             if (currentCaravan.Tile.Valid && Find.WorldGrid != null)
-            {
-                Vector2 coords = Find.WorldGrid.LongLatOf(currentCaravan.Tile);
-                return (string)"RimWorldAccess.Caravan.Inspect.LocationCoords".Translate(
-                    currentCaravan.Tile.ToString(), coords.y.ToString("F1"), coords.x.ToString("F1"));
-            }
+                return DescribeTile(currentCaravan.Tile);
             return (string)"RimWorldAccess.Caravan.Inspect.Unknown".Translate();
+        }
+
+        private static string DescribeTile(PlanetTile tile)
+        {
+            Vector2 longLat = Find.WorldGrid.LongLatOf(tile);
+            string coords = longLat.y.ToStringLatitude() + " " + longLat.x.ToStringLongitude();
+            string biome = tile.Tile?.PrimaryBiome?.LabelCap;
+            return string.IsNullOrEmpty(biome)
+                ? coords
+                : (string)"RimWorldAccess.Caravan.Inspect.TilePlace".Translate(biome, coords);
         }
 
         private static string GetMassString()
@@ -434,7 +440,7 @@ namespace RimWorldAccess
             Settlement destSettlement = Find.WorldObjects?.SettlementAt(destTile);
             if (destSettlement != null)
                 return destSettlement.Label;
-            return (string)"RimWorldAccess.Caravan.Inspect.TileNumber".Translate(destTile.ToString());
+            return DescribeTile(destTile);
         }
 
         private static string GetETAString()
