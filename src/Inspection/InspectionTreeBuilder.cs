@@ -172,9 +172,11 @@ namespace RimWorldAccess
             // Every presentation decision below resolves through the category's registered adapter;
             // categories without one get the localizer display name and fallback presentations.
             InspectNodeRegistry.TryResolveCategory(categoryKey, out InspectNodeAdapter adapter);
-            string displayName = adapter != null
-                ? adapter.CategoryDisplayName(obj)
-                : InspectionCategoryLocalizer.Localize(categoryKey);
+            string displayName = adapter == null
+                ? InspectionCategoryLocalizer.Localize(categoryKey)
+                : categoryInfo.Tab != null
+                    ? adapter.DisplayName(categoryInfo.Tab)
+                    : adapter.CategoryDisplayName(obj);
 
             var item = new InspectionTreeItem
             {

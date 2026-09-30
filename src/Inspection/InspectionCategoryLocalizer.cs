@@ -57,6 +57,7 @@ namespace RimWorldAccess
             { "Art", "RimWorldAccess.Inspection.CategoryName.Art" },
             { "Contents", "RimWorldAccess.Inspection.CategoryName.Contents" },
             { "Outfit Stand Contents", "RimWorldAccess.Inspection.CategoryName.Contents" },
+            { "Container Contents", "RimWorldAccess.Inspection.CategoryName.Contents" },
             { "Books", "RimWorldAccess.Inspection.CategoryName.Books" },
             { "Book", "RimWorldAccess.Inspection.CategoryName.Book" },
             { "Genepacks", "RimWorldAccess.Inspection.CategoryName.Genepacks" },

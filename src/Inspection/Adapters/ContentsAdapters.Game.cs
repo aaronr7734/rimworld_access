@@ -386,6 +386,11 @@ namespace RimWorldAccess
         public static bool TryDrop(Thing holder, Thing thing, int count)
         {
             var tab = holder.GetInspectTabs()?.OfType<ITab_ContentsBase>().FirstOrDefault();
+            return TryDrop(tab, holder, thing, count);
+        }
+
+        public static bool TryDrop(ITab_ContentsBase tab, Thing holder, Thing thing, int count)
+        {
             if (tab == null)
             {
                 return false;

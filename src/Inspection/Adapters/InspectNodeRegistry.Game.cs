@@ -92,9 +92,9 @@ namespace RimWorldAccess
             RegisterTab(typeof(ITab_WindTurbineAutoCut), new WindTurbineAutoCutAdapter());
             RegisterTab(typeof(ITab_Art), new ArtAdapter());
 
-            // Contents tabs: the base covers Casket/MapPortal; transporter, bookcase, outfit stand
-            // and genepack holder override.
-            Register(typeof(ITab_ContentsBase), new StaticTabAdapter("Contents", TabHandlerType.BasicInspectString));
+            // Contents tabs: the base covers Casket/MapPortal and mod storage tabs; transporter,
+            // bookcase, outfit stand and genepack holder override.
+            RegisterTab(typeof(ITab_ContentsBase), new ContainerContentsAdapter());
             RegisterTab(typeof(ITab_ContentsTransporter), new TransporterContentsAdapter());
             RegisterTab(typeof(ITab_ContentsBooks), new BookcaseContentsAdapter());
             RegisterTab(typeof(ITab_ContentsOutfitStand), new OutfitStandContentsAdapter());
