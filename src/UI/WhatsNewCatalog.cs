@@ -14,14 +14,17 @@ namespace RimWorldAccess
         /// <summary>Read-tracking token; defaults to Version. A distinct value re-issues an announcement whose Version installs already recorded.</summary>
         public string ReadKey { get; }
 
-        public Announcement(string version, string readKey = null)
+        private readonly string messageId;
+
+        public Announcement(string version, string readKey = null, string messageId = null)
         {
             Version = version;
             ReadKey = readKey ?? version;
+            this.messageId = messageId;
         }
 
         /// <summary>The Keyed message key for this announcement's body text.</summary>
-        public string MessageKey => "RimWorldAccess.WhatsNew.Message." + Version.Replace('.', '_');
+        public string MessageKey => "RimWorldAccess.WhatsNew.Message." + (messageId ?? Version.Replace('.', '_'));
     }
 
     /// <summary>
@@ -49,6 +52,8 @@ namespace RimWorldAccess
             // Distinct read key: the beta recorded a placeholder under "2.0.0", so this first real
             // announcement uses an unrecorded token to still surface on those installs.
             new Announcement("2.0.0", readKey: "2.0.0-launch"),
+            // Shipped without a version bump: the label is display-only and messageId names its key.
+            new Announcement("2.0 RC 2", readKey: "2.0-rc2", messageId: "2_0_rc2"),
         };
     }
 }

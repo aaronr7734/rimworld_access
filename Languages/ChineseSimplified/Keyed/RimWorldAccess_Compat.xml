@@ -1177,4 +1177,11 @@
 
   <!-- Rjw: the pseudo-button designations gizmo (src/Compat/Rjw/). -->
   <RimWorldAccess.Compat.Rjw.DesignationsLabel>RJW 标记</RimWorldAccess.Compat.Rjw.DesignationsLabel>
+
+  <!-- Adaptive Storage Framework Contents tab (src/Compat/AdaptiveStorage/).
+       - SlotLimit: names the tab's unlabeled slider, which caps how many stacks
+         the building holds.
+       - DaysUntilRot: {0} = days, one decimal; the mod's yellow row figure. -->
+  <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>堆叠上限</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
+  <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>{0} 天后腐烂</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
 </LanguageData>

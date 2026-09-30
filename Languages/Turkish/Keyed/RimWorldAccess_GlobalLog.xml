@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
+  <RimWorldAccess.GlobalLog.Title>Genel kayıt</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Opened>Genel kayıt açıldı. {0} girdi.</RimWorldAccess.GlobalLog.Opened>
+  <RimWorldAccess.GlobalLog.OpenedOne>Genel kayıt açıldı. 1 girdi.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.LogRegion>Kayıt</RimWorldAccess.GlobalLog.LogRegion>
+  <RimWorldAccess.GlobalLog.FiltersRegion>Filtreler</RimWorldAccess.GlobalLog.FiltersRegion>
+  <RimWorldAccess.GlobalLog.Empty>Hiçbir kayıt girdisi filtrelerle eşleşmiyor.</RimWorldAccess.GlobalLog.Empty>
+  <RimWorldAccess.GlobalLog.Row>{0}. {1}</RimWorldAccess.GlobalLog.Row>
+  <RimWorldAccess.GlobalLog.Filter.Colonists>Kolonicilerini içeren</RimWorldAccess.GlobalLog.Filter.Colonists>
+  <RimWorldAccess.GlobalLog.Filter.ColonyAnimals>Hayvanlarını ve mekanoitlerini içeren</RimWorldAccess.GlobalLog.Filter.ColonyAnimals>
+  <RimWorldAccess.GlobalLog.Filter.Others>Başka herkesi içeren</RimWorldAccess.GlobalLog.Filter.Others>
+  <RimWorldAccess.GlobalLog.Filter.NewestFirst>Önce en yeni</RimWorldAccess.GlobalLog.Filter.NewestFirst>
+  <RimWorldAccess.GlobalLog.Filter.ShowAllTip>Kaydın normalde gizlediği ıskalama gibi küçük çatışma olaylarını da göster.</RimWorldAccess.GlobalLog.Filter.ShowAllTip>
+  <!-- {0} = the checkbox's new state ("checked"), {1} = how many entries now show. -->
+  <RimWorldAccess.GlobalLog.FilterChanged>{0}. {1} girdi.</RimWorldAccess.GlobalLog.FilterChanged>
+  <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 girdi.</RimWorldAccess.GlobalLog.FilterChangedOne>
+  <!-- {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpTo>Git: {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <RimWorldAccess.GlobalLog.JumpUnavailable>Karakterin yeri bulunamıyor.</RimWorldAccess.GlobalLog.JumpUnavailable>
+</LanguageData>

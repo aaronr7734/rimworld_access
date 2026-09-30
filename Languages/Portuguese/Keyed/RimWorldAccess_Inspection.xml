@@ -1115,6 +1115,14 @@
   <RimWorldAccess.Inspection.Tree.BookEjected>{0}. {1}</RimWorldAccess.Inspection.Tree.BookEjected>
   <RimWorldAccess.Inspection.Tree.ApparelEjected>{0}. {1}</RimWorldAccess.Inspection.Tree.ApparelEjected>
 
+  <!-- Shared Contents list (ContainerContentsAdapter), for caskets, map portals
+       and mod storage tabs built on ITab_ContentsBase.
+       - DropCount: the row's drop-a-specific-count button, which vanilla draws
+         with no tooltip of its own.
+       - Dropped: {0} = the dropped stack's label with its count. -->
+  <RimWorldAccess.Inspection.Contents.DropCount>Largar uma quantidade específica</RimWorldAccess.Inspection.Contents.DropCount>
+  <RimWorldAccess.Inspection.Contents.Dropped>Largado {0}</RimWorldAccess.Inspection.Contents.Dropped>
+
   <!-- =================================================================
        InspectionTreeBuilder tree-item labels paired with the actions
        above. Spoken when the user navigates onto these items (so a

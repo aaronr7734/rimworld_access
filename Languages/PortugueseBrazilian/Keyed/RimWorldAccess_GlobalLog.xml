@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
+  <RimWorldAccess.GlobalLog.Title>Registro global</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Opened>Registro global aberto. {0} entradas.</RimWorldAccess.GlobalLog.Opened>
+  <RimWorldAccess.GlobalLog.OpenedOne>Registro global aberto. 1 entrada.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.LogRegion>Registro</RimWorldAccess.GlobalLog.LogRegion>
+  <RimWorldAccess.GlobalLog.FiltersRegion>Filtros</RimWorldAccess.GlobalLog.FiltersRegion>
+  <RimWorldAccess.GlobalLog.Empty>Nenhuma entrada do registro corresponde aos filtros.</RimWorldAccess.GlobalLog.Empty>
+  <RimWorldAccess.GlobalLog.Row>{0}. {1}</RimWorldAccess.GlobalLog.Row>
+  <RimWorldAccess.GlobalLog.Filter.Colonists>Envolvendo seus colonos</RimWorldAccess.GlobalLog.Filter.Colonists>
+  <RimWorldAccess.GlobalLog.Filter.ColonyAnimals>Envolvendo seus animais e mecanoides</RimWorldAccess.GlobalLog.Filter.ColonyAnimals>
+  <RimWorldAccess.GlobalLog.Filter.Others>Envolvendo qualquer outra pessoa</RimWorldAccess.GlobalLog.Filter.Others>
+  <RimWorldAccess.GlobalLog.Filter.NewestFirst>Mais recentes primeiro</RimWorldAccess.GlobalLog.Filter.NewestFirst>
+  <RimWorldAccess.GlobalLog.Filter.ShowAllTip>Também exibe eventos de combate menores, como tiros que erram o alvo, que o registro normalmente oculta.</RimWorldAccess.GlobalLog.Filter.ShowAllTip>
+  <!-- {0} = the checkbox's new state ("checked"), {1} = how many entries now show. -->
+  <RimWorldAccess.GlobalLog.FilterChanged>{0}. {1} entradas.</RimWorldAccess.GlobalLog.FilterChanged>
+  <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 entrada.</RimWorldAccess.GlobalLog.FilterChangedOne>
+  <!-- {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpTo>Ir para {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <RimWorldAccess.GlobalLog.JumpUnavailable>Não foi possível localizar o personagem.</RimWorldAccess.GlobalLog.JumpUnavailable>
+</LanguageData>

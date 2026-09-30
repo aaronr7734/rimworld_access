@@ -35,6 +35,34 @@ Ceci n'est qu'un résumé. Pour le journal des modifications complet et détaill
 Une remarque sur ce journal des modifications : pour l'instant, il n'est disponible qu'en anglais. Si l'anglais n'est pas votre langue, vous aurez peut-être besoin d'un outil de traduction par IA pour en lire la version complète. Traduire un journal des modifications aussi long dans toutes les langues dépasse ce que je peux faire pour le moment. Mais chaque mise à jour après celle-ci sera bien plus petite, donc son contenu complet sera toujours là, directement dans ces annonces, dans votre propre langue.\n
 Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause. Si vous préférez ne plus les voir apparaître d'eux-mêmes, choisissez Ne plus afficher ceux-ci ; vous entendrez toujours un bref avis quand le mod se met à jour.\n
 Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et de contribuer à rendre RimWorld jouable pour les joueurs aveugles et malvoyants. Bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_0>
+  <RimWorldAccess.WhatsNew.Message.2_0_rc2>Bienvenue dans la version 2.0 release candidate 2. Cette mise à jour ajoute un journal global, ramène les listes classiques de caravane et corrige un bon lot de bogues. Voici tout ce qui a changé.\n
+Nouveautés.\n
+Ajout du journal global, ouvert avec Alt+L ou depuis le menu F12. Il liste chaque événement social et de combat du monde et remonte bien plus loin que le journal du jeu. Vous pouvez le filtrer, y faire une recherche en tapant, et aller jusqu'aux personnages de n'importe quelle entrée.\n
+La formation de caravane, la division de caravane et le chargement des capsules de transport reviennent par défaut aux listes classiques. Chaque ligne lit désormais ce que le jeu affiche à côté, comme la masse, la valeur et le délai de pourrissement. Appuyez sur Ctrl+Tab (Option+Tab sur Mac) pour passer à la vue en tableau.\n
+Le stockage d'Adaptive Storage Framework a maintenant une vraie liste Contenus. Chaque objet lit sa masse et le nombre de jours avant qu'il ne pourrisse. Vous pouvez aussi modifier la limite de piles, autoriser ou interdire des objets, et les déposer.\n
+Avec Vehicle Framework, la fenêtre de division de caravane a maintenant un onglet Véhicules. Vous pouvez séparer des véhicules d'une caravane et attribuer leurs places.\n
+Changements.\n
+Modifier les réglages de pilote automatique d'un personnage n'annule plus un ordre que vous venez de donner. Le personnage termine d'abord cet ordre. Les ordres d'engagement prennent toujours effet immédiatement.\n
+L'enregistreur de vol n'enregistre plus chaque image pendant qu'un menu est ouvert, donc les enregistrements sont beaucoup plus courts.\n
+Corrections.\n
+Correction des réglages d'annonce du type de contrôle et de son état, qui se réactivaient d'eux-mêmes après un redémarrage du jeu.\n
+L'écran d'informations de la caravane donne maintenant les emplacements sous forme de biome et de coordonnées de carte au lieu de numéros de case. Les coordonnées sud et ouest se lisent aussi correctement maintenant.\n
+Correction de Maj+Entrée sur une ligne de caravane ou de capsule, qui appuyait sur Envoyer. Il prend maintenant autant que vous pouvez porter. Alt+I sur l'onglet des personnages de la caravane divisée ouvre aussi la bonne fiche d'informations maintenant.\n
+Correction des fenêtres de formation et de division de caravane qui devenaient vides à l'écran pendant que vous étiez sur leurs boutons. Les lignes de véhicules lisent aussi leur vitesse, leur capacité de chargement et leur valeur maintenant.\n
+Correction de l'onglet Contenus des cercueils, des portails et d'autres conteneurs, qui ne lisait qu'un résumé. Il liste maintenant chaque objet. Alt+I ouvre la fiche d'informations d'un objet.\n
+Correction du bouton Changer d'itinéraire de la formation de caravane, qui était muet. Il vous indique maintenant que vous choisissez un itinéraire.\n
+Correction de l'application d'une règle de combat Aucune sur l'onglet Assignations, qui sautait tous les personnages.\n
+Correction de la modification d'une politique de drogue. Vous pouvez maintenant changer chaque réglage directement dans le tableau des drogues.\n
+Correction des lignes de fiche d'informations, comme le sexe ou la catégorie d'un animal, qui lisaient leur valeur deux fois.\n
+Correction du panneau d'inspection qui restait sur un cadre de construction après son achèvement. Il passe maintenant au bâtiment terminé.\n
+Correction d'un élément de menu sans description qui lisait la description de l'élément au-dessus.\n
+Correction des lancements de capsules de transport qui annonçaient deux portées différentes. Vous entendez maintenant une seule portée, déterminée par la capsule ayant le moins de carburant.\n
+Correction du scanner qui ramait sur les grandes cartes, surtout pendant que le jeu tourne.\n
+Correction du panneau d'inspection qui se comportait mal avec les mods de stockage qui ouvrent d'eux-mêmes l'onglet Contenus, comme Adaptive Storage Framework. Vous pouvez laisser ce réglage du mod activé.\n
+Correction d'une erreur au démarrage avec Vehicle Framework installé. Les déplacements en pilote automatique des véhicules disent aussi de nouveau ce qu'ils font.\n
+Correction d'un véhicule en Traquer et détruire qui restait bloqué en arrivant sur l'ennemi. Il s'arrête maintenant et combat d'où il est.\n
+Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
+Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access a été mis à jour. Choisissez Ouvrir le journal des modifications pour lire ce qui a changé sur le site web.</RimWorldAccess.WhatsNew.Message.Default>

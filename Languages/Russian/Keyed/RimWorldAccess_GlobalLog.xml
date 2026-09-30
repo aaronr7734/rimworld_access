@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
+  <RimWorldAccess.GlobalLog.Title>Глобальный журнал</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Opened>Глобальный журнал открыт. Записей: {0}.</RimWorldAccess.GlobalLog.Opened>
+  <RimWorldAccess.GlobalLog.OpenedOne>Глобальный журнал открыт. Одна запись.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.LogRegion>Журнал</RimWorldAccess.GlobalLog.LogRegion>
+  <RimWorldAccess.GlobalLog.FiltersRegion>Фильтры</RimWorldAccess.GlobalLog.FiltersRegion>
+  <RimWorldAccess.GlobalLog.Empty>Нет записей журнала, подходящих под фильтры.</RimWorldAccess.GlobalLog.Empty>
+  <RimWorldAccess.GlobalLog.Row>{0}. {1}</RimWorldAccess.GlobalLog.Row>
+  <RimWorldAccess.GlobalLog.Filter.Colonists>С участием ваших поселенцев</RimWorldAccess.GlobalLog.Filter.Colonists>
+  <RimWorldAccess.GlobalLog.Filter.ColonyAnimals>С участием ваших животных и механоидов</RimWorldAccess.GlobalLog.Filter.ColonyAnimals>
+  <RimWorldAccess.GlobalLog.Filter.Others>С участием кого-либо ещё</RimWorldAccess.GlobalLog.Filter.Others>
+  <RimWorldAccess.GlobalLog.Filter.NewestFirst>Сначала новые</RimWorldAccess.GlobalLog.Filter.NewestFirst>
+  <RimWorldAccess.GlobalLog.Filter.ShowAllTip>Также показывать мелкие боевые события, например промахи, которые журнал обычно скрывает.</RimWorldAccess.GlobalLog.Filter.ShowAllTip>
+  <!-- {0} = the checkbox's new state ("checked"), {1} = how many entries now show. -->
+  <RimWorldAccess.GlobalLog.FilterChanged>{0}. Записей: {1}.</RimWorldAccess.GlobalLog.FilterChanged>
+  <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. Одна запись.</RimWorldAccess.GlobalLog.FilterChangedOne>
+  <!-- {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpTo>Перейти к: {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <RimWorldAccess.GlobalLog.JumpUnavailable>Не удаётся найти персонажа.</RimWorldAccess.GlobalLog.JumpUnavailable>
+</LanguageData>

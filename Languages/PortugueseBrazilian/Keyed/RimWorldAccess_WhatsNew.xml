@@ -36,6 +36,35 @@ Uma observação sobre esse changelog: por enquanto ele só está disponível em
 Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa. Se preferir não ver essas mensagens aparecerem por conta própria, escolha Não mostrar novamente; você ainda ouvirá um breve aviso sempre que o mod for atualizado.\n
 Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e por ajudar a tornar o RimWorld jogável para jogadores cegos e com baixa visão. Aproveite!</RimWorldAccess.WhatsNew.Message.2_0_0>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc2>Boas-vindas à versão 2.0 release candidate 2. Esta atualização adiciona um registro global, traz de volta as listas clássicas de caravana e corrige um bom punhado de bugs. Aqui está tudo o que mudou.\n
+Novidades.\n
+Foi adicionado o registro global, aberto com Alt+L ou pelo menu F12. Ele lista todos os eventos sociais e de combate do mundo e volta muito mais no tempo que o registro do próprio jogo. Você pode filtrá-lo, pesquisar digitando e ir até os personagens de qualquer entrada.\n
+A formação de caravana, a divisão de caravana e o carregamento de cápsulas de transporte voltaram às listas clássicas por padrão. Cada linha agora lê o que o jogo mostra ao lado, como massa, valor e tempo até apodrecer. Pressione Ctrl+Tab (Option+Tab no Mac) para alternar para a visualização em tabela.\n
+O armazenamento do Adaptive Storage Framework agora tem uma lista de Conteúdo completa. Cada item lê sua massa e os dias até apodrecer. Você também pode alterar o limite de pilhas, permitir ou proibir itens e soltá-los.\n
+Com o Vehicle Framework, a janela de dividir caravana agora tem uma aba Veículos. Você pode separar veículos de uma caravana e atribuir seus assentos.\n
+Mudanças.\n
+Alterar as configurações de piloto automático de um personagem não cancela mais uma ordem que você acabou de dar. O personagem termina essa ordem primeiro. Ordens de ataque continuam valendo imediatamente.\n
+O gravador de voo não registra mais todos os quadros enquanto um menu está aberto, então as gravações ficam bem mais curtas.\n
+Correções.\n
+Corrigido: as configurações de anúncio do tipo e do estado dos controles voltavam a ser ativadas sozinhas após reiniciar o jogo.\n
+A tela de informações da caravana agora dá as localizações como um bioma e coordenadas do mapa, em vez de números de tile. As coordenadas ao sul e a oeste também são lidas corretamente agora.\n
+Corrigido: Shift+Enter em uma linha de caravana ou de cápsula pressionava Enviar. Agora ele leva o máximo que você consegue carregar. Alt+I na aba de personagens da divisão de caravana também abre a ficha de informações correta agora.\n
+Corrigido: as janelas de formação de caravana e de divisão de caravana ficavam em branco na tela enquanto você estava nos botões delas. As linhas de veículos também leem sua velocidade, capacidade de carga e valor agora.\n
+Corrigido: a aba Conteúdo de caixões, portais e outros contêineres lia apenas um resumo. Agora ela lista cada item. Alt+I abre a ficha de informações de um item.\n
+Corrigido: o botão Mude a rota na formação de caravana ficava mudo. Agora ele avisa que você está escolhendo uma rota.\n
+Corrigido: pintar uma política de combate Nenhuma pela aba Atribuir, o que antes pulava todos os personagens.\n
+Corrigido: a edição de uma política de drogas. Agora você pode alterar todas as configurações direto na tabela de drogas.\n
+Corrigido: linhas da ficha de informações, como o sexo ou a categoria de um animal, liam o valor duas vezes.\n
+Corrigido: o painel de inspeção continuava em uma estrutura de construção depois de ela terminar. Agora ele passa para a construção concluída.\n
+Corrigido: um item de menu sem descrição lia a descrição do item acima dele.\n
+Corrigido: os lançamentos de cápsulas de transporte anunciavam dois alcances diferentes. Agora você ouve um só alcance, definido pela cápsula com menos combustível.\n
+Corrigido: o leitor de varredura travava em mapas grandes, principalmente com o jogo em andamento.\n
+Corrigido: o painel de inspeção se comportava mal com mods de armazenamento que abrem a aba Conteúdo por conta própria, como o Adaptive Storage Framework. Você pode deixar essa configuração do mod ativada.\n
+Corrigido um erro na inicialização com o Vehicle Framework instalado. Os movimentos do piloto automático de veículos também voltam a dizer o que estão fazendo.\n
+Corrigido: um veículo em Procurar e destruir ficava preso ao alcançar o inimigo. Agora ele para e luta de onde está.\n
+Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi atualizado. Escolha Abrir changelog para ler o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 

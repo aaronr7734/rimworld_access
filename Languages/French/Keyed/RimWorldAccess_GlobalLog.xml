@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
+  <RimWorldAccess.GlobalLog.Title>Journal global</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Opened>Journal global ouvert. {0} entrées.</RimWorldAccess.GlobalLog.Opened>
+  <RimWorldAccess.GlobalLog.OpenedOne>Journal global ouvert. 1 entrée.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.LogRegion>Journal</RimWorldAccess.GlobalLog.LogRegion>
+  <RimWorldAccess.GlobalLog.FiltersRegion>Filtres</RimWorldAccess.GlobalLog.FiltersRegion>
+  <RimWorldAccess.GlobalLog.Empty>Aucune entrée du journal ne correspond aux filtres.</RimWorldAccess.GlobalLog.Empty>
+  <RimWorldAccess.GlobalLog.Row>{0}. {1}</RimWorldAccess.GlobalLog.Row>
+  <RimWorldAccess.GlobalLog.Filter.Colonists>Impliquant vos colons</RimWorldAccess.GlobalLog.Filter.Colonists>
+  <RimWorldAccess.GlobalLog.Filter.ColonyAnimals>Impliquant vos animaux et mécanoïdes</RimWorldAccess.GlobalLog.Filter.ColonyAnimals>
+  <RimWorldAccess.GlobalLog.Filter.Others>Impliquant toute autre personne</RimWorldAccess.GlobalLog.Filter.Others>
+  <RimWorldAccess.GlobalLog.Filter.NewestFirst>Plus récentes en premier</RimWorldAccess.GlobalLog.Filter.NewestFirst>
+  <RimWorldAccess.GlobalLog.Filter.ShowAllTip>Affiche aussi les événements de combat mineurs, comme les tirs manqués, que le journal masque normalement.</RimWorldAccess.GlobalLog.Filter.ShowAllTip>
+  <!-- {0} = the checkbox's new state ("checked"), {1} = how many entries now show. -->
+  <RimWorldAccess.GlobalLog.FilterChanged>{0}. {1} entrées.</RimWorldAccess.GlobalLog.FilterChanged>
+  <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 entrée.</RimWorldAccess.GlobalLog.FilterChangedOne>
+  <!-- {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpTo>Aller à : {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <RimWorldAccess.GlobalLog.JumpUnavailable>Ce personnage est introuvable.</RimWorldAccess.GlobalLog.JumpUnavailable>
+</LanguageData>

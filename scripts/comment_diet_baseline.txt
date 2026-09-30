@@ -1208,7 +1208,7 @@
 207	src/UI/TreeNavigationHelper.cs
 45	src/UI/TwoLevelMenuHelper.cs
 54	src/UI/TypeaheadSearchHelper.cs
-27	src/UI/WhatsNewCatalog.cs
+28	src/UI/WhatsNewCatalog.cs
 24	src/Util/SafeTypeSweep.Game.cs
 37	src/Util/SafeTypeSweep.cs
 16	src/Util/TextNormalization.cs

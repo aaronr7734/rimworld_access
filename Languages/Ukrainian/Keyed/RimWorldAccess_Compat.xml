@@ -1174,4 +1174,11 @@
 
   <!-- Rjw: the pseudo-button designations gizmo (src/Compat/Rjw/). -->
   <RimWorldAccess.Compat.Rjw.DesignationsLabel>Призначення RJW</RimWorldAccess.Compat.Rjw.DesignationsLabel>
+
+  <!-- Adaptive Storage Framework Contents tab (src/Compat/AdaptiveStorage/).
+       - SlotLimit: names the tab's unlabeled slider, which caps how many stacks
+         the building holds.
+       - DaysUntilRot: {0} = days, one decimal; the mod's yellow row figure. -->
+  <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>Ліміт стосів</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
+  <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>{0} днів до псування</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
 </LanguageData>

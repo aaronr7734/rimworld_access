@@ -36,6 +36,35 @@ Bu değişiklik günlüğüyle ilgili bir not: şimdilik yalnızca İngilizce ol
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin. Bunların kendiliğinden görünmesini istemiyorsan, 'Bunları bir daha gösterme' seçeneğini seç; mod güncellendiğinde yine de kısa bir bildirim duyacaksın.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için ve RimWorld'ü görme engelli ve az gören oyuncular için oynanabilir kılmaya yardım ettiğin için teşekkürler. İyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_0>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc2>Sürüm 2.0 aday sürüm 2'ye hoş geldin. Bu güncelleme bir genel kayıt ekliyor, klasik kervan listelerini geri getiriyor ve bir sürü hatayı düzeltiyor. Değişen her şey burada.\n
+Yeni özellikler.\n
+Genel kayıt eklendi; Alt+L ile veya F12 menüsünden açılıyor. Dünyadaki her sosyal ve çatışma olayını listeliyor ve oyunun kendi kaydından çok daha geriye gidiyor. Filtreleyebilir, yazarak arayabilir ve herhangi bir girdideki karakterlere gidebilirsin.\n
+Kervan oluşturma, kervan bölme ve nakil kapsülü yükleme artık varsayılan olarak klasik listelere döndü. Her satır artık oyunun yanında gösterdiklerini okuyor; kütle, değer ve çürüme süresi gibi. Tablo görünümüne geçmek için Ctrl+Tab'a bas (Mac'te Option+Tab).\n
+Adaptive Storage Framework depolaması artık tam bir İçindekiler listesine sahip. Her öğe kütlesini ve çürümesine kalan günü okuyor. Ayrıca yığın sınırını değiştirebilir, öğelere izin verebilir veya yasaklayabilir ve onları bırakabilirsin.\n
+Vehicle Framework ile kervan bölme penceresinde artık bir Araçlar sekmesi var. Araçları kervandan ayırabilir ve koltuklarını atayabilirsin.\n
+Değişiklikler.\n
+Bir karakterin otopilot ayarlarını değiştirmek artık az önce verdiğin emri iptal etmiyor. Karakter önce o emri bitiriyor. Saldırı emirleri yine hemen geçerli oluyor.\n
+Uçuş kaydedicisi artık bir menü açıkken her kareyi kaydetmiyor, bu yüzden kayıtlar çok daha kısa.\n
+Düzeltmeler.\n
+Kontrol türü ve durum seslendirme ayarlarının oyunu yeniden başlattıktan sonra kendiliğinden tekrar açılması düzeltildi.\n
+Kervan bilgi ekranı artık konumları karo numaraları yerine biyom ve harita koordinatları olarak veriyor. Güney ve batı koordinatları da artık doğru okunuyor.\n
+Bir kervan veya kapsül satırında Shift+Enter'ın Gönder'e basması düzeltildi. Artık taşıyabildiğin kadarını alıyor. Bölünen kervanın karakterler sekmesinde Alt+I da artık doğru bilgi kartını açıyor.\n
+Kervan oluşturma ve kervan bölme pencerelerinin, düğmelerindeyken ekranda boş görünmesi düzeltildi. Araç satırları da artık hızını, yük kapasitesini ve değerini okuyor.\n
+Tabutlarda, portallarda ve diğer kaplarda İçindekiler sekmesinin yalnızca bir özet okuması düzeltildi. Artık her öğeyi listeliyor. Alt+I bir öğenin bilgi kartını açıyor.\n
+Kervan oluşturmadaki Rotayı değiştir düğmesinin sessiz olması düzeltildi. Artık bir rota seçtiğini söylüyor.\n
+Savaş kuralını Yok olarak Ata sekmesinde aşağı doğru boyamanın her karakteri atlaması düzeltildi.\n
+Uyuşturucu kuralı düzenleme düzeltildi. Artık her ayarı doğrudan uyuşturucu tablosunda değiştirebilirsin.\n
+Bir hayvanın cinsiyeti veya kategorisi gibi bilgi kartı satırlarının değerini iki kez okuması düzeltildi.\n
+Denetim panelinin, bitmiş bir inşaat iskelesinde kalması düzeltildi. Artık bitmiş binaya geçiyor.\n
+Açıklaması olmayan bir menü öğesinin üstündeki öğenin açıklamasını okuması düzeltildi.\n
+Nakil kapsülü fırlatmalarının iki farklı menzil seslendirmesi düzeltildi. Artık en az yakıtlı kapsülün belirlediği tek bir menzil duyuyorsun.\n
+Tarayıcının büyük haritalarda, özellikle oyun çalışırken, takılması düzeltildi.\n
+Denetim panelinin, Adaptive Storage Framework gibi İçindekiler sekmesini kendiliğinden açan depolama modlarıyla bozulması düzeltildi. O mod ayarını açık bırakabilirsin.\n
+Vehicle Framework kuruluyken başlangıçta oluşan bir hata düzeltildi. Araç otopilot hareketleri de yine ne yaptıklarını söylüyor.\n
+Bul ve yok et emrindeki bir aracın düşmana ulaşınca takılıp kalması düzeltildi. Artık duruyor ve bulunduğu yerden savaşıyor.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 
