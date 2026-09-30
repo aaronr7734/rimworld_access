@@ -208,6 +208,7 @@ namespace RimWorldAccess
             cache.Clear();
             ActivationInFlight = false;
             treeRefreshAfterCapture = null;
+            paritySectionAfterCapture = null;
             controlRefreshAfterCapture = null;
             InspectTabRowRing.Forget();
         }
@@ -397,6 +398,16 @@ namespace RimWorldAccess
                     if (entry.Rows != null)
                     {
                         InspectionTreeBuilder.RebuildCapturedCategory(request.Target, request.Tab);
+                    }
+                }
+                if (paritySectionAfterCapture.HasValue
+                    && ReferenceEquals(paritySectionAfterCapture.Value.Target, request.Target)
+                    && ReferenceEquals(paritySectionAfterCapture.Value.Tab, request.Tab))
+                {
+                    paritySectionAfterCapture = null;
+                    if (entry.Widgets != null)
+                    {
+                        InspectionTreeBuilder.AppendUnmirroredSectionAfterRecapture(request.Target, request.Tab);
                     }
                 }
                 if (controlRefreshAfterCapture != null
@@ -590,6 +601,25 @@ namespace RimWorldAccess
         /// never retried.
         /// </summary>
         private static (object Target, InspectTabBase Tab)? treeRefreshAfterCapture;
+
+        /// <summary>An adapter category rebuilt after its own action, owed its parity section once
+        /// the post-action capture lands.</summary>
+        private static (object Target, InspectTabBase Tab)? paritySectionAfterCapture;
+
+        /// <summary>
+        /// Drops the pre-action capture and queues a fresh one: diffing the rebuilt rows against
+        /// the old draw would list every changed row as unmirrored.
+        /// </summary>
+        internal static void RecaptureForParity(object target, InspectTabBase tab)
+        {
+            if (target == null || tab == null)
+            {
+                return;
+            }
+            cache.Remove((target, tab));
+            RequestCapture(target, tab);
+            paritySectionAfterCapture = (target, tab);
+        }
 
         /// <summary>
         /// One armed slider/text write's follow-up for <see cref="RunControlRefresh"/>.

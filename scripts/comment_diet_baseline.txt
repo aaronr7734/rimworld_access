@@ -552,7 +552,7 @@
 82	src/Inspection/Capture/InspectTabCaptureHarness.Game.cs
 49	src/Inspection/Capture/InspectTabCaptureOracle.Game.cs
 20	src/Inspection/Capture/InspectTabCaptureProbe.Game.cs
-119	src/Inspection/Capture/InspectTabCaptureService.Game.cs
+125	src/Inspection/Capture/InspectTabCaptureService.Game.cs
 57	src/Inspection/Capture/InspectTabRowRing.Game.cs
 22	src/Inspection/EntityTabState.cs
 11	src/Inspection/FishingZoneMenuState.Describe.cs
@@ -610,7 +610,7 @@
 72	src/Inspection/InspectionInfoHelper.cs
 6	src/Inspection/InspectionReturnHelper.cs
 70	src/Inspection/InspectionSelfAudit.cs
-165	src/Inspection/InspectionTreeBuilder.cs
+167	src/Inspection/InspectionTreeBuilder.cs
 50	src/Inspection/InspectionTreeItem.cs
 5	src/Inspection/InspectionTreeItemShape.cs
 71	src/Inspection/InventoryHelper.cs

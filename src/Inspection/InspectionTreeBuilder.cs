@@ -424,7 +424,8 @@ namespace RimWorldAccess
         /// <summary>
         /// Rebuilds an adapter-owned category in place after one of the adapter's own actions mutates
         /// state: clears the children and re-runs all three passes first expansion runs (the adapter's
-        /// build, registered category extenders, and the "Also shown on this tab" parity capture).
+        /// build, registered category extenders, and the "Also shown on this tab" parity section, which
+        /// waits for a fresh capture of the changed tab).
         /// Adapters must route rebuilds here — calling their own BuildChildren directly silently drops
         /// the latter two passes. The caller announces the outcome; this only rebuilds and reflattens.
         /// Cursor and expansion state survive via <see cref="TreeStatePreserve"/>'s branch-scoped
@@ -445,8 +446,23 @@ namespace RimWorldAccess
                     ModLogger.Error($"Inspection adapter '{adapter.CategoryKey}' build failed: {ex.Message}");
                 }
                 InspectNodeRegistry.InvokeCategoryExtenders(adapter.CategoryKey, categoryItem, obj);
-                AppendUnmirroredSection(categoryItem, obj, tab);
             });
+            if (tab != null && !IsParityExcludedTab(tab))
+                InspectTabCaptureService.RecaptureForParity(obj, tab);
+        }
+
+        /// <summary>The parity section a post-action rebuild deferred until its fresh capture landed.</summary>
+        internal static void AppendUnmirroredSectionAfterRecapture(object obj, InspectTabBase tab)
+        {
+            if (!WindowlessInspectionState.IsActive)
+                return;
+            InspectionTreeItem categoryItem = FindBuiltCategoryNode(WindowlessInspectionState.CurrentTreeRoot, obj, tab);
+            if (categoryItem == null)
+                return;
+            int before = categoryItem.Children.Count;
+            AppendUnmirroredSection(categoryItem, obj, tab);
+            if (categoryItem.Children.Count != before)
+                WindowlessInspectionState.RefreshVisibleList();
         }
 
         /// <summary>
