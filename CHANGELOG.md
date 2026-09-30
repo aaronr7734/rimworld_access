@@ -6,6 +6,40 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](https:
 
 <!-- BUILD_CHANGELOG_INSERT: release notes are compiled here from changelog.d/ fragments by scripts/build_changelog.py. Do not remove this marker. -->
 
+## [2.0 RC 2] - 2026-09-29
+
+### Added
+
+- Adaptive Storage Framework storage now has a full Contents list. Each item reads its mass and days until it rots. You can also change the stack limit, allow or forbid items, and drop them.
+- Caravan formation, caravan splitting and transport pod loading are back to the classic lists by default. Every row now reads what the game shows beside it, like mass, value and rot time. Press Ctrl+Tab (Option+Tab on a Mac) to switch to the table view.
+- Added the global log, opened with Alt+L or from the F12 menu. It lists every social and combat event in the world and goes back much further than the game's own log. You can filter it, search it by typing, and jump to the pawns in any entry.
+- With Vehicle Framework, the split caravan window now has a Vehicles tab. You can split vehicles off a caravan and assign their seats.
+
+### Changed
+
+- Changing a pawn's autopilot settings no longer cancels an order you just gave. The pawn finishes that order first. Engage orders still take effect right away.
+- The flight recorder no longer logs every frame while a menu is open, so recordings are much shorter.
+
+### Fixed
+
+- Fixed the control type and state announcement settings turning themselves back on after restarting the game.
+- The caravan info screen now gives locations as a biome and map coordinates instead of tile numbers. Southern and western coordinates also read correctly now.
+- Fixed Shift+Enter on a caravan or pod row pressing Send. It now takes as much as you can carry. Alt+I on the split caravan's pawns tab also opens the right info card now.
+- Fixed the caravan formation and split caravan windows going blank on screen while you were on their buttons. Vehicle rows also read their speed, cargo capacity and value now.
+- Fixed the Contents tab on caskets, portals and other containers only reading a summary. It now lists each item. Alt+I opens an item's info card.
+- Fixed the Change route button in caravan formation being silent. It now tells you that you are choosing a route.
+- Fixed painting a combat policy of None down the Assign tab, which used to skip every pawn.
+- Fixed editing a drug policy. You can now change every setting right in the drug table.
+- Fixed info card rows like an animal's sex or category reading their value twice.
+- Fixed the inspection panel staying on a construction frame after it finished. It now moves to the finished building.
+- Fixed a menu item with no description reading the description of the item above it.
+- Fixed transport pod launches announcing two different ranges. You now hear one range, set by the pod with the least fuel.
+- Fixed the scanner lagging on big maps, especially while the game is running.
+- Fixed the inspection panel misbehaving with storage mods that open the Contents tab on their own, like Adaptive Storage Framework. You can leave that mod setting on.
+- Fixed an error at startup with Vehicle Framework installed. Vehicle autopilot moves also say what they are doing again.
+- Fixed a vehicle on search and destroy getting stuck when it reached the enemy. It now stops and fights from where it is.
+
+
 ## [2.0.0] - 2026-09-14
 
 Version 2.0 is a rebuild of RimWorld Access from the ground up.

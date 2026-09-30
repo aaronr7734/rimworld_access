@@ -1,1 +1,0 @@
-The caravan info screen now gives a caravan's location and destination as the biome and the game's own coordinates (like "Temperate forest, 49.40°N 1.80°E") instead of internal tile numbers. Southern and western coordinates are also read correctly now.
