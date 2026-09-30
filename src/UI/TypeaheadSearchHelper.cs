@@ -25,6 +25,8 @@ namespace RimWorldAccess
         /// </summary>
         public bool SubstringFallback;
 
+        public bool DocumentOrder;
+
         private string searchBuffer = "";
         private string lastFailedSearch = "";  // Stores the search that had no matches (for announcement)
         private float lastInputTime = 0f;
@@ -198,7 +200,7 @@ namespace RimWorldAccess
         {
             matchingIndices.Clear();
             matchingIndices.AddRange(
-                Shell.TypeaheadMatcher.FindMatches(searchBuffer, labels, candidates, SubstringFallback));
+                Shell.TypeaheadMatcher.FindMatches(searchBuffer, labels, candidates, SubstringFallback, DocumentOrder));
         }
 
         /// <summary>The next match after the given index, wrapping; -1 when there are none.</summary>

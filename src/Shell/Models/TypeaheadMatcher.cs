@@ -138,11 +138,11 @@ namespace RimWorldAccess.Shell
             => FindMatches(search, labels, candidates, false);
 
         /// <summary>
-        /// As above; <paramref name="substringFallback"/> also admits labels the query hits only
-        /// MID-WORD, ranked below every word-prefix tier.
+        /// As above; <paramref name="substringFallback"/> also admits MID-WORD hits, ranked last;
+        /// <paramref name="documentOrder"/> keeps row order within the region priority instead.
         /// </summary>
         public static List<int> FindMatches(string search, IReadOnlyList<string> labels,
-            IReadOnlyList<TypeaheadCandidate> candidates, bool substringFallback)
+            IReadOnlyList<TypeaheadCandidate> candidates, bool substringFallback, bool documentOrder = false)
         {
             var result = new List<int>();
             if (string.IsNullOrEmpty(search) || labels == null)
@@ -187,7 +187,7 @@ namespace RimWorldAccess.Shell
                 });
             }
 
-            matches.Sort(CompareEntries);
+            matches.Sort(documentOrder ? (Comparison<MatchEntry>)CompareDocumentOrder : CompareEntries);
             for (int i = 0; i < matches.Count; i++)
                 result.Add(matches[i].Index);
             return result;
@@ -424,6 +424,14 @@ namespace RimWorldAccess.Shell
             if (cmp == 0)
                 cmp = a.Index.CompareTo(b.Index);
             return cmp;
+        }
+
+        private static int CompareDocumentOrder(MatchEntry a, MatchEntry b)
+        {
+            int cmp = a.Priority.CompareTo(b.Priority);
+            if (cmp == 0)
+                cmp = a.Band.CompareTo(b.Band);
+            return cmp != 0 ? cmp : a.Index.CompareTo(b.Index);
         }
 
         /// <summary>"Sleeping spot (description here)" → "Sleeping spot"; handles nesting.</summary>

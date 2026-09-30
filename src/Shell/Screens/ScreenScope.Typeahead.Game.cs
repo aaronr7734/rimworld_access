@@ -89,6 +89,13 @@ namespace RimWorldAccess.Shell
             return d == null ? "" : (d.Label ?? "");
         }
 
+        /// <summary>A content row's candidate kind, from its described role by default. A screen whose rows are uniform and costly to describe overrides this with the constant answer.</summary>
+        protected virtual TypeaheadCandidateKind ContentRowSearchKind(int region, int row)
+        {
+            ElementDescription d = DescribeContentItem(region, row);
+            return d == null ? TypeaheadCandidateKind.Item : TypeaheadMatcher.ClassifyRow(d.Role, d.ReadOnly);
+        }
+
         /// <summary>A content row's stable identity for ranking, when the screen has one that outlives what the row currently displays (<see cref="TypeaheadCandidate.Identity"/>). Null by default; it never widens or narrows the match set.</summary>
         protected virtual string ContentRowSearchIdentity(int region, int row)
         {
@@ -119,6 +126,12 @@ namespace RimWorldAccess.Shell
         /// on the next keystroke.
         /// </summary>
         protected virtual bool TypeaheadSubstringFallback
+        {
+            get { return false; }
+        }
+
+        /// <summary>Keep matches in row order rather than ranking them, for chronological lists where cycling should walk forward in time.</summary>
+        protected virtual bool TypeaheadDocumentOrder
         {
             get { return false; }
         }
@@ -170,6 +183,7 @@ namespace RimWorldAccess.Shell
             // Read per search, not once: a screen sitting over a foreign filter answers
             // from that filter's live state (see TypeaheadSubstringFallback).
             typeahead.SubstringFallback = TypeaheadSubstringFallback;
+            typeahead.DocumentOrder = TypeaheadDocumentOrder;
             OnTypeaheadWillSearch();
             RefreshModel();
             // The automatic regions are always searchable: ContentRegionSearchable speaks only
@@ -194,6 +208,7 @@ namespace RimWorldAccess.Shell
         private void TypeaheadBackspace()
         {
             typeahead.SubstringFallback = TypeaheadSubstringFallback;
+            typeahead.DocumentOrder = TypeaheadDocumentOrder;
             OnTypeaheadWillSearch();
             RefreshModel();
             BuildTypeaheadEntries();
@@ -395,16 +410,13 @@ namespace RimWorldAccess.Shell
             {
                 if (!ContentRowSearchable(region, i))
                     continue;
-                ElementDescription d = DescribeContentItem(region, i);
                 typeaheadEntries.Add(new TypeaheadEntry
                 {
                     Region = region,
                     Row = i,
                     Column = -1,
                     IsAction = false,
-                    Kind = d == null
-                        ? TypeaheadCandidateKind.Item
-                        : TypeaheadMatcher.ClassifyRow(d.Role, d.ReadOnly),
+                    Kind = ContentRowSearchKind(region, i),
                     Identity = ContentRowSearchIdentity(region, i),
                 });
                 typeaheadLabels.Add(ContentRowSearchText(region, i) ?? "");

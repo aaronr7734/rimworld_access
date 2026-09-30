@@ -399,6 +399,25 @@ public class TypeaheadMatcherTests
     }
 
     [Fact]
+    public void DocumentOrder_KeepsRowOrderOverQuality()
+    {
+        var labels = new List<string> { "Wallpaper maker", "Bob smacks Wall", "Wall" };
+        Assert.Equal(new[] { 0, 1, 2 }, TypeaheadMatcher.FindMatches("wall", labels, null, false, documentOrder: true));
+    }
+
+    [Fact]
+    public void DocumentOrder_CurrentRegionStillFirst()
+    {
+        var labels = new List<string> { "Wall", "Wall lamp" };
+        var candidates = new List<TypeaheadCandidate>
+        {
+            new TypeaheadCandidate(false, TypeaheadCandidateKind.Item),
+            new TypeaheadCandidate(true, TypeaheadCandidateKind.Item),
+        };
+        Assert.Equal(new[] { 1, 0 }, TypeaheadMatcher.FindMatches("wall", labels, candidates, false, documentOrder: true));
+    }
+
+    [Fact]
     public void SubstringFallback_MultiwordQuery_ReachesFallback()
     {
         var labels = new List<string> { "Megasloth wool" };

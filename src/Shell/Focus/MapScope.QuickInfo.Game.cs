@@ -54,6 +54,8 @@ namespace RimWorldAccess.Shell
                 delegate (KeyEventSnapshot e) { NeedsState.DisplayNeedsInfo(); }, when: QuickInfoLive);
             scope.RegisterExternalClaim("map.info.combatLog",
                 delegate (KeyEventSnapshot e) { CombatLogState.DisplayCombatLog(); }, when: QuickInfoLive);
+            scope.RegisterExternalClaim("map.openGlobalLog",
+                delegate (KeyEventSnapshot e) { GlobalLogWindow.Open(); }, when: QuickInfoLive);
             scope.RegisterExternalClaim("map.info.gear",
                 delegate (KeyEventSnapshot e) { GearState.DisplayGearInfo(); }, when: QuickInfoLive);
             scope.RegisterExternalClaim("map.info.skills",

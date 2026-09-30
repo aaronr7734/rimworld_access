@@ -450,6 +450,7 @@
 9	src/Gravships/GravshipHelper.cs
 28	src/Gravships/GravshipPatch.cs
 0	src/Gravships/SubstructureOverlayState.cs
+32	src/History/GlobalLog.Game.cs
 80	src/History/HistoryGraphState.cs
 77	src/History/HistoryHelper.cs
 54	src/History/HistoryMessagesState.cs
@@ -726,7 +727,7 @@
 13	src/Mechs/MechsMenuState.cs
 65	src/Narrative/AsyncTextStability.Game.cs
 37	src/Narrative/AsyncTextStability.cs
-130	src/Narrative/DialogueLogScope.Game.cs
+129	src/Narrative/DialogueLogScope.Game.cs
 39	src/Narrative/NarrativeFeed.Game.cs
 53	src/Narrative/NarrativeFeedCore.cs
 67	src/Pawns/AssignMenuHelper.cs
@@ -972,6 +973,7 @@
 53	src/Shell/Screens/GenericWindowScope.TextEdit.Game.cs
 104	src/Shell/Screens/GiveNameScope.Game.cs
 59	src/Shell/Screens/GizmoScope.Game.cs
+48	src/Shell/Screens/GlobalLogScope.Game.cs
 59	src/Shell/Screens/GrowthMomentScope.Game.cs
 98	src/Shell/Screens/HealthTabScope.Game.cs
 86	src/Shell/Screens/HistoryScope.Game.cs
@@ -1045,8 +1047,8 @@
 27	src/Shell/Screens/ScreenScope.DebugSurface.Game.cs
 121	src/Shell/Screens/ScreenScope.Extras.Game.cs
 308	src/Shell/Screens/ScreenScope.Game.cs
-213	src/Shell/Screens/ScreenScope.Regions.Game.cs
-117	src/Shell/Screens/ScreenScope.Typeahead.Game.cs
+214	src/Shell/Screens/ScreenScope.Regions.Game.cs
+119	src/Shell/Screens/ScreenScope.Typeahead.Game.cs
 61	src/Shell/Screens/ScreenScopeDrawPatch.Game.cs
 18	src/Shell/Screens/SelectXenogermScope.Game.cs
 55	src/Shell/Screens/SellableItemsScope.Game.cs

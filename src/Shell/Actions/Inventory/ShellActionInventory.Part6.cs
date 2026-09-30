@@ -165,6 +165,10 @@ namespace RimWorldAccess.Shell
                 ActionCategory.Map,
                 new List<KeyChord> { KeyChord.Of(KeyCode.B, alt: true) }));
 
+            c.Register(new InputAction("map.openGlobalLog",
+                ActionCategory.Map,
+                new List<KeyChord> { KeyChord.Of(KeyCode.L, alt: true) }));
+
             // ---- gear info ----
             c.Register(new InputAction("map.info.gear",
                 ActionCategory.Map,

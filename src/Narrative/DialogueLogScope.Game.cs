@@ -441,39 +441,14 @@ namespace RimWorldAccess.Shell
         /// <summary>
         /// A mouse click on a row in <see cref="DialogueLogWindow"/>'s list: moves the keyboard cursor
         /// there and reads it, as if arrowed to — one shared cursor drives both input methods, so a
-        /// click is never a second, silent selection channel. Switches into the Lines region first,
-        /// with the normal region-switch change/sound sequence.
+        /// click is never a second, silent selection channel.
         /// </summary>
         internal void SelectRow(int index)
         {
-            if (index < 0 || index >= rows.Count)
+            if (index >= 0 && index < rows.Count)
             {
-                return;
+                LandCursorAt(LinesRegion, index);
             }
-            if (Model.RegionIndex != LinesRegion)
-            {
-                MoveResult switchResult = Model.MoveToRegion(LinesRegion);
-                if (switchResult.Kind == MoveKind.Empty)
-                {
-                    return;
-                }
-                if (switchResult.Changed)
-                {
-                    OnRegionChanged(switchResult);
-                    if (TabSwitchSound != null)
-                    {
-                        TabSwitchSound.PlayOneShotOnCamera();
-                    }
-                }
-            }
-            ListModel region = Model.Region(LinesRegion);
-            if (region == null)
-            {
-                return;
-            }
-            region.MoveTo(index);
-            NotifyCursorSettled();
-            AnnounceCurrentItem();
         }
 
         /// <summary>

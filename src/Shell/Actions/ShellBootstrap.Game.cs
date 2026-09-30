@@ -123,6 +123,10 @@ namespace RimWorldAccess.Shell
             {
                 return new DialogueLogScope((DialogueLogWindow)w);
             });
+            ScopeForWindow.Register(typeof(GlobalLogWindow), delegate (Verse.Window w)
+            {
+                return new GlobalLogScope((GlobalLogWindow)w);
+            });
             // The real owner-assignment dialog (beds, thrones, graves,
             // meditation spots, deathrest caskets).
             ScopeForWindow.Register(typeof(RimWorld.Dialog_AssignBuildingOwner), delegate (Verse.Window w)

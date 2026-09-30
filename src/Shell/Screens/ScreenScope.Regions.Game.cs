@@ -193,6 +193,13 @@ namespace RimWorldAccess.Shell
                 PointerRouting.RejectNoTarget();
                 return;
             }
+            LandCursorAt(region, index, column);
+        }
+
+        /// <summary>Lands the cursor on one row as an arrow key would (pointer routes, a self-drawn window's clicks), ending any search, whose matches are row positions.</summary>
+        protected void LandCursorAt(int region, int index, int column = -1, bool announce = true)
+        {
+            TypeaheadReset();
             if (region != Model.RegionIndex)
             {
                 MoveResult result = Model.MoveToRegion(region);
@@ -210,7 +217,8 @@ namespace RimWorldAccess.Shell
                 table.MoveToColumn(column);
             ShellDispatcherPatch.NotifyCursorMoved();
             NotifyCursorSettled();
-            AnnounceCurrentItem();
+            if (announce)
+                AnnounceCurrentItem();
         }
 
         /// <summary>The region, item and column the pointer resolves to, or false for nothing routable.</summary>
