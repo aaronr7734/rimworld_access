@@ -225,6 +225,24 @@ public class TipIndexTests
     /// that merely clips its edge.
     /// </summary>
     [Fact]
+    public void QueryAt_OnlyHitIsANeighboursOnePixelBleed_ReturnsNull()
+    {
+        // Float menu rows overlap by one pixel; a row with no tip must not borrow the row above's.
+        var index = new TipIndex();
+        index.Add(Square(0, 0), new TipRect(0, 0, 100, 30), DefaultClip, 1, 0, () => "row above tip");
+        Assert.Null(index.QueryAt(new TipRect(0, 29, 100, 30)));
+    }
+
+    [Fact]
+    public void QueryAt_SubRectTip_StillMatches()
+    {
+        // An icon's tip covers only part of its row and still belongs to it.
+        var index = new TipIndex();
+        index.Add(Square(0, 0), new TipRect(0, 0, 24, 24), DefaultClip, 1, 0, () => "icon tip");
+        Assert.Equal("icon tip", index.QueryAt(new TipRect(0, 0, 200, 24)));
+    }
+
+    [Fact]
     public void QueryAtScreen_MultipleOverlaps_PrefersEntryContainingCenter()
     {
         var index = new TipIndex();

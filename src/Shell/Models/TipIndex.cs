@@ -166,6 +166,20 @@ namespace RimWorldAccess.Shell
             return Resolve(elementScreenRect, useScreenRect: true, clipFilter: clip);
         }
 
+        /// <summary>
+        /// Vanilla's float menu stacks rows with a deliberate one-pixel overlap (Verse/FloatMenu.cs:282),
+        /// so a row's tip clips its neighbours' edges. A neighbour's tip is never this element's, even
+        /// when it is the only hit, as on a row that registers no tip of its own.
+        /// </summary>
+        private const float EdgeBleedThickness = 2f;
+
+        private static bool IsEdgeBleed(TipRect a, TipRect b)
+        {
+            float overlapWidth = Math.Min(a.X + a.Width, b.X + b.Width) - Math.Max(a.X, b.X);
+            float overlapHeight = Math.Min(a.Y + a.Height, b.Y + b.Height) - Math.Max(a.Y, b.Y);
+            return overlapWidth < EdgeBleedThickness || overlapHeight < EdgeBleedThickness;
+        }
+
         private string Resolve(TipRect elementRect, bool useScreenRect, TipClip? clipFilter)
         {
             List<Entry> hits = null;
@@ -176,7 +190,7 @@ namespace RimWorldAccess.Shell
                     continue;
                 }
                 TipRect candidate = useScreenRect ? entries[i].ScreenRect : entries[i].Rect;
-                if (candidate.Overlaps(elementRect))
+                if (candidate.Overlaps(elementRect) && !IsEdgeBleed(candidate, elementRect))
                 {
                     if (hits == null)
                     {
@@ -192,13 +206,8 @@ namespace RimWorldAccess.Shell
 
             if (hits.Count > 1)
             {
-                // Neighbour bleed guard. Narrow adjacent columns can overlap by a float-rounding sliver,
-                // and vanilla's own float menu stacks rows with a deliberate one-pixel overlap
-                // (Verse/FloatMenu.cs:282), so a row's tip clips both its neighbours' rects. A tip
-                // meant for this element CONTAINS its center; a neighbour's only clips an edge, so
-                // narrowing to center-containing hits only ever removes candidates and leaves the
-                // single-hit case untouched. Applies to both query spaces: this is a property of how
-                // surfaces lay rows out, not of the space they are compared in.
+                // Wider neighbour overlaps (float-rounded columns): a tip meant for this element
+                // contains its center, so narrowing to those only ever removes candidates.
                 float centerX = elementRect.X + elementRect.Width / 2f;
                 float centerY = elementRect.Y + elementRect.Height / 2f;
                 List<Entry> centered = null;

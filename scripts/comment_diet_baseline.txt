@@ -1293,7 +1293,7 @@
 0	tests/RimWorldAccess.Tests/Shell/TableModelTests.cs
 4	tests/RimWorldAccess.Tests/Shell/TextureButtonLabelsTests.cs
 11	tests/RimWorldAccess.Tests/Shell/TinyFontHeadingDetectorTests.cs
-83	tests/RimWorldAccess.Tests/Shell/TipIndexTests.cs
+85	tests/RimWorldAccess.Tests/Shell/TipIndexTests.cs
 35	tests/RimWorldAccess.Tests/Shell/TooltipGateAnalysisTests.cs
 0	tests/RimWorldAccess.Tests/Shell/TooltipTextJoinTests.cs
 5	tests/RimWorldAccess.Tests/Shell/TopCharSinkScopeTests.cs
