@@ -122,6 +122,8 @@
 8	src/Combat/ShellImpactPatch.cs
 39	src/Combat/TargetConfirmDialogGuard.cs
 70	src/Combat/TargetingPatch.cs
+10	src/Compat/AdaptiveStorage/AdaptiveStorageContentsAdapter.Game.cs
+0	src/Compat/AdaptiveStorage/AdaptiveStorageModule.Game.cs
 19	src/Compat/AllowTool/AllowToolCompat.Game.cs
 17	src/Compat/AllowTool/AllowToolContextMenuProvider.Game.cs
 0	src/Compat/AllowTool/AllowToolModule.Game.cs

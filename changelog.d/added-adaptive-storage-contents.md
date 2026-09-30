@@ -1,0 +1,1 @@
+Adaptive Storage Framework storage now has a real Contents list, just like the one on screen. You hear the stack count and total mass, every stored item with its mass and days until it rots, and you can change the stack limit, allow or forbid items, and drop them. Press Alt+I on an item for its info card.
