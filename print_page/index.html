@@ -4545,13 +4545,23 @@
 </ul>
 <p>If you are not using auto-provision, set the single destination waypoint and press <strong>Enter</strong>. If you are using auto-provision, after the destination waypoint, return to your settlement and press <strong>Space</strong> to add another waypoint there. This does not make the caravan travel home; it tells the auto-provision system how long the round trip is so it can pack the right amount of supplies.</p>
 <h2 id="world-caravans-the-formation-screen">The formation screen<a class="headerlink" href="#world-caravans-the-formation-screen" title="Permanent link">&para;</a></h2>
-<p>The formation screen is where you choose who and what travels. <strong>Left</strong> and <strong>Right</strong> move between the tabs (pawns, items, supplies). Press <strong>Tab</strong> to reach the summary and info view, and Tab again to return.</p>
+<p>The formation screen is where you choose who and what travels. It opens in the <strong>classic view</strong>: one list per tab. <strong>Left</strong> and <strong>Right</strong> move between the tabs (pawns, items, travel supplies), and <strong>Up</strong> and <strong>Down</strong> move through the list. Press <strong>Tab</strong> to reach the summary, Tab again for the buttons (Send, Cancel, Reset, Change route), and once more to return to the tab and row you left. <strong>Shift+Tab</strong> goes the other way.</p>
+<p>Prefer a table? Press <strong>Ctrl+Tab</strong> (<strong>Option+Tab</strong> on a Mac) to switch to the <strong>table view</strong>, where each tab is a sortable table with one column per value. The screen remembers the view you used last, and so do the split caravan and transport pod screens. You can also pick the default in <strong>Options &gt; RimWorld Access</strong>.</p>
+<p>Each row says its name and how many you are taking, then everything the game shows next to it: mass, market value, days until it rots, nutrition, foraging, food eaten per day, ideoligion, xenotype, the little animal icons (rideable, bonded, pregnant, sick), and the description. Moving from colonists to slaves or animals announces the new section. The screen scrolls to keep your row visible, so anyone watching sees it highlighted.</p>
 <h3 id="world-caravans-choosing-pawns-and-goods">Choosing pawns and goods<a class="headerlink" href="#world-caravans-choosing-pawns-and-goods" title="Permanent link">&para;</a></h3>
 <p>On the pawns tab, <strong>Space</strong> or <strong>Enter</strong> selects a colonist or animal to bring. Animals with identical name, age, gender, and medical status are grouped into one entry; press <strong>Enter</strong> on a group to pick how many to take. Other animals each get their own slot.</p>
-<p>On the items and supplies tabs, <strong>Space</strong> or <strong>Enter</strong> on an entry opens a quantity chooser. In the chooser, <strong>Up</strong> and <strong>Down</strong> change the amount by one, <strong>Home</strong> sets the minimum and <strong>End</strong> the maximum, or type a number directly; <strong>Enter</strong> confirms. Back on the list, <strong>Shift+Enter</strong> takes as many as you can carry within the remaining capacity. Pack animals such as alpacas and buffalo raise that capacity.</p>
+<p>On the items and supplies tabs, <strong>Space</strong> or <strong>Enter</strong> on an entry opens a quantity chooser. In the chooser, <strong>Up</strong> and <strong>Down</strong> change the amount by one, <strong>Home</strong> sets the minimum and <strong>End</strong> the maximum, or type a number directly; <strong>Enter</strong> confirms. Back on the list:</p>
+<ul>
+<li><strong>Plus</strong> and <strong>Minus</strong> change the amount by one.</li>
+<li><strong>Shift+Up</strong> and <strong>Shift+Down</strong> change it by ten, <strong>Ctrl+Up</strong> and <strong>Ctrl+Down</strong> by a hundred.</li>
+<li><strong>Shift+Home</strong> takes none and <strong>Shift+End</strong> takes all.</li>
+<li><strong>Shift+Enter</strong> takes as many as you can carry within the remaining capacity. Pack animals such as alpacas and buffalo raise that capacity.</li>
+<li><strong>Delete</strong> puts the whole row back.</li>
+<li><strong>Alt+I</strong> opens the info card, and <strong>Alt+H</strong>, <strong>Alt+M</strong>, <strong>Alt+N</strong>, <strong>Alt+G</strong> and <strong>Alt+K</strong> read a pawn's health, mood, needs, gear and top skills.</li>
+</ul>
 <p>Load real food, medicine, and meals on the supplies tab. Colonists can forage in forests and shrublands, but rarely enough to feed the whole group, so pack food rather than relying on it.</p>
 <h3 id="world-caravans-the-summary-view">The summary view<a class="headerlink" href="#world-caravans-the-summary-view" title="Permanent link">&para;</a></h3>
-<p>Press <strong>Tab</strong> to reach the summary view. It shows the numbers that decide whether the trip succeeds: total mass, carry capacity, speed, food on hand, foraging rate, visibility, and more. Press <strong>Alt+I</strong> on most values to open the <a href="#concepts-info-card">info card</a> for a breakdown.</p>
+<p>Press <strong>Tab</strong> to reach the summary view. It shows the numbers that decide whether the trip succeeds: total mass and carry capacity, speed, food on hand, foraging rate, visibility, and the destination. Press <strong>Enter</strong> or <strong>Alt+I</strong> on most values for a breakdown.</p>
 <h2 id="world-caravans-auto-provision">Auto-provision<a class="headerlink" href="#world-caravans-auto-provision" title="Permanent link">&para;</a></h2>
 <p>Press <strong>Alt+A</strong> to toggle auto-provision. When it is on, the game fills the Supplies tab based on the planned route and travel time; the tab is locked while auto-provision is active. Press <strong>Alt+A</strong> again to unlock and adjust supplies yourself.</p>
 <h2 id="world-caravans-sending-the-caravan">Sending the caravan<a class="headerlink" href="#world-caravans-sending-the-caravan" title="Permanent link">&para;</a></h2>
@@ -4597,7 +4607,7 @@
 <h2 id="world-transport-pods-transport-pods">Transport pods<a class="headerlink" href="#world-transport-pods-transport-pods" title="Permanent link">&para;</a></h2>
 <p>To launch a group of pods, select a loaded transport pod and press <strong>G</strong> for its <a href="#concepts-gizmos">gizmos</a>. RimWorld Access adds a gizmo called <strong>"Group all available pods"</strong> that selects every pod the current one can group with and opens the loading dialog, so you do not need to gather them one at a time.</p>
 <h3 id="world-transport-pods-loading">Loading<a class="headerlink" href="#world-transport-pods-loading" title="Permanent link">&para;</a></h3>
-<p>Pod loading uses the same interface as <a href="#world-caravans">caravan formation</a>: the pawns, items, and supplies tabs, navigated the same way. <strong>Left</strong> and <strong>Right</strong> switch between tabs, <strong>Tab</strong> reaches the summary view, and <strong>Space</strong> or <strong>Enter</strong> selects a pawn or opens the quantity chooser for an item. <strong>Shift+Enter</strong> takes as many as you can carry. See <a href="#world-caravans">caravans</a> for the full rundown.</p>
+<p>Pod loading uses the same interface as <a href="#world-caravans">caravan formation</a>, with a pawns tab and an items tab. <strong>Left</strong> and <strong>Right</strong> switch between tabs, <strong>Tab</strong> reaches the summary and then the buttons, and <strong>Space</strong> or <strong>Enter</strong> selects a pawn or opens the quantity chooser for an item. <strong>Shift+Enter</strong> takes as many as you can carry. <strong>Ctrl+Tab</strong> switches between the classic lists and the table view. Map portals, such as pit gates and ancient complexes, load the same way but have no summary. See <a href="#world-caravans">caravans</a> for the full rundown.</p>
 <p>When packed, press <strong>Alt+S</strong> to launch.</p>
 <h3 id="world-transport-pods-choosing-where-to-land">Choosing where to land<a class="headerlink" href="#world-transport-pods-choosing-where-to-land" title="Permanent link">&para;</a></h3>
 <p>After pressing <strong>Alt+S</strong> you pick a destination tile on the world map. What happens next depends on the tile:</p>
@@ -5318,6 +5328,18 @@
 <td>Remove a pawn or item from the caravan</td>
 </tr>
 <tr>
+<td><strong>Ctrl+Tab</strong></td>
+<td>In caravan formation, caravan splitting and pod loading, switch between the classic lists and the table view</td>
+</tr>
+<tr>
+<td><strong>Shift+Up / Shift+Down</strong></td>
+<td>In the classic caravan and pod lists, take ten more or ten fewer (Ctrl for a hundred)</td>
+</tr>
+<tr>
+<td><strong>Shift+Home / Shift+End</strong></td>
+<td>In the classic caravan and pod lists, take none or all</td>
+</tr>
+<tr>
 <td><strong>F8</strong></td>
 <td>Toggle the world view off and return to the colony</td>
 </tr>
@@ -5624,6 +5646,38 @@
 <p>Older changes (before version 2.0) are in the <a href="#reference-changelog-archive">pre-2.0 changelog archive</a>.</p>
 <!-- BUILD_CHANGELOG_INSERT: do not remove this marker. -->
 
+<h2 id="reference-changelog-20-rc-2-2026-09-29">[2.0 RC 2] - 2026-09-29<a class="headerlink" href="#reference-changelog-20-rc-2-2026-09-29" title="Permanent link">&para;</a></h2>
+<h3 id="reference-changelog-added">Added<a class="headerlink" href="#reference-changelog-added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Adaptive Storage Framework storage now has a full Contents list. Each item reads its mass and days until it rots. You can also change the stack limit, allow or forbid items, and drop them.</li>
+<li>Caravan formation, caravan splitting and transport pod loading are back to the classic lists by default. Every row now reads what the game shows beside it, like mass, value and rot time. Press Ctrl+Tab (Option+Tab on a Mac) to switch to the table view.</li>
+<li>Added the global log, opened with Alt+L or from the F12 menu. It lists every social and combat event in the world and goes back much further than the game's own log. You can filter it, search it by typing, and jump to the pawns in any entry.</li>
+<li>With Vehicle Framework, the split caravan window now has a Vehicles tab. You can split vehicles off a caravan and assign their seats.</li>
+</ul>
+<h3 id="reference-changelog-changed">Changed<a class="headerlink" href="#reference-changelog-changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Changing a pawn's autopilot settings no longer cancels an order you just gave. The pawn finishes that order first. Engage orders still take effect right away.</li>
+<li>The flight recorder no longer logs every frame while a menu is open, so recordings are much shorter.</li>
+</ul>
+<h3 id="reference-changelog-fixed">Fixed<a class="headerlink" href="#reference-changelog-fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixed the control type and state announcement settings turning themselves back on after restarting the game.</li>
+<li>The caravan info screen now gives locations as a biome and map coordinates instead of tile numbers. Southern and western coordinates also read correctly now.</li>
+<li>Fixed Shift+Enter on a caravan or pod row pressing Send. It now takes as much as you can carry. Alt+I on the split caravan's pawns tab also opens the right info card now.</li>
+<li>Fixed the caravan formation and split caravan windows going blank on screen while you were on their buttons. Vehicle rows also read their speed, cargo capacity and value now.</li>
+<li>Fixed the Contents tab on caskets, portals and other containers only reading a summary. It now lists each item. Alt+I opens an item's info card.</li>
+<li>Fixed the Change route button in caravan formation being silent. It now tells you that you are choosing a route.</li>
+<li>Fixed painting a combat policy of None down the Assign tab, which used to skip every pawn.</li>
+<li>Fixed editing a drug policy. You can now change every setting right in the drug table.</li>
+<li>Fixed info card rows like an animal's sex or category reading their value twice.</li>
+<li>Fixed the inspection panel staying on a construction frame after it finished. It now moves to the finished building.</li>
+<li>Fixed a menu item with no description reading the description of the item above it.</li>
+<li>Fixed transport pod launches announcing two different ranges. You now hear one range, set by the pod with the least fuel.</li>
+<li>Fixed the scanner lagging on big maps, especially while the game is running.</li>
+<li>Fixed the inspection panel misbehaving with storage mods that open the Contents tab on their own, like Adaptive Storage Framework. You can leave that mod setting on.</li>
+<li>Fixed an error at startup with Vehicle Framework installed. Vehicle autopilot moves also say what they are doing again.</li>
+<li>Fixed a vehicle on search and destroy getting stuck when it reached the enemy. It now stops and fights from where it is.</li>
+</ul>
 <h2 id="reference-changelog-200-2026-09-14">[2.0.0] - 2026-09-14<a class="headerlink" href="#reference-changelog-200-2026-09-14" title="Permanent link">&para;</a></h2>
 <p>Version 2.0 is a rebuild of RimWorld Access from the ground up.</p>
 <p>Screens are far more consistent than they were. The same keys and the same announcement grammar carry across the main menu, world creation, every tab, every dialog, and most third-party mod screens.</p>
@@ -5632,7 +5686,7 @@
 <p>Some popular mods now have dedicated support, and mods without it are covered by a reader that handles most windows on its own.</p>
 <p>Also new: text the game only shows under the mouse pointer is now spoken, developer mode is fully accessible if a little clunky, there are five new languages, and an optional mouse mode reads whatever the pointer touches.</p>
 <p>Behind the scenes, rebuilding how one screen works went from about three days to about twenty minutes, so screens should improve a lot faster from here.</p>
-<h3 id="reference-changelog-added">Added<a class="headerlink" href="#reference-changelog-added" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-added_1">Added<a class="headerlink" href="#reference-changelog-added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Many popular mods now have dedicated support. <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1874644848">Character Editor</a> got the most work: the whole editor is a proper screen, covering appearance, health, needs, social, inventory, genes and xenotypes, the browsers, presets, and the def editor. Also supported: <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3005289691">RimWorld Together</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3310027356">Colony Manager Redux</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3014915404">Vehicle Framework</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1201382956">A RimWorld of Magic</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=927155256">Simple Sidearms</a>, the Vanilla Expanded mods, Hospitality, RimTalk, Interaction Bubbles, Allow Tool, Alpha Memes, Dubs Bad Hygiene, the Progression mods, and anything built on JecsTools, HugsLib, or XML Extensions. The experience may not be as nice as the vanilla game experience, but I've done what I can. I can't play every mod out there, nor do I have the money to fix them all, but tools will be coming soon so mod builders can add accessibility for their own mods. Stay tuned!</li>
 <li>Mods without dedicated support are now covered by a generic window reader. It makes settings pages, dialogs, and custom windows navigable, and it recognizes every element type RimWorld supports, and a few others too! Page Up and Page Down jump between a page's sections, and disabled controls say why they are disabled. It is always on, and dedicated support simply takes over where something better exists.</li>
@@ -5664,7 +5718,7 @@
 <li>Ctrl+C copies a colonist's work priorities and Ctrl+V pastes them onto another, in both the focused view and the table view.</li>
 <li>RimWorld Access can keep the game paused when it matters. New games start paused and quiet, opening the research screen from a finished-research popup stays paused, and the game stays paused after you close a trade. Each is a setting you can switch off.</li>
 </ul>
-<h3 id="reference-changelog-changed">Changed<a class="headerlink" href="#reference-changelog-changed" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-changed_1">Changed<a class="headerlink" href="#reference-changelog-changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Navigation is consistent within each kind of screen now, instead of being reinvented screen by screen. Several shapes remain, because the game's own interface has several: trees, tables, screens whose sections you move between with Left and Right, and screens whose sections you move between with Tab. What is shared is everything inside them. Every row announces the same way, in the order you choose. Checkboxes say checked or not checked and toggle with Space or Enter, dropdowns open on Enter, sliders and steppers adjust with Left and Right and accept a typed value, radio buttons select as you arrow onto them, tables read cell by cell under sortable headers, and disabled controls stay in the list and say why.</li>
 <li>You can always reach a screen's buttons. The game's own toolbar is now shown on every screen and Tab walks every button on it, so you should not end up stranded on a screen not knowing which key moves you forward. Shift+Enter presses the screen's next button from anywhere on it, whether that is Generate, Save, Done, or Accept. Enter on something that is not an interactive control names the button a second Enter would press, so you hear the consequence before committing to it.</li>
@@ -5688,7 +5742,7 @@
 <ul>
 <li>The text panels the mod used to draw over the screen are gone: the world map information box, the landing-site panels, and the placement instruction box. The game's own highlights and windows carry that information now, and nothing is spoken any differently.</li>
 </ul>
-<h3 id="reference-changelog-fixed">Fixed<a class="headerlink" href="#reference-changelog-fixed" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_1">Fixed<a class="headerlink" href="#reference-changelog-fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Speech no longer goes silent on Windows. Machines with AVX-512 processors were rejecting any announcement containing a non-ASCII character, so an accented letter, a curly apostrophe, or CJK text produced silence while plain English spoke normally. Announcements carrying stray invisible characters from mod content were dropped outright. Both are fixed, and any remaining speech failure now logs the exact text so it can be diagnosed from your log file.</li>
 <li>Actions now go through the game's own rules everywhere, closing a long list of cases where this mod could do something the game would refuse, or skip a warning it would show. Among them: drafting respects downed pawns and mech overseer range; taming and slaughter show their bond, faction, and veneration confirmations; surgeries respect availability and speak the game's reason when refused; caravan equipping shows the persona weapon warning; accepting a quest shows the royal favor warning; research honors benches, techprints, and prerequisites; bill counts follow each recipe's limits; and name fields cap at the lengths the game really accepts.</li>
