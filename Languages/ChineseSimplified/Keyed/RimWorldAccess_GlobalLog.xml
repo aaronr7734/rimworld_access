@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
-  <RimWorldAccess.GlobalLog.Title>全局日志</RimWorldAccess.GlobalLog.Title>
-  <RimWorldAccess.GlobalLog.Opened>全局日志已打开。共 {0} 条记录。</RimWorldAccess.GlobalLog.Opened>
-  <RimWorldAccess.GlobalLog.OpenedOne>全局日志已打开。共 1 条记录。</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.Title>日志</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Tab.Social>社交日志</RimWorldAccess.GlobalLog.Tab.Social>
+  <RimWorldAccess.GlobalLog.Tab.Combat>战斗日志</RimWorldAccess.GlobalLog.Tab.Combat>
+  <!-- Spoken on opening the screen and on switching logs. {0} = the log's name ("Social log"), {1} = how many entries it shows. -->
+  <RimWorldAccess.GlobalLog.Summary>{0}。共 {1} 条记录。</RimWorldAccess.GlobalLog.Summary>
+  <RimWorldAccess.GlobalLog.SummaryOne>{0}。共 1 条记录。</RimWorldAccess.GlobalLog.SummaryOne>
   <RimWorldAccess.GlobalLog.LogRegion>日志</RimWorldAccess.GlobalLog.LogRegion>
   <RimWorldAccess.GlobalLog.FiltersRegion>筛选</RimWorldAccess.GlobalLog.FiltersRegion>
   <RimWorldAccess.GlobalLog.Empty>没有符合筛选条件的日志记录。</RimWorldAccess.GlobalLog.Empty>
@@ -18,5 +21,7 @@
   <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 共 1 条记录。</RimWorldAccess.GlobalLog.FilterChangedOne>
   <!-- {0} = a pawn's short name. -->
   <RimWorldAccess.GlobalLog.JumpTo>跳转到 {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <!-- A disabled choice in the menu Enter opens on an entry naming several pawns. {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpToUnavailable>跳转到 {0}（无法找到）</RimWorldAccess.GlobalLog.JumpToUnavailable>
   <RimWorldAccess.GlobalLog.JumpUnavailable>无法找到该角色。</RimWorldAccess.GlobalLog.JumpUnavailable>
 </LanguageData>

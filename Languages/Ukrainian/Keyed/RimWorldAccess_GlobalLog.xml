@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
-  <RimWorldAccess.GlobalLog.Title>Загальний журнал</RimWorldAccess.GlobalLog.Title>
-  <RimWorldAccess.GlobalLog.Opened>Загальний журнал відкрито. Записів: {0}.</RimWorldAccess.GlobalLog.Opened>
-  <RimWorldAccess.GlobalLog.OpenedOne>Загальний журнал відкрито. 1 запис.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.Title>Журнали</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Tab.Social>Журнал взаємин</RimWorldAccess.GlobalLog.Tab.Social>
+  <RimWorldAccess.GlobalLog.Tab.Combat>Журнал боїв</RimWorldAccess.GlobalLog.Tab.Combat>
+  <!-- Spoken on opening the screen and on switching logs. {0} = the log's name ("Social log"), {1} = how many entries it shows. -->
+  <RimWorldAccess.GlobalLog.Summary>{0}. Записів: {1}.</RimWorldAccess.GlobalLog.Summary>
+  <RimWorldAccess.GlobalLog.SummaryOne>{0}. 1 запис.</RimWorldAccess.GlobalLog.SummaryOne>
   <RimWorldAccess.GlobalLog.LogRegion>Журнал</RimWorldAccess.GlobalLog.LogRegion>
   <RimWorldAccess.GlobalLog.FiltersRegion>Фільтри</RimWorldAccess.GlobalLog.FiltersRegion>
   <RimWorldAccess.GlobalLog.Empty>Жоден запис журналу не відповідає фільтрам.</RimWorldAccess.GlobalLog.Empty>
@@ -18,5 +21,7 @@
   <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 запис.</RimWorldAccess.GlobalLog.FilterChangedOne>
   <!-- {0} = a pawn's short name. -->
   <RimWorldAccess.GlobalLog.JumpTo>Перейти до: {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <!-- A disabled choice in the menu Enter opens on an entry naming several pawns. {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpToUnavailable>Перейти до: {0} (не вдається знайти)</RimWorldAccess.GlobalLog.JumpToUnavailable>
   <RimWorldAccess.GlobalLog.JumpUnavailable>Не вдається знайти персонажа.</RimWorldAccess.GlobalLog.JumpUnavailable>
 </LanguageData>

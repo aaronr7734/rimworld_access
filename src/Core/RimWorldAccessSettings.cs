@@ -148,11 +148,12 @@ namespace RimWorldAccess
         /// <summary>Saved-recording dialog on flight recorder stop; off speaks the path instead.</summary>
         public bool ShowRecordingSavedDialog = true;
 
-        public bool GlobalLogShowSocial = true;
-        public bool GlobalLogShowCombat = true;
+        public GlobalLogKind GlobalLogView = GlobalLogKind.Social;
+        public GlobalLogOwners GlobalLogSocialOwners = GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals;
+        public bool GlobalLogSocialNewestFirst = true;
+        public GlobalLogOwners GlobalLogCombatOwners = GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals;
+        public bool GlobalLogCombatNewestFirst = true;
         public bool GlobalLogShowAll = false;
-        public GlobalLogOwners GlobalLogOwnerFilter = GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals;
-        public bool GlobalLogNewestFirst = true;
 
         /// <summary>Master switch for the combat autopilot: gizmos, think-tree brain, autocast menu entries.
         /// The hunting rules live on per-pawn hunting policies, not here.</summary>
@@ -225,11 +226,12 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref AnnounceVanillaInteractionBubbles, "AnnounceVanillaInteractionBubbles", true);
             Scribe_Values.Look(ref TtsAnnounceAnyway, "TtsAnnounceAnyway", false);
             Scribe_Values.Look(ref ShowRecordingSavedDialog, "ShowRecordingSavedDialog", true);
-            Scribe_Values.Look(ref GlobalLogShowSocial, "GlobalLogShowSocial", true);
-            Scribe_Values.Look(ref GlobalLogShowCombat, "GlobalLogShowCombat", true);
+            Scribe_Values.Look(ref GlobalLogView, "GlobalLogView", GlobalLogKind.Social);
+            Scribe_Values.Look(ref GlobalLogSocialOwners, "GlobalLogSocialOwners", GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals);
+            Scribe_Values.Look(ref GlobalLogSocialNewestFirst, "GlobalLogSocialNewestFirst", true);
+            Scribe_Values.Look(ref GlobalLogCombatOwners, "GlobalLogCombatOwners", GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals);
+            Scribe_Values.Look(ref GlobalLogCombatNewestFirst, "GlobalLogCombatNewestFirst", true);
             Scribe_Values.Look(ref GlobalLogShowAll, "GlobalLogShowAll", false);
-            Scribe_Values.Look(ref GlobalLogOwnerFilter, "GlobalLogOwnerFilter", GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals);
-            Scribe_Values.Look(ref GlobalLogNewestFirst, "GlobalLogNewestFirst", true);
             Scribe_Values.Look(ref EnableCombatAutopilot, "EnableCombatAutopilot", true);
             Scribe_Values.Look(ref UndraftClearsStandingOrders, "UndraftClearsStandingOrders", true);
             Scribe_Values.Look(ref AnnounceSelectedPawnActivity, "AnnounceSelectedPawnActivity", false);

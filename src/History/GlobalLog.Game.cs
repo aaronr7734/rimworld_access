@@ -208,8 +208,9 @@ namespace RimWorldAccess
         private int renderedCount;
         private string textLanguage;
 
-        /// <summary>The entry the screen's cursor last rested on, so reopening the log returns to it.</summary>
-        internal int LastFocusedLogId = -1;
+        /// <summary>The entry each log's cursor last rested on, so reopening or switching back returns to it.</summary>
+        internal int LastFocusedSocialLogId = -1;
+        internal int LastFocusedCombatLogId = -1;
 
         /// <summary>Bumped on every change to any record set, so an open screen rebuilds only when something moved.</summary>
         public static int Version { get; private set; }
@@ -231,7 +232,8 @@ namespace RimWorldAccess
                 textLanguage = LanguageDatabase.activeLanguage?.folderName;
             }
             Scribe_Values.Look(ref textLanguage, "textLanguage");
-            Scribe_Values.Look(ref LastFocusedLogId, "lastFocusedLogId", -1);
+            Scribe_Values.Look(ref LastFocusedSocialLogId, "lastFocusedSocialLogId", -1);
+            Scribe_Values.Look(ref LastFocusedCombatLogId, "lastFocusedCombatLogId", -1);
             Scribe_Collections.Look(ref records, "records", LookMode.Deep);
             if (records == null)
             {

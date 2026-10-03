@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
-  <RimWorldAccess.GlobalLog.Title>Registro global</RimWorldAccess.GlobalLog.Title>
-  <RimWorldAccess.GlobalLog.Opened>Registro global abierto. {0} entradas.</RimWorldAccess.GlobalLog.Opened>
-  <RimWorldAccess.GlobalLog.OpenedOne>Registro global abierto. 1 entrada.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.Title>Registros</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Tab.Social>Registro social</RimWorldAccess.GlobalLog.Tab.Social>
+  <RimWorldAccess.GlobalLog.Tab.Combat>Registro de combate</RimWorldAccess.GlobalLog.Tab.Combat>
+  <!-- Spoken on opening the screen and on switching logs. {0} = the log's name ("Social log"), {1} = how many entries it shows. -->
+  <RimWorldAccess.GlobalLog.Summary>{0}. {1} entradas.</RimWorldAccess.GlobalLog.Summary>
+  <RimWorldAccess.GlobalLog.SummaryOne>{0}. 1 entrada.</RimWorldAccess.GlobalLog.SummaryOne>
   <RimWorldAccess.GlobalLog.LogRegion>Registro</RimWorldAccess.GlobalLog.LogRegion>
   <RimWorldAccess.GlobalLog.FiltersRegion>Filtros</RimWorldAccess.GlobalLog.FiltersRegion>
   <RimWorldAccess.GlobalLog.Empty>Ninguna entrada del registro coincide con los filtros.</RimWorldAccess.GlobalLog.Empty>
@@ -18,5 +21,7 @@
   <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 entrada.</RimWorldAccess.GlobalLog.FilterChangedOne>
   <!-- {0} = a pawn's short name. -->
   <RimWorldAccess.GlobalLog.JumpTo>Ir a {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <!-- A disabled choice in the menu Enter opens on an entry naming several pawns. {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpToUnavailable>Ir a {0} (no se puede ubicar)</RimWorldAccess.GlobalLog.JumpToUnavailable>
   <RimWorldAccess.GlobalLog.JumpUnavailable>No se puede ubicar al personaje.</RimWorldAccess.GlobalLog.JumpUnavailable>
 </LanguageData>

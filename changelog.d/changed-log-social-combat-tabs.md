@@ -1,0 +1,1 @@
+The global log is now two logs, social and combat, one tab each. Left and Right Arrow switch between them, and each log keeps its own filters, so the combat log can show everyone on the map while the social log sticks to your colony.

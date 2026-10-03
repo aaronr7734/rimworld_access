@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
   <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
-  <RimWorldAccess.GlobalLog.Title>Global log</RimWorldAccess.GlobalLog.Title>
-  <RimWorldAccess.GlobalLog.Opened>Global log opened. {0} entries.</RimWorldAccess.GlobalLog.Opened>
-  <RimWorldAccess.GlobalLog.OpenedOne>Global log opened. 1 entry.</RimWorldAccess.GlobalLog.OpenedOne>
+  <RimWorldAccess.GlobalLog.Title>Logs</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Tab.Social>Social log</RimWorldAccess.GlobalLog.Tab.Social>
+  <RimWorldAccess.GlobalLog.Tab.Combat>Combat log</RimWorldAccess.GlobalLog.Tab.Combat>
+  <!-- Spoken on opening the screen and on switching logs. {0} = the log's name ("Social log"), {1} = how many entries it shows. -->
+  <RimWorldAccess.GlobalLog.Summary>{0}. {1} entries.</RimWorldAccess.GlobalLog.Summary>
+  <RimWorldAccess.GlobalLog.SummaryOne>{0}. 1 entry.</RimWorldAccess.GlobalLog.SummaryOne>
   <RimWorldAccess.GlobalLog.LogRegion>Log</RimWorldAccess.GlobalLog.LogRegion>
   <RimWorldAccess.GlobalLog.FiltersRegion>Filters</RimWorldAccess.GlobalLog.FiltersRegion>
   <RimWorldAccess.GlobalLog.Empty>No log entries match the filters.</RimWorldAccess.GlobalLog.Empty>
@@ -18,5 +21,7 @@
   <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 entry.</RimWorldAccess.GlobalLog.FilterChangedOne>
   <!-- {0} = a pawn's short name. -->
   <RimWorldAccess.GlobalLog.JumpTo>Jump to {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <!-- A disabled choice in the menu Enter opens on an entry naming several pawns. {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpToUnavailable>Jump to {0} (cannot be located)</RimWorldAccess.GlobalLog.JumpToUnavailable>
   <RimWorldAccess.GlobalLog.JumpUnavailable>The pawn cannot be located.</RimWorldAccess.GlobalLog.JumpUnavailable>
 </LanguageData>

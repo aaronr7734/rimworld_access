@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess.Shell
 {
     /// <summary>
-    /// The Global Log: every social and combat entry in the world, filterable, over
-    /// <see cref="GlobalLog"/>. A self-drawn window paired with <see cref="GlobalLogScope"/>, the
+    /// The colony's social and combat logs, one tab each, every entry in the world, filterable,
+    /// over <see cref="GlobalLog"/>. A self-drawn window paired with <see cref="GlobalLogScope"/>, the
     /// same shape as <see cref="DialogueLogWindow"/>: it draws the scope's own rows and filter
     /// state, and every mouse action runs the scope's method, so the two cannot drift.
     ///
@@ -22,6 +23,7 @@ namespace RimWorldAccess.Shell
         private const float TimeColumnWidth = 110f;
         private const float RowPadding = 4f;
 
+        private readonly List<TabRecord> tabs = new List<TabRecord>();
         private readonly Dictionary<GlobalLogRecord, float> rowHeights = new Dictionary<GlobalLogRecord, float>();
         private Vector2 scrollPosition;
         private float heightsWidth = -1f;
@@ -67,13 +69,33 @@ namespace RimWorldAccess.Shell
             Text.Font = GameFont.Small;
 
             const float buttonHeight = 35f;
-            float y = inRect.y + titleHeight + 8f;
+            float y = inRect.y + titleHeight + 8f + TabDrawer.TabHeight;
             float buttonRowY = inRect.yMax - buttonHeight;
             float bodyHeight = buttonRowY - 10f - y;
 
-            DrawFilters(new Rect(inRect.x, y, FilterColumnWidth, bodyHeight), scope);
-            DrawList(new Rect(inRect.x + FilterColumnWidth + 10f, y, inRect.width - FilterColumnWidth - 10f, bodyHeight), scope);
+            Rect body = new Rect(inRect.x, y, inRect.width, bodyHeight);
+            DrawTabs(body, scope);
+            body = body.ContractedBy(10f);
+            DrawFilters(new Rect(body.x, body.y, FilterColumnWidth, body.height), scope);
+            DrawList(new Rect(body.x + FilterColumnWidth + 10f, body.y, body.width - FilterColumnWidth - 10f, body.height), scope);
             DrawButtons(new Rect(inRect.x, buttonRowY, inRect.width, buttonHeight), scope);
+        }
+
+        private void DrawTabs(Rect baseRect, GlobalLogScope scope)
+        {
+            if (scope == null)
+            {
+                return;
+            }
+            tabs.Clear();
+            GlobalLogKind view = GlobalLogScope.View;
+            foreach (GlobalLogKind log in GlobalLogScope.Logs)
+            {
+                GlobalLogKind target = log;
+                tabs.Add(new TabRecord(GlobalLogScope.LogLabel(log), delegate { scope.ClickLog(target); }, log == view));
+            }
+            Widgets.DrawMenuSection(baseRect);
+            TabDrawer.DrawTabs(baseRect, tabs);
         }
 
         private static void DrawFilters(Rect rect, GlobalLogScope scope)
@@ -259,19 +281,14 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// Keyboard scope for <see cref="GlobalLogWindow"/>. Regions: Log (the filtered entries, each
-    /// read as the event, then how long ago), Filters (the log tab's own Show social, Show combat
-    /// and Show all, plus whose entries and the order), and Buttons (a jump to each pawn in the
-    /// focused entry, then Close).
+    /// Keyboard scope for <see cref="GlobalLogWindow"/>: the Social and Combat logs, switched by
+    /// Left/Right, each with its own filters and remembered entry. Regions: Log, Filters, and
+    /// Buttons (a jump to each pawn in the focused entry, then Close). Enter on an entry jumps to
+    /// its pawn, or offers a menu when it names several.
     ///
-    /// Typeahead walks matches in log order rather than by match quality, so Down after a search
-    /// always moves forward through the log; Enter settles on the match, since a log row has no
-    /// action of its own, leaving the cursor there to read the surrounding entries.
-    ///
-    /// Rows rebuild when a filter changes, and at most every <see cref="LiveRebuildSeconds"/> for
-    /// new entries, so a large fight costs a few rebuilds a second rather than one per line. New
-    /// entries also wait while a search is live, since its matches are row positions. The cursor
-    /// follows its entry across every rebuild.
+    /// Typeahead walks matches in log order. Rows rebuild on a filter or log change, and at most
+    /// every <see cref="LiveRebuildSeconds"/> for new entries, never under a live search, since
+    /// its matches are row positions. The cursor follows its entry across every rebuild.
     /// </summary>
     public sealed class GlobalLogScope : ScreenScope
     {
@@ -295,19 +312,25 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        private static readonly Filter[] Filters =
+        private static readonly Filter[] SocialFilters =
         {
-            new Filter("ShowSocial", s => s.GlobalLogShowSocial, (s, v) => s.GlobalLogShowSocial = v),
-            new Filter("ShowCombat", s => s.GlobalLogShowCombat, (s, v) => s.GlobalLogShowCombat = v),
-            // The log tab's label alone does not say it adds the minor combat lines.
-            new Filter("ShowAll", s => s.GlobalLogShowAll, (s, v) => s.GlobalLogShowAll = v, "RimWorldAccess.GlobalLog.Filter.ShowAllTip"),
-            OwnerFilter("RimWorldAccess.GlobalLog.Filter.Colonists", GlobalLogOwners.Colonists),
-            OwnerFilter("RimWorldAccess.GlobalLog.Filter.ColonyAnimals", GlobalLogOwners.ColonyAnimals),
-            OwnerFilter("RimWorldAccess.GlobalLog.Filter.Others", GlobalLogOwners.Others),
-            new Filter("RimWorldAccess.GlobalLog.Filter.NewestFirst", s => s.GlobalLogNewestFirst, (s, v) => s.GlobalLogNewestFirst = v),
+            OwnerFilter("RimWorldAccess.GlobalLog.Filter.Colonists", GlobalLogKind.Social, GlobalLogOwners.Colonists),
+            OwnerFilter("RimWorldAccess.GlobalLog.Filter.ColonyAnimals", GlobalLogKind.Social, GlobalLogOwners.ColonyAnimals),
+            OwnerFilter("RimWorldAccess.GlobalLog.Filter.Others", GlobalLogKind.Social, GlobalLogOwners.Others),
+            new Filter("RimWorldAccess.GlobalLog.Filter.NewestFirst", s => s.GlobalLogSocialNewestFirst, (s, v) => s.GlobalLogSocialNewestFirst = v),
         };
 
-        internal static int FilterCount => Filters.Length;
+        private static readonly Filter[] CombatFilters =
+        {
+            OwnerFilter("RimWorldAccess.GlobalLog.Filter.Colonists", GlobalLogKind.Combat, GlobalLogOwners.Colonists),
+            OwnerFilter("RimWorldAccess.GlobalLog.Filter.ColonyAnimals", GlobalLogKind.Combat, GlobalLogOwners.ColonyAnimals),
+            OwnerFilter("RimWorldAccess.GlobalLog.Filter.Others", GlobalLogKind.Combat, GlobalLogOwners.Others),
+            // The log tab's label alone does not say it adds the minor combat lines.
+            new Filter("ShowAll", s => s.GlobalLogShowAll, (s, v) => s.GlobalLogShowAll = v, "RimWorldAccess.GlobalLog.Filter.ShowAllTip"),
+            new Filter("RimWorldAccess.GlobalLog.Filter.NewestFirst", s => s.GlobalLogCombatNewestFirst, (s, v) => s.GlobalLogCombatNewestFirst = v),
+        };
+
+        internal static readonly GlobalLogKind[] Logs = { GlobalLogKind.Social, GlobalLogKind.Combat };
 
         internal static GlobalLogScope Current { get; private set; }
 
@@ -318,19 +341,39 @@ namespace RimWorldAccess.Shell
         private float lastRebuildTime = -1f;
         private bool announcedOpen;
 
-        internal readonly Rect[] FilterRects = new Rect[Filters.Length];
+        internal readonly Rect[] FilterRects = new Rect[Math.Max(SocialFilters.Length, CombatFilters.Length)];
         internal Rect FocusedRowRect;
 
         public GlobalLogScope(GlobalLogWindow window)
         {
             this.window = window;
+            // Reached because the base's Left/Right claims stand down on a flat row.
+            Claim(SharedMenuGrammar.NextHorizontal, delegate { SwitchLog(1); }, when: InLogOrFilters);
+            Claim(SharedMenuGrammar.PreviousHorizontal, delegate { SwitchLog(-1); }, when: InLogOrFilters);
         }
 
-        private static Filter OwnerFilter(string labelKey, GlobalLogOwners flag)
+        private static Filter OwnerFilter(string labelKey, GlobalLogKind log, GlobalLogOwners flag)
         {
             return new Filter(labelKey,
-                s => (s.GlobalLogOwnerFilter & flag) != 0,
-                (s, v) => s.GlobalLogOwnerFilter = v ? s.GlobalLogOwnerFilter | flag : s.GlobalLogOwnerFilter & ~flag);
+                s => (OwnersFor(s, log) & flag) != 0,
+                (s, v) => SetOwnersFor(s, log, v ? OwnersFor(s, log) | flag : OwnersFor(s, log) & ~flag));
+        }
+
+        private static GlobalLogOwners OwnersFor(RimWorldAccessSettings s, GlobalLogKind log)
+        {
+            return log == GlobalLogKind.Combat ? s.GlobalLogCombatOwners : s.GlobalLogSocialOwners;
+        }
+
+        private static void SetOwnersFor(RimWorldAccessSettings s, GlobalLogKind log, GlobalLogOwners owners)
+        {
+            if (log == GlobalLogKind.Combat)
+            {
+                s.GlobalLogCombatOwners = owners;
+            }
+            else
+            {
+                s.GlobalLogSocialOwners = owners;
+            }
         }
 
         public override string Name
@@ -363,17 +406,28 @@ namespace RimWorldAccess.Shell
             get { return rows; }
         }
 
+        internal static GlobalLogKind View
+        {
+            get
+            {
+                RimWorldAccessSettings s = RimWorldAccessMod_Settings.Settings;
+                return s != null ? s.GlobalLogView : GlobalLogKind.Social;
+            }
+        }
+
+        private static Filter[] ViewFilters
+        {
+            get { return View == GlobalLogKind.Combat ? CombatFilters : SocialFilters; }
+        }
+
+        internal static int FilterCount => ViewFilters.Length;
+
         public override void OnPush()
         {
             base.OnPush();
             Current = this;
             Rebuild();
-            GlobalLog log = GlobalLog.Instance;
-            int remembered = log != null ? rows.FindIndex(r => r.LogId == log.LastFocusedLogId) : -1;
-            if (remembered >= 0)
-            {
-                Model.Region(LogRegion)?.MoveTo(remembered);
-            }
+            LandOnRemembered();
         }
 
         public override void OnPop()
@@ -394,10 +448,73 @@ namespace RimWorldAccess.Shell
                 return;
             }
             announcedOpen = true;
-            TolkHelper.SpeakData(rows.Count == 1
-                ? (string)"RimWorldAccess.GlobalLog.OpenedOne".Translate()
-                : (string)"RimWorldAccess.GlobalLog.Opened".Translate(rows.Count));
+            TolkHelper.SpeakData(LogSummary());
             AnnounceCurrentItem();
+        }
+
+        // Logs.
+
+        internal static string LogLabel(GlobalLogKind log)
+        {
+            return log == GlobalLogKind.Combat
+                ? (string)"RimWorldAccess.GlobalLog.Tab.Combat".Translate()
+                : (string)"RimWorldAccess.GlobalLog.Tab.Social".Translate();
+        }
+
+        private string LogSummary()
+        {
+            return rows.Count == 1
+                ? (string)"RimWorldAccess.GlobalLog.SummaryOne".Translate(LogLabel(View))
+                : (string)"RimWorldAccess.GlobalLog.Summary".Translate(LogLabel(View), rows.Count);
+        }
+
+        private bool InLogOrFilters()
+        {
+            RefreshModel();
+            return Model.RegionIndex == LogRegion || Model.RegionIndex == FiltersRegion;
+        }
+
+        /// <summary>Left/Right: the neighbouring log, wrapping.</summary>
+        private void SwitchLog(int direction)
+        {
+            int at = Array.IndexOf(Logs, View);
+            int next = ((at + direction) % Logs.Length + Logs.Length) % Logs.Length;
+            ScreenPolicy.TabSwitchSound?.PlayOneShotOnCamera();
+            ShowLog(Logs[next]);
+        }
+
+        // The tab strip has already played its sound.
+        internal void ClickLog(GlobalLogKind log)
+        {
+            if (log != View)
+            {
+                ShowLog(log);
+            }
+        }
+
+        private void ShowLog(GlobalLogKind log)
+        {
+            RimWorldAccessSettings s = RimWorldAccessMod_Settings.Settings;
+            if (s == null)
+            {
+                return;
+            }
+            TypeaheadReset();
+            s.GlobalLogView = log;
+            LoadedModManager.GetMod<RimWorldAccessMod_Settings>()?.WriteSettings();
+            RebuildRows();
+            RefreshModel();
+            LandOnRemembered();
+            TolkHelper.SpeakData(LogSummary());
+            AnnounceCurrentItem();
+        }
+
+        private void LandOnRemembered()
+        {
+            GlobalLog log = GlobalLog.Instance;
+            int id = log == null ? -1 : View == GlobalLogKind.Combat ? log.LastFocusedCombatLogId : log.LastFocusedSocialLogId;
+            int remembered = id >= 0 ? rows.FindIndex(r => r.LogId == id) : -1;
+            Model.Region(LogRegion)?.MoveTo(remembered >= 0 ? remembered : 0);
         }
 
         // Rows.
@@ -437,19 +554,20 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
+            GlobalLogKind view = s.GlobalLogView;
+            bool combat = view == GlobalLogKind.Combat;
+            GlobalLogOwners owners = OwnersFor(s, view);
             IReadOnlyList<GlobalLogRecord> records = log.Records;
             for (int i = 0; i < records.Count; i++)
             {
                 GlobalLogRecord record = records[i];
-                bool kindShown = record.Kind == GlobalLogKind.Social
-                    ? s.GlobalLogShowSocial
-                    : s.GlobalLogShowCombat && (s.GlobalLogShowAll || record.ShowInCompactView);
-                if (kindShown && !record.Broken && (record.Owners & s.GlobalLogOwnerFilter) != 0)
+                if (record.Kind == view && (!combat || s.GlobalLogShowAll || record.ShowInCompactView)
+                    && !record.Broken && (record.Owners & owners) != 0)
                 {
                     rows.Add(record);
                 }
             }
-            if (s.GlobalLogNewestFirst)
+            if (combat ? s.GlobalLogCombatNewestFirst : s.GlobalLogSocialNewestFirst)
             {
                 rows.Reverse();
             }
@@ -524,7 +642,7 @@ namespace RimWorldAccess.Shell
         {
             if (region == FiltersRegion)
             {
-                return Filters.Length;
+                return FilterCount;
             }
             return rows.Count == 0 ? 1 : rows.Count;
         }
@@ -541,7 +659,7 @@ namespace RimWorldAccess.Shell
         {
             if (region == FiltersRegion)
             {
-                if (index < 0 || index >= Filters.Length)
+                if (index < 0 || index >= FilterCount)
                 {
                     return new ElementDescription();
                 }
@@ -593,16 +711,35 @@ namespace RimWorldAccess.Shell
                 ToggleFilter(index);
                 return;
             }
-            AnnounceCurrentItem();
+            GlobalLogRecord record = index >= 0 && index < rows.Count ? rows[index] : null;
+            if (record == null || record.Pawns.Count == 0)
+            {
+                AnnounceCurrentItem();
+                return;
+            }
+            if (record.Pawns.Count == 1)
+            {
+                JumpTo(record.Pawns[0]);
+                return;
+            }
+            OpenJumpMenu(record);
         }
 
         protected override void OnCursorSettled(int region, int index)
         {
             base.OnCursorSettled(region, index);
             GlobalLog log = GlobalLog.Instance;
-            if (log != null && region == LogRegion && index >= 0 && index < rows.Count)
+            if (log == null || region != LogRegion || index < 0 || index >= rows.Count)
             {
-                log.LastFocusedLogId = rows[index].LogId;
+                return;
+            }
+            if (View == GlobalLogKind.Combat)
+            {
+                log.LastFocusedCombatLogId = rows[index].LogId;
+            }
+            else
+            {
+                log.LastFocusedSocialLogId = rows[index].LogId;
             }
         }
 
@@ -615,7 +752,7 @@ namespace RimWorldAccess.Shell
             }
             if (Model.RegionIndex == FiltersRegion)
             {
-                return region.Index < Filters.Length ? FilterRects[region.Index] : default(Rect);
+                return region.Index < FilterCount ? FilterRects[region.Index] : default(Rect);
             }
             return Model.RegionIndex == LogRegion ? FocusedRowRect : default(Rect);
         }
@@ -640,30 +777,31 @@ namespace RimWorldAccess.Shell
 
         internal static string FilterLabel(int index)
         {
-            return Filters[index].LabelKey.Translate();
+            return ViewFilters[index].LabelKey.Translate();
         }
 
         internal static string FilterTooltip(int index)
         {
-            string key = Filters[index].TipKey;
+            string key = ViewFilters[index].TipKey;
             return key != null ? (string)key.Translate() : null;
         }
 
         internal static bool FilterValue(int index)
         {
             RimWorldAccessSettings s = RimWorldAccessMod_Settings.Settings;
-            return s != null && Filters[index].Get(s);
+            return s != null && ViewFilters[index].Get(s);
         }
 
         private void ToggleFilter(int index)
         {
             RimWorldAccessSettings s = RimWorldAccessMod_Settings.Settings;
-            if (s == null || index < 0 || index >= Filters.Length)
+            Filter[] filters = ViewFilters;
+            if (s == null || index < 0 || index >= filters.Length)
             {
                 return;
             }
-            bool next = !Filters[index].Get(s);
-            Filters[index].Set(s, next);
+            bool next = !filters[index].Get(s);
+            filters[index].Set(s, next);
             LoadedModManager.GetMod<RimWorldAccessMod_Settings>()?.WriteSettings();
             Rebuild();
             string state = AnnouncementComposer.ComposeStateChange(
@@ -704,6 +842,19 @@ namespace RimWorldAccess.Shell
                     (string)"CloseButton".Translate(), delegate { window.Close(); }, SharedMenuGrammar.Cancel));
                 return actionsBuffer;
             }
+        }
+
+        private void OpenJumpMenu(GlobalLogRecord record)
+        {
+            var options = new List<FloatMenuOption>();
+            foreach (Pawn pawn in record.Pawns)
+            {
+                Pawn target = pawn;
+                options.Add(CameraJumper.CanJump(target)
+                    ? new FloatMenuOption("RimWorldAccess.GlobalLog.JumpTo".Translate(target.LabelShort), delegate { JumpTo(target); })
+                    : new FloatMenuOption("RimWorldAccess.GlobalLog.JumpToUnavailable".Translate(target.LabelShort), null));
+            }
+            KeyboardFloatMenu.Open(options, givesColonistOrders: false);
         }
 
         /// <summary>
