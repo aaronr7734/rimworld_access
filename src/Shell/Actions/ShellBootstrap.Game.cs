@@ -455,6 +455,10 @@ namespace RimWorldAccess.Shell
                 return new RimWorldAccess.Shell.IdeoBuilderScreenScope((RimWorld.Page_ConfigureIdeo)w);
             });
 
+            ScopeForWindow.Register(typeof(RimWorld.Dialog_MedicalDefaults), delegate (Verse.Window w)
+            {
+                return new MedicalDefaultsScope((RimWorld.Dialog_MedicalDefaults)w);
+            });
             // Four DLC dialogs the generic reader alone used to serve; none has a subclass.
             ScopeForWindow.Register(typeof(Verse.Dialog_RechargeSettings), delegate (Verse.Window w)
             {

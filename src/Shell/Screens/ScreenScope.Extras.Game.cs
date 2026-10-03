@@ -117,7 +117,7 @@ namespace RimWorldAccess.Shell
             widgetSnapshot.Clear();
             for (int i = 0; i < pass.Count; i++)
             {
-                if (!ExcludeFromCapturedExtras(pass[i]))
+                if (!ExcludeFromCapturedExtras(pass[i]) && !IsRedundantCloseX(pass[i]))
                 {
                     widgetSnapshot.Add(pass[i]);
                 }
@@ -146,6 +146,14 @@ namespace RimWorldAccess.Shell
         protected virtual bool ExcludeFromCapturedExtras(CapturedWidget widget)
         {
             return false;
+        }
+
+        /// <summary>The corner X is a second close control when vanilla also draws its bottom close button, which the Buttons region already holds.</summary>
+        private bool IsRedundantCloseX(CapturedWidget widget)
+        {
+            Window window = OwnedWindow;
+            return widget.Kind == WidgetKind.Button && widget.CloseX
+                && window != null && window.doCloseX && window.doCloseButton;
         }
 
         /// <summary>One extras row's runtime state: the expanded row itself plus (when operable) the captured member driving activation/adjustment.</summary>

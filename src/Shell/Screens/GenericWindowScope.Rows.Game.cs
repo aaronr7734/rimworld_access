@@ -623,14 +623,13 @@ namespace RimWorldAccess.Shell
                 }
                 else if (row.Kind == WidgetKind.InvisibleButton)
                 {
-                    if (row.Composite == CompositeMember.ColorSwatch)
+                    if (row.Composite == CompositeMember.ColorSwatch || row.Composite == CompositeMember.MedicalCareChoice)
                     {
-                        // A Widgets.ColorBox swatch is one choice out of a palette — RadioButton
-                        // grammar, with the chosen state read from vanilla's
-                        // IndistinguishableFrom test at capture time. Decided BEFORE the label
-                        // search below: a swatch grid draws dozens of captionless hotspots, and
-                        // letting them hunt backwards would strip the caption off whatever
-                        // control precedes the grid.
+                        // A Widgets.ColorBox swatch or a medical care icon is one choice out of a
+                        // set — RadioButton grammar, with the chosen state read from vanilla's
+                        // own test at capture time. Decided BEFORE the label search below: these
+                        // runs draw many captionless hotspots, and letting them hunt backwards
+                        // would strip the caption off whatever control precedes the run.
                         fusion[i].KindOverride = WidgetKind.RadioButton;
                         fusion[i].SelectedOverride = row.Selected;
                         continue;

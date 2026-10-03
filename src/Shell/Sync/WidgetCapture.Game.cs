@@ -716,6 +716,12 @@ namespace RimWorldAccess.Shell
         private static Color colorBoxColor;
         private static bool colorBoxSelected;
 
+        // >0 while MedicalCareSetter draws; vanilla casts each hotspot's draw order to its category.
+        private static int medicalCareDepth;
+        private static int savedMedicalCareDepth;
+        private static MedicalCareCategory medicalCareCurrent;
+        private static int medicalCareOrdinal;
+
         // See RecordCheckTexMarker/TryRecordOrphanTipRow's remarks.
         private static bool savedLastBareTextureValid;
         private static bool savedLastBareTipValid;

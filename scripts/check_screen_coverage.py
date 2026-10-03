@@ -99,7 +99,6 @@ COVERAGE_BASELINE = {
     "Dialog_KeyBindings": "generic reader; scopeless dialog above Options, per OptionsScope's foreign-window guard",
     "Dialog_DefineBinding": "generic reader; scopeless key-rebind prompt above Options",
     "Dialog_AddPreferredName": "generic reader; scopeless name-picker above Options",
-    "Dialog_MedicalDefaults": "generic reader; opened from our own medical-care context menu",
     "Dialog_ResolutionConfirm": "generic reader; revert-countdown confirm raised by ResolutionUtility",
     "Dialog_XenogermList_Load": "generic reader; file picker inside the xenogerm assembler",
 

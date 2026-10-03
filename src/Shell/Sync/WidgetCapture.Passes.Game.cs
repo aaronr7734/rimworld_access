@@ -141,6 +141,7 @@ namespace RimWorldAccess.Shell
             toggleableIconDepth = 0;
             toggleableIconRow = -1;
             colorBoxDepth = 0;
+            medicalCareDepth = 0;
             gapLinePending = false;
         }
 
@@ -250,6 +251,8 @@ namespace RimWorldAccess.Shell
             toggleableIconRow = -1;
             savedColorBoxDepth = colorBoxDepth;
             colorBoxDepth = 0;
+            savedMedicalCareDepth = medicalCareDepth;
+            medicalCareDepth = 0;
             // An outer pass's bare-texture note must be invisible to, and unclobbered by, a
             // nested detached capture's TipRegion calls.
             savedLastBareTextureValid = lastBareTextureValid;
@@ -396,6 +399,7 @@ namespace RimWorldAccess.Shell
             toggleableIconDepth = savedToggleableIconDepth;
             toggleableIconRow = -1;
             colorBoxDepth = savedColorBoxDepth;
+            medicalCareDepth = savedMedicalCareDepth;
             lastBareTextureValid = savedLastBareTextureValid;
             lastBareTipValid = savedLastBareTipValid;
             pendingTipTextureValid = savedPendingTipTextureValid;

@@ -111,6 +111,9 @@ namespace RimWorldAccess.Shell
         /// </summary>
         ColorSwatch,
 
+        /// <summary>A MedicalCareUtility.MedicalCareSetter icon hotspot (RimWorld/MedicalCareUtility.cs:36-61), named by its hover tooltip and boxed when chosen.</summary>
+        MedicalCareChoice,
+
         /// <summary>
         /// A standalone Widgets.DefIcon / ThingIcon draw, recorded as a read-only Label row
         /// named after its def because the widget draws no captured primitive at all.

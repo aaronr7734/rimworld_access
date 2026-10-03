@@ -100,6 +100,12 @@ namespace RimWorldAccess.Shell
             // resolved BEFORE the descriptor match: the live channel counts by (kind, label,
             // ordinal), so naming the row afterwards would address a label no tap ever counts.
             string label = colorBoxDepth > 0 ? ColorSwatchLabel(colorBoxColor) : "";
+            MedicalCareCategory medicalCare = (MedicalCareCategory)medicalCareOrdinal;
+            if (medicalCareDepth > 0)
+            {
+                label = MedicalCareChoiceLabel(medicalCare);
+                medicalCareOrdinal++;
+            }
             MaybeLiveActivateMatch(WidgetKind.InvisibleButton, label, index);
             CapturedWidget row = new CapturedWidget { Kind = WidgetKind.InvisibleButton, Label = label, Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), DropdownOpener = dropdownDepth > 0 };
             if (colorBoxDepth > 0)
@@ -109,6 +115,11 @@ namespace RimWorldAccess.Shell
                 // only its identity was missing, vanilla drawing a swatch as a filled square.
                 row.Composite = CompositeMember.ColorSwatch;
                 row.Selected = colorBoxSelected;
+            }
+            else if (medicalCareDepth > 0)
+            {
+                row.Composite = CompositeMember.MedicalCareChoice;
+                row.Selected = medicalCare == medicalCareCurrent;
             }
             else if (hyperlinkDepth > 0)
             {
@@ -622,6 +633,28 @@ namespace RimWorldAccess.Shell
             {
                 colorBoxDepth--;
             }
+        }
+
+        /// <summary>Start of a MedicalCareUtility.MedicalCareSetter body: the category vanilla boxes as chosen (see RecordInvisibleButton).</summary>
+        internal static void EnterMedicalCare(MedicalCareCategory current)
+        {
+            medicalCareDepth++;
+            medicalCareCurrent = current;
+            medicalCareOrdinal = 0;
+        }
+
+        internal static void ExitMedicalCare()
+        {
+            if (medicalCareDepth > 0)
+            {
+                medicalCareDepth--;
+            }
+        }
+
+        /// <summary>A care icon's captured label: vanilla's own hover tooltip text for it.</summary>
+        internal static string MedicalCareChoiceLabel(MedicalCareCategory category)
+        {
+            return category.GetLabel().CapitalizeFirst();
         }
 
         /// <summary>A color swatch's spoken identity: the nearest named ColorDef (hex only when nothing is close), never a raw RGB string.</summary>

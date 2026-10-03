@@ -414,7 +414,33 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// Widgets.HSVColorWheel — the color-picker dialogs' hue/saturation wheel (decompiled
+    /// MedicalCareUtility.MedicalCareSetter's icon hotspots already record and activate
+    /// (RimWorld/MedicalCareUtility.cs:33-66); this bracket names them and marks the chosen one.
+    /// </summary>
+    [HarmonyPatch]
+    internal static class WidgetCaptureMedicalCareSetterPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return AccessTools.Method(typeof(MedicalCareUtility), nameof(MedicalCareUtility.MedicalCareSetter),
+                new Type[] { typeof(Rect), typeof(MedicalCareCategory).MakeByRefType() });
+        }
+
+        [HarmonyPrefix]
+        public static void Prefix(ref MedicalCareCategory medCare)
+        {
+            WidgetCapture.EnterMedicalCare(medCare);
+        }
+
+        [HarmonyPostfix]
+        public static void Postfix()
+        {
+            WidgetCapture.ExitMedicalCare();
+        }
+    }
+
+    /// <summary>
+    /// Widgets.HSVColorWheel —the color-picker dialogs' hue/saturation wheel (decompiled
     /// Verse/Widgets.cs:2987-3021, drawn by Dialog_ColorPickerBase.cs:213). Zero capture of any
     /// kind existed for it: a screen-reader user never learned the control was there at all.
     /// TargetMethod because of the two by-ref parameters (CS0182), same as

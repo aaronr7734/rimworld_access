@@ -414,6 +414,18 @@ namespace RimWorldAccess.Shell
             return null;
         }
 
+        /// <summary>A radio cell's chosen state, or null for a cell with none.</summary>
+        protected virtual bool? ContentCellSelected(int region, int row, int column)
+        {
+            return null;
+        }
+
+        /// <summary>A data row's own tooltip, or null. Spoken only when the row changes.</summary>
+        protected virtual string ContentRowTip(int region, int row)
+        {
+            return null;
+        }
+
         /// <summary>
         /// Enter on a data cell. True when the cell itself handled it (an interactive column);
         /// false falls back to the row's default action (<see cref="ActivateContentItem"/>).

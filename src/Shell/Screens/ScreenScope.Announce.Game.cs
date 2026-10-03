@@ -295,8 +295,12 @@ namespace RimWorldAccess.Shell
                 d.Role = info.CellRole;
             }
             d.Value = ContentCellText(regionIndex, row, column);
+            d.Selected = ContentCellSelected(regionIndex, row, column);
             d.ColumnTooltip = info.HeaderTip;
-            d.Extras = ContentCellTip(regionIndex, row, column);
+            string cellTip = ContentCellTip(regionIndex, row, column);
+            d.Extras = axis == CellAxis.Column
+                ? cellTip
+                : TooltipTextJoin.Append(ContentRowTip(regionIndex, row), new[] { cellTip });
             return d;
         }
 

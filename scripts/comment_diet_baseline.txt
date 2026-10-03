@@ -967,7 +967,7 @@
 151	src/Shell/Screens/GenericWindowScope.Announce.Game.cs
 274	src/Shell/Screens/GenericWindowScope.Game.cs
 79	src/Shell/Screens/GenericWindowScope.Passes.Game.cs
-450	src/Shell/Screens/GenericWindowScope.Rows.Game.cs
+449	src/Shell/Screens/GenericWindowScope.Rows.Game.cs
 203	src/Shell/Screens/GenericWindowScope.RowsFusion.Game.cs
 156	src/Shell/Screens/GenericWindowScope.RowsShaping.Game.cs
 53	src/Shell/Screens/GenericWindowScope.TextEdit.Game.cs
@@ -1003,6 +1003,7 @@
 42	src/Shell/Screens/ManageAreasScope.Game.cs
 42	src/Shell/Screens/MapToolScope.Game.cs
 134	src/Shell/Screens/MechsScope.Game.cs
+14	src/Shell/Screens/MedicalDefaultsScope.Game.cs
 87	src/Shell/Screens/MessageBoxScope.Game.cs
 30	src/Shell/Screens/ModHudToolbarScope.Game.cs
 126	src/Shell/Screens/ModListScreenScope.Game.cs
@@ -1045,8 +1046,8 @@
 144	src/Shell/Screens/ScreenScope.Activation.Game.cs
 83	src/Shell/Screens/ScreenScope.Announce.Game.cs
 27	src/Shell/Screens/ScreenScope.DebugSurface.Game.cs
-121	src/Shell/Screens/ScreenScope.Extras.Game.cs
-308	src/Shell/Screens/ScreenScope.Game.cs
+122	src/Shell/Screens/ScreenScope.Extras.Game.cs
+310	src/Shell/Screens/ScreenScope.Game.cs
 214	src/Shell/Screens/ScreenScope.Regions.Game.cs
 119	src/Shell/Screens/ScreenScope.Typeahead.Game.cs
 61	src/Shell/Screens/ScreenScopeDrawPatch.Game.cs
@@ -1126,6 +1127,7 @@
 30	src/Shell/Sync/LiveTooltips.Game.cs
 72	src/Shell/Sync/MainButtonBarHover.Game.cs
 76	src/Shell/Sync/MechGizmoElementPatch.Game.cs
+6	src/Shell/Sync/MedicalDefaultsRowDrawPatch.Game.cs
 20	src/Shell/Sync/NativeFieldEcho.Game.cs
 49	src/Shell/Sync/OptionBackgroundRowCapture.Game.cs
 41	src/Shell/Sync/OptionListingCapture.Game.cs
@@ -1159,15 +1161,15 @@
 60	src/Shell/Sync/VisitorTabRowCapture.Game.cs
 103	src/Shell/Sync/WidgetCapture.CheckTex.Game.cs
 111	src/Shell/Sync/WidgetCapture.Controls.Game.cs
-292	src/Shell/Sync/WidgetCapture.Game.cs
+293	src/Shell/Sync/WidgetCapture.Game.cs
 91	src/Shell/Sync/WidgetCapture.Labels.Game.cs
-111	src/Shell/Sync/WidgetCapture.Markers.Game.cs
+113	src/Shell/Sync/WidgetCapture.Markers.Game.cs
 115	src/Shell/Sync/WidgetCapture.Passes.Game.cs
 60	src/Shell/Sync/WidgetCapture.Sliders.Game.cs
-280	src/Shell/Sync/WidgetCaptureModel.Game.cs
+281	src/Shell/Sync/WidgetCaptureModel.Game.cs
 153	src/Shell/Sync/WidgetCapturePatches.Brackets.Game.cs
 117	src/Shell/Sync/WidgetCapturePatches.Game.cs
-127	src/Shell/Sync/WidgetCapturePatches.Ranges.Game.cs
+131	src/Shell/Sync/WidgetCapturePatches.Ranges.Game.cs
 21	src/Styling/ColorNameHelper.cs
 11	src/Styling/StyleDescriptionHelper.cs
 15	src/Styling/StyleItemDescriptionInjector.Game.cs
