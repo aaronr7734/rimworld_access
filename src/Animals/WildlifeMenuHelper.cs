@@ -281,7 +281,6 @@ namespace RimWorldAccess
         public static string GetTameStatus(Pawn pawn)
         {
             if (pawn.Map == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
-            if (!pawn.RaceProps.Animal) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
 
             if (!TameUtility.CanTame(pawn))
             {
@@ -338,7 +337,6 @@ namespace RimWorldAccess
         public static bool? ToggleTameDesignation(Pawn pawn)
         {
             if (pawn.Map == null) return null;
-            if (!pawn.RaceProps.Animal) return null;
             if (!TameUtility.CanTame(pawn)) return null;
 
             bool newValue = pawn.Map.designationManager.DesignationOn(pawn, DesignationDefOf.Tame) == null;
