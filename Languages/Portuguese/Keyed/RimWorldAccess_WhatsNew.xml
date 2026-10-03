@@ -65,6 +65,18 @@ Corrigido um veículo em procurar e destruir que ficava preso ao chegar ao inimi
 Podes reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
 Pressiona Escape, ou escolhe Fechar, quando terminares. Obrigado por jogares, e diverte-te!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Este patch rápido corrige alguns erros e melhora o novo registo global introduzido no patch anterior.\n
+Novas funcionalidades.\n
+Pressionar Enter numa entrada do registo leva agora ao personagem que nela aparece. Quando uma entrada nomeia mais do que um personagem, um menu pergunta qual.\n
+Alterações.\n
+O registo global são agora dois registos, social e de combate, um separador cada. A Seta para a Esquerda e a Seta para a Direita alternam entre eles, e cada registo mantém os seus próprios filtros, por isso o registo de combate pode mostrar toda a gente no mapa enquanto o registo social se limita à tua colónia.\n
+A janela de cuidados médicos predefinidos, aberta a partir do menu de cuidados médicos do separador Atribuir, é agora lida como uma tabela. Cada grupo é uma linha e cada nível de cuidados é uma coluna, por isso podes ouvir a definição de cada grupo e alterá-la com Enter.\n
+Correcções.\n
+Corrigido o selector de memes, que deixava de fora os memes de mods que adicionam um quarto nível de impacto, extremo, como o Alpha Memes.\n
+Corrigidos os homens selvagens que mostravam a coluna Domesticar como não aplicável no menu de vida selvagem, por isso agora podem ser marcados para domesticação a partir daí.\n
+Podes reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressiona Escape, ou escolhe Fechar, quando terminares. Obrigado por jogares, e diverte-te!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi actualizado. Escolhe Abrir changelog para leres o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 

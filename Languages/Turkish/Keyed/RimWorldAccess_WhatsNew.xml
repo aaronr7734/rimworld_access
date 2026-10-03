@@ -65,6 +65,18 @@ Bul ve yok et emrindeki bir aracın düşmana ulaşınca takılıp kalması düz
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Bu küçük yama birkaç hatayı düzeltiyor ve son yamayla gelen yeni genel kaydı geliştiriyor.\n
+Yeni özellikler.\n
+Bir kayıt girdisinde Enter'a basmak artık girdideki karaktere gidiyor. Bir girdi birden fazla karakterden söz ediyorsa, bir menü hangisine gidileceğini soruyor.\n
+Değişiklikler.\n
+Genel kayıt artık ikiye ayrıldı: sosyal ve çatışma kaydı, her biri ayrı bir sekmede. Sol ve sağ ok tuşları aralarında geçiş yapıyor ve her kayıt kendi filtrelerini tutuyor; böylece çatışma kaydı haritadaki herkesi gösterirken sosyal kayıt yalnızca kolonindekilerle sınırlı kalabiliyor.\n
+Ata sekmesindeki tıbbi bakım menüsünden açılan tıbbi bakım varsayılanları penceresi artık bir tablo gibi okunuyor. Her grup bir satır, her bakım seviyesi bir sütun; böylece her grubun ayarını duyabilir ve Enter ile değiştirebilirsin.\n
+Düzeltmeler.\n
+İlkeler seçicisinin, Alpha Memes gibi dördüncü, aşırı etki seviyesi ekleyen modların ilkelerini dışarıda bırakması düzeltildi.\n
+Vahşi adamların yaban hayatı menüsünde Evcilleştir sütununu uygulanamaz olarak göstermesi düzeltildi; artık oradan evcilleştirilmek üzere işaretlenebiliyorlar.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 

@@ -65,6 +65,18 @@ Corrigido: um veículo em Procurar e destruir ficava preso ao alcançar o inimig
 Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
 Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Este patch rápido corrige alguns bugs e melhora o novo recurso de registro global introduzido no último patch.\n
+Novidades.\n
+Pressionar Enter em uma entrada do registro agora leva até o personagem citado nela. Quando uma entrada cita mais de um personagem, um menu pergunta qual deles.\n
+Mudanças.\n
+O registro global agora são dois registros, social e de combate, um em cada aba. Seta para a Esquerda e Seta para a Direita alternam entre eles, e cada registro mantém seus próprios filtros, então o registro de combate pode mostrar todos no mapa enquanto o registro social fica só com a sua colônia.\n
+A janela de padrões de cuidados médicos, aberta pelo menu de cuidados médicos da aba Atribuir, agora é lida como uma tabela. Cada grupo é uma linha e cada nível de cuidado é uma coluna, então você ouve a configuração de cada grupo e pode alterá-la com Enter.\n
+Correções.\n
+Corrigido: o seletor de memes deixava de fora os memes de mods que adicionam um quarto nível de impacto, o extremo, como o Alpha Memes.\n
+Corrigido: homens selvagens apareciam com a coluna Domesticar como não aplicável no menu de vida selvagem. Agora eles podem ser marcados para domesticação por ali.\n
+Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi atualizado. Escolha Abrir changelog para ler o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 

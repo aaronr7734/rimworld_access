@@ -65,6 +65,18 @@ Se corrigió que un vehículo en buscar y destruir se quedara atascado al llegar
 Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o el menú de pausa.\n
 Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, ¡y que lo disfrutes!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Este es un parche rápido que corrige algunos errores y mejora la nueva función de registro global introducida en el parche anterior.\n
+Funciones nuevas.\n
+Presionar Enter en una entrada del registro ahora salta al personaje que aparece en ella. Cuando una entrada nombra a más de un personaje, un menú te pregunta a cuál.\n
+Cambios.\n
+El registro global ahora son dos registros, social y de combate, una pestaña cada uno. Flecha izquierda y Flecha derecha cambian entre ellos, y cada registro conserva sus propios filtros, así que el registro de combate puede mostrar a todos en el mapa mientras el registro social se limita a tu colonia.\n
+La ventana de valores médicos predeterminados, que se abre desde el menú de atención médica de la pestaña Asignar, ahora se lee como una tabla. Cada grupo es una fila y cada nivel de atención es una columna, así que puedes escuchar el ajuste de cada grupo y cambiarlo con Enter.\n
+Correcciones.\n
+Se corrigió que el selector de memes omitiera los memes de mods que agregan un cuarto nivel de impacto, el extremo, como Alpha Memes.\n
+Se corrigió que los hombres salvajes mostraran la columna Domar como no aplicable en el menú de fauna, así que ahora se pueden marcar para domar desde ahí.\n
+Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o el menú de pausa.\n
+Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, ¡y que lo disfrutes!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access se ha actualizado. Elige Abrir registro de cambios para leer qué cambió en el sitio web.</RimWorldAccess.WhatsNew.Message.Default>
 

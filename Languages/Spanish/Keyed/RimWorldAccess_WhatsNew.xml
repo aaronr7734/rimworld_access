@@ -65,6 +65,18 @@ Corregido que un vehículo en buscar y destruir se quedara atascado al llegar al
 Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o en el menú de pausa.\n
 Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, y ¡disfruta!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Este parche rápido corrige unos cuantos errores y mejora el nuevo registro global que llegó con el parche anterior.\n
+Novedades.\n
+Presionar Enter en una entrada del registro ahora salta al personaje que aparece en ella. Cuando una entrada nombra a más de un personaje, un menú pregunta a cuál.\n
+Cambios.\n
+El registro global ahora son dos registros, el social y el de combate, uno por pestaña. La flecha izquierda y la flecha derecha cambian entre ellos, y cada registro conserva sus propios filtros, así que el registro de combate puede mostrar a todos los del mapa mientras el social se limita a tu colonia.\n
+La ventana de valores médicos predeterminados, que se abre desde el menú de atención médica de la pestaña Asignar, ahora se lee como una tabla. Cada grupo es una fila y cada nivel de atención es una columna, así que puedes oír el ajuste de cada grupo y cambiarlo con Enter.\n
+Correcciones.\n
+Corregido que el selector de memes omitiera los memes de mods que añaden un cuarto nivel de impacto, el extremo, como Alpha Memes.\n
+Corregido que los hombres salvajes mostraran la columna Domesticar como no aplicable en el menú de fauna salvaje, así que ahora se pueden marcar para domesticar desde ahí.\n
+Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o en el menú de pausa.\n
+Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, y ¡disfruta!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access se ha actualizado. Elige Abrir registro de cambios para leer qué cambió en el sitio web.</RimWorldAccess.WhatsNew.Message.Default>
 

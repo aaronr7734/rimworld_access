@@ -64,6 +64,18 @@ Adaptive Storage Framework 的储存现在有完整的「内容」列表。每�
 你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
 完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>这次是一个小型快速补丁，修复了几个问题，并改进了上一个补丁中加入的全局日志功能。\n
+新功能。\n
+在日志条目上按 Enter 现在会跳转到条目中的角色。当一条记录提到多个角色时，会弹出菜单让你选择跳转到哪一个。\n
+改动。\n
+全局日志现在分为社交日志和战斗日志两个，各占一个选项卡。按左/右方向键在它们之间切换，每个日志各自保留自己的筛选条件，因此战斗日志可以显示地图上的所有人，而社交日志只显示你的殖民者。\n
+默认医疗照顾窗口（从「分配」选项卡的医疗照顾菜单打开）现在以表格形式读出。每个分组是一行，每个照顾等级是一列，你可以听到每个分组的设置，并按 Enter 修改。\n
+修复。\n
+修复了模因选择器遗漏模组模因的问题，这些模组加入了第四个极端影响等级，例如 Alpha Memes。\n
+修复了野人在野生动物菜单中的「驯服」列显示为不适用的问题，现在可以直接在那里将其标记为驯服。\n
+你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
+完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access 已更新。请选择「打开更新日志」以在网站上阅读更新内容。</RimWorldAccess.WhatsNew.Message.Default>
 

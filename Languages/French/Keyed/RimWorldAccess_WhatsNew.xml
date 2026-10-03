@@ -64,6 +64,18 @@ Correction d'un véhicule en Traquer et détruire qui restait bloqué en arrivan
 Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
 Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc2>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Ce petit correctif résout quelques bogues et améliore le nouveau journal global introduit dans la dernière mise à jour.\n
+Nouveautés.\n
+Appuyer sur Entrée sur une entrée du journal vous amène maintenant au personnage concerné. Quand une entrée nomme plusieurs personnages, un menu demande lequel choisir.\n
+Changements.\n
+Le journal global est maintenant composé de deux journaux, social et de combat, un onglet chacun. Flèche gauche et Flèche droite permettent de passer de l'un à l'autre, et chaque journal garde ses propres filtres, si bien que le journal de combat peut montrer tout le monde sur la carte pendant que le journal social reste sur votre colonie.\n
+La fenêtre des soins médicaux par défaut, ouverte depuis le menu des soins médicaux de l'onglet Assignations, se lit maintenant comme un tableau. Chaque groupe est une ligne et chaque niveau de soins est une colonne, donc vous entendez le réglage de chaque groupe et vous pouvez le modifier avec Entrée.\n
+Corrections.\n
+Correction du sélecteur de mèmes, qui omettait les mèmes de mods ajoutant un quatrième niveau d'impact extrême, comme Alpha Memes.\n
+Correction des hommes sauvages dont la colonne Apprivoiser était indiquée comme non applicable dans le menu Faune. Vous pouvez maintenant les marquer pour apprivoisement depuis ce menu.\n
+Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
+Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access a été mis à jour. Choisissez Ouvrir le journal des modifications pour lire ce qui a changé sur le site web.</RimWorldAccess.WhatsNew.Message.Default>
 
