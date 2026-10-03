@@ -6,6 +6,25 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](https:
 
 <!-- BUILD_CHANGELOG_INSERT: release notes are compiled here from changelog.d/ fragments by scripts/build_changelog.py. Do not remove this marker. -->
 
+## [2.0 RC 3] - 2026-10-03
+
+This quick patch fixes a few bugs and improves the new global logging feature introduced in the last patch.
+
+### Added
+
+- Pressing Enter on a log entry now jumps to the pawn in it. When an entry names more than one pawn, a menu asks which one.
+
+### Changed
+
+- The global log is now two logs, social and combat, one tab each. Left and Right Arrow switch between them, and each log keeps its own filters, so the combat log can show everyone on the map while the social log sticks to your colony.
+- The medical defaults window, opened from the Assign tab's medical care menu, now reads as a table. Each group is a row and each care level is a column, so you can hear every group's setting and change it with Enter.
+
+### Fixed
+
+- Fixed the meme picker leaving out memes from mods that add a fourth, extreme impact level, such as Alpha Memes.
+- Fixed wild men showing the Tame column as not applicable in the wildlife menu, so they can now be marked for taming from there.
+
+
 ## [2.0 RC 2] - 2026-09-29
 
 ### Added

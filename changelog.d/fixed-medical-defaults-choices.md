@@ -1,1 +1,0 @@
-The medical defaults window, opened from the Assign tab's medical care menu, is now a proper table. Each group is a row and each care level a column, so you can see every group's setting and change it with Enter.
