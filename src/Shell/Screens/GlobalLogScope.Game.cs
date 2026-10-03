@@ -682,6 +682,7 @@ namespace RimWorldAccess.Shell
                 return d;
             }
             GlobalLogRecord record = rows[index];
+            d.ReadOnly = record.Pawns.Count == 0;
             d.Label = "RimWorldAccess.GlobalLog.Row".Translate(record.Text.TrimEnd('.', ' '), TimeAgo(record));
             d.PositionIndex = index + 1;
             d.PositionCount = rows.Count;
@@ -866,7 +867,7 @@ namespace RimWorldAccess.Shell
         {
             if (!CameraJumper.CanJump(pawn))
             {
-                AnnounceCurrentItem();
+                TolkHelper.SpeakData("RimWorldAccess.GlobalLog.JumpUnavailable".Translate());
                 return;
             }
             window.Close();
