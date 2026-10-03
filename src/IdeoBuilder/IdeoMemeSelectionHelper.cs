@@ -130,8 +130,8 @@ namespace RimWorldAccess
         /// <c>DoStructureMemeSelector</c>'s own sort key (decompiled :411) so memes that render
         /// adjacent in the grid stay adjacent here too.
         ///
-        /// Normal memes: one node per non-empty impact tier (Low/Medium/High — vanilla's own outer
-        /// 1..3 loop in <c>DoNormalMemeSelector</c>, decompiled :467), each holding its tier's memes
+        /// Normal memes: one node per non-empty impact tier (<c>DoNormalMemeSelector</c>'s outer loop,
+        /// decompiled :467, whose 1..3 bound Alpha Memes transpiles to 4), each holding its tier's memes
         /// ordered on <c>NormalMemeSorter</c>'s key (group render order, then meme render order). A
         /// tier node's Label is the bare tier name; the child count rides the shared expansion
         /// suffix the scope appends, so it is spoken through exactly one channel.
@@ -160,10 +160,9 @@ namespace RimWorldAccess
                 return root;
             }
 
-            for (int impact = 1; impact <= 3; impact++)
+            foreach (int impact in available.Select(m => m.impact).Where(i => i >= 1).Distinct().OrderBy(i => i))
             {
                 List<MemeDef> inTier = available.Where(m => m.impact == impact).ToList();
-                if (inTier.Count == 0) continue;
 
                 var tierNode = new InspectionTreeItem
                 {
