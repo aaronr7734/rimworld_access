@@ -6,6 +6,15 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](change
 
 <!-- BUILD_CHANGELOG_INSERT: do not remove this marker. -->
 
+## [2.0 RC 4] - 2026-10-03
+
+Just one small fix this time.
+
+### Fixed
+
+- Fixed being kicked out of placement mode when jumping to a colonist with Alt and a number. If anything else kicks you out, the mod now tells you.
+
+
 ## [2.0 RC 3] - 2026-10-03
 
 This quick patch fixes a few bugs and improves the new global logging feature introduced in the last patch.
