@@ -5646,6 +5646,12 @@
 <p>Older changes (before version 2.0) are in the <a href="#reference-changelog-archive">pre-2.0 changelog archive</a>.</p>
 <!-- BUILD_CHANGELOG_INSERT: do not remove this marker. -->
 
+<h2 id="reference-changelog-20-rc-4-2026-10-03">[2.0 RC 4] - 2026-10-03<a class="headerlink" href="#reference-changelog-20-rc-4-2026-10-03" title="Permanent link">&para;</a></h2>
+<p>Just one small fix this time.</p>
+<h3 id="reference-changelog-fixed">Fixed<a class="headerlink" href="#reference-changelog-fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Fixed being kicked out of placement mode when jumping to a colonist with Alt and a number. If anything else kicks you out, the mod now tells you.</li>
+</ul>
 <h2 id="reference-changelog-20-rc-3-2026-10-03">[2.0 RC 3] - 2026-10-03<a class="headerlink" href="#reference-changelog-20-rc-3-2026-10-03" title="Permanent link">&para;</a></h2>
 <p>This quick patch fixes a few bugs and improves the new global logging feature introduced in the last patch.</p>
 <h3 id="reference-changelog-added">Added<a class="headerlink" href="#reference-changelog-added" title="Permanent link">&para;</a></h3>
@@ -5657,7 +5663,7 @@
 <li>The global log is now two logs, social and combat, one tab each. Left and Right Arrow switch between them, and each log keeps its own filters, so the combat log can show everyone on the map while the social log sticks to your colony.</li>
 <li>The medical defaults window, opened from the Assign tab's medical care menu, now reads as a table. Each group is a row and each care level is a column, so you can hear every group's setting and change it with Enter.</li>
 </ul>
-<h3 id="reference-changelog-fixed">Fixed<a class="headerlink" href="#reference-changelog-fixed" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_1">Fixed<a class="headerlink" href="#reference-changelog-fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed the meme picker leaving out memes from mods that add a fourth, extreme impact level, such as Alpha Memes.</li>
 <li>Fixed wild men showing the Tame column as not applicable in the wildlife menu, so they can now be marked for taming from there.</li>
@@ -5675,7 +5681,7 @@
 <li>Changing a pawn's autopilot settings no longer cancels an order you just gave. The pawn finishes that order first. Engage orders still take effect right away.</li>
 <li>The flight recorder no longer logs every frame while a menu is open, so recordings are much shorter.</li>
 </ul>
-<h3 id="reference-changelog-fixed_1">Fixed<a class="headerlink" href="#reference-changelog-fixed_1" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_2">Fixed<a class="headerlink" href="#reference-changelog-fixed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed the control type and state announcement settings turning themselves back on after restarting the game.</li>
 <li>The caravan info screen now gives locations as a biome and map coordinates instead of tile numbers. Southern and western coordinates also read correctly now.</li>
@@ -5758,7 +5764,7 @@
 <ul>
 <li>The text panels the mod used to draw over the screen are gone: the world map information box, the landing-site panels, and the placement instruction box. The game's own highlights and windows carry that information now, and nothing is spoken any differently.</li>
 </ul>
-<h3 id="reference-changelog-fixed_2">Fixed<a class="headerlink" href="#reference-changelog-fixed_2" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_3">Fixed<a class="headerlink" href="#reference-changelog-fixed_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Speech no longer goes silent on Windows. Machines with AVX-512 processors were rejecting any announcement containing a non-ASCII character, so an accented letter, a curly apostrophe, or CJK text produced silence while plain English spoke normally. Announcements carrying stray invisible characters from mod content were dropped outright. Both are fixed, and any remaining speech failure now logs the exact text so it can be diagnosed from your log file.</li>
 <li>Actions now go through the game's own rules everywhere, closing a long list of cases where this mod could do something the game would refuse, or skip a warning it would show. Among them: drafting respects downed pawns and mech overseer range; taming and slaughter show their bond, faction, and veneration confirmations; surgeries respect availability and speak the game's reason when refused; caravan equipping shows the persona weapon warning; accepting a quest shows the royal favor warning; research honors benches, techprints, and prerequisites; bill counts follow each recipe's limits; and name fields cap at the lengths the game really accepts.</li>
