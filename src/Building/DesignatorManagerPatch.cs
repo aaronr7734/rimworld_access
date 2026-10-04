@@ -50,6 +50,26 @@ namespace RimWorldAccess
         }
     }
 
+    /// <summary>Speaks the exit when vanilla drops a keyboard placement whose designator fails
+    /// CanRemainSelected; every other exit deselects directly and announces itself.</summary>
+    [HarmonyPatch(typeof(DesignatorManager), "CheckSelectedDesignatorValid")]
+    public static class DesignatorDroppedSpeechPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix(DesignatorManager __instance, out bool __state)
+        {
+            __state = __instance.SelectedDesignator != null
+                && (ArchitectState.IsInPlacementMode || ShapePlacementState.IsActive);
+        }
+
+        [HarmonyPostfix]
+        public static void Postfix(bool __result, bool __state)
+        {
+            if (__state && !__result)
+                TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.ExitedPlacement".Loc());
+        }
+    }
+
     /// <summary>
     /// The single entry point for accessible placement mode: every placement, from the architect
     /// menu, a gizmo or anywhere else, flows through DesignatorManager.Select() and is routed

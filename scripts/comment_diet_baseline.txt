@@ -54,7 +54,7 @@
 5	src/Building/CellBounds.cs
 17	src/Building/DesignatorContextMenuRouter.Game.cs
 11	src/Building/DesignatorHandoffRectHandler.Game.cs
-54	src/Building/DesignatorManagerPatch.cs
+56	src/Building/DesignatorManagerPatch.cs
 8	src/Building/DesignatorOptionsOpener.Game.cs
 13	src/Building/DoorControlState.cs
 30	src/Building/EnclosureDetector.cs
