@@ -490,9 +490,9 @@ namespace RimWorldAccess
             var map = Find.CurrentMap;
             var pos = pawn.Position;
 
-            // While the Targeter is active, selecting a different pawn would deselect the caster and
-            // trigger Targeter.ConfirmStillValid -> StopTargeting; redirect to a cursor jump instead.
-            if (PawnSelectionState.TryRedirectForActiveTargeting(pawn))
+            // Selecting a different pawn would end an active targeting or placement session;
+            // redirect to a cursor jump instead.
+            if (PawnSelectionState.TryRedirectForTargetingOrPlacement(pawn))
                 return;
 
             if (Find.Selector != null)
@@ -766,8 +766,8 @@ namespace RimWorldAccess
             if (pawn == null)
                 return;
 
-            // Redirect to a cursor jump while targeting, so the targeting session stays alive.
-            if (PawnSelectionState.TryRedirectForActiveTargeting(pawn))
+            // Redirect to a cursor jump while targeting or placing, so the session stays alive.
+            if (PawnSelectionState.TryRedirectForTargetingOrPlacement(pawn))
                 return;
 
             if (Find.Selector != null)

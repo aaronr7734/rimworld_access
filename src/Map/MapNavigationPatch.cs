@@ -280,9 +280,9 @@ namespace RimWorldAccess
                 }
             }
 
-            // Changing Selector while the Targeter is active trips ConfirmStillValid into
-            // StopTargeting, so redirect to a cursor jump and let Enter target the pawn.
-            if (PawnSelectionState.TryRedirectForActiveTargeting(selectedPawn))
+            // Changing Selector ends an active targeting or placement session, so redirect to a
+            // cursor jump and let Enter target or place there.
+            if (PawnSelectionState.TryRedirectForTargetingOrPlacement(selectedPawn))
                 return false;
 
             if (Find.Selector != null)
@@ -351,7 +351,7 @@ namespace RimWorldAccess
             }
 
             // See SelectNextColonist_Prefix for rationale.
-            if (PawnSelectionState.TryRedirectForActiveTargeting(selectedPawn))
+            if (PawnSelectionState.TryRedirectForTargetingOrPlacement(selectedPawn))
                 return false;
 
             if (Find.Selector != null)

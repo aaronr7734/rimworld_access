@@ -1,0 +1,1 @@
+Fixed jumping to a colonist during placement, such as reinstalling a building, cancelling the placement. Alt and a number, and the next and previous colonist keys, now move the cursor to the colonist and keep the placement going, the same as they already did while targeting.

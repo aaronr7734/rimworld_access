@@ -290,17 +290,17 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Turns a pawn-selection action into a cursor redirect while a targeter is active.
-        /// Returns true when it handled the action: the caller must then NOT call
+        /// Turns a pawn-selection action into a cursor redirect while a targeter or a placement
+        /// is active. Returns true when it handled the action: the caller must then NOT call
         /// Find.Selector.Select, which would kill the targeter through vanilla's
-        /// ConfirmStillValid. Reads ExternalMapTargeting.MapTargetingActive live on every call —
-        /// no cached targeting flag, which could strand the player.
+        /// ConfirmStillValid, and the reinstall designator through CanRemainSelected. Both
+        /// predicates are read live: a cached flag could strand the player.
         /// </summary>
-        public static bool TryRedirectForActiveTargeting(Pawn pawn)
+        public static bool TryRedirectForTargetingOrPlacement(Pawn pawn)
         {
             if (pawn == null)
                 return false;
-            if (!ExternalMapTargeting.MapTargetingActive)
+            if (!ExternalMapTargeting.MapTargetingActive && !ArchitectState.IsInPlacementMode)
                 return false;
 
             // Cursor and camera move only: the Selector is left untouched so the targeter's
