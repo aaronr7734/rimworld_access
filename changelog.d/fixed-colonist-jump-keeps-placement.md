@@ -1,1 +1,1 @@
-Fixed jumping to a colonist during placement, such as reinstalling a building, cancelling the placement. Alt and a number, and the next and previous colonist keys, now move the cursor to the colonist and keep the placement going, the same as they already did while targeting.
+Fixed being kicked out of placement mode when jumping to a colonist with Alt and a number. If anything else kicks you out, the mod now tells you.
