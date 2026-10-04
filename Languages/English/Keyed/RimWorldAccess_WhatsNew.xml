@@ -76,6 +76,12 @@ Fixed wild men showing the Tame column as not applicable in the wildlife menu, s
 You can reopen this any time from What's New in the main menu or the pause menu.\n
 Press Escape, or choose Close, when you are done. Thank you for playing, and enjoy!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>Just one small fix this time.\n
+Fixes.\n
+Fixed being kicked out of placement mode when jumping to a colonist with Alt and a number. If anything else kicks you out, the mod now tells you.\n
+You can reopen this any time from What's New in the main menu or the pause menu.\n
+Press Escape, or choose Close, when you are done. Thank you for playing, and enjoy!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access has been updated. Choose Open Changelog to read what changed on the website.</RimWorldAccess.WhatsNew.Message.Default>
 

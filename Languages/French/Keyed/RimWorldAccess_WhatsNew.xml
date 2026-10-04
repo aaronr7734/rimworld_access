@@ -76,6 +76,12 @@ Correction des hommes sauvages dont la colonne Apprivoiser était indiquée comm
 Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
 Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc3>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>Juste une petite correction cette fois.\n
+Corrections.\n
+Correction de la sortie forcée du mode placement quand on saute vers un colon avec Alt et un chiffre. Si autre chose vous fait sortir du mode placement, le mod vous le signale désormais.\n
+Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
+Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access a été mis à jour. Choisissez Ouvrir le journal des modifications pour lire ce qui a changé sur le site web.</RimWorldAccess.WhatsNew.Message.Default>
 

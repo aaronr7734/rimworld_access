@@ -77,6 +77,12 @@ Corrigido: homens selvagens apareciam com a coluna Domesticar como não aplicáv
 Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
 Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>Só uma pequena correção desta vez.\n
+Correções.\n
+Corrigido o modo de colocação sendo fechado ao pular para um colono com Alt e um número. Se outra coisa tirar você do modo de colocação, o mod agora avisa.\n
+Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi atualizado. Escolha Abrir changelog para ler o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 

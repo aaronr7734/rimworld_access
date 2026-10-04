@@ -77,6 +77,12 @@ Se corrigió que los hombres salvajes mostraran la columna Domar como no aplicab
 Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o el menú de pausa.\n
 Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, ¡y que lo disfrutes!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>Esta vez es solo una pequeña corrección.\n
+Correcciones.\n
+Se corrigió que saltar a un colono con Alt y un número te sacara del modo de colocación. Si algo más te saca del modo de colocación, el mod ahora te avisa.\n
+Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o el menú de pausa.\n
+Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, ¡y que lo disfrutes!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access se ha actualizado. Elige Abrir registro de cambios para leer qué cambió en el sitio web.</RimWorldAccess.WhatsNew.Message.Default>
 

@@ -77,6 +77,12 @@ Vahşi adamların yaban hayatı menüsünde Evcilleştir sütununu uygulanamaz o
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>Bu sefer sadece küçük bir düzeltme var.\n
+Düzeltmeler.\n
+Alt ve bir rakamla bir koloniciye atlarken yerleştirme modundan atılma sorunu düzeltildi. Başka bir şey seni yerleştirme modundan çıkarırsa, mod artık bunu söylüyor.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 

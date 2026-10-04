@@ -76,6 +76,12 @@ Adaptive Storage Framework 的储存现在有完整的「内容」列表。每�
 你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
 完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc3>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>这次只有一个小修复。\n
+修复。\n
+修复了按 Alt 加数字键跳转到殖民者时被踢出放置模式的问题。如果有其他原因让你退出放置模式，模组现在会告诉你。\n
+你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
+完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access 已更新。请选择「打开更新日志」以在网站上阅读更新内容。</RimWorldAccess.WhatsNew.Message.Default>
 
