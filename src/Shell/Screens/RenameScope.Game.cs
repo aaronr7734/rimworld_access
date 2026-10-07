@@ -334,31 +334,62 @@ namespace RimWorldAccess.Shell
     /// Brackets ButtonTextCapture/TextFieldCapture to the dialog's own draw and drives the scope's
     /// per-pass echo and focus ring, all inside the window's own GUI pass.
     ///
-    /// Harmony CANNOT patch the open generic Dialog_Rename&lt;&gt; directly: Mono throws
-    /// NotSupportedException at patch-application time, poisoning the mod's entire static
-    /// constructor. This targets ONE closed instantiation instead. T is constrained
-    /// <c>class, IRenameable</c>, so every instantiation is a reference type and Mono's generic code
-    /// sharing gives them all the same method body, meaning the Dialog_Rename&lt;IRenameable&gt; form
-    /// covers every concrete and modded subclass. If a future runtime stops sharing, the symptom is a
-    /// rename dialog with no announcements, not a crash. __instance is typed object because the
-    /// compiled patch method is non-generic.
+    /// Harmony CANNOT patch the open generic Dialog_Rename&lt;&gt;: Mono throws NotSupportedException
+    /// at patch time, poisoning the mod's whole static constructor. T is constrained
+    /// <c>class, IRenameable</c>, so Mono's generic sharing gives every instantiation one body and the
+    /// Dialog_Rename&lt;IRenameable&gt; target covers them all. An override that skips base
+    /// (Education's Dialog_RenameClassroom) escapes it, so every override is patched too; only the
+    /// outermost bracket acts, since an override that calls base nests two.
     /// </summary>
     [HarmonyPatch]
     public static class RenameDrawPatch
     {
-        static System.Reflection.MethodBase TargetMethod()
+        private static object bracketedDialog;
+
+        static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.Method(typeof(Dialog_Rename<IRenameable>), "DoWindowContents");
+            yield return AccessTools.Method(typeof(Dialog_Rename<IRenameable>), "DoWindowContents");
+            foreach (Type type in SafeTypeSweep.SubclassesSafe(typeof(Window), (_, ex) => ModLogger.LimitedError("Rename dialog override sweep", ex)))
+            {
+                if (!SafeTypeSweep.TryEvaluate(type, t => IsRenameSubclass(t) ? AccessTools.DeclaredMethod(t, "DoWindowContents", new[] { typeof(Rect) }) : null,
+                        out MethodInfo declared, (_, ex) => ModLogger.LimitedError("Rename dialog override sweep", ex)))
+                {
+                    continue;
+                }
+                if (declared != null && !declared.IsAbstract && !declared.ContainsGenericParameters)
+                {
+                    yield return declared;
+                }
+            }
+        }
+
+        private static bool IsRenameSubclass(Type type)
+        {
+            for (Type t = type.BaseType; t != null; t = t.BaseType)
+            {
+                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dialog_Rename<>))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         [HarmonyPrefix]
-        public static void Prefix(object __instance)
+        public static void Prefix(object __instance, out bool __state)
         {
+            __state = false;
+            if (bracketedDialog != null)
+            {
+                return;
+            }
             try
             {
                 RenameScope scope = RenameScope.OwningScope(__instance as Window);
                 if (scope != null)
                 {
+                    bracketedDialog = __instance;
+                    __state = true;
                     // Mask vanilla's raw Return poll: every row's Enter is this scope's, so the
                     // poll can never submit the rename from under one.
                     TextFieldRawPollGuard.MaskAcceptPoll(scope.ShouldMaskAcceptPoll);
@@ -372,8 +403,12 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPostfix]
-        public static void Postfix(object __instance)
+        public static void Postfix(object __instance, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
                 TextFieldRawPollGuard.RestoreAcceptPoll();
@@ -386,6 +421,15 @@ namespace RimWorldAccess.Shell
             catch (Exception ex)
             {
                 ModLogger.LimitedError("Rename dialog draw pass error", ex);
+            }
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer(bool __state)
+        {
+            if (__state)
+            {
+                bracketedDialog = null;
             }
         }
     }
