@@ -13,7 +13,7 @@ namespace RimWorldAccess.Shell
     /// vanilla's shared <c>IdeoUIUtility.DoIdeoDetails</c> draws, whichever host is presenting it.
     ///
     /// Two entry points rather than one, because YIELD ORDER MATTERS:
-    /// <see cref="ScreenScope.BuildPresentedHaystack"/> joins the composites into one contiguous
+    /// <see cref="ScreenScope.BuildPresentedHaystacks"/> joins the composites into one contiguous
     /// string and normalization strips every separator, so the diff is a containment check and
     /// reordering fragments is not inert. <see cref="DescriptionLockIconStates"/> is a page-global
     /// pair of texture-name literals, yielded before the host's own edit-mode chrome;

@@ -1,0 +1,1 @@
+Fixed buttons vanishing from mod screens when a row's reason text mentioned them. In Progression: Education, choosing High-tech as a proficiency focus no longer hides the Subject and Proficiency focus buttons.

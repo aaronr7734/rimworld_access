@@ -188,7 +188,7 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
-            string presented = BuildPresentedHaystack();
+            PresentedHaystacks presented = BuildPresentedHaystacks();
             for (int i = 0; i < folded.Count; i++)
             {
                 RimWorldAccess.FoldedRow row = folded[i];
@@ -228,11 +228,11 @@ namespace RimWorldAccess.Shell
         /// though <see cref="RebuildExtrasRows"/> drops such rows before asking. A row whose
         /// interactives are ALL unlabeled falls back to <see cref="RemainderIsUnmirrored"/>.
         /// </summary>
-        private static bool RowIsUnmirrored(RimWorldAccess.FoldedRow row, string presented)
+        private static bool RowIsUnmirrored(RimWorldAccess.FoldedRow row, PresentedHaystacks presented)
         {
             if (row.Interactives == null || row.Interactives.Count == 0)
             {
-                return CaptureTextNormalization.IsUnmirrored(row.Text, presented, s => s.StripTags());
+                return CaptureTextNormalization.IsUnmirrored(row.Text, presented.All, s => s.StripTags());
             }
             bool judgedAny = false;
             for (int i = 0; i < row.Interactives.Count; i++)
@@ -257,7 +257,7 @@ namespace RimWorldAccess.Shell
             {
                 return false;
             }
-            return RemainderIsUnmirrored(row, presented);
+            return RemainderIsUnmirrored(row, presented.All);
         }
 
         /// <summary>Below this, a normalized label is too short for containment to mean anything.</summary>
@@ -268,17 +268,17 @@ namespace RimWorldAccess.Shell
         /// for a long fragment: a short label lands inside an unrelated sentence ("Skill" inside
         /// "skill focus is missing"), and one under three characters yields no comparable line at
         /// all, so the shared test can return no verdict. A short label therefore counts as mirrored
-        /// only when it matches a WHOLE presented entry. Losing a control the player needs is the
-        /// costly error, so anything inconclusive keeps it.
+        /// only when it matches a WHOLE presented entry, and containment only counts in a name, not
+        /// in a reason that mentions it. Losing a control is the costly error, so inconclusive keeps it.
         /// </summary>
-        private static bool MemberIsMirrored(string memberText, string normalized, string presented)
+        private static bool MemberIsMirrored(string memberText, string normalized, PresentedHaystacks presented)
         {
-            if (presented.Contains("\n" + normalized + "\n"))
+            if (presented.All.Contains("\n" + normalized + "\n"))
             {
                 return true;
             }
             return normalized.Length >= TrustedContainmentLength
-                && !CaptureTextNormalization.IsUnmirrored(memberText, presented, s => s.StripTags());
+                && !CaptureTextNormalization.IsUnmirrored(memberText, presented.Names, s => s.StripTags());
         }
 
         /// <summary>
@@ -362,14 +362,19 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// One normalized haystack of every string this scope already speaks through its content
-        /// regions, captured buttons, declared actions, and <see cref="AdditionalPresentedTexts"/>:
-        /// the presented set the captured-extras diff subtracts against. Raw strings joined, then
-        /// one final strip-and-normalize pass.
+        /// The presented set the extras diff subtracts against. Names omits the prose fields
+        /// (Extras, Hint, cell tips), which can mention a control without presenting it.
         /// </summary>
-        private string BuildPresentedHaystack()
+        private struct PresentedHaystacks
         {
-            var sb = new StringBuilder();
+            public string All;
+            public string Names;
+        }
+
+        private PresentedHaystacks BuildPresentedHaystacks()
+        {
+            var all = new StringBuilder();
+            var names = new StringBuilder();
             int content = ContentRegionCount;
             for (int region = 0; region < content; region++)
             {
@@ -381,17 +386,17 @@ namespace RimWorldAccess.Shell
                         TableColumnInfo info = ContentColumnInfo(region, c);
                         if (info != null)
                         {
-                            AppendPresented(sb, info.Label);
+                            AppendName(all, names, info.Label);
                         }
                     }
                     int rows = ContentItemCount(region);
                     for (int r = 0; r < rows; r++)
                     {
-                        AppendPresented(sb, DescribeContentItem(region, r));
+                        AppendPresented(all, names, DescribeContentItem(region, r));
                         for (int c = 0; c < columns; c++)
                         {
-                            AppendPresented(sb, ContentCellText(region, r, c));
-                            AppendPresented(sb, ContentCellTip(region, r, c));
+                            AppendName(all, names, ContentCellText(region, r, c));
+                            AppendPresented(all, ContentCellTip(region, r, c));
                         }
                     }
                 }
@@ -400,20 +405,20 @@ namespace RimWorldAccess.Shell
                     int items = ContentItemCount(region);
                     for (int idx = 0; idx < items; idx++)
                     {
-                        AppendPresented(sb, DescribeContentItem(region, idx));
+                        AppendPresented(all, names, DescribeContentItem(region, idx));
                     }
                 }
             }
             for (int i = 0; i < capturedButtons.Count; i++)
             {
-                AppendPresented(sb, capturedButtons[i].Label);
+                AppendName(all, names, capturedButtons[i].Label);
             }
             IReadOnlyList<ScreenAction> declared = ResolvedDeclaredActions();
             if (declared != null)
             {
                 for (int i = 0; i < declared.Count; i++)
                 {
-                    AppendPresented(sb, declared[i].Label);
+                    AppendName(all, names, declared[i].Label);
                 }
             }
             IEnumerable<string> extra = AdditionalPresentedTexts;
@@ -421,11 +426,15 @@ namespace RimWorldAccess.Shell
             {
                 foreach (string text in extra)
                 {
-                    AppendPresented(sb, text);
+                    AppendName(all, names, text);
                 }
             }
-            // Normalized per entry and newline-delimited: those boundaries are what let a short
-            // label ask whether it matches a WHOLE presented entry instead of landing inside one.
+            return new PresentedHaystacks { All = NormalizeHaystack(all), Names = NormalizeHaystack(names) };
+        }
+
+        /// <summary>Per entry and newline-delimited, so a short label can match a WHOLE entry.</summary>
+        private static string NormalizeHaystack(StringBuilder sb)
+        {
             var normalized = new StringBuilder("\n");
             foreach (string entry in sb.ToString().StripTags().Split('\n'))
             {
@@ -438,22 +447,28 @@ namespace RimWorldAccess.Shell
             return normalized.ToString();
         }
 
-        private static void AppendPresented(StringBuilder sb, ElementDescription d)
+        private static void AppendPresented(StringBuilder all, StringBuilder names, ElementDescription d)
         {
             if (d == null)
             {
                 return;
             }
-            AppendPresented(sb, d.Label);
-            AppendPresented(sb, d.Value);
-            AppendPresented(sb, d.Extras);
-            AppendPresented(sb, d.Hint);
+            AppendName(all, names, d.Label);
+            AppendName(all, names, d.Value);
+            AppendPresented(all, d.Extras);
+            AppendPresented(all, d.Hint);
             // Vanilla settings surfaces draw combined read-out labels beside widgets the typed rows
             // model as separate Label and Value; the composite line lets the diff subtract those.
             if (!string.IsNullOrEmpty(d.Label) && !string.IsNullOrEmpty(d.Value))
             {
-                AppendPresented(sb, d.Label + ": " + d.Value);
+                AppendName(all, names, d.Label + ": " + d.Value);
             }
+        }
+
+        private static void AppendName(StringBuilder all, StringBuilder names, string text)
+        {
+            AppendPresented(all, text);
+            AppendPresented(names, text);
         }
 
         private static void AppendPresented(StringBuilder sb, string text)

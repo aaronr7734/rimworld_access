@@ -1089,7 +1089,7 @@ namespace RimWorldAccess.Shell
         /// <summary>
         /// Folds into the captured-extras diff the strings this scope presents some other way, or
         /// that vanilla draws unconditionally without a row-for-row mirror here.
-        /// The collapsed-state trap: BuildPresentedHaystack only scans rows currently reachable
+        /// The collapsed-state trap: BuildPresentedHaystacks only scans rows currently reachable
         /// through ContentItemCount/DescribeContentItem, i.e. only what this scope has expanded,
         /// while vanilla draws the selected pawn's whole character card and every pawn's list column
         /// regardless. So these entries read off the whole built tree (<see cref="Tree"/>'s root,
@@ -1116,7 +1116,7 @@ namespace RimWorldAccess.Shell
                 yield return (string)"RimWorldAccess.UI.GenericWindow.InfoCardButton".Translate();
                 yield return "InfoButton";
 
-                // BuildPresentedHaystack folds in a region's ITEMS but never its header, so the
+                // BuildPresentedHaystacks folds in a region's ITEMS but never its header, so the
                 // Team Skills header needs its own entry.
                 yield return (string)"TeamSkills".Translate();
 
