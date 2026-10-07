@@ -130,6 +130,10 @@ namespace RimWorldAccess.Shell
                     }
                 }
             }
+            d.Extras = new AnnouncementBuilder()
+                .Add(d.Extras?.TrimEnd('.'))
+                .Add(CompatText.Flatten(PeCompat.CandidateTooltip(dialog, pawn)))
+                .Build();
             return d;
         }
 

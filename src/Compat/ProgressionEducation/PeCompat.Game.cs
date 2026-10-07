@@ -13,10 +13,8 @@ namespace RimWorldAccess
     /// groups/classrooms, the class dialogs' role-assignment plumbing, and the proficiency
     /// system. The class roles, candidate pool, and assignment manager implement VANILLA
     /// interfaces (<see cref="ILordJobRole"/>, <see cref="ILordJobCandidatePool"/>,
-    /// <c>ILordJobAssignmentsManager&lt;ClassRole&gt;</c>), so reads go through typed casts where
-    /// the interface is non-generic and through this facade's MethodInfos where it is not.
-    /// Consumers: <see cref="Shell.PeClassDialogScope"/>, <see cref="Shell.PeEducationTabScope"/>,
-    /// <see cref="PeProficiencyCard"/>.
+    /// <c>ILordJobAssignmentsManager&lt;ClassRole&gt;</c>): typed casts where the interface is
+    /// non-generic, this facade's MethodInfos where it is not.
     /// </summary>
     internal static class PeCompat
     {
@@ -34,6 +32,7 @@ namespace RimWorldAccess
         private static readonly Type renameClassroomDialogType;
         private static readonly Type colorPickerWindowType;
         private static readonly Type educationUtilityType;
+        private static readonly Type roleWidgetType;
 
         private static readonly PropertyInfo managerInstanceProp;
         private static readonly PropertyInfo managerStudyGroupsProp;
@@ -69,6 +68,9 @@ namespace RimWorldAccess
         private static readonly PropertyInfo dlgCandidatePoolProp;
         private static readonly PropertyInfo dlgStudentRoleProp;
         private static readonly PropertyInfo dlgTeacherRoleProp;
+        private static readonly FieldInfo createParticipantsDrawerField;
+        private static readonly FieldInfo editParticipantsDrawerField;
+        private static readonly MethodInfo widgetExtraTipContentsMethod;
 
         private static readonly PropertyInfo amRolesProp;
         private static readonly MethodInfo amAssignedPawnsMethod;
@@ -109,6 +111,7 @@ namespace RimWorldAccess
             renameClassroomDialogType = surface.Type("ProgressionEducation.Dialog_RenameClassroom");
             colorPickerWindowType = surface.Type("ProgressionEducation.Window_ColorPicker");
             educationUtilityType = surface.Type("ProgressionEducation.EducationUtility");
+            roleWidgetType = surface.Type("ProgressionEducation.PawnClassRoleSelectionWidget");
 
             managerInstanceProp = surface.Property(managerType, "Instance");
             managerStudyGroupsProp = surface.Property(managerType, "StudyGroups");
@@ -144,6 +147,9 @@ namespace RimWorldAccess
             dlgCandidatePoolProp = surface.Property(iClassDialogType, "CandidatePool");
             dlgStudentRoleProp = surface.Property(iClassDialogType, "StudentRole");
             dlgTeacherRoleProp = surface.Property(iClassDialogType, "TeacherRole");
+            createParticipantsDrawerField = surface.Field(dialogCreateType, "participantsDrawer");
+            editParticipantsDrawerField = surface.Field(dialogEditType, "participantsDrawer");
+            widgetExtraTipContentsMethod = surface.Method(roleWidgetType, "ExtraTipContents");
 
             amRolesProp = surface.Property(assignmentsManagerType, "Roles");
             amAssignedPawnsMethod = surface.Method(assignmentsManagerType, "AssignedPawns");
@@ -315,6 +321,28 @@ namespace RimWorldAccess
         public static string NotAssignableReason(object manager, Pawn pawn, ILordJobRole role)
         {
             return amPawnNotAssignableReasonMethod.Invoke(manager, new object[] { pawn, role }) as string;
+        }
+
+        /// <summary>The role widget's own portrait-tooltip body; null without a classroom, which its student breakdown dereferences.</summary>
+        public static string CandidateTooltip(Window dialog, Pawn pawn)
+        {
+            FieldInfo drawerField = dialogCreateType.IsInstanceOfType(dialog) ? createParticipantsDrawerField
+                : dialogEditType.IsInstanceOfType(dialog) ? editParticipantsDrawerField
+                : null;
+            object drawer = drawerField?.GetValue(dialog);
+            if (drawer == null)
+            {
+                return null;
+            }
+            try
+            {
+                return widgetExtraTipContentsMethod.Invoke(drawer, new object[] { pawn }) as string;
+            }
+            catch (TargetInvocationException ex)
+            {
+                ModLogger.LimitedMessage("PE candidate tooltip", ex.InnerException ?? ex);
+                return null;
+            }
         }
 
         /// <summary>The manager's own gated assignment, same call the drag-and-drop widget makes.</summary>
