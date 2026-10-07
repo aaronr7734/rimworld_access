@@ -17,8 +17,7 @@ namespace RimWorldAccess.Shell
     /// status, difficulty, timing and every reward on offer; the description rides Extras. An empty
     /// tab still shows one read-only "no quests" row, so region cycling can never skip past
     /// it.</item>
-    /// <item>Details -- read-only rows derived LIVE from whichever quest the Quests region's cursor
-    /// rests on; there is no separate "selected quest" concept.</item>
+    /// <item>Details -- rows derived LIVE from the quest under the Quests cursor; links are buttons, the rest read-only.</item>
     /// <item>Reward preferences -- checkbox rows built the way <see cref="RewardPrefsScope"/> builds
     /// its own, with Check riding the Checkbox role rather than <see cref="RewardPrefItem.Label"/>'s
     /// baked-in state word, so state is never spoken twice.</item>
@@ -111,6 +110,7 @@ namespace RimWorldAccess.Shell
         private bool TrySelectQuest(Quest quest)
         {
             RefreshModel();
+            QuestMenuState.QuestsTab originalTab = QuestMenuState.CurrentTab;
             int index = quests.FindIndex(q => q == quest);
             if (index < 0)
             {
@@ -127,6 +127,8 @@ namespace RimWorldAccess.Shell
             }
             if (index < 0)
             {
+                QuestMenuState.CurrentTab = originalTab;
+                RefreshModel();
                 return false;
             }
             Model.Region(QuestsRegion).MoveTo(index);
@@ -267,6 +269,11 @@ namespace RimWorldAccess.Shell
                 return;
             }
             DetailLine line = detailLines[lineIndex];
+            if (line.Hyperlink.HasValue && !line.Hyperlink.Value.IsHidden)
+            {
+                ActivateHyperlink(line.Hyperlink.Value);
+                return;
+            }
             if (line.InfoCardThing != null)
             {
                 Find.WindowStack.Add(new Dialog_InfoCard(line.InfoCardThing));
@@ -278,6 +285,27 @@ namespace RimWorldAccess.Shell
                 return;
             }
             InfoCardState.SpeakNoInfoCardAvailable();
+        }
+
+        /// <summary>Quest links move this session's cursor: <see cref="QuestWindowSelectionPatch"/> re-selects the focused quest every pass, undoing vanilla's Select.</summary>
+        private void ActivateHyperlink(Dialog_InfoCard.Hyperlink hyperlink)
+        {
+            if (hyperlink.quest == null)
+            {
+                hyperlink.ActivateHyperlink();
+                return;
+            }
+            if (!TrySelectQuest(hyperlink.quest))
+            {
+                TolkHelper.Speak("RimWorldAccess.Quests.Menu.QuestNoLongerAvailable".Loc());
+                return;
+            }
+            MoveResult result = Model.MoveToRegion(QuestsRegion);
+            if (result.Changed)
+            {
+                OnRegionChanged(result);
+            }
+            AnnounceRegion();
         }
 
         /// <summary>
@@ -419,7 +447,18 @@ namespace RimWorldAccess.Shell
                     }
                     DetailLine line = detailLines[lineIndex];
                     d.Label = line.Text;
-                    if (line.InfoCardThing != null || line.InfoCardFaction != null)
+                    if (line.Hyperlink.HasValue)
+                    {
+                        if (line.Hyperlink.Value.IsHidden)
+                        {
+                            d.ReadOnly = true;
+                        }
+                        else
+                        {
+                            d.Role = ElementRole.Button;
+                        }
+                    }
+                    else if (line.InfoCardThing != null || line.InfoCardFaction != null)
                     {
                         // The mod-wide suffix for a carded row, not a "press Alt+I" instruction.
                         d.Extras = "RimWorldAccess.InfoCard.Inspectable".Translate().ToString().Trim();
@@ -459,9 +498,17 @@ namespace RimWorldAccess.Shell
                     }
 
                 case DetailsRegion:
-                    // Content lines have no Enter action of their own; just re-read the row.
-                    AnnounceCurrentItem();
-                    return;
+                    {
+                        int lineIndex = index - 1;
+                        if (lineIndex >= 0 && lineIndex < detailLines.Count && detailLines[lineIndex].Hyperlink.HasValue)
+                        {
+                            ActivateHyperlink(detailLines[lineIndex].Hyperlink.Value);
+                            return;
+                        }
+                        // Other content lines have no Enter action of their own; just re-read the row.
+                        AnnounceCurrentItem();
+                        return;
+                    }
 
                 default:
                     {

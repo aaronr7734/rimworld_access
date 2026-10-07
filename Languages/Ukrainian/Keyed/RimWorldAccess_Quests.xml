@@ -191,7 +191,6 @@
        button labels. The "indent" prefix ("  ") is hard-coded in the
        helper so each reward item line is visually grouped under its
        header line; the indent is preserved in keys here. -->
-  <RimWorldAccess.Quests.Reward.NoRewards>Немає винагород</RimWorldAccess.Quests.Reward.NoRewards>
   <RimWorldAccess.Quests.Reward.RewardsHeader>Винагороди:</RimWorldAccess.Quests.Reward.RewardsHeader>
   <RimWorldAccess.Quests.Reward.ChoicesHeader>Варіанти винагороди (виберіть один для прийняття):</RimWorldAccess.Quests.Reward.ChoicesHeader>
   <!-- {0} = 1-based choice index. -->

@@ -187,14 +187,13 @@ namespace RimWorldAccess
             return string.Join(". ", parts);
         }
 
-        /// <summary>
-        /// The rewards half of a Quests-region row, spoken after the description --
-        /// see <see cref="BuildQuestRowLabel"/> for why the two travel together in Extras.
-        /// </summary>
+        /// <summary>The rewards half of a Quests-region row; see <see cref="BuildQuestRowLabel"/> for the Extras order.</summary>
         public static string BuildQuestRowRewards(Quest quest)
         {
-            return "RimWorldAccess.Quests.List.RewardsSummary".Translate(
-                QuestRewardHelper.BuildCompactRewardSummary(quest)).ToString();
+            string summary = QuestRewardHelper.BuildCompactRewardSummary(quest);
+            return summary.NullOrEmpty()
+                ? ""
+                : "RimWorldAccess.Quests.List.RewardsSummary".Translate(summary).ToString();
         }
 
         /// <summary>The Details region's header row text (Detail.HeaderStatus plus the six Status.* keys).</summary>
@@ -283,8 +282,37 @@ namespace RimWorldAccess
 
             var rewardLines = QuestRewardHelper.BuildRewardDetailLines(quest);
             lines.AddRange(rewardLines);
+            AddHyperlinkLines(lines, quest);
 
             return lines;
+        }
+
+        /// <summary>Mirrors MainTabWindow_Quests.DoDefHyperlinks, hidden-quest skip included.</summary>
+        private static void AddHyperlinkLines(List<DetailLine> lines, Quest quest)
+        {
+            foreach (Dialog_InfoCard.Hyperlink hyperlink in quest.Hyperlinks)
+            {
+                string text;
+                if (hyperlink.quest != null && (hyperlink.quest.IsSubquestOf(quest) || quest.IsSubquestOf(hyperlink.quest)))
+                {
+                    if (quest.hidden || hyperlink.quest.hidden)
+                    {
+                        continue;
+                    }
+                    text = "";
+                    if (hyperlink.quest.Historical)
+                    {
+                        text += "(" + "Finished".Translate().ToLower() + ") ";
+                    }
+                    text += hyperlink.quest.IsSubquestOf(quest) ? "HasSubquest".Translate() : "SubquestOf".Translate();
+                    text = text + ": " + hyperlink.Label;
+                }
+                else
+                {
+                    text = "ViewHyperlink".Translate(hyperlink.Label);
+                }
+                lines.Add(new DetailLine(text.StripTags(), hyperlink: hyperlink));
+            }
         }
 
         /// <summary>

@@ -22,12 +22,14 @@ namespace RimWorldAccess
         public string Text;
         public Thing InfoCardThing;
         public Faction InfoCardFaction;
+        public Dialog_InfoCard.Hyperlink? Hyperlink;
 
-        public DetailLine(string text, Thing thing = null, Faction faction = null)
+        public DetailLine(string text, Thing thing = null, Faction faction = null, Dialog_InfoCard.Hyperlink? hyperlink = null)
         {
             Text = text;
             InfoCardThing = thing;
             InfoCardFaction = faction;
+            Hyperlink = hyperlink;
         }
     }
 
@@ -59,8 +61,8 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Builds individual reward detail lines with info card targets for the detail view.
-        /// Each reward item gets its own line so users can inspect them with Alt+I.
+        /// One detail line per reward item, each inspectable with Alt+I. Like DoRewards, no
+        /// QuestPart_Choice means no lines; the betrayal offer's reward is description text.
         /// </summary>
         public static List<DetailLine> BuildRewardDetailLines(Quest quest)
         {
@@ -70,7 +72,6 @@ namespace RimWorldAccess
 
             if (choicePart == null || choicePart.choices.Count == 0)
             {
-                lines.Add(new DetailLine("RimWorldAccess.Quests.Reward.NoRewards".Translate()));
                 return lines;
             }
 
@@ -417,7 +418,7 @@ namespace RimWorldAccess
         {
             QuestPart_Choice choicePart = GetChoicePart(quest);
             if (choicePart == null || choicePart.choices.Count == 0)
-                return "RimWorldAccess.Quests.Reward.NoRewards".Translate();
+                return "";
             if (choicePart.choices.Count == 1)
                 return BuildRewardDescription(choicePart.choices[0].rewards);
 
