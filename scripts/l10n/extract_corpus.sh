@@ -15,7 +15,8 @@ MODULES=(Core Royalty Ideology Biotech Anomaly Odyssey)
 # Override with RIMWORLD_DATA.
 if [[ -z "${RIMWORLD_DATA:-}" ]]; then
     case "$(uname -s)" in
-        Darwin) GAME_DIR="$HOME/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app" ;;
+        Darwin) GAME_DIR="$HOME/Library/Application Support/Steam/steamapps/common/RimWorld"
+                [[ -d "$GAME_DIR/RimWorld.app" ]] || GAME_DIR="$GAME_DIR/RimWorldMac.app" ;;
         Linux)  GAME_DIR="$HOME/.steam/steam/steamapps/common/RimWorld" ;;
         *)      GAME_DIR="/c/Program Files (x86)/Steam/steamapps/common/RimWorld" ;;
     esac

@@ -22,7 +22,8 @@ type gained coverage or no longer exists), which keeps the set exact.
 
 The census walks the decompiled tree by text — it is not a compiler. Top-level
 directories skipped: `bin`, `obj`, `mods` and `AnimalTraits` (decompiled MOD
-assemblies, not the game), plus `NVorbis`, `Ionic*`, `ISharpZipLib`, `KTrie`,
+assemblies, not the game), `1.6` (the previous game version, kept for
+comparison; the census reads `1.7`), plus `NVorbis`, `Ionic*`, `ISharpZipLib`, `KTrie`,
 `DelaunatorSharp`, `Gilzoide` and anything starting with `UnityEngine`, `Unity.`,
 `com.` or `System.` (engine and vendor code, no `Verse.Window` in any of it).
 Abstract window types are excluded: an abstract window is never opened, so
@@ -52,7 +53,7 @@ DECOMPILED_CANDIDATES = (
 )
 
 SKIP_TOP_DIRS = frozenset({
-    "bin", "obj", "mods", "AnimalTraits", "NVorbis", "Ionic.Crc", "Ionic.Zlib",
+    "bin", "obj", "mods", "AnimalTraits", "1.6", "NVorbis", "Ionic.Crc", "Ionic.Zlib",
     "ISharpZipLib", "KTrie", "DelaunatorSharp",
 })
 SKIP_TOP_PREFIXES = ("UnityEngine", "Unity.", "com.", "System.", "Ionic",
@@ -115,6 +116,8 @@ COVERAGE_BASELINE = {
     "Dialog_DebugSetSeverity": "dev-only debug setter",
     "Dialog_PawnTableTest": "dev-only pawn-table harness",
     "Dialog_CameraConfig": "dev-only, opened from DebugActionsMisc",
+    "Window_FrameProfiler": "dev-only, opened from DebugActionsFrameProfiler",
+    "Dialog_ProfilerAssemblies": "dev-only, opened from the frame profiler's settings",
     "Dialog_CameraConfigList_Load": "dev-only camera-config file picker",
     "Dialog_CameraConfigList_Save": "dev-only camera-config file picker",
 

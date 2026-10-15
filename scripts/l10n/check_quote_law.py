@@ -43,8 +43,9 @@ def _default_data_root():
     Override with the RIMWORLD_DATA environment variable."""
     home = pathlib.Path.home()
     if sys.platform == "darwin":
-        base = home / ("Library/Application Support/Steam/steamapps/common/"
-                       "RimWorld/RimWorldMac.app")
+        base = home / "Library/Application Support/Steam/steamapps/common/RimWorld"
+        if not (base / "RimWorld.app").is_dir():
+            base = base / "RimWorldMac.app"
     elif sys.platform.startswith("linux"):
         base = home / ".steam/steam/steamapps/common/RimWorld"
     else:

@@ -14,7 +14,8 @@ gate is nonsense. Generic types (Dialog_ManagePolicies<T>,
 PawnRoleSelectionWidgetBase<RoleType>) are excluded too: every method they
 declare carries unbound type parameters, which the installer refuses to patch,
 so listing them buys nothing but a startup warning. Mod decompiles in the same
-tree are excluded by namespace: the registry is vanilla only.
+tree are excluded by namespace: the registry is vanilla only. The `1.6` folder
+(the previous game version, kept for comparison) is skipped.
 
 Usage: gen_tooltip_gate_targets.py [--stdout]
 """
@@ -65,7 +66,7 @@ def types_in(path):
 def collect():
     found = set()
     for root, dirs, files in os.walk(DECOMPILED):
-        dirs[:] = [d for d in dirs if d not in ("bin", "obj", "mods")]
+        dirs[:] = [d for d in dirs if d not in ("bin", "obj", "mods", "1.6")]
         for name in files:
             if not name.endswith(".cs"):
                 continue

@@ -14,7 +14,7 @@ Reference corpus: RimWorld's official Castilian translation, extracted from the 
 relative to that corpus root. Re-extract either dialect with:
 
 ```bash
-D="$HOME/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/data"
+D="$HOME/Library/Application Support/Steam/steamapps/common/RimWorld/Data"
 # Castilian:
 find "$D" -name 'Spanish (*Castellano*).tar'  # extract each into <DLC>/ subfolders
 # Latin American (the parent glossary's /tmp/es_ref, which has since been emptied by temp cleanup):

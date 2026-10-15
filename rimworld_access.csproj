@@ -10,7 +10,10 @@
          silently admit newer syntax the game's runtime cannot load. -->
     <LangVersion>7.3</LangVersion>
     <!-- RimWorld install path - auto-detected per platform (override in GamePaths.props for custom locations) -->
-    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('OSX'))">$(HOME)/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app</RimWorldDir>
+    <!-- 1.7 on macOS reads Mods and Data from the install root; 1.6 read them inside RimWorldMac.app. -->
+    <MacSteamRimWorld>$(HOME)/Library/Application Support/Steam/steamapps/common/RimWorld</MacSteamRimWorld>
+    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('OSX')) And Exists('$(MacSteamRimWorld)/RimWorld.app')">$(MacSteamRimWorld)</RimWorldDir>
+    <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('OSX'))">$(MacSteamRimWorld)/RimWorldMac.app</RimWorldDir>
     <RimWorldDir Condition="'$(RimWorldDir)'=='' And $([MSBuild]::IsOSPlatform('Linux'))">$(HOME)/.steam/steam/steamapps/common/RimWorld</RimWorldDir>
     <RimWorldDir Condition="'$(RimWorldDir)'==''">C:\Program Files (x86)\Steam\steamapps\common\RimWorld</RimWorldDir>
     <!-- Mod output folder -->

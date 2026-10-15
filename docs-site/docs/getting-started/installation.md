@@ -40,7 +40,8 @@ Use this if you do not own RimWorld on Steam, or you would rather manage the fil
 [Download the latest release](https://github.com/aaronr7734/rimworld_access/releases/download/dev/RimWorldAccess-dev.zip) and unzip it into RimWorld's `Mods` folder, so you end up with a `RimWorldAccess` folder inside `Mods`. With a default Steam install, the `Mods` folder can be found at the following locations:
 
 - **Windows:** `C:\Program Files (x86)\Steam\steamapps\common\RimWorld\Mods`
-- **macOS:** `~/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods`
+- **macOS (RimWorld 1.7 and later):** `~/Library/Application Support/Steam/steamapps/common/RimWorld/Mods`
+- **macOS (RimWorld 1.6):** `~/Library/Application Support/Steam/steamapps/common/RimWorld/RimWorldMac.app/Mods`
 
 If you installed RimWorld to a different Steam library, the path up to `steamapps` changes, but everything after it stays the same.
 
