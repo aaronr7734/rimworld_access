@@ -42,7 +42,7 @@ namespace RimWorldAccess.Shell
     {
         private enum RegionKind { Controls, Summary, Frames, Timeline, TableControls, Table, Threads, Settings }
 
-        private enum Pending { None, Current, Summary, Region, CheckState }
+        private enum Pending { None, Current, Summary, Region, CheckState, Control }
 
         private sealed class Row
         {
@@ -93,6 +93,7 @@ namespace RimWorldAccess.Shell
             Claim("frameProfiler.selectTimeRange", e => SelectZoneRange(), when: () => InRegion(RegionKind.Timeline) && !TypeaheadHasActiveSearch);
             Claim(SharedMenuGrammar.Cancel, e => CloseOverlay(), when: () => OverlayOpen && !TypeaheadHasActiveSearch);
 
+            ClaimHotkeys();
             RegisterPopTeardown(editSession.CancelIfActive);
         }
 
@@ -418,6 +419,9 @@ namespace RimWorldAccess.Shell
                 case Pending.Region:
                     AnnounceRegion();
                     break;
+                case Pending.Control:
+                    AnnouncePendingControl();
+                    break;
                 case Pending.CheckState:
                     ElementDescription d = DescribeContentItem(Model.RegionIndex, Model.CurrentRegion != null ? Model.CurrentRegion.Index : -1);
                     TolkHelper.SpeakData(AnnouncementComposer.ComposeStateChange(new ElementDescription { Check = d.Check }, TranslatedShellVocabulary.Instance));
@@ -661,6 +665,10 @@ namespace RimWorldAccess.Shell
             }
             ProfilerControl c = row.Control;
             d.Label = SpokenLabel(row.Caption ?? c.Label);
+            if (c.Kind != ProfilerControlKind.Label && c.Kind != ProfilerControlKind.Heading)
+            {
+                d.Hotkey = HotkeyFor(c);
+            }
             switch (c.Kind)
             {
                 case ProfilerControlKind.Chip:
@@ -821,8 +829,10 @@ namespace RimWorldAccess.Shell
                 onConfirm: () => FrameProfilerCapture.ArmText(control, editText));
         }
 
+        /// <summary>The field is re-read once, after the window has drawn whatever value the edit left it with.</summary>
         private void OnEditExit()
         {
+            SuppressNextEntryAnnouncement();
             Defer(Pending.Current);
         }
 

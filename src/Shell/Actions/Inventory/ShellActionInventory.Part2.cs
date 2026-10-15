@@ -421,6 +421,40 @@ namespace RimWorldAccess.Shell
                 new List<KeyChord> { KeyChord.Of(KeyCode.F3, shift: true) }));
             c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.contextMenu",
                 new List<KeyChord> { KeyChord.Of(KeyCode.RightBracket) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.settings",
+                new List<KeyChord> { KeyChord.Of(KeyCode.O, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.toggleSource",
+                new List<KeyChord> { KeyChord.Of(KeyCode.K, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.toggleHistogramMode",
+                new List<KeyChord> { KeyChord.Of(KeyCode.M, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.clearFrames",
+                new List<KeyChord> { KeyChord.Of(KeyCode.C, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.cpuTab",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Alpha1, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.allocTab",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Alpha2, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.vramTab",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Alpha3, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.toggleDisplay",
+                new List<KeyChord> { KeyChord.Of(KeyCode.G, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.threads",
+                new List<KeyChord> { KeyChord.Of(KeyCode.T, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.search",
+                new List<KeyChord> { KeyChord.Of(KeyCode.F, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.invert",
+                new List<KeyChord> { KeyChord.Of(KeyCode.R, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.expandAll",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Equals, alt: true), KeyChord.Of(KeyCode.KeypadPlus, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.collapseAll",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Minus, alt: true), KeyChord.Of(KeyCode.KeypadMinus, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.vramBaseline",
+                new List<KeyChord> { KeyChord.Of(KeyCode.B, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.vramClearBaseline",
+                new List<KeyChord> { KeyChord.Of(KeyCode.B, shift: true, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.vramDeltaSort",
+                new List<KeyChord> { KeyChord.Of(KeyCode.D, alt: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.vramExport",
+                new List<KeyChord> { KeyChord.Of(KeyCode.X, alt: true) }));
             c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.selectTimeRange",
                 new List<KeyChord> { KeyChord.Of(KeyCode.Return, shift: true), KeyChord.Of(KeyCode.KeypadEnter, shift: true) }));
 
