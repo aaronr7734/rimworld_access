@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- RimWorld 1.7's frame profiler (src/Shell/Screens/FrameProfiler/). Profiler readings such as
+       "median", "p99" and column headers come from the game's own window and are not translated here. -->
+  <RimWorldAccess.FrameProfiler.Title>帧分析器</RimWorldAccess.FrameProfiler.Title>
+
+  <RimWorldAccess.FrameProfiler.Region.Controls>控件</RimWorldAccess.FrameProfiler.Region.Controls>
+  <RimWorldAccess.FrameProfiler.Region.Summary>摘要</RimWorldAccess.FrameProfiler.Region.Summary>
+  <RimWorldAccess.FrameProfiler.Region.Frames>帧</RimWorldAccess.FrameProfiler.Region.Frames>
+  <RimWorldAccess.FrameProfiler.Region.Timeline>时间线</RimWorldAccess.FrameProfiler.Region.Timeline>
+  <RimWorldAccess.FrameProfiler.Region.TableControls>表格控件</RimWorldAccess.FrameProfiler.Region.TableControls>
+  <RimWorldAccess.FrameProfiler.Region.Table>表格</RimWorldAccess.FrameProfiler.Region.Table>
+  <RimWorldAccess.FrameProfiler.Region.Threads>线程</RimWorldAccess.FrameProfiler.Region.Threads>
+  <RimWorldAccess.FrameProfiler.Region.Settings>设置</RimWorldAccess.FrameProfiler.Region.Settings>
+
+  <!-- Buttons the window draws as a bare symbol. -->
+  <RimWorldAccess.FrameProfiler.Control.OlderFrame>较早的帧</RimWorldAccess.FrameProfiler.Control.OlderFrame>
+  <RimWorldAccess.FrameProfiler.Control.NewerFrame>较新的帧</RimWorldAccess.FrameProfiler.Control.NewerFrame>
+  <RimWorldAccess.FrameProfiler.Control.NewestFrame>最新帧</RimWorldAccess.FrameProfiler.Control.NewestFrame>
+  <RimWorldAccess.FrameProfiler.Control.Close>关闭</RimWorldAccess.FrameProfiler.Control.Close>
+  <RimWorldAccess.FrameProfiler.Control.ExpandAll>全部展开</RimWorldAccess.FrameProfiler.Control.ExpandAll>
+  <RimWorldAccess.FrameProfiler.Control.CollapseAll>全部折叠</RimWorldAccess.FrameProfiler.Control.CollapseAll>
+
+  <RimWorldAccess.FrameProfiler.Search>搜索</RimWorldAccess.FrameProfiler.Search>
+  <RimWorldAccess.FrameProfiler.Filters>筛选</RimWorldAccess.FrameProfiler.Filters>
+  <!-- {0} is the typed value, {1} its unit, such as "frames" or "fps". -->
+  <RimWorldAccess.FrameProfiler.FieldValue>{0} {1}</RimWorldAccess.FrameProfiler.FieldValue>
+  <!-- {0} is a column header drawn by the game, such as "total" or "calls". -->
+  <RimWorldAccess.FrameProfiler.SortBy>按 {0} 排序</RimWorldAccess.FrameProfiler.SortBy>
+  <RimWorldAccess.FrameProfiler.SortedAscending>升序</RimWorldAccess.FrameProfiler.SortedAscending>
+  <RimWorldAccess.FrameProfiler.SortedDescending>降序</RimWorldAccess.FrameProfiler.SortedDescending>
+  <!-- {0} is the list of the selected row's ancestors, outermost first. -->
+  <RimWorldAccess.FrameProfiler.Path>路径: {0}</RimWorldAccess.FrameProfiler.Path>
+  <!-- {0} is a column header drawn by the game, {1} the row's value in that column. -->
+  <RimWorldAccess.FrameProfiler.Cell>{0} {1}</RimWorldAccess.FrameProfiler.Cell>
+  <RimWorldAccess.FrameProfiler.PercentCell>百分之{0}</RimWorldAccess.FrameProfiler.PercentCell>
+  <RimWorldAccess.FrameProfiler.NoSearchMatch>不匹配搜索</RimWorldAccess.FrameProfiler.NoSearchMatch>
+
+  <RimWorldAccess.FrameProfiler.Frame>第 {0} 帧</RimWorldAccess.FrameProfiler.Frame>
+  <RimWorldAccess.FrameProfiler.OverBudget>超出预算</RimWorldAccess.FrameProfiler.OverBudget>
+  <RimWorldAccess.FrameProfiler.Spike>峰值</RimWorldAccess.FrameProfiler.Spike>
+  <!-- {0}, {1}, {2}: garbage collections of generations 0, 1 and 2. -->
+  <RimWorldAccess.FrameProfiler.GarbageCollections>垃圾回收 {0}, {1}, {2}</RimWorldAccess.FrameProfiler.GarbageCollections>
+  <RimWorldAccess.FrameProfiler.Promoted>晋升 {0}</RimWorldAccess.FrameProfiler.Promoted>
+  <RimWorldAccess.FrameProfiler.OnePause>{0} 次暂停, 停顿 {1}</RimWorldAccess.FrameProfiler.OnePause>
+  <RimWorldAccess.FrameProfiler.Pauses>{0} 次暂停, 停顿 {1}</RimWorldAccess.FrameProfiler.Pauses>
+  <RimWorldAccess.FrameProfiler.Alloc>分配 {0}</RimWorldAccess.FrameProfiler.Alloc>
+  <RimWorldAccess.FrameProfiler.AllocObjects>分配 {0}, 共 {1} 个对象</RimWorldAccess.FrameProfiler.AllocObjects>
+  <RimWorldAccess.FrameProfiler.PausedBefore>此帧之前分析已暂停 {0}</RimWorldAccess.FrameProfiler.PausedBefore>
+
+  <RimWorldAccess.FrameProfiler.ZoneStart>始于 {0}</RimWorldAccess.FrameProfiler.ZoneStart>
+  <RimWorldAccess.FrameProfiler.ZoneTotal>总计 {0}</RimWorldAccess.FrameProfiler.ZoneTotal>
+  <RimWorldAccess.FrameProfiler.ZoneSelf>自身 {0}</RimWorldAccess.FrameProfiler.ZoneSelf>
+  <RimWorldAccess.FrameProfiler.ZoneRunning>仍在运行</RimWorldAccess.FrameProfiler.ZoneRunning>
+  <RimWorldAccess.FrameProfiler.ThreadBusy>忙碌 {0}</RimWorldAccess.FrameProfiler.ThreadBusy>
+  <RimWorldAccess.FrameProfiler.Unprofiled>未分析 {0}</RimWorldAccess.FrameProfiler.Unprofiled>
+  <!-- {0} is the zone's name. -->
+  <RimWorldAccess.FrameProfiler.RevealedInCallTree>已在调用树中选中 {0}</RimWorldAccess.FrameProfiler.RevealedInCallTree>
+
+  <!-- Runtime pauses: moments the .NET runtime stopped the game, mostly garbage collections. -->
+  <RimWorldAccess.FrameProfiler.PauseLane>运行时暂停</RimWorldAccess.FrameProfiler.PauseLane>
+  <RimWorldAccess.FrameProfiler.PauseCount>此帧中 {0} 次</RimWorldAccess.FrameProfiler.PauseCount>
+  <RimWorldAccess.FrameProfiler.PauseStopped>停顿 {0}</RimWorldAccess.FrameProfiler.PauseStopped>
+  <RimWorldAccess.FrameProfiler.PauseWaiting>等待线程 {0}</RimWorldAccess.FrameProfiler.PauseWaiting>
+  <!-- {0} collected, {1} promoted to an older generation. -->
+  <RimWorldAccess.FrameProfiler.PauseCollected>回收 {0}, 晋升 {1}</RimWorldAccess.FrameProfiler.PauseCollected>
+  <RimWorldAccess.FrameProfiler.PauseByRuntime>由运行时线程触发</RimWorldAccess.FrameProfiler.PauseByRuntime>
+  <RimWorldAccess.FrameProfiler.PauseByMainThread>由主线程触发</RimWorldAccess.FrameProfiler.PauseByMainThread>
+  <RimWorldAccess.FrameProfiler.PauseByThread>由线程 {0} 触发</RimWorldAccess.FrameProfiler.PauseByThread>
+
+  <!-- {0} is the zone's name. -->
+  <RimWorldAccess.FrameProfiler.RangeSelected>已选中 {0} 的时间跨度</RimWorldAccess.FrameProfiler.RangeSelected>
+
+  <RimWorldAccess.FrameProfiler.AllThreads>所有线程</RimWorldAccess.FrameProfiler.AllThreads>
+  <RimWorldAccess.FrameProfiler.ThreadsSelected>已选中 {0} 个, 共 {1} 个</RimWorldAccess.FrameProfiler.ThreadsSelected>
+
+  <RimWorldAccess.FrameProfiler.Paused>已暂停</RimWorldAccess.FrameProfiler.Paused>
+  <RimWorldAccess.FrameProfiler.Recording>录制中</RimWorldAccess.FrameProfiler.Recording>
+  <RimWorldAccess.FrameProfiler.FollowingNewest>正在跟随最新帧</RimWorldAccess.FrameProfiler.FollowingNewest>
+  <RimWorldAccess.FrameProfiler.SelectionCleared>已清除帧选择</RimWorldAccess.FrameProfiler.SelectionCleared>
+  <RimWorldAccess.FrameProfiler.Copied>已复制行</RimWorldAccess.FrameProfiler.Copied>
+  <RimWorldAccess.FrameProfiler.ViewCopied>已复制视图</RimWorldAccess.FrameProfiler.ViewCopied>
+</LanguageData>

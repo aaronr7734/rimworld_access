@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- RimWorld 1.7's frame profiler (src/Shell/Screens/FrameProfiler/). Profiler readings such as
+       "median", "p99" and column headers come from the game's own window and are not translated here. -->
+  <RimWorldAccess.FrameProfiler.Title>Analisador de fotogramas</RimWorldAccess.FrameProfiler.Title>
+
+  <RimWorldAccess.FrameProfiler.Region.Controls>Controlos</RimWorldAccess.FrameProfiler.Region.Controls>
+  <RimWorldAccess.FrameProfiler.Region.Summary>Resumo</RimWorldAccess.FrameProfiler.Region.Summary>
+  <RimWorldAccess.FrameProfiler.Region.Frames>Fotogramas</RimWorldAccess.FrameProfiler.Region.Frames>
+  <RimWorldAccess.FrameProfiler.Region.Timeline>Cronologia</RimWorldAccess.FrameProfiler.Region.Timeline>
+  <RimWorldAccess.FrameProfiler.Region.TableControls>Controlos da tabela</RimWorldAccess.FrameProfiler.Region.TableControls>
+  <RimWorldAccess.FrameProfiler.Region.Table>Tabela</RimWorldAccess.FrameProfiler.Region.Table>
+  <RimWorldAccess.FrameProfiler.Region.Threads>Threads</RimWorldAccess.FrameProfiler.Region.Threads>
+  <RimWorldAccess.FrameProfiler.Region.Settings>Definições</RimWorldAccess.FrameProfiler.Region.Settings>
+
+  <!-- Buttons the window draws as a bare symbol. -->
+  <RimWorldAccess.FrameProfiler.Control.OlderFrame>Fotograma anterior</RimWorldAccess.FrameProfiler.Control.OlderFrame>
+  <RimWorldAccess.FrameProfiler.Control.NewerFrame>Fotograma seguinte</RimWorldAccess.FrameProfiler.Control.NewerFrame>
+  <RimWorldAccess.FrameProfiler.Control.NewestFrame>Fotograma mais recente</RimWorldAccess.FrameProfiler.Control.NewestFrame>
+  <RimWorldAccess.FrameProfiler.Control.Close>Fechar</RimWorldAccess.FrameProfiler.Control.Close>
+  <RimWorldAccess.FrameProfiler.Control.ExpandAll>Expandir tudo</RimWorldAccess.FrameProfiler.Control.ExpandAll>
+  <RimWorldAccess.FrameProfiler.Control.CollapseAll>Recolher tudo</RimWorldAccess.FrameProfiler.Control.CollapseAll>
+
+  <RimWorldAccess.FrameProfiler.Search>Pesquisa</RimWorldAccess.FrameProfiler.Search>
+  <RimWorldAccess.FrameProfiler.Filters>Filtros</RimWorldAccess.FrameProfiler.Filters>
+  <!-- {0} is the typed value, {1} its unit, such as "frames" or "fps". -->
+  <RimWorldAccess.FrameProfiler.FieldValue>{0} {1}</RimWorldAccess.FrameProfiler.FieldValue>
+  <!-- {0} is a column header drawn by the game, such as "total" or "calls". -->
+  <RimWorldAccess.FrameProfiler.SortBy>Ordenar por {0}</RimWorldAccess.FrameProfiler.SortBy>
+  <RimWorldAccess.FrameProfiler.SortedAscending>por ordem crescente</RimWorldAccess.FrameProfiler.SortedAscending>
+  <RimWorldAccess.FrameProfiler.SortedDescending>por ordem decrescente</RimWorldAccess.FrameProfiler.SortedDescending>
+  <!-- {0} is the list of the selected row's ancestors, outermost first. -->
+  <RimWorldAccess.FrameProfiler.Path>Caminho: {0}</RimWorldAccess.FrameProfiler.Path>
+  <!-- {0} is a column header drawn by the game, {1} the row's value in that column. -->
+  <RimWorldAccess.FrameProfiler.Cell>{0} {1}</RimWorldAccess.FrameProfiler.Cell>
+  <RimWorldAccess.FrameProfiler.PercentCell>{0} por cento</RimWorldAccess.FrameProfiler.PercentCell>
+  <RimWorldAccess.FrameProfiler.NoSearchMatch>não corresponde à pesquisa</RimWorldAccess.FrameProfiler.NoSearchMatch>
+
+  <RimWorldAccess.FrameProfiler.Frame>Fotograma {0}</RimWorldAccess.FrameProfiler.Frame>
+  <RimWorldAccess.FrameProfiler.OverBudget>acima do orçamento</RimWorldAccess.FrameProfiler.OverBudget>
+  <RimWorldAccess.FrameProfiler.Spike>pico</RimWorldAccess.FrameProfiler.Spike>
+  <!-- {0}, {1}, {2}: garbage collections of generations 0, 1 and 2. -->
+  <RimWorldAccess.FrameProfiler.GarbageCollections>recolhas de lixo {0}, {1}, {2}</RimWorldAccess.FrameProfiler.GarbageCollections>
+  <RimWorldAccess.FrameProfiler.Promoted>promovido {0}</RimWorldAccess.FrameProfiler.Promoted>
+  <RimWorldAccess.FrameProfiler.OnePause>{0} pausa, paragem de {1}</RimWorldAccess.FrameProfiler.OnePause>
+  <RimWorldAccess.FrameProfiler.Pauses>{0} pausas, paragem de {1}</RimWorldAccess.FrameProfiler.Pauses>
+  <RimWorldAccess.FrameProfiler.Alloc>alocado {0}</RimWorldAccess.FrameProfiler.Alloc>
+  <RimWorldAccess.FrameProfiler.AllocObjects>alocado {0} em {1} objectos</RimWorldAccess.FrameProfiler.AllocObjects>
+  <RimWorldAccess.FrameProfiler.PausedBefore>análise em pausa durante {0} antes deste fotograma</RimWorldAccess.FrameProfiler.PausedBefore>
+
+  <RimWorldAccess.FrameProfiler.ZoneStart>começa em {0}</RimWorldAccess.FrameProfiler.ZoneStart>
+  <RimWorldAccess.FrameProfiler.ZoneTotal>total {0}</RimWorldAccess.FrameProfiler.ZoneTotal>
+  <RimWorldAccess.FrameProfiler.ZoneSelf>próprio {0}</RimWorldAccess.FrameProfiler.ZoneSelf>
+  <RimWorldAccess.FrameProfiler.ZoneRunning>ainda em execução</RimWorldAccess.FrameProfiler.ZoneRunning>
+  <RimWorldAccess.FrameProfiler.ThreadBusy>ocupada {0}</RimWorldAccess.FrameProfiler.ThreadBusy>
+  <RimWorldAccess.FrameProfiler.Unprofiled>sem análise {0}</RimWorldAccess.FrameProfiler.Unprofiled>
+  <!-- {0} is the zone's name. -->
+  <RimWorldAccess.FrameProfiler.RevealedInCallTree>{0} seleccionado na árvore de chamadas</RimWorldAccess.FrameProfiler.RevealedInCallTree>
+
+  <!-- Runtime pauses: moments the .NET runtime stopped the game, mostly garbage collections. -->
+  <RimWorldAccess.FrameProfiler.PauseLane>Pausas do runtime</RimWorldAccess.FrameProfiler.PauseLane>
+  <RimWorldAccess.FrameProfiler.PauseCount>{0} neste fotograma</RimWorldAccess.FrameProfiler.PauseCount>
+  <RimWorldAccess.FrameProfiler.PauseStopped>paragem de {0}</RimWorldAccess.FrameProfiler.PauseStopped>
+  <RimWorldAccess.FrameProfiler.PauseWaiting>à espera das threads {0}</RimWorldAccess.FrameProfiler.PauseWaiting>
+  <!-- {0} collected, {1} promoted to an older generation. -->
+  <RimWorldAccess.FrameProfiler.PauseCollected>recolhido {0}, promovido {1}</RimWorldAccess.FrameProfiler.PauseCollected>
+  <RimWorldAccess.FrameProfiler.PauseByRuntime>desencadeada por uma thread do runtime</RimWorldAccess.FrameProfiler.PauseByRuntime>
+  <RimWorldAccess.FrameProfiler.PauseByMainThread>desencadeada pela thread principal</RimWorldAccess.FrameProfiler.PauseByMainThread>
+  <RimWorldAccess.FrameProfiler.PauseByThread>desencadeada pela thread {0}</RimWorldAccess.FrameProfiler.PauseByThread>
+
+  <!-- {0} is the zone's name. -->
+  <RimWorldAccess.FrameProfiler.RangeSelected>Intervalo de tempo de {0} seleccionado</RimWorldAccess.FrameProfiler.RangeSelected>
+
+  <RimWorldAccess.FrameProfiler.AllThreads>Todas as threads</RimWorldAccess.FrameProfiler.AllThreads>
+  <RimWorldAccess.FrameProfiler.ThreadsSelected>{0} de {1} seleccionadas</RimWorldAccess.FrameProfiler.ThreadsSelected>
+
+  <RimWorldAccess.FrameProfiler.Paused>Em pausa</RimWorldAccess.FrameProfiler.Paused>
+  <RimWorldAccess.FrameProfiler.Recording>A gravar</RimWorldAccess.FrameProfiler.Recording>
+  <RimWorldAccess.FrameProfiler.FollowingNewest>A acompanhar o fotograma mais recente</RimWorldAccess.FrameProfiler.FollowingNewest>
+  <RimWorldAccess.FrameProfiler.SelectionCleared>Selecção de fotogramas limpa</RimWorldAccess.FrameProfiler.SelectionCleared>
+  <RimWorldAccess.FrameProfiler.Copied>Linha copiada</RimWorldAccess.FrameProfiler.Copied>
+  <RimWorldAccess.FrameProfiler.ViewCopied>Vista copiada</RimWorldAccess.FrameProfiler.ViewCopied>
+</LanguageData>

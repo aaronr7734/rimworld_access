@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- RimWorld 1.7's frame profiler (src/Shell/Screens/FrameProfiler/). Profiler readings such as
+       "median", "p99" and column headers come from the game's own window and are not translated here. -->
+  <RimWorldAccess.FrameProfiler.Title>Профайлер кадрів</RimWorldAccess.FrameProfiler.Title>
+
+  <RimWorldAccess.FrameProfiler.Region.Controls>Керування</RimWorldAccess.FrameProfiler.Region.Controls>
+  <RimWorldAccess.FrameProfiler.Region.Summary>Підсумок</RimWorldAccess.FrameProfiler.Region.Summary>
+  <RimWorldAccess.FrameProfiler.Region.Frames>Кадри</RimWorldAccess.FrameProfiler.Region.Frames>
+  <RimWorldAccess.FrameProfiler.Region.Timeline>Часова шкала</RimWorldAccess.FrameProfiler.Region.Timeline>
+  <RimWorldAccess.FrameProfiler.Region.TableControls>Керування таблицею</RimWorldAccess.FrameProfiler.Region.TableControls>
+  <RimWorldAccess.FrameProfiler.Region.Table>Таблиця</RimWorldAccess.FrameProfiler.Region.Table>
+  <RimWorldAccess.FrameProfiler.Region.Threads>Потоки</RimWorldAccess.FrameProfiler.Region.Threads>
+  <RimWorldAccess.FrameProfiler.Region.Settings>Налаштування</RimWorldAccess.FrameProfiler.Region.Settings>
+
+  <!-- Buttons the window draws as a bare symbol. -->
+  <RimWorldAccess.FrameProfiler.Control.OlderFrame>Старіший кадр</RimWorldAccess.FrameProfiler.Control.OlderFrame>
+  <RimWorldAccess.FrameProfiler.Control.NewerFrame>Новіший кадр</RimWorldAccess.FrameProfiler.Control.NewerFrame>
+  <RimWorldAccess.FrameProfiler.Control.NewestFrame>Найновіший кадр</RimWorldAccess.FrameProfiler.Control.NewestFrame>
+  <RimWorldAccess.FrameProfiler.Control.Close>Закрити</RimWorldAccess.FrameProfiler.Control.Close>
+  <RimWorldAccess.FrameProfiler.Control.ExpandAll>Розгорнути все</RimWorldAccess.FrameProfiler.Control.ExpandAll>
+  <RimWorldAccess.FrameProfiler.Control.CollapseAll>Згорнути все</RimWorldAccess.FrameProfiler.Control.CollapseAll>
+
+  <RimWorldAccess.FrameProfiler.Search>Пошук</RimWorldAccess.FrameProfiler.Search>
+  <RimWorldAccess.FrameProfiler.Filters>Фільтри</RimWorldAccess.FrameProfiler.Filters>
+  <!-- {0} is the typed value, {1} its unit, such as "frames" or "fps". -->
+  <RimWorldAccess.FrameProfiler.FieldValue>{0} {1}</RimWorldAccess.FrameProfiler.FieldValue>
+  <!-- {0} is a column header drawn by the game, such as "total" or "calls". -->
+  <RimWorldAccess.FrameProfiler.SortBy>Сортувати за: {0}</RimWorldAccess.FrameProfiler.SortBy>
+  <RimWorldAccess.FrameProfiler.SortedAscending>за зростанням</RimWorldAccess.FrameProfiler.SortedAscending>
+  <RimWorldAccess.FrameProfiler.SortedDescending>за спаданням</RimWorldAccess.FrameProfiler.SortedDescending>
+  <!-- {0} is the list of the selected row's ancestors, outermost first. -->
+  <RimWorldAccess.FrameProfiler.Path>Шлях: {0}</RimWorldAccess.FrameProfiler.Path>
+  <!-- {0} is a column header drawn by the game, {1} the row's value in that column. -->
+  <RimWorldAccess.FrameProfiler.Cell>{0} {1}</RimWorldAccess.FrameProfiler.Cell>
+  <RimWorldAccess.FrameProfiler.PercentCell>{0} відсотків</RimWorldAccess.FrameProfiler.PercentCell>
+  <RimWorldAccess.FrameProfiler.NoSearchMatch>не відповідає пошуку</RimWorldAccess.FrameProfiler.NoSearchMatch>
+
+  <RimWorldAccess.FrameProfiler.Frame>Кадр {0}</RimWorldAccess.FrameProfiler.Frame>
+  <RimWorldAccess.FrameProfiler.OverBudget>понад бюджет</RimWorldAccess.FrameProfiler.OverBudget>
+  <RimWorldAccess.FrameProfiler.Spike>сплеск</RimWorldAccess.FrameProfiler.Spike>
+  <!-- {0}, {1}, {2}: garbage collections of generations 0, 1 and 2. -->
+  <RimWorldAccess.FrameProfiler.GarbageCollections>збирань сміття: {0}, {1}, {2}</RimWorldAccess.FrameProfiler.GarbageCollections>
+  <RimWorldAccess.FrameProfiler.Promoted>переміщено до старшого покоління: {0}</RimWorldAccess.FrameProfiler.Promoted>
+  <RimWorldAccess.FrameProfiler.OnePause>{0} пауза, зупинка на {1}</RimWorldAccess.FrameProfiler.OnePause>
+  <RimWorldAccess.FrameProfiler.Pauses>Пауз: {0}, зупинка на {1}</RimWorldAccess.FrameProfiler.Pauses>
+  <RimWorldAccess.FrameProfiler.Alloc>виділено {0}</RimWorldAccess.FrameProfiler.Alloc>
+  <RimWorldAccess.FrameProfiler.AllocObjects>виділено {0} в об'єктах: {1}</RimWorldAccess.FrameProfiler.AllocObjects>
+  <RimWorldAccess.FrameProfiler.PausedBefore>профілювання призупинено на {0} перед цим кадром</RimWorldAccess.FrameProfiler.PausedBefore>
+
+  <RimWorldAccess.FrameProfiler.ZoneStart>починається о {0}</RimWorldAccess.FrameProfiler.ZoneStart>
+  <RimWorldAccess.FrameProfiler.ZoneTotal>загалом {0}</RimWorldAccess.FrameProfiler.ZoneTotal>
+  <RimWorldAccess.FrameProfiler.ZoneSelf>власний час {0}</RimWorldAccess.FrameProfiler.ZoneSelf>
+  <RimWorldAccess.FrameProfiler.ZoneRunning>ще виконується</RimWorldAccess.FrameProfiler.ZoneRunning>
+  <RimWorldAccess.FrameProfiler.ThreadBusy>зайнято {0}</RimWorldAccess.FrameProfiler.ThreadBusy>
+  <RimWorldAccess.FrameProfiler.Unprofiled>без профілювання {0}</RimWorldAccess.FrameProfiler.Unprofiled>
+  <!-- {0} is the zone's name. -->
+  <RimWorldAccess.FrameProfiler.RevealedInCallTree>{0}: вибрано в дереві викликів</RimWorldAccess.FrameProfiler.RevealedInCallTree>
+
+  <!-- Runtime pauses: moments the .NET runtime stopped the game, mostly garbage collections. -->
+  <RimWorldAccess.FrameProfiler.PauseLane>Паузи середовища виконання</RimWorldAccess.FrameProfiler.PauseLane>
+  <RimWorldAccess.FrameProfiler.PauseCount>{0} у цьому кадрі</RimWorldAccess.FrameProfiler.PauseCount>
+  <RimWorldAccess.FrameProfiler.PauseStopped>зупинка {0}</RimWorldAccess.FrameProfiler.PauseStopped>
+  <RimWorldAccess.FrameProfiler.PauseWaiting>очікування потоків {0}</RimWorldAccess.FrameProfiler.PauseWaiting>
+  <!-- {0} collected, {1} promoted to an older generation. -->
+  <RimWorldAccess.FrameProfiler.PauseCollected>зібрано {0}, переміщено до старшого покоління: {1}</RimWorldAccess.FrameProfiler.PauseCollected>
+  <RimWorldAccess.FrameProfiler.PauseByRuntime>запущено потоком середовища виконання</RimWorldAccess.FrameProfiler.PauseByRuntime>
+  <RimWorldAccess.FrameProfiler.PauseByMainThread>запущено головним потоком</RimWorldAccess.FrameProfiler.PauseByMainThread>
+  <RimWorldAccess.FrameProfiler.PauseByThread>запущено потоком {0}</RimWorldAccess.FrameProfiler.PauseByThread>
+
+  <!-- {0} is the zone's name. -->
+  <RimWorldAccess.FrameProfiler.RangeSelected>Вибрано проміжок часу: {0}</RimWorldAccess.FrameProfiler.RangeSelected>
+
+  <RimWorldAccess.FrameProfiler.AllThreads>Усі потоки</RimWorldAccess.FrameProfiler.AllThreads>
+  <RimWorldAccess.FrameProfiler.ThreadsSelected>Вибрано {0} з {1}</RimWorldAccess.FrameProfiler.ThreadsSelected>
+
+  <RimWorldAccess.FrameProfiler.Paused>Призупинено</RimWorldAccess.FrameProfiler.Paused>
+  <RimWorldAccess.FrameProfiler.Recording>Запис</RimWorldAccess.FrameProfiler.Recording>
+  <RimWorldAccess.FrameProfiler.FollowingNewest>Стеження за найновішим кадром</RimWorldAccess.FrameProfiler.FollowingNewest>
+  <RimWorldAccess.FrameProfiler.SelectionCleared>Вибір кадрів скасовано</RimWorldAccess.FrameProfiler.SelectionCleared>
+  <RimWorldAccess.FrameProfiler.Copied>Рядок скопійовано</RimWorldAccess.FrameProfiler.Copied>
+  <RimWorldAccess.FrameProfiler.ViewCopied>Подання скопійовано</RimWorldAccess.FrameProfiler.ViewCopied>
+</LanguageData>
