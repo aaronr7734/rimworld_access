@@ -14,7 +14,7 @@ namespace RimWorldAccess.Shell
     /// WindowStack and pops when it leaves by any path, so a mouse click stays in sync for free.
     ///
     /// One content region holds the box's body — the title and message as one read-only row per
-    /// line, plus (for <see cref="Dialog_ConfirmModUpload"/>) its "Tag as translation" checkbox.
+    /// line, plus (for <see cref="Dialog_ConfirmModUpload"/>) its upload option checkboxes.
     /// The automatic Buttons region captures the box's
     /// own <c>Widgets.ButtonText</c> calls, so the interaction-delay countdown is spoken as
     /// rendered and Enter injects the click, running vanilla's inline handler and its
@@ -44,6 +44,47 @@ namespace RimWorldAccess.Shell
         /// </summary>
         private static readonly AccessTools.FieldRef<Dialog_ConfirmModUpload, ModMetaData> confirmModUploadModField =
             AccessTools.FieldRefAccess<Dialog_ConfirmModUpload, ModMetaData>("mod");
+
+        /// <summary>A Dialog_ConfirmModUpload checkbox: the ModMetaData bool it binds, drawn RowOffset rows above the translation one.</summary>
+        private sealed class UploadOption
+        {
+            public string LabelKey;
+            public string TipKey;
+            public int RowOffset;
+            public AccessTools.FieldRef<ModMetaData, bool> Value;
+            public Func<ModMetaData, bool> Disabled;
+        }
+
+        private static readonly List<UploadOption> uploadOptions = new List<UploadOption>();
+        private static readonly UploadOption buildAssetPackOption;
+
+        // On-screen order, top first. The asset-pack pair exists only from 1.7, so absent fields drop out.
+        static MessageBoxScope()
+        {
+            buildAssetPackOption = AddUploadOption("uploadBuildAssetPack", "UploadBuildAssetPack", "UploadBuildAssetPackTip", 2, null);
+            AddUploadOption("uploadSkipSourceTextures", "UploadSkipSourceTextures", "UploadSkipSourceTexturesTip", 1,
+                mod => buildAssetPackOption == null || !buildAssetPackOption.Value(mod));
+            AddUploadOption("translationMod", "TagAsTranslation", null, 0, null);
+        }
+
+        private static UploadOption AddUploadOption(string field, string labelKey, string tipKey, int rowOffset,
+            Func<ModMetaData, bool> disabled)
+        {
+            if (AccessTools.Field(typeof(ModMetaData), field) == null)
+            {
+                return null;
+            }
+            UploadOption option = new UploadOption
+            {
+                LabelKey = labelKey,
+                TipKey = tipKey,
+                RowOffset = rowOffset,
+                Value = AccessTools.FieldRefAccess<ModMetaData, bool>(field),
+                Disabled = disabled,
+            };
+            uploadOptions.Add(option);
+            return option;
+        }
 
         private readonly Dialog_MessageBox box;
         private string bodyTextCache;
@@ -131,18 +172,22 @@ namespace RimWorldAccess.Shell
 
         protected override int ContentItemCount(int region)
         {
-            return BodyLines().Count + (HasTranslationCheckbox ? 1 : 0);
+            return BodyLines().Count + (HasUploadOptions ? uploadOptions.Count : 0);
         }
 
         protected override ElementDescription DescribeContentItem(int region, int index)
         {
-            if (index == CheckboxRowIndex)
+            UploadOption option = UploadOptionAt(index);
+            if (option != null)
             {
+                ModMetaData mod = UploadMod();
                 return new ElementDescription
                 {
-                    Label = (string)"TagAsTranslation".Translate(),
+                    Label = (string)option.LabelKey.Translate(),
                     Role = ElementRole.Checkbox,
-                    Check = IsTranslationChecked() ? CheckState.Checked : CheckState.Unchecked,
+                    Check = mod != null && option.Value(mod) ? CheckState.Checked : CheckState.Unchecked,
+                    Disabled = mod != null && option.Disabled != null && option.Disabled(mod),
+                    Extras = option.TipKey == null ? null : (string)option.TipKey.Translate(),
                 };
             }
             List<string> lines = BodyLines();
@@ -155,9 +200,9 @@ namespace RimWorldAccess.Shell
 
         protected override void ActivateContentItem(int region, int index)
         {
-            if (index == CheckboxRowIndex)
+            UploadOption option = UploadOptionAt(index);
+            if (option != null && ToggleUploadOption(option))
             {
-                ToggleTranslationCheckbox();
                 return;
             }
             AnnounceCurrentItem();
@@ -166,7 +211,7 @@ namespace RimWorldAccess.Shell
         /// <summary>Prose, not item names: the body lines would bury the buttons under whatever the message happens to mention.</summary>
         protected override bool ContentRowSearchable(int region, int row)
         {
-            return row == CheckboxRowIndex;
+            return UploadOptionAt(row) != null;
         }
 
         /// <summary>Down off the body continues into the buttons and Up returns — one message-reader flow.</summary>
@@ -175,14 +220,15 @@ namespace RimWorldAccess.Shell
             return true;
         }
 
-        private bool HasTranslationCheckbox
+        private bool HasUploadOptions
         {
             get { return box is Dialog_ConfirmModUpload; }
         }
 
-        private int CheckboxRowIndex
+        private UploadOption UploadOptionAt(int index)
         {
-            get { return HasTranslationCheckbox ? BodyLines().Count : -1; }
+            int optionIndex = index - BodyLines().Count;
+            return HasUploadOptions && optionIndex >= 0 && optionIndex < uploadOptions.Count ? uploadOptions[optionIndex] : null;
         }
 
         private string Title
@@ -225,59 +271,55 @@ namespace RimWorldAccess.Shell
         }
 
         // ---------------------------------------------------------------
-        // Dialog_ConfirmModUpload's checkbox.
+        // Dialog_ConfirmModUpload's checkboxes.
         // ---------------------------------------------------------------
 
-        private bool IsTranslationChecked()
+        private ModMetaData UploadMod()
         {
             Dialog_ConfirmModUpload confirmModUpload = box as Dialog_ConfirmModUpload;
-            if (confirmModUpload == null)
+            return confirmModUpload == null ? null : confirmModUploadModField(confirmModUpload);
+        }
+
+        /// <summary>False when the option is greyed out, leaving the caller to re-read the row.</summary>
+        private bool ToggleUploadOption(UploadOption option)
+        {
+            ModMetaData mod = UploadMod();
+            if (mod == null || (option.Disabled != null && option.Disabled(mod)))
             {
                 return false;
             }
-            ModMetaData mod = confirmModUploadModField(confirmModUpload);
-            return mod != null && mod.translationMod;
-        }
-
-        private void ToggleTranslationCheckbox()
-        {
-            Dialog_ConfirmModUpload confirmModUpload = box as Dialog_ConfirmModUpload;
-            if (confirmModUpload == null)
-            {
-                return;
-            }
-            ModMetaData mod = confirmModUploadModField(confirmModUpload);
-            if (mod == null)
-            {
-                return;
-            }
-            // The same direct ref-bool flip vanilla's bound
-            // Widgets.Checkbox(topLeft, ref mod.translationMod) performs; the widget has no
-            // side-effect handler beyond the toggle, so this IS the vanilla path.
-            mod.translationMod = !mod.translationMod;
+            // The same ref-bool flip vanilla's bound Widgets.Checkbox(pos, ref field) performs; the
+            // widget has no handler beyond the toggle, so this IS the vanilla path.
+            option.Value(mod) = !option.Value(mod);
             ElementDescription d = new ElementDescription();
-            d.Check = mod.translationMod ? CheckState.Checked : CheckState.Unchecked;
+            d.Check = option.Value(mod) ? CheckState.Checked : CheckState.Unchecked;
             TolkHelper.SpeakData(AnnouncementComposer.ComposeStateChange(d, TranslatedShellVocabulary.Instance));
+            return true;
         }
 
-        /// <summary>
-        /// The checkbox row's focus ring, drawn from
-        /// <see cref="ConfirmModUploadCheckboxRingPatch"/>: the subclass paints its checkbox after
-        /// base DoWindowContents returns, the first point in the frame a ring survives.
-        /// </summary>
+        /// <summary>Drawn from <see cref="ConfirmModUploadCheckboxRingPatch"/>: the subclass paints its checkboxes after base DoWindowContents, the first point a ring survives.</summary>
         internal void DrawCheckboxRingIfFocused(Rect inRect)
         {
             RefreshModel();
             ListModel region = Model.CurrentRegion;
-            if (Model.RegionIndex != 0 || region == null || region.IsEmpty || region.Index != CheckboxRowIndex)
+            if (Model.RegionIndex != 0 || region == null || region.IsEmpty)
             {
                 return;
             }
-            FocusRing.Draw(ComputeTranslationCheckboxRect(inRect).ExpandedBy(FocusRingExpand));
+            UploadOption option = UploadOptionAt(region.Index);
+            if (option == null)
+            {
+                return;
+            }
+            Rect rect = ComputeTranslationCheckboxRect(inRect);
+            rect.y -= option.RowOffset * UploadOptionRowStep;
+            FocusRing.Draw(rect.ExpandedBy(FocusRingExpand));
         }
 
+        private const float UploadOptionRowStep = 34f;
+
         /// <summary>
-        /// Dialog_ConfirmModUpload positions its checkbox by direct arithmetic, not through any
+        /// Dialog_ConfirmModUpload positions its checkboxes by direct arithmetic, not through any
         /// widget this mod captures, so the placement is replicated exactly rather than guessed.
         /// </summary>
         private static Rect ComputeTranslationCheckboxRect(Rect inRect)

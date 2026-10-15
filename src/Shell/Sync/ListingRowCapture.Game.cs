@@ -79,6 +79,7 @@ namespace RimWorldAccess.Shell
 
         // Checkbox
         public bool Checked;
+        public bool Disabled;
 
         // Slider
         public float SliderValue;
@@ -156,8 +157,7 @@ namespace RimWorldAccess.Shell
     /// no longer has is silently dropped.
     ///
     /// RAW-ROW CAPTURE: DoGameplayOptions draws its "NamesYouWantToSee" list with raw
-    /// Widgets.Label/ButtonImage calls no Listing_Standard tap sees, so two raw-primitive taps
-    /// cover it, gated on InsideDoOptions (excluding the rail label and OK button drawn outside
+    /// Widgets.Label/ButtonImage calls (1.7 adds CheckboxLabeled + TipRegion), so raw taps cover it, gated on InsideDoOptions (excluding the rail label and OK button drawn outside
     /// DoOptions) AND listingBodyDepth == 0 (outer-tapped methods draw their own caption via a
     /// nested raw Label the tap would otherwise record twice). The button tap merges into the
     /// immediately preceding raw Label row when their rects vertically overlap. The Mods category's
@@ -192,6 +192,10 @@ namespace RimWorldAccess.Shell
         // published in — see EnterSliderLabel.
         private static string pendingSliderLabel;
         private static int pendingSliderLabelFrame = -1;
+
+        private static string pendingRawTip;
+        private static Rect pendingRawTipRect;
+        private static bool rawCheckboxOpen;
 
         private static int? pendingActivateIndex;
         private static int? pendingAdjustIndex;
@@ -283,12 +287,13 @@ namespace RimWorldAccess.Shell
             markedRows.Clear();
             pendingRectRow = null;
             pendingDrawnLabel = null;
+            pendingRawTip = null;
+            rawCheckboxOpen = false;
             focusedIndex = -1;
             ringFocus = focus;
             ClearPendingIdentity();
             passOpen = true;
-            // Self-heal: if a bracketed body threw last pass its postfix never ran, and either
-            // depth would misgate forever.
+            // Self-heal: a body that threw last pass never ran its postfix to unwind these.
             insideDoOptionsDepth = 0;
             listingBodyDepth = 0;
 #if DEBUG
@@ -777,10 +782,84 @@ namespace RimWorldAccess.Shell
                 Kind = ListingRowKind.Label,
                 Label = label,
                 RawSource = true,
+                Tooltip = TakePendingRawTip(rect),
             };
             StampRect(row, rect);
             items.Add(row);
             DrawFocusRingIfFocused(items.Count - 1, rect);
+        }
+
+        /// <summary>A raw Widgets.CheckboxLabeled row (1.7's texture compression), bracketed as a listing body so its caption Label is not recorded twice.</summary>
+        internal static void EnterRawCheckbox(Rect rect, string label, ref bool checkOn, bool disabled)
+        {
+            if (!RawTapsActive || string.IsNullOrWhiteSpace(label))
+            {
+                return;
+            }
+            if (pendingActivateIndex.HasValue && pendingActivateIndex.Value == items.Count)
+            {
+                pendingActivateIndex = null;
+                if (!disabled)
+                {
+                    checkOn = !checkOn;
+                }
+            }
+            CapturedListingRow row = new CapturedListingRow
+            {
+                Kind = ListingRowKind.Checkbox,
+                Label = label,
+                Checked = checkOn,
+                Disabled = disabled,
+                RawSource = true,
+                Tooltip = TakePendingRawTip(rect),
+            };
+            StampRect(row, rect);
+            items.Add(row);
+            DrawFocusRingIfFocused(items.Count - 1, rect);
+            EnterListingBody();
+            rawCheckboxOpen = true;
+        }
+
+        internal static void ExitRawCheckbox()
+        {
+            if (rawCheckboxOpen)
+            {
+                rawCheckboxOpen = false;
+                ExitListingBody();
+            }
+        }
+
+        /// <summary>A raw TipRegion inside DoOptions; it joins the raw row its rect overlaps, whichever was drawn first.</summary>
+        internal static void RecordRawTip(Rect rect, TipSignal tip)
+        {
+            if (!RawTapsActive)
+            {
+                return;
+            }
+            string text = tip.textGetter != null ? tip.textGetter() : tip.text;
+            if (string.IsNullOrEmpty(text))
+            {
+                return;
+            }
+            CapturedListingRow last = items.Count > 0 ? items[items.Count - 1] : null;
+            if (last != null && last.RawSource && last.Tooltip == null && last.Rect.Overlaps(rect))
+            {
+                last.Tooltip = text;
+                return;
+            }
+            pendingRawTip = text;
+            pendingRawTipRect = rect;
+        }
+
+        private static string TakePendingRawTip(Rect rowRect)
+        {
+            if (pendingRawTip == null || !pendingRawTipRect.Overlaps(rowRect))
+            {
+                return null;
+            }
+            string tip = pendingRawTip;
+            pendingRawTip = null;
+            return tip;
         }
 
         /// <summary>
@@ -1041,10 +1120,17 @@ namespace RimWorldAccess.Shell
                 new Type[] { typeof(Rect), typeof(string), typeof(bool).MakeByRefType(), typeof(bool), typeof(Texture2D), typeof(Texture2D), typeof(bool), typeof(bool) });
         }
 
+        [HarmonyPrefix]
+        public static void Prefix(Rect rect, string label, ref bool checkOn, bool disabled)
+        {
+            ListingRowCapture.EnterRawCheckbox(rect, label, ref checkOn, disabled);
+        }
+
         [HarmonyPostfix]
         public static void Postfix(Rect rect)
         {
             ListingRowCapture.AttachCheckboxRect(rect);
+            ListingRowCapture.ExitRawCheckbox();
         }
     }
 
@@ -1105,6 +1191,16 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>The 6-arg core every ButtonImage overload funnels through, including the 4-arg shape Dialog_Options' preferred-names delete icon calls.</summary>
+    [HarmonyPatch(typeof(TooltipHandler), "TipRegion", new Type[] { typeof(Rect), typeof(TipSignal) })]
+    internal static class ListingRowRawTipTapPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix(Rect rect, TipSignal tip)
+        {
+            ListingRowCapture.RecordRawTip(rect, tip);
+        }
+    }
+
     [HarmonyPatch(typeof(Widgets), "ButtonImage",
         new Type[] { typeof(Rect), typeof(Texture2D), typeof(Color), typeof(Color), typeof(bool), typeof(string) })]
     internal static class ListingRowRawButtonImageTapPatch

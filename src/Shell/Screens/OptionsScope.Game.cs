@@ -630,6 +630,7 @@ namespace RimWorldAccess.Shell
                 case ListingRowKind.Checkbox:
                     d.Role = ElementRole.Checkbox;
                     d.Check = captured.Checked ? CheckState.Checked : CheckState.Unchecked;
+                    d.Disabled = captured.Disabled;
                     break;
                 case ListingRowKind.Slider:
                     d.Role = ElementRole.Slider;
@@ -675,6 +676,11 @@ namespace RimWorldAccess.Shell
             switch (captured.Kind)
             {
                 case ListingRowKind.Checkbox:
+                    if (captured.Disabled)
+                    {
+                        AnnounceCurrentItem();
+                        break;
+                    }
                     ListingRowCapture.RequestActivate(index);
                     pendingStateChangeIndex = index;
                     break;
