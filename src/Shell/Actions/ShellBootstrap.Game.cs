@@ -527,16 +527,25 @@ namespace RimWorldAccess.Shell
             {
                 return DevInspectorScope.Arming ? new DevInspectorScope((LudeonTK.EditWindow_DebugInspector)w) : null;
             });
-            // Dev-mode def editor. NO arming flag, unlike its EditWindow siblings above: this
-            // window never auto-opens — only the "Edit effecter..." / "Edit Animation..." debug
-            // actions reach it — so every open is invited. EditWindow_DefEditor is internal to
-            // Assembly-CSharp, hence the reflective Type.
+            // Dev-mode def editor. NO arming flag, unlike its EditWindow siblings above: only the "Edit
+            // effecter..." / "Edit Animation..." debug actions open it, so every open is invited.
+            // EditWindow_DefEditor is internal to Assembly-CSharp, hence the reflective Type.
             if (DevDefEditorScope.WindowType != null)
             {
                 ScopeForWindow.Register(DevDefEditorScope.WindowType, delegate (Verse.Window w)
                 {
                     return new DevDefEditorScope(w);
                 });
+            }
+
+            // RimWorld 1.7's frame profiler and its assemblies dialog; absent on 1.6, so resolved by name.
+            if (FrameProfilerAccess.ResolveWindowType() != null && FrameProfilerAccess.Ready)
+            {
+                ScopeForWindow.Register(FrameProfilerAccess.WindowType, delegate (Verse.Window w)
+                {
+                    return new FrameProfilerScope(w);
+                });
+                ScopeForWindow.TryRegisterGenericReaderForWindow("Verse.ProfilerUI.Dialog_ProfilerAssemblies");
             }
 
             // Dev-mode debug tools run their own map-click session outside Verse.Targeter

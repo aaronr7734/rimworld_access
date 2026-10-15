@@ -116,8 +116,8 @@ COVERAGE_BASELINE = {
     "Dialog_DebugSetSeverity": "dev-only debug setter",
     "Dialog_PawnTableTest": "dev-only pawn-table harness",
     "Dialog_CameraConfig": "dev-only, opened from DebugActionsMisc",
-    "Window_FrameProfiler": "dev-only, opened from DebugActionsFrameProfiler",
-    "Dialog_ProfilerAssemblies": "dev-only, opened from the frame profiler's settings",
+    "Window_FrameProfiler": "1.7-only type, so FrameProfilerScope registers it by name, which this census cannot see",
+    "Dialog_ProfilerAssemblies": "1.7-only type, so the generic reader is registered for it by name, which this census cannot see",
     "Dialog_CameraConfigList_Load": "dev-only camera-config file picker",
     "Dialog_CameraConfigList_Save": "dev-only camera-config file picker",
 

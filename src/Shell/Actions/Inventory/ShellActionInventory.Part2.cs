@@ -392,10 +392,37 @@ namespace RimWorldAccess.Shell
                 new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
 
             // ---- dev-mode tweak-values editor -> DevTweakValuesScope ----
-            // Space resets the focused tweak field to its initial value (vanilla's inline
-            // "initial -> current" control); the when-gate lets Space pass on the Buttons row.
+            // Space resets the focused tweak field to its initial value; the when-gate lets Space pass on the Buttons row.
             c.Register(InputAction.ForScreen("devTweak", "devTweak.reset",
                 new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
+
+            // ---- RimWorld 1.7 frame profiler -> FrameProfilerScope (the window's own keys; see its header) ----
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.pause",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.olderFrame",
+                new List<KeyChord> { KeyChord.Of(KeyCode.PageUp) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.newerFrame",
+                new List<KeyChord> { KeyChord.Of(KeyCode.PageDown) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.newestFrame",
+                new List<KeyChord> { KeyChord.Of(KeyCode.PageDown, ctrl: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.extendOlder",
+                new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.extendNewer",
+                new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.clearSelection",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Delete) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.copyRow",
+                new List<KeyChord> { KeyChord.Of(KeyCode.C, ctrl: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.copyView",
+                new List<KeyChord> { KeyChord.Of(KeyCode.C, ctrl: true, shift: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.nextMatch",
+                new List<KeyChord> { KeyChord.Of(KeyCode.F3) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.previousMatch",
+                new List<KeyChord> { KeyChord.Of(KeyCode.F3, shift: true) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.contextMenu",
+                new List<KeyChord> { KeyChord.Of(KeyCode.RightBracket) }));
+            c.Register(InputAction.ForScreen("frameProfiler", "frameProfiler.selectTimeRange",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Return, shift: true), KeyChord.Of(KeyCode.KeypadEnter, shift: true) }));
 
             // ---- dev-mode def editor -> DevDefEditorScope ----
             // A TreeRegionScope, so only the Space secondary (structural New/Add/Delete context

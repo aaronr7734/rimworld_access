@@ -1,0 +1,1 @@
+The frame profiler from RimWorld 1.7's debug actions is now fully accessible: step through recorded frames, explore each frame's timeline thread by thread, browse the call tree, allocation and video memory tables, filter threads, search, copy, and change the profiler's settings, all from the keyboard.
