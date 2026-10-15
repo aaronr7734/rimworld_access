@@ -75,16 +75,22 @@ namespace RimWorldAccess
         public static string CtrlLabel =>
             NativeLibraryLoader.IsMacOS ? "Option" : "Ctrl";
 
+        /// <summary>Twin detection's order-free half: 1.7 sends a keypress's character before its keyCode event, which the frame stamps assume comes first.</summary>
+        internal static bool IsPhysicallyDown(KeyCode key)
+        {
+            return !InjectionOverrideActive && (Input.GetKey(key) || Input.GetKeyDown(key));
+        }
+
         // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
         // also remap the follow-up character event that Unity sends for the same keypress.
         private static int lastRightBracketFrame = -1;
 
         /// <summary>
-        /// True if a physical ] keyDown was already seen earlier this frame, so the character handler
-        /// can discard the follow-up character event — on non-US layouts it can be a letter that would
-        /// leak into typeahead. The ] colonist-orders action takes precedence.
+        /// True if this frame's character is the twin of a physical ] keypress, so the character handler
+        /// can discard it; on non-US layouts it can be a letter leaking into typeahead.
         /// </summary>
-        public static bool WasRightBracketThisFrame => lastRightBracketFrame == Time.frameCount;
+        public static bool WasRightBracketThisFrame =>
+            lastRightBracketFrame == Time.frameCount || IsPhysicallyDown(KeyCode.RightBracket);
 
         // Frame tracking for KeypadMultiply: US numpad * sends keyCode then character='*' in one
         // frame, while an AZERTY dedicated * key sends only character='*' with keyCode=None.
@@ -178,23 +184,26 @@ namespace RimWorldAccess
             switch (Event.current.character)
             {
                 case ']':
-                    // Skip when a real RightBracket keyCode already arrived this frame (US layouts).
+                    // Skip the twin of a real RightBracket keypress (US layouts).
                     // German layouts send Alpha9 instead, so the frame will not match and we remap.
-                    if (Time.frameCount == lastRightBracketFrame)
+                    if (WasRightBracketThisFrame)
                         return key;
                     WasCharacterRemapped = true;
                     return KeyCode.RightBracket;
                 case '*':
                     // AZERTY sends a dedicated * as keyCode=None + character='*'. US Shift+8 sends
                     // Alpha8, so there is no frame conflict; numpad * is covered by frame tracking.
-                    if (Time.frameCount == lastKeypadMultiplyFrame)
+                    if (Time.frameCount == lastKeypadMultiplyFrame
+                        || IsPhysicallyDown(KeyCode.KeypadMultiply)
+                        || (Event.current.shift && IsPhysicallyDown(KeyCode.Alpha8)))
                         return key;
                     WasCharacterRemapped = true;
                     return KeyCode.KeypadMultiply;
                 case '?':
                     // Non-US layouts can send ? as keyCode=None + character='?'; the US Shift+/ pair is
                     // covered by frame tracking.
-                    if (Time.frameCount == lastSlashShiftFrame)
+                    if (Time.frameCount == lastSlashShiftFrame
+                        || (Event.current.shift && IsPhysicallyDown(KeyCode.Slash)))
                         return key;
                     WasCharacterRemapped = true;
                     return KeyCode.Slash;

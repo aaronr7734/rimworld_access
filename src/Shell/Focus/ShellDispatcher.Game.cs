@@ -63,10 +63,9 @@ namespace RimWorldAccess.Shell
         private static FocusScope lastCharSinkScope;
         private static int charSinkChangedFrame = -1;
 
-        // QA marker chord char-twin suppression: on a US layout Shift+Backquote arrives as
-        // two same-frame KeyDown events (BackQuote+shift with character '\0', then
-        // keyCode=None with character '~'). Stamping the frame lets RouteCharacterEvent's
-        // char-sink gate drop the second event instead of feeding a live typeahead search.
+        // QA marker chord char-twin suppression: on a US layout Shift+Backquote arrives as two
+        // same-frame KeyDown events (BackQuote+shift, and keyCode=None with '~'), so
+        // RouteCharacterEvent drops the '~' instead of feeding a live typeahead search.
         private static int qaMarkerFrame = -1;
 
         /// <summary>
@@ -77,6 +76,13 @@ namespace RimWorldAccess.Shell
         internal static bool LegacyKeyboardOverlayActive()
         {
             return TextInputManager.IsActive;
+        }
+
+        /// <summary>The stamp catches Unity's BackQuote-first twin; the physical read, 1.7's '~'-first one.</summary>
+        private static bool IsQaMarkerTwin(Event e)
+        {
+            return Time.frameCount == qaMarkerFrame
+                || (FlightRecorder.Active && e.shift && KeyboardHelper.IsPhysicallyDown(KeyCode.BackQuote));
         }
 
         /// <summary>
@@ -374,7 +380,7 @@ namespace RimWorldAccess.Shell
                 && !KeyboardHelper.IsAltHeld && !KeyboardHelper.IsCtrlHeld
                 && !KeyboardHelper.WasRightBracketThisFrame
                 && !SuppressCharOfferThisFrame()
-                && !(ch == '~' && Time.frameCount == qaMarkerFrame)
+                && !(ch == '~' && IsQaMarkerTwin(e))
                 && FocusStack.OfferChar(ch))
             {
                 stage = "char-consumed";
