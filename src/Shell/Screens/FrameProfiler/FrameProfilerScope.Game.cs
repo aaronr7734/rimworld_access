@@ -78,7 +78,7 @@ namespace RimWorldAccess.Shell
                 rowLists[kind] = new List<Row>();
             }
 
-            Claim("frameProfiler.pause", e => TogglePause(), when: () => !editSession.Editing && !OnToggleRow());
+            Claim("frameProfiler.pause", e => TogglePause(), when: () => !editSession.Editing && !OnActivatableRow());
             Claim("frameProfiler.olderFrame", e => StepFrame(1), when: NotEditing);
             Claim("frameProfiler.newerFrame", e => StepFrame(-1), when: NotEditing);
             Claim("frameProfiler.newestFrame", e => JumpToNewest(), when: NotEditing);
@@ -724,6 +724,13 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        /// <summary>The toolbar's frame stepper; its effect is the frame it lands on, so that is what is spoken.</summary>
+        private static bool StepsFrames(ProfilerControl control)
+        {
+            return control.Zone == ProfilerZone.Toolbar && control.Kind == ProfilerControlKind.Ghost
+                && (control.Label == "◀" || control.Label == "▶" || control.Label == "▶▶");
+        }
+
         private ElementDescription DescribeSortRow(int column)
         {
             object view = ActiveView();
@@ -780,7 +787,7 @@ namespace RimWorldAccess.Shell
                         return;
                     }
                     FrameProfilerCapture.ArmPress(c);
-                    Defer(c.Kind == ProfilerControlKind.Checkbox ? Pending.CheckState : Pending.Current);
+                    Defer(c.Kind == ProfilerControlKind.Checkbox ? Pending.CheckState : StepsFrames(c) ? Pending.Summary : Pending.Current);
                     return;
                 case ProfilerControlKind.ThreadButton:
                     FrameProfilerAccess.SetThreadPopupOpen(window, true);
@@ -1113,7 +1120,8 @@ namespace RimWorldAccess.Shell
 
         // ---- Threads popup ----
 
-        private bool OnToggleRow()
+        /// <summary>Space activates a control, as Enter does; it pauses capture only where there is nothing to activate.</summary>
+        private bool OnActivatableRow()
         {
             RegionKind kind = CurrentKind();
             if (kind == RegionKind.Threads)
@@ -1123,7 +1131,13 @@ namespace RimWorldAccess.Shell
             ListModel region = Model.CurrentRegion;
             List<Row> rows = rowLists[kind];
             int index = region == null ? -1 : (kind == RegionKind.Table ? region.Index - TableRowCount() : region.Index);
-            return index >= 0 && index < rows.Count && rows[index].IsControl && rows[index].Control.Kind == ProfilerControlKind.Checkbox;
+            if (index < 0 || index >= rows.Count)
+            {
+                return false;
+            }
+            Row row = rows[index];
+            return row.SortColumn >= 0
+                || (row.IsControl && row.Control.Kind != ProfilerControlKind.Label && row.Control.Kind != ProfilerControlKind.Heading);
         }
 
         private ElementDescription DescribeThread(int index)
