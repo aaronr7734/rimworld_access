@@ -195,7 +195,6 @@ namespace RimWorldAccess.Shell
 
         private static string pendingRawTip;
         private static Rect pendingRawTipRect;
-        private static bool rawCheckboxOpen;
 
         private static int? pendingActivateIndex;
         private static int? pendingAdjustIndex;
@@ -288,7 +287,6 @@ namespace RimWorldAccess.Shell
             pendingRectRow = null;
             pendingDrawnLabel = null;
             pendingRawTip = null;
-            rawCheckboxOpen = false;
             focusedIndex = -1;
             ringFocus = focus;
             ClearPendingIdentity();
@@ -762,15 +760,6 @@ namespace RimWorldAccess.Shell
             return a.yMin < b.yMax && b.yMin < a.yMax;
         }
 
-        private static Rect UnionRect(Rect a, Rect b)
-        {
-            float xMin = Mathf.Min(a.xMin, b.xMin);
-            float yMin = Mathf.Min(a.yMin, b.yMin);
-            float xMax = Mathf.Max(a.xMax, b.xMax);
-            float yMax = Mathf.Max(a.yMax, b.yMax);
-            return Rect.MinMaxRect(xMin, yMin, xMax, yMax);
-        }
-
         internal static void RecordRawLabel(Rect rect, string label)
         {
             if (!RawTapsActive || string.IsNullOrWhiteSpace(label))
@@ -790,11 +779,11 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>A raw Widgets.CheckboxLabeled row (1.7's texture compression), bracketed as a listing body so its caption Label is not recorded twice.</summary>
-        internal static void EnterRawCheckbox(Rect rect, string label, ref bool checkOn, bool disabled)
+        internal static bool EnterRawCheckbox(Rect rect, string label, ref bool checkOn, bool disabled)
         {
             if (!RawTapsActive || string.IsNullOrWhiteSpace(label))
             {
-                return;
+                return false;
             }
             if (pendingActivateIndex.HasValue && pendingActivateIndex.Value == items.Count)
             {
@@ -817,16 +806,7 @@ namespace RimWorldAccess.Shell
             items.Add(row);
             DrawFocusRingIfFocused(items.Count - 1, rect);
             EnterListingBody();
-            rawCheckboxOpen = true;
-        }
-
-        internal static void ExitRawCheckbox()
-        {
-            if (rawCheckboxOpen)
-            {
-                rawCheckboxOpen = false;
-                ExitListingBody();
-            }
+            return true;
         }
 
         /// <summary>A raw TipRegion inside DoOptions; it joins the raw row its rect overlaps, whichever was drawn first.</summary>
@@ -887,7 +867,7 @@ namespace RimWorldAccess.Shell
                     index = items.Count - 1;
                     row.Kind = ListingRowKind.Button;
                     row.Label = "RimWorldAccess.Options.RawRowAction".Translate(buttonLabel, last.Label);
-                    StampRect(row, UnionRect(last.Rect, rect));
+                    StampRect(row, GuiSpace.Union(last.Rect, rect));
                     row.RawSource = true;
                     RecordRawButtonImageActivateAndRing(row, index, ref result);
                     return;
@@ -1121,16 +1101,19 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPrefix]
-        public static void Prefix(Rect rect, string label, ref bool checkOn, bool disabled)
+        public static void Prefix(Rect rect, string label, ref bool checkOn, bool disabled, out bool __state)
         {
-            ListingRowCapture.EnterRawCheckbox(rect, label, ref checkOn, disabled);
+            __state = ListingRowCapture.EnterRawCheckbox(rect, label, ref checkOn, disabled);
         }
 
         [HarmonyPostfix]
-        public static void Postfix(Rect rect)
+        public static void Postfix(Rect rect, bool __state)
         {
             ListingRowCapture.AttachCheckboxRect(rect);
-            ListingRowCapture.ExitRawCheckbox();
+            if (__state)
+            {
+                ListingRowCapture.ExitListingBody();
+            }
         }
     }
 
@@ -1190,7 +1173,6 @@ namespace RimWorldAccess.Shell
         }
     }
 
-    /// <summary>The 6-arg core every ButtonImage overload funnels through, including the 4-arg shape Dialog_Options' preferred-names delete icon calls.</summary>
     [HarmonyPatch(typeof(TooltipHandler), "TipRegion", new Type[] { typeof(Rect), typeof(TipSignal) })]
     internal static class ListingRowRawTipTapPatch
     {
@@ -1201,6 +1183,7 @@ namespace RimWorldAccess.Shell
         }
     }
 
+    /// <summary>The 6-arg core every ButtonImage overload funnels through, including the 4-arg shape Dialog_Options' preferred-names delete icon calls.</summary>
     [HarmonyPatch(typeof(Widgets), "ButtonImage",
         new Type[] { typeof(Rect), typeof(Texture2D), typeof(Color), typeof(Color), typeof(bool), typeof(string) })]
     internal static class ListingRowRawButtonImageTapPatch

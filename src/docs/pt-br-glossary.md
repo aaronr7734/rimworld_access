@@ -821,8 +821,8 @@ translating descriptive compounds while keeping bare key names in English:**
 | Numpad {digit} | Numpad {0} | keep "Numpad" in English (mod-coined choice, matching Turkish's ruling over French's fully-translated "pavé numérique" — Brazilian tech culture commonly says "numpad" as a loanword) |
 | Numpad Enter/Plus/Minus/Star/Slash/Period | Numpad Enter / Numpad Mais / Numpad Menos / Numpad Asterisco / Numpad Barra / Numpad Ponto | "Numpad" stays English; the descriptor after it translates like the bare key above |
 
-**Mac Ctrl substitution.** Per the project's standing convention (`KeyboardHelper.CtrlLabel`), macOS
-substitutes "Option" for "Ctrl" in Tab combinations. Our strings must use the `CtrlLabel` token
+**Mac Ctrl substitution.** Per the project's standing convention (`KeyboardHelper.CtrlLabelFor`), macOS
+names Ctrl "Command", or "Option" in Tab combinations. Our strings must use the `CtrlLabel` token
 mechanism, never hardcode "Ctrl" where the code substitutes it — this is a code-level concern, not a
 translation one, but be aware when a string embeds a literal key name that it may need to flow
 through `KeyChordFormat` instead of being a static translated sentence.

@@ -38,7 +38,7 @@ namespace RimWorldAccess.Shell
     /// it moves to Ctrl+Page Down; Shift+Up/Down extend the frame selection the way a drag does, and
     /// Shift+Enter on a timeline zone selects its span the way a drag across it does.
     /// </summary>
-    internal sealed partial class FrameProfilerScope : ScreenScope
+    internal sealed partial class FrameProfilerScope : TreeRegionScope
     {
         private enum RegionKind { Controls, Summary, Frames, Timeline, TableControls, Table, Threads, Settings }
 
@@ -47,10 +47,11 @@ namespace RimWorldAccess.Shell
         private sealed class Row
         {
             public ProfilerControl Control;
-            public bool IsControl;
             public string Caption;
             public int SortColumn = -1;
             public bool IsPath;
+
+            public bool IsControl => SortColumn < 0 && !IsPath;
         }
 
         internal static FrameProfilerScope Active;
@@ -73,6 +74,7 @@ namespace RimWorldAccess.Shell
         public FrameProfilerScope(Window window)
         {
             this.window = window;
+            timelinePanel = CreatePanel();
             foreach (RegionKind kind in Enum.GetValues(typeof(RegionKind)))
             {
                 rowLists[kind] = new List<Row>();
@@ -99,8 +101,6 @@ namespace RimWorldAccess.Shell
 
         public override string Name => "frame-profiler";
 
-        protected override bool EnableTypeahead => true;
-
         protected override bool CaptureWindowButtons => false;
 
         protected override bool IncludeActionsRegion => false;
@@ -108,7 +108,7 @@ namespace RimWorldAccess.Shell
         /// <summary>An open thread popup or settings drawer takes Escape first; otherwise vanilla closes the window.</summary>
         public override bool OwnsCancel => OverlayOpen || base.OwnsCancel;
 
-        private object Win => window;
+        internal Window ProfilerWindow => window;
 
         private object Session => FrameProfilerAccess.Session(window);
 
@@ -128,7 +128,6 @@ namespace RimWorldAccess.Shell
         {
             base.OnPush();
             Active = this;
-            FrameProfilerCapture.ScopedWindow = window;
             FrameProfilerCapture.Reset();
             UI.UnfocusCurrentControl();
         }
@@ -138,10 +137,6 @@ namespace RimWorldAccess.Shell
             if (ReferenceEquals(Active, this))
             {
                 Active = null;
-            }
-            if (ReferenceEquals(FrameProfilerCapture.ScopedWindow, window))
-            {
-                FrameProfilerCapture.ScopedWindow = null;
             }
             base.OnPop();
         }
@@ -172,6 +167,7 @@ namespace RimWorldAccess.Shell
 
         protected override void RefreshContent()
         {
+            base.RefreshContent();
             bool threadsOpen = FrameProfilerAccess.ThreadPopupOpen(window);
             bool settingsOpen = FrameProfilerAccess.SettingsOpen(window);
             regions.Clear();
@@ -223,7 +219,7 @@ namespace RimWorldAccess.Shell
                 case RegionKind.Frames:
                     return FrameProfilerAccess.FrameCount(Session);
                 case RegionKind.Timeline:
-                    return timeline.Count;
+                    return base.ContentItemCount(region);
                 case RegionKind.Table:
                     return TableRowCount() + rowLists[RegionKind.Table].Count;
                 case RegionKind.Threads:
@@ -241,31 +237,70 @@ namespace RimWorldAccess.Shell
 
         protected override ElementDescription DescribeContentItem(int region, int index)
         {
-            switch (regions[region])
+            RegionKind kind = regions[region];
+            switch (kind)
             {
                 case RegionKind.Frames:
                     return DescribeFrame(index);
                 case RegionKind.Timeline:
-                    return DescribeZone(index);
-                case RegionKind.Table:
-                    return index < TableRowCount() ? DescribeTableRow(index) : DescribeRow(rowLists[RegionKind.Table][index - TableRowCount()]);
+                    return base.DescribeContentItem(region, index);
                 case RegionKind.Threads:
                     return DescribeThread(index);
-                default:
-                    List<Row> rows = rowLists[regions[region]];
-                    return index >= 0 && index < rows.Count ? DescribeRow(rows[index]) : new ElementDescription();
+                case RegionKind.Table:
+                    if (index < TableRowCount())
+                    {
+                        return DescribeTableRow(index);
+                    }
+                    break;
             }
+            Row row = RowAt(kind, index);
+            return row != null ? DescribeRow(row) : new ElementDescription();
+        }
+
+        /// <summary>A table row searches by its label alone; composing every cell for the haystack would be wasted.</summary>
+        protected override string ContentRowSearchText(int region, int row)
+        {
+            return regions[region] == RegionKind.Table && row < TableRowCount()
+                ? FrameProfilerAccess.RowLabel(FrameProfilerAccess.Rows(ActiveView())[row])
+                : base.ContentRowSearchText(region, row);
+        }
+
+        protected override TypeaheadCandidateKind ContentRowSearchKind(int region, int row)
+        {
+            RegionKind kind = regions[region];
+            return kind == RegionKind.Timeline || (kind == RegionKind.Table && row < TableRowCount())
+                ? TypeaheadMatcher.ClassifyRow(ElementRole.TreeItem, false)
+                : base.ContentRowSearchKind(region, row);
+        }
+
+        /// <summary>The captured or synthesized row at a region index; null for regions with no row list (frames, timeline, threads) and for the table's own rows.</summary>
+        private Row RowAt(RegionKind kind, int index)
+        {
+            if (kind == RegionKind.Frames || kind == RegionKind.Timeline || kind == RegionKind.Threads)
+            {
+                return null;
+            }
+            List<Row> rows = rowLists[kind];
+            if (kind == RegionKind.Table)
+            {
+                index -= TableRowCount();
+            }
+            return index >= 0 && index < rows.Count ? rows[index] : null;
         }
 
         protected override void ActivateContentItem(int region, int index)
         {
-            switch (regions[region])
+            RegionKind kind = regions[region];
+            switch (kind)
             {
                 case RegionKind.Frames:
                     PinFrame(index, announce: true);
                     return;
                 case RegionKind.Timeline:
-                    ActivateZone(index);
+                    base.ActivateContentItem(region, index);
+                    return;
+                case RegionKind.Threads:
+                    ToggleThread(index);
                     return;
                 case RegionKind.Table:
                     if (index < TableRowCount())
@@ -276,32 +311,26 @@ namespace RimWorldAccess.Shell
                         Defer(Pending.Current);
                         return;
                     }
-                    ActivateRow(rowLists[RegionKind.Table][index - TableRowCount()]);
-                    return;
-                case RegionKind.Threads:
-                    ToggleThread(index);
-                    return;
-                default:
-                    List<Row> rows = rowLists[regions[region]];
-                    if (index >= 0 && index < rows.Count)
-                    {
-                        ActivateRow(rows[index]);
-                    }
-                    return;
+                    break;
+            }
+            Row row = RowAt(kind, index);
+            if (row != null)
+            {
+                ActivateRow(row);
             }
         }
 
         protected override bool CanAdjustContentItem(int region, int index)
         {
             RegionKind kind = regions[region];
-            return kind == RegionKind.Timeline || (kind == RegionKind.Table && index < TableRowCount());
+            return kind == RegionKind.Timeline ? base.CanAdjustContentItem(region, index) : kind == RegionKind.Table && index < TableRowCount();
         }
 
         protected override void AdjustContentItem(int region, int index, int direction)
         {
             if (regions[region] == RegionKind.Timeline)
             {
-                AdjustZone(index, direction);
+                base.AdjustContentItem(region, index, direction);
                 return;
             }
             object view = ActiveView();
@@ -370,14 +399,8 @@ namespace RimWorldAccess.Shell
             {
                 return FrameProfilerAccess.ThreadRowScreenRect(window, region.Index);
             }
-            List<Row> rows = rowLists[kind];
-            int index = kind == RegionKind.Table ? region.Index - TableRowCount() : region.Index;
-            if (kind == RegionKind.Frames || kind == RegionKind.Timeline || index < 0 || index >= rows.Count)
-            {
-                return default(Rect);
-            }
-            Row row = rows[index];
-            return row.IsControl ? row.Control.ScreenRect : default(Rect);
+            Row row = RowAt(kind, region.Index);
+            return row != null && row.IsControl ? row.Control.ScreenRect : default(Rect);
         }
 
         // ---- Deferred announcements ----
@@ -484,15 +507,11 @@ namespace RimWorldAccess.Shell
             AppendRows(rowLists[RegionKind.Settings], settings);
         }
 
+        /// <summary>The cursor's row in a control-only region; the table is excluded because its own rows lead it.</summary>
         private Row ControlRowAtCursor(RegionKind kind)
         {
             ListModel region = Model.CurrentRegion;
-            if (kind == RegionKind.Frames || kind == RegionKind.Timeline || kind == RegionKind.Table || kind == RegionKind.Threads
-                || region == null || region.Index < 0 || region.Index >= rowLists[kind].Count)
-            {
-                return null;
-            }
-            return rowLists[kind][region.Index];
+            return kind == RegionKind.Table || region == null ? null : RowAt(kind, region.Index);
         }
 
         private static bool SameKind(Row a, Row b)
@@ -597,7 +616,7 @@ namespace RimWorldAccess.Shell
                         continue;
                     }
                 }
-                into.Add(new Row { Control = c, IsControl = true });
+                into.Add(new Row { Control = c });
             }
             for (int i = 0; i < into.Count; i++)
             {
@@ -664,11 +683,9 @@ namespace RimWorldAccess.Shell
                 return d;
             }
             ProfilerControl c = row.Control;
-            d.Label = SpokenLabel(row.Caption ?? c.Label);
-            if (c.Kind != ProfilerControlKind.Label && c.Kind != ProfilerControlKind.Heading)
-            {
-                d.Hotkey = HotkeyFor(c);
-            }
+            HotkeyTarget target = c.Kind == ProfilerControlKind.Label || c.Kind == ProfilerControlKind.Heading ? null : TargetFor(c);
+            d.Label = target?.SpokenKey != null ? target.SpokenKey.Translate().ToString() : (row.Caption ?? c.Label ?? "").TrimStart('↑', '↓', ' ');
+            d.Hotkey = target == null ? null : ChordDisplay(target.ActionId);
             switch (c.Kind)
             {
                 case ProfilerControlKind.Chip:
@@ -704,39 +721,11 @@ namespace RimWorldAccess.Shell
                     d.Role = ElementRole.ComboBox;
                     d.Value = c.Value;
                     break;
-                case ProfilerControlKind.Heading:
-                    d.ReadOnly = true;
-                    break;
                 default:
                     d.ReadOnly = true;
                     break;
             }
             return d;
-        }
-
-        /// <summary>
-        /// Several of the window's buttons are a bare glyph with no words. Each maps to the action
-        /// its click runs; any other label is spoken as drawn, minus leading arrow glyphs.
-        /// </summary>
-        private static string SpokenLabel(string label)
-        {
-            switch (label)
-            {
-                case "◀": return "RimWorldAccess.FrameProfiler.Control.OlderFrame".Translate().ToString();
-                case "▶": return "RimWorldAccess.FrameProfiler.Control.NewerFrame".Translate().ToString();
-                case "▶▶": return "RimWorldAccess.FrameProfiler.Control.NewestFrame".Translate().ToString();
-                case "×": return "RimWorldAccess.FrameProfiler.Control.Close".Translate().ToString();
-                case "+": return "RimWorldAccess.FrameProfiler.Control.ExpandAll".Translate().ToString();
-                case "−": return "RimWorldAccess.FrameProfiler.Control.CollapseAll".Translate().ToString();
-                default: return (label ?? "").TrimStart('↑', '↓', ' ');
-            }
-        }
-
-        /// <summary>The toolbar's frame stepper; its effect is the frame it lands on, so that is what is spoken.</summary>
-        private static bool StepsFrames(ProfilerControl control)
-        {
-            return control.Zone == ProfilerZone.Toolbar && control.Kind == ProfilerControlKind.Ghost
-                && (control.Label == "◀" || control.Label == "▶" || control.Label == "▶▶");
         }
 
         private ElementDescription DescribeSortRow(int column)
@@ -769,10 +758,10 @@ namespace RimWorldAccess.Shell
             if (row.SortColumn >= 0)
             {
                 object view = ActiveView();
-                Delegate sort = row.SortColumn >= FrameProfilerAccess.ColumnCount(view)
+                Action sort = row.SortColumn >= FrameProfilerAccess.ColumnCount(view)
                     ? FrameProfilerAccess.LabelSort(view)
                     : FrameProfilerAccess.ColumnSort(view, row.SortColumn);
-                sort?.DynamicInvoke();
+                sort?.Invoke();
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 Defer(Pending.Current);
                 return;
@@ -795,12 +784,11 @@ namespace RimWorldAccess.Shell
                         return;
                     }
                     FrameProfilerCapture.ArmPress(c);
-                    Defer(c.Kind == ProfilerControlKind.Checkbox ? Pending.CheckState : StepsFrames(c) ? Pending.Summary : Pending.Current);
+                    Defer(c.Kind == ProfilerControlKind.Checkbox ? Pending.CheckState
+                        : TargetFor(c)?.StepsFrames == true ? Pending.Summary : Pending.Current);
                     return;
                 case ProfilerControlKind.ThreadButton:
-                    FrameProfilerAccess.SetThreadPopupOpen(window, true);
-                    SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
-                    Defer(Pending.Current);
+                    OpenThreadPopup();
                     return;
                 case ProfilerControlKind.Field:
                 case ProfilerControlKind.SearchField:
@@ -817,7 +805,7 @@ namespace RimWorldAccess.Shell
         {
             bool multiLine = control.Kind == ProfilerControlKind.TextArea;
             TextFieldSpec spec = new TextFieldSpec(labelKey: null, minLength: 0, multiLine: multiLine);
-            ElementDescription d = DescribeRow(new Row { Control = control, IsControl = true, Caption = caption });
+            ElementDescription d = DescribeRow(new Row { Control = control, Caption = caption });
             editText = control.Value ?? "";
             editSession.EnterEdit(
                 control.Value,
@@ -884,10 +872,7 @@ namespace RimWorldAccess.Shell
             long alloc = FrameProfilerAccess.AllocBytes(snapshot);
             if (alloc > 0)
             {
-                int objects = FrameProfilerAccess.AllocObjects(snapshot);
-                stats.Add(objects > 0
-                    ? "RimWorldAccess.FrameProfiler.AllocObjects".Translate(FrameProfilerAccess.FormatBytes(alloc), objects.ToString("n0")).ToString()
-                    : "RimWorldAccess.FrameProfiler.Alloc".Translate(FrameProfilerAccess.FormatBytes(alloc)).ToString());
+                stats.Add(AllocStat(alloc, FrameProfilerAccess.AllocObjects(snapshot)));
             }
             float pausedBefore = FrameProfilerAccess.PauseBefore(window, offset);
             if (pausedBefore > 0f)
@@ -896,6 +881,13 @@ namespace RimWorldAccess.Shell
             }
             d.Extras = string.Join(". ", stats.ToArray());
             return d;
+        }
+
+        private static string AllocStat(long bytes, int objects)
+        {
+            return objects > 0
+                ? "RimWorldAccess.FrameProfiler.AllocObjects".Translate(FrameProfilerAccess.FormatBytes(bytes), objects.ToString("n0")).ToString()
+                : "RimWorldAccess.FrameProfiler.Alloc".Translate(FrameProfilerAccess.FormatBytes(bytes)).ToString();
         }
 
         /// <summary>While following the newest frame the band spans the whole buffer, which is no selection at all.</summary>
@@ -1104,14 +1096,10 @@ namespace RimWorldAccess.Shell
                 return;
             }
             FrameProfilerAccess.SelectNextMatch(ActiveView(), direction);
-            int table = regions.IndexOf(RegionKind.Table);
-            if (Model.RegionIndex != table)
-            {
-                Model.MoveToRegion(table);
-            }
-            pushedTableIndex = -2;
             RefreshModel();
-            AnnounceCurrentItem();
+            int selected = FrameProfilerAccess.SelectedIndex(ActiveView());
+            pushedTableIndex = selected;
+            LandCursorAt(regions.IndexOf(RegionKind.Table), selected);
         }
 
         private void OpenContextMenu()
@@ -1139,13 +1127,11 @@ namespace RimWorldAccess.Shell
                 return true;
             }
             ListModel region = Model.CurrentRegion;
-            List<Row> rows = rowLists[kind];
-            int index = region == null ? -1 : (kind == RegionKind.Table ? region.Index - TableRowCount() : region.Index);
-            if (index < 0 || index >= rows.Count)
+            Row row = region == null ? null : RowAt(kind, region.Index);
+            if (row == null)
             {
                 return false;
             }
-            Row row = rows[index];
             return row.SortColumn >= 0
                 || (row.IsControl && row.Control.Kind != ProfilerControlKind.Label && row.Control.Kind != ProfilerControlKind.Heading);
         }
@@ -1205,6 +1191,13 @@ namespace RimWorldAccess.Shell
             d.Label = null;
             d.Extras = null;
             TolkHelper.SpeakData(AnnouncementComposer.ComposeStateChange(d, TranslatedShellVocabulary.Instance));
+        }
+
+        private void OpenThreadPopup()
+        {
+            FrameProfilerAccess.SetThreadPopupOpen(window, true);
+            SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
+            Defer(Pending.Current);
         }
 
         /// <summary>The popup is visible exactly while its region holds the cursor, so the viewer sees the row being read.</summary>

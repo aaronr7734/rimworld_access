@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -64,12 +63,12 @@ namespace RimWorldAccess.Shell
     /// <c>Widgets.TextField</c>/<c>TextArea</c>) whose return value IS the click, so an armed
     /// activation forces that return on the next pass and the window's own handler runs.
     ///
-    /// Only the window the scope owns is recorded (<see cref="ScopedWindow"/>). Text runs draw on
+    /// Only the window the scope owns is recorded (<see cref="IsScoped"/>). Text runs draw on
     /// repaint only, so the published list is the last repaint pass's; arming matches on every pass.
     /// </summary>
     internal static class FrameProfilerCapture
     {
-        internal static object ScopedWindow;
+        internal static bool IsScoped(object window) => window != null && ReferenceEquals(window, FrameProfilerScope.Active?.ProfilerWindow);
 
         internal static ProfilerZone Zone;
         private static bool recording;
@@ -82,19 +81,14 @@ namespace RimWorldAccess.Shell
         private struct Arm
         {
             public bool Live;
-            public ProfilerZone Zone;
-            public ProfilerControlKind Kind;
-            public string Label;
-            public int Ordinal;
-            public int SegmentGroup;
-            public int SegmentIndex;
+            public ProfilerControl Target;
             public string Text;
             public int Frame;
         }
 
         private static Arm arm;
 
-        private static Func<string, float> widthOf;
+        private static Func<string, GameFont, float> widthOf;
 
         /// <summary>The last repaint pass's controls, in draw order.</summary>
         internal static IReadOnlyList<ProfilerControl> Published => published;
@@ -109,17 +103,7 @@ namespace RimWorldAccess.Shell
         /// <summary>Presses <paramref name="control"/> on the next pass that draws it.</summary>
         internal static void ArmPress(ProfilerControl control)
         {
-            arm = new Arm
-            {
-                Live = true,
-                Zone = control.Zone,
-                Kind = control.Kind,
-                Label = control.Label,
-                Ordinal = control.Ordinal,
-                SegmentGroup = control.SegmentGroup,
-                SegmentIndex = control.SegmentIndex,
-                Frame = Time.frameCount,
-            };
+            arm = new Arm { Live = true, Target = control, Frame = Time.frameCount };
         }
 
         /// <summary>Feeds <paramref name="text"/> into a field or text area as if typed, then commits it the way the field's Enter or Apply does.</summary>
@@ -140,7 +124,8 @@ namespace RimWorldAccess.Shell
             return ordinal;
         }
 
-        private static bool ArmMatches(ProfilerControlKind kind, string label, int ordinal)
+        /// <summary>A live arm for this zone and kind; an arm nothing drew within two frames expires.</summary>
+        private static bool ArmLive(ProfilerControlKind kind)
         {
             if (!arm.Live)
             {
@@ -151,7 +136,12 @@ namespace RimWorldAccess.Shell
                 arm.Live = false;
                 return false;
             }
-            return arm.Zone == Zone && arm.Kind == kind && arm.Label == label && arm.Ordinal == ordinal;
+            return arm.Target.Zone == Zone && arm.Target.Kind == kind;
+        }
+
+        private static bool ArmMatches(ProfilerControlKind kind, string label, int ordinal)
+        {
+            return ArmLive(kind) && arm.Target.Label == label && arm.Target.Ordinal == ordinal;
         }
 
         private static void Add(ProfilerControl control)
@@ -166,7 +156,7 @@ namespace RimWorldAccess.Shell
 
         internal static void BeginPass(object window)
         {
-            recording = ReferenceEquals(window, ScopedWindow);
+            recording = IsScoped(window);
             Zone = ProfilerZone.None;
             rowDepth = 0;
             segmentGroups = 0;
@@ -218,13 +208,13 @@ namespace RimWorldAccess.Shell
                 return;
             }
             int group = segmentGroups++;
-            if (arm.Live && arm.Kind == ProfilerControlKind.Segment && arm.Zone == Zone && arm.SegmentGroup == group
-                && Time.frameCount <= arm.Frame + 2)
+            if (ArmLive(ProfilerControlKind.Segment) && arm.Target.SegmentGroup == group)
             {
                 arm.Live = false;
-                if (arm.SegmentIndex != activeIndex && arm.SegmentIndex >= 0 && arm.SegmentIndex < labels.Length)
+                int index = arm.Target.SegmentIndex;
+                if (index != activeIndex && index >= 0 && index < labels.Length)
                 {
-                    result = arm.SegmentIndex;
+                    result = index;
                     SoundDefOf.RowTabSelect.PlayOneShotOnCamera();
                 }
             }
@@ -272,15 +262,14 @@ namespace RimWorldAccess.Shell
             {
                 ProfilerControl control = building[last];
                 control.Value = string.IsNullOrEmpty(control.Value) ? text : control.Value + " " + text;
-                control.ScreenRect = Rect.MinMaxRect(Mathf.Min(control.ScreenRect.xMin, screen.xMin), Mathf.Min(control.ScreenRect.yMin, screen.yMin),
-                    Mathf.Max(control.ScreenRect.xMax, screen.xMax), Mathf.Max(control.ScreenRect.yMax, screen.yMax));
+                control.ScreenRect = GuiSpace.Union(control.ScreenRect, screen);
                 building[last] = control;
                 return;
             }
             building.Add(new ProfilerControl { Zone = ProfilerZone.TabStrip, Kind = kind, Label = text, Enabled = true, ScreenRect = screen });
         }
 
-        internal static void OnTextField(Rect rect, string text, ref string result, bool area)
+        internal static void OnTextField(Rect rect, ref string result, bool area)
         {
             ProfilerControlKind kind = area ? ProfilerControlKind.TextArea : ProfilerControlKind.SearchField;
             if (!recording || rowDepth > 0 || (Zone != ProfilerZone.TabStrip && Zone != ProfilerZone.Targets))
@@ -371,12 +360,10 @@ namespace RimWorldAccess.Shell
         {
             if (widthOf == null)
             {
-                MethodInfo width = AccessTools.Method(FrameProfilerAccess.ProfilerGuiType, "Width", new[] { typeof(string), typeof(GameFont) });
-                ParameterExpression arg = Expression.Parameter(typeof(string), "text");
-                widthOf = Expression.Lambda<Func<string, float>>(
-                    Expression.Call(width, arg, Expression.Constant(GameFont.Tiny)), arg).Compile();
+                widthOf = AccessTools.MethodDelegate<Func<string, GameFont, float>>(
+                    AccessTools.Method(FrameProfilerAccess.ProfilerGuiType, "Width", new[] { typeof(string), typeof(GameFont) }));
             }
-            return widthOf(text ?? "");
+            return widthOf(text ?? "", GameFont.Tiny);
         }
     }
 
@@ -401,7 +388,7 @@ namespace RimWorldAccess.Shell
             bool repaint = Event.current != null && Event.current.type == EventType.Repaint;
             FrameProfilerCapture.EndPass();
             FrameProfilerScope scope = FrameProfilerScope.Active;
-            if (repaint && scope != null && ReferenceEquals(__instance, FrameProfilerCapture.ScopedWindow))
+            if (repaint && scope != null && FrameProfilerCapture.IsScoped(__instance))
             {
                 scope.OnRepaint();
             }
@@ -419,7 +406,7 @@ namespace RimWorldAccess.Shell
         [HarmonyPrefix]
         public static bool Prefix(object __instance)
         {
-            return !ReferenceEquals(__instance, FrameProfilerCapture.ScopedWindow);
+            return !FrameProfilerCapture.IsScoped(__instance);
         }
     }
 
@@ -463,14 +450,19 @@ namespace RimWorldAccess.Shell
         }
     }
 
-    /// <summary>Surfaces drawn inside a recorded zone whose content the scope reads from the model instead.</summary>
+    /// <summary>
+    /// Nested draws that switch zone for their duration: the thread button and the targets editor
+    /// record as their own zones, and surfaces the scope reads from the model instead are skipped.
+    /// </summary>
     [HarmonyPatch]
-    internal static class FrameProfilerSkipZonePatch
+    internal static class FrameProfilerNestedZonePatch
     {
         static bool Prepare() => FrameProfilerAccess.Ready;
 
         static IEnumerable<MethodBase> TargetMethods()
         {
+            yield return AccessTools.Method(FrameProfilerAccess.ThreadFilterType, "DrawButton");
+            yield return AccessTools.Method(FrameProfilerAccess.SettingsType, "DrawTargets");
             yield return AccessTools.Method(FrameProfilerAccess.ViewType, "DrawHeader");
             yield return AccessTools.Method(FrameProfilerAccess.ViewType, "DrawRows");
             yield return AccessTools.Method(FrameProfilerAccess.ViewType, "DrawBreadcrumbs");
@@ -479,52 +471,15 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPrefix]
-        public static void Prefix(out ProfilerZone __state)
+        public static void Prefix(MethodBase __originalMethod, out ProfilerZone __state)
         {
             __state = FrameProfilerCapture.Zone;
-            FrameProfilerCapture.Zone = ProfilerZone.Skip;
-        }
-
-        [HarmonyPostfix]
-        public static void Postfix(ProfilerZone __state)
-        {
-            FrameProfilerCapture.Zone = __state;
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class FrameProfilerThreadButtonPatch
-    {
-        static bool Prepare() => FrameProfilerAccess.Ready;
-
-        static MethodBase TargetMethod() => AccessTools.Method(FrameProfilerAccess.ThreadFilterType, "DrawButton");
-
-        [HarmonyPrefix]
-        public static void Prefix(out ProfilerZone __state)
-        {
-            __state = FrameProfilerCapture.Zone;
-            FrameProfilerCapture.Zone = ProfilerZone.ThreadButton;
-        }
-
-        [HarmonyPostfix]
-        public static void Postfix(ProfilerZone __state)
-        {
-            FrameProfilerCapture.Zone = __state;
-        }
-    }
-
-    [HarmonyPatch]
-    internal static class FrameProfilerTargetsPatch
-    {
-        static bool Prepare() => FrameProfilerAccess.Ready;
-
-        static MethodBase TargetMethod() => AccessTools.Method(FrameProfilerAccess.SettingsType, "DrawTargets");
-
-        [HarmonyPrefix]
-        public static void Prefix(out ProfilerZone __state)
-        {
-            __state = FrameProfilerCapture.Zone;
-            FrameProfilerCapture.Zone = ProfilerZone.Targets;
+            switch (__originalMethod.Name)
+            {
+                case "DrawButton": FrameProfilerCapture.Zone = ProfilerZone.ThreadButton; break;
+                case "DrawTargets": FrameProfilerCapture.Zone = ProfilerZone.Targets; break;
+                default: FrameProfilerCapture.Zone = ProfilerZone.Skip; break;
+            }
         }
 
         [HarmonyPostfix]
@@ -680,30 +635,6 @@ namespace RimWorldAccess.Shell
             {
                 __result = true;
             }
-        }
-    }
-
-    [HarmonyPatch(typeof(Widgets), "TextField", new Type[] { typeof(Rect), typeof(string) })]
-    internal static class FrameProfilerTextFieldPatch
-    {
-        static bool Prepare() => FrameProfilerAccess.Ready;
-
-        [HarmonyPostfix]
-        public static void Postfix(Rect rect, string text, ref string __result)
-        {
-            FrameProfilerCapture.OnTextField(rect, text, ref __result, false);
-        }
-    }
-
-    [HarmonyPatch(typeof(Widgets), "TextArea", new Type[] { typeof(Rect), typeof(string), typeof(bool) })]
-    internal static class FrameProfilerTextAreaPatch
-    {
-        static bool Prepare() => FrameProfilerAccess.Ready;
-
-        [HarmonyPostfix]
-        public static void Postfix(Rect rect, string text, ref string __result)
-        {
-            FrameProfilerCapture.OnTextField(rect, text, ref __result, true);
         }
     }
 }

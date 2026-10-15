@@ -10,7 +10,8 @@ namespace RimWorldAccess.Shell
     /// The timeline region: the flamechart of the displayed frame as a zone tree. Each recorded
     /// thread is a top-level node (the main thread named for its frame, as the chart labels it), and
     /// each zone nests under the zone that contained it, siblings in the order they ran. The zone
-    /// data comes from the same chunk walk the flamechart draws from.
+    /// data comes from the same chunk walk the flamechart draws from. Navigation, expansion and
+    /// search are the shared tree base's.
     /// </summary>
     internal sealed partial class FrameProfilerScope
     {
@@ -33,11 +34,15 @@ namespace RimWorldAccess.Shell
             public FrameProfilerAccess.Pause? Pause;
         }
 
-        private readonly TreeModel<InspectionTreeItem> timeline = new TreeModel<InspectionTreeItem>(new InspectionTreeItemShape());
+        private TreePanel timelinePanel;
         private int timelineOrdinal = int.MinValue;
 
-        private static bool SubmenuTreeNavigation =>
-            RimWorldAccessMod_Settings.Settings != null && RimWorldAccessMod_Settings.Settings.SubmenuTreeNavigation;
+        protected override string TreeRegionLabel => "RimWorldAccess.FrameProfiler.Region.Timeline".Translate().ToString();
+
+        protected override TreePanel PanelFor(int region)
+        {
+            return region >= 0 && region < regions.Count && regions[region] == RegionKind.Timeline ? timelinePanel : null;
+        }
 
         private void RefreshTimeline()
         {
@@ -48,23 +53,12 @@ namespace RimWorldAccess.Shell
                 return;
             }
             timelineOrdinal = ordinal;
-            InspectionTreeItem root = BuildTimeline(snapshot);
-            int tableRegion = regions.IndexOf(RegionKind.Timeline);
-            int cursor = Model.RegionIndex == tableRegion && Model.CurrentRegion != null ? Model.CurrentRegion.Index : timeline.SelectedIndex;
-            TreeStatePreserve.SetRootPreservingState(
-                timeline,
-                root,
-                delegate (InspectionTreeItem newRoot)
-                {
-                    timeline.Wrap = WrapItems;
-                    timeline.SubmenuMode = SubmenuTreeNavigation;
-                    timeline.SetRoot(newRoot);
-                },
-                cursor);
-            if (Model.RegionIndex == tableRegion && Model.CurrentRegion != null)
+            bool inTimeline = CursorInTreeRegion && Model.CurrentRegion != null;
+            SetTreeRootPreservingState(timelinePanel, BuildTimeline(snapshot), inTimeline ? Model.CurrentRegion.Index : timelinePanel.Tree.SelectedIndex);
+            if (inTimeline)
             {
-                Model.CurrentRegion.SetCount(timeline.Count);
-                Model.CurrentRegion.MoveTo(timeline.SelectedIndex);
+                Model.CurrentRegion.SetCount(timelinePanel.Tree.Count);
+                Model.CurrentRegion.MoveTo(timelinePanel.Tree.SelectedIndex);
             }
         }
 
@@ -191,8 +185,7 @@ namespace RimWorldAccess.Shell
                         Ordinal = threadData.Ordinal, ThreadId = threadData.ThreadId, PathId = pathId, Snapshot = threadData.Snapshot,
                         Chunk = chunk, NodeIndex = index, StartNs = startNs, EndNs = endNs, FrameBeginNs = threadData.FrameBeginNs, Open = open,
                     };
-                    InspectionTreeItem item = NewZoneItem(parent, null, data);
-                    item.LabelProvider = () => FrameProfilerAccess.PathName(pathId);
+                    InspectionTreeItem item = NewZoneItem(parent, FrameProfilerAccess.PathName(pathId), data);
                     parent.Children.Add(item);
                     parent.IsExpandable = true;
                     ancestorEnds.Add(end);
@@ -210,40 +203,23 @@ namespace RimWorldAccess.Shell
                 Parent = parent.IndentLevel < 0 ? null : parent,
                 IndentLevel = parent.IndentLevel + 1,
                 Data = data,
+                Label = label,
             };
-            if (label != null)
-            {
-                item.Label = label;
-            }
             return item;
         }
 
-        private ZoneData ZoneAt(int index, out InspectionTreeItem item)
+        protected override ElementDescription DescribeTreeNode(InspectionTreeItem item)
         {
-            IReadOnlyList<InspectionTreeItem> visible = timeline.Visible;
-            item = index >= 0 && index < visible.Count ? visible[index] : null;
-            return item == null ? null : item.Data as ZoneData;
-        }
-
-        private ElementDescription DescribeZone(int index)
-        {
-            InspectionTreeItem item;
-            ZoneData zone = ZoneAt(index, out item);
-            ElementDescription d = new ElementDescription();
+            ElementDescription d = new ElementDescription { Label = item.Label, Role = ElementRole.TreeItem };
+            ZoneData zone = item.Data as ZoneData;
             if (zone == null)
             {
                 return d;
             }
-            d.Label = item.Label;
-            d.Role = ElementRole.TreeItem;
-            d.Level = item.IndentLevel + 1;
             if (item.IsExpandable)
             {
                 d.Expanded = item.IsExpanded;
             }
-            var position = timeline.GetSiblingPosition(item);
-            d.PositionIndex = position.position;
-            d.PositionCount = position.total;
 
             List<string> stats = new List<string>();
             if (zone.Pause.HasValue)
@@ -282,9 +258,7 @@ namespace RimWorldAccess.Shell
                 int objects;
                 if (FrameProfilerAccess.TryZoneAlloc(zone.Chunk, zone.NodeIndex, out bytes, out objects))
                 {
-                    stats.Add(objects > 0
-                        ? "RimWorldAccess.FrameProfiler.AllocObjects".Translate(FrameProfilerAccess.FormatBytes(bytes), objects.ToString("n0")).ToString()
-                        : "RimWorldAccess.FrameProfiler.Alloc".Translate(FrameProfilerAccess.FormatBytes(bytes)).ToString());
+                    stats.Add(AllocStat(bytes, objects));
                 }
             }
             d.Extras = string.Join(". ", stats.ToArray());
@@ -292,10 +266,9 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>Enter on a zone does what clicking it does: selects it, which reveals its path in the call tree.</summary>
-        private void ActivateZone(int index)
+        protected override void ActivateTreeNode(InspectionTreeItem item)
         {
-            InspectionTreeItem item;
-            ZoneData zone = ZoneAt(index, out item);
+            ZoneData zone = item.Data as ZoneData;
             if (zone == null || zone.IsRoot || zone.Pause.HasValue)
             {
                 AnnounceCurrentItem();
@@ -308,9 +281,8 @@ namespace RimWorldAccess.Shell
 
         private void SelectZoneRange()
         {
-            ListModel region = Model.CurrentRegion;
-            InspectionTreeItem item;
-            ZoneData zone = ZoneAt(region == null ? -1 : region.Index, out item);
+            InspectionTreeItem item = CurrentTreeItem();
+            ZoneData zone = item?.Data as ZoneData;
             if (zone == null || zone.IsPauseLane || zone.Pause.HasValue || zone.EndNs <= zone.StartNs || FrameProfilerAccess.IsSpikes(Session))
             {
                 SoundDefOf.ClickReject.PlayOneShotOnCamera();
@@ -323,77 +295,12 @@ namespace RimWorldAccess.Shell
 
         private void HighlightZone(int index)
         {
-            InspectionTreeItem item;
-            ZoneData zone = ZoneAt(index, out item);
+            IReadOnlyList<InspectionTreeItem> visible = timelinePanel.Tree.Visible;
+            ZoneData zone = index >= 0 && index < visible.Count ? visible[index].Data as ZoneData : null;
             if (zone != null && !zone.IsPauseLane && !zone.Pause.HasValue)
             {
                 FrameProfilerAccess.HighlightZone(window, zone.Ordinal, zone.IsRoot ? -1 : zone.PathId);
             }
-        }
-
-        private void AdjustZone(int index, int direction)
-        {
-            if (index < 0 || index >= timeline.Count)
-            {
-                return;
-            }
-            TypeaheadReset();
-            timeline.SetSelectedIndex(index);
-            TreeActionResult<InspectionTreeItem> result = direction > 0 ? timeline.ExpandOrDrillDown() : timeline.CollapseOrDrillUp();
-            switch (result.Kind)
-            {
-                case TreeActionKind.Rejected:
-                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                    return;
-                case TreeActionKind.Expanded:
-                case TreeActionKind.ExpandedSubmenu:
-                    SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
-                    break;
-                case TreeActionKind.Collapsed:
-                case TreeActionKind.CollapsedToParent:
-                    SoundDefOf.FloatMenu_Cancel.PlayOneShotOnCamera();
-                    break;
-                case TreeActionKind.DrilledToChild:
-                case TreeActionKind.DrilledToParent:
-                    SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-                    break;
-                default:
-                    return;
-            }
-            ListModel region = Model.CurrentRegion;
-            if (region != null)
-            {
-                region.SetCount(timeline.Count);
-                region.MoveTo(timeline.SelectedIndex);
-            }
-            HighlightZone(timeline.SelectedIndex);
-            AnnounceCurrentItem();
-        }
-
-        protected override void MoveItemEdge(bool first)
-        {
-            if (CurrentKind() != RegionKind.Timeline)
-            {
-                base.MoveItemEdge(first);
-                return;
-            }
-            TypeaheadReset();
-            RefreshModel();
-            ListModel region = Model.CurrentRegion;
-            if (region == null || region.IsEmpty)
-            {
-                return;
-            }
-            timeline.SetSelectedIndex(region.Index);
-            MoveResult result = first ? timeline.HomeKey(false) : timeline.EndKey(false);
-            if (result.Kind == MoveKind.Empty)
-            {
-                return;
-            }
-            region.MoveTo(timeline.SelectedIndex);
-            NotifyCursorSettled();
-            SoundDefOf.Tick_Tiny.PlayOneShotOnCamera();
-            AnnounceCurrent(CellAxis.Row);
         }
     }
 }

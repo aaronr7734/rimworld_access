@@ -139,6 +139,11 @@ namespace RimWorldAccess.Shell
             return new Rect(guiRect.x + offset.x, guiRect.y + offset.y, guiRect.width, guiRect.height);
         }
 
+        public static Rect Union(Rect a, Rect b)
+        {
+            return Rect.MinMaxRect(Mathf.Min(a.xMin, b.xMin), Mathf.Min(a.yMin, b.yMin), Mathf.Max(a.xMax, b.xMax), Mathf.Max(a.yMax, b.yMax));
+        }
+
         /// <summary>
         /// The inverse of <see cref="ToScreen"/>: an absolute-UI-point rect expressed in the
         /// active GUI group's space, so a rect measured in one pass can be drawn in another.

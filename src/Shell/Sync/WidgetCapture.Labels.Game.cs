@@ -79,8 +79,8 @@ namespace RimWorldAccess.Shell
                             // the whole line stays one row and a control below can fuse with all
                             // of it rather than stealing the last cell alone.
                             prevRow.Label = prevRow.Label + " " + label;
-                            prevRow.Rect = RectUnion(prevRow.Rect, rect);
-                            prevRow.ScreenRect = RectUnion(prevRow.ScreenRect, GuiSpace.ToScreen(rect));
+                            prevRow.Rect = GuiSpace.Union(prevRow.Rect, rect);
+                            prevRow.ScreenRect = GuiSpace.Union(prevRow.ScreenRect, GuiSpace.ToScreen(rect));
                             prevRow.VisibleScreenRect = RectUnionVisible(prevRow.VisibleScreenRect, GuiSpace.VisibleScreenRect(rect));
                             DrawFocusRingIfFocused(maybeSink.Count - 1, prevRow.Rect);
                             return;
@@ -106,8 +106,8 @@ namespace RimWorldAccess.Shell
                         }
                         prevRow.Label = ComposeLabelPair(nameHalf, valueHalf);
                         prevRow.LabelPairName = nameHalf;
-                        prevRow.Rect = RectUnion(prevRow.Rect, rect);
-                        prevRow.ScreenRect = RectUnion(prevRow.ScreenRect, GuiSpace.ToScreen(rect));
+                        prevRow.Rect = GuiSpace.Union(prevRow.Rect, rect);
+                        prevRow.ScreenRect = GuiSpace.Union(prevRow.ScreenRect, GuiSpace.ToScreen(rect));
                         prevRow.VisibleScreenRect = RectUnionVisible(prevRow.VisibleScreenRect, GuiSpace.VisibleScreenRect(rect));
                         prevRow.LabelPairFolded = true;
                         if (prevRow.HeadingFromGapLineOnly)
@@ -233,12 +233,7 @@ namespace RimWorldAccess.Shell
             return anchor == TextAnchor.UpperLeft || anchor == TextAnchor.MiddleLeft || anchor == TextAnchor.LowerLeft;
         }
 
-        private static Rect RectUnion(Rect a, Rect b)
-        {
-            return Rect.MinMaxRect(Mathf.Min(a.xMin, b.xMin), Mathf.Min(a.yMin, b.yMin), Mathf.Max(a.xMax, b.xMax), Mathf.Max(a.yMax, b.yMax));
-        }
-
-        /// <summary>As <see cref="RectUnion"/>, but a zero-area side is dropped instead of corrupting the union with a phantom (0,0) corner.</summary>
+        /// <summary>As <see cref="GuiSpace.Union"/>, but a zero-area side is dropped instead of corrupting the union with a phantom (0,0) corner.</summary>
         private static Rect RectUnionVisible(Rect a, Rect b)
         {
             bool aValid = a.width > 0f && a.height > 0f;
@@ -251,7 +246,7 @@ namespace RimWorldAccess.Shell
             {
                 return a;
             }
-            return RectUnion(a, b);
+            return GuiSpace.Union(a, b);
         }
 
         /// <summary>

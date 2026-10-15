@@ -56,12 +56,11 @@ namespace RimWorldAccess.Shell
         }
 
         private static readonly List<UploadOption> uploadOptions = new List<UploadOption>();
-        private static readonly UploadOption buildAssetPackOption;
 
         // On-screen order, top first. The asset-pack pair exists only from 1.7, so absent fields drop out.
         static MessageBoxScope()
         {
-            buildAssetPackOption = AddUploadOption("uploadBuildAssetPack", "UploadBuildAssetPack", "UploadBuildAssetPackTip", 2, null);
+            UploadOption buildAssetPackOption = AddUploadOption("uploadBuildAssetPack", "UploadBuildAssetPack", "UploadBuildAssetPackTip", 2, null);
             AddUploadOption("uploadSkipSourceTextures", "UploadSkipSourceTextures", "UploadSkipSourceTexturesTip", 1,
                 mod => buildAssetPackOption == null || !buildAssetPackOption.Value(mod));
             AddUploadOption("translationMod", "TagAsTranslation", null, 0, null);

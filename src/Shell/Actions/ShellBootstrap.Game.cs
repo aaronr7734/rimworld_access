@@ -539,7 +539,7 @@ namespace RimWorldAccess.Shell
             }
 
             // RimWorld 1.7's frame profiler and its assemblies dialog; absent on 1.6, so resolved by name.
-            if (FrameProfilerAccess.ResolveWindowType() != null && FrameProfilerAccess.Ready)
+            if (FrameProfilerAccess.Ready)
             {
                 ScopeForWindow.Register(FrameProfilerAccess.WindowType, delegate (Verse.Window w)
                 {

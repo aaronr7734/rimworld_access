@@ -19,31 +19,26 @@ namespace RimWorldAccess.Shell
     internal static class FrameProfilerAccess
     {
         internal static Type WindowType { get; private set; }
-        internal static Type SessionType { get; private set; }
-        internal static Type SectionType { get; private set; }
         internal static Type ViewType { get; private set; }
         internal static Type CallTreeType { get; private set; }
-        internal static Type AllocType { get; private set; }
-        internal static Type VramType { get; private set; }
         internal static Type SettingsType { get; private set; }
         internal static Type ThreadFilterType { get; private set; }
         internal static Type ProfilerGuiType { get; private set; }
 
-        private static bool resolved;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("Frame profiler", Resolve);
 
         // Window_FrameProfiler.
         private static Func<object, object> windowSession, windowFlamechart, windowThreadFilter, windowSettings,
-            windowActiveSection, windowCallTree, windowAllocTable, windowVramTable, windowHistogram;
-        private static Func<object, string> windowStatusText, windowFrameStepper, windowSearchQuery;
+            windowActiveSection, windowCallTree, windowVramTable, windowHistogram;
         private static MethodInfo windowCopyView;
 
         // ProfilerSession.
         private static Func<object, bool> sessionHasData, sessionIsPaused, sessionIsSpikes, sessionFollowingNewest;
         private static Func<object, object> sessionSnapshot, sessionSource, sessionTree, sessionSearch;
+        private static Func<object, string> searchQuery;
         private static MethodInfo sessionStep, sessionJumpToNewest, sessionSetPaused, sessionBeginSelection,
             sessionExtendSelection, sessionClearSelection, sessionSelectZoneTimeRange, sessionTryGetSnapshotAt, sessionTryGetSelectionBand, sessionInvalidate;
-        private static MethodInfo frameStoreCountOf;
+        private static Func<object, int> frameStoreCountOf;
 
         // Row sections and their list view.
         private static Func<object, object> sectionView;
@@ -51,39 +46,41 @@ namespace RimWorldAccess.Shell
         private static Func<object, IList> viewRows;
         private static Func<object, int> viewSelectedIndex;
         private static Func<object, Array> viewColumns;
-        private static Func<object, Delegate> viewLabelHeader, viewLabelSort, viewRootCrumb;
-        private static Func<object, string> viewDetailHeader, viewSearchStatus;
-        private static Func<object, IList> viewCrumbs;
-        private static MethodInfo viewSelect, viewMoveSelection, viewActivateSelected, viewCopySelectedRow, viewSelectNextMatch;
+        private static Func<object, Func<string>> viewLabelHeader, viewRootCrumb;
+        private static Func<object, Action> viewLabelSort;
+        private static Func<object, List<ValueTuple<string, int>>> viewCrumbs;
+        private static MethodInfo viewSelect, viewActivateSelected, viewCopySelectedRow, viewSelectNextMatch;
         private static Func<object, bool> callTreeFlamegraph;
-        private static Func<object, string> allocFooter, vramFooter;
 
         // ProfilerRowData.
         private static Func<object, string> rowLabel, rowDetail, rowPercentText, rowTotalText, rowSelfText,
             rowDeltaText, rowCallsText, rowAllocText;
         private static Func<object, int> rowDepth;
         private static Func<object, bool> rowHasChildren, rowExpanded, rowDimmed;
-        private static MethodInfo rowEnsureDisplayText;
+        private static Action<object> rowEnsureDisplayText;
 
         // ProfilerColumn.
         private static Func<object, object> columnKind;
-        private static Func<object, Delegate> columnHeader, columnSort;
+        private static Func<object, Func<string>> columnHeader;
+        private static Func<object, Action> columnSort;
 
         // Profiler tree model (sorting).
         private static Func<object, object> treeActiveSortColumn;
         private static Func<object, bool> treeSortAscending;
 
         // Settings drawer and thread filter.
-        private static Func<object, bool> settingsIsOpen;
+        private static Func<object, bool> settingsIsOpen, threadOpen;
         private static MethodInfo settingsToggle;
         private static Func<object, IList> threadItems;
-        private static FieldInfo threadOpenField, threadPopupRect;
+        private static FieldInfo threadOpenField;
+        private static Func<object, UnityEngine.Rect> threadPopupRect;
         private static MethodInfo threadToggleSelectAll;
         private static Func<object, int> threadItemId;
         private static Func<object, string> threadItemLabel, threadItemBusy, threadItemUtil;
-        private static Func<object, string> threadButtonLabel, threadButtonBusy;
-        private static MethodInfo registryIsSelected, registrySetSelected, registrySelectOnly;
-        private static PropertyInfo registryAllSelected;
+        private static Func<int, bool> registryIsSelected;
+        private static Action<int, bool> registrySetSelected;
+        private static Action<int> registrySelectOnly;
+        private static Func<bool> registryAllSelected;
 
         // Histogram.
         private static Func<object, object> histogramPauseMarks;
@@ -93,17 +90,22 @@ namespace RimWorldAccess.Shell
         // Flamechart.
         private static FieldInfo flameZoneSelected;
         private static MethodInfo flameHighlightZone;
-        private static MethodInfo flameZoneSelfUs;
+        private static Func<object, int, float> flameZoneSelfUs;
         private static ConstructorInfo zoneSelectionCtor;
 
         // Formatting helpers the window itself uses.
-        private static MethodInfo appendMs, appendAllocBytes, appendFrameMs;
+        private static Action<StringBuilder, float, string, string> appendMs;
+        private static Action<StringBuilder, long, string> appendAllocBytes;
+        private static readonly StringBuilder formatBuffer = new StringBuilder();
 
         // Waylith.Profiling.
-        private static MethodInfo collectChunks, getLabel, pathLabel;
-        private static Type zoneChunkType;
+        private static MethodInfo collectChunks;
+        private static Type zoneChunkListType;
+        private static Func<object, string> labelOf;
+        private static Func<int, string> pathName;
+        private static Func<object, int, string> describePause;
         private static Func<object, int> snapshotFrameIndex, snapshotOrdinal, snapshotSectionCount, snapshotGen0, snapshotGen1,
-            snapshotGen2, snapshotPauseCount, snapshotAllocObjects, snapshotTickDelta;
+            snapshotGen2, snapshotPauseCount, snapshotAllocObjects;
         private static Func<object, float> snapshotTotalMs, snapshotPauseMs;
         private static Func<object, long> snapshotPromoted, snapshotAllocBytes, snapshotBegin, snapshotEnd;
         private static Func<object, bool> snapshotIsSpike;
@@ -119,7 +121,6 @@ namespace RimWorldAccess.Shell
         private static Func<object, int> pauseStart, pauseSuspended, pauseEnd, pauseGeneration, pauseThread;
         private static Func<object, object> pauseReason;
         private static Func<object, long> pausePromoted, pauseCollected;
-        private static MethodInfo describePause;
         private static Func<object, Array> chunkNodes;
         private static Func<object, int> chunkCount;
         private static Func<object, int> nodePathId, nodeSubtreeEnd;
@@ -127,265 +128,263 @@ namespace RimWorldAccess.Shell
         private static Func<object, bool> nodeIsOpen;
 
         /// <summary>Resolves every member on first use; false on 1.6 or when 1.7 renamed something.</summary>
-        internal static bool Ready
-        {
-            get
-            {
-                if (!resolved)
-                {
-                    resolved = true;
-                    try
-                    {
-                        ready = Resolve();
-                    }
-                    catch (Exception ex)
-                    {
-                        ModLogger.Error("Frame profiler access failed to resolve: " + ex);
-                        ready = false;
-                    }
-                }
-                return ready;
-            }
-        }
+        internal static bool Ready => gate.Ensure();
 
-        /// <summary>The window type, resolved without the rest of the facade, so registration costs nothing on 1.6.</summary>
-        internal static Type ResolveWindowType()
+        private static bool Resolve(ReflectionSurface s)
         {
-            return AccessTools.TypeByName("Verse.ProfilerUI.Window_FrameProfiler");
-        }
-
-        private static bool Resolve()
-        {
-            WindowType = ResolveWindowType();
-            if (WindowType == null)
+            // Probed alone first so 1.6 pays for one failed type lookup, not thirty.
+            Type windowType = AccessTools.TypeByName("Verse.ProfilerUI.Window_FrameProfiler");
+            if (windowType == null)
             {
                 return false;
             }
-            SessionType = Need("Verse.ProfilerUI.ProfilerSession");
-            SectionType = Need("Verse.ProfilerUI.ProfilerRowSection");
-            ViewType = Need("Verse.ProfilerUI.ProfilerRowListView");
-            CallTreeType = Need("Verse.ProfilerUI.ProfilerCallTreeTable");
-            AllocType = Need("Verse.ProfilerUI.ProfilerAllocTable");
-            VramType = Need("Verse.ProfilerUI.ProfilerVramTable");
-            SettingsType = Need("Verse.ProfilerUI.ProfilerSettingsDrawer");
-            ThreadFilterType = Need("Verse.ProfilerUI.ProfilerThreadFilter");
-            ProfilerGuiType = Need("Verse.ProfilerUI.ProfilerGui");
-            Type rowType = Need("Verse.ProfilerUI.ProfilerRowData");
-            Type columnType = Need("Verse.ProfilerUI.ProfilerColumn");
-            Type profilerTreeType = Need("Verse.ProfilerUI.ProfilerTreeModel");
-            Type frameStoreType = Need("Verse.ProfilerUI.ProfilerFrameStore");
-            Type histogramType = Need("Verse.ProfilerUI.ProfilerHistogramWidget");
-            Type flameType = Need("Verse.ProfilerUI.ProfilerFlamechartWidget");
-            Type zoneSelectionType = Need("Verse.ProfilerUI.ProfilerZoneSelection");
-            Type registryType = Need("Verse.ProfilerUI.ProfilerThreadRegistry");
-            Type threadItemType = Need("Verse.ProfilerUI.ProfilerThreadFilter+Item");
-            Type frameProfilerType = Need("Waylith.Profiling.FrameProfiler");
-            Type snapshotType = Need("Waylith.Profiling.FrameProfiler+FrameSnapshot");
-            Type threadSectionType = Need("Waylith.Profiling.FrameProfiler+ThreadSection");
-            Type labelIdType = Need("Waylith.Profiling.ProfilerLabelId");
-            zoneChunkType = Need("Waylith.Profiling.ZoneChunk");
-            Type zoneNodeType = Need("Waylith.Profiling.ZoneNode");
-
-            windowSession = Get<object>(WindowType, "session");
-            windowHistogram = Get<object>(WindowType, "histogram");
-            windowCallTree = Get<object>(WindowType, "callTree");
-            windowAllocTable = Get<object>(WindowType, "allocTable");
-            windowVramTable = Get<object>(WindowType, "vramTable");
-            windowActiveSection = Get<object>(WindowType, "activeSection");
-            windowFlamechart = Get<object>(WindowType, "flamechart");
-            windowThreadFilter = Get<object>(WindowType, "threadFilter");
-            windowSettings = Get<object>(WindowType, "settings");
-            windowStatusText = Get<string>(WindowType, "statusText");
-            windowFrameStepper = Get<string>(WindowType, "frameStepperText");
-            windowSearchQuery = Get<string>(WindowType, "searchQuery");
-            windowCopyView = NeedMethod(WindowType, "CopyView", Type.EmptyTypes);
-
-            sessionHasData = Get<bool>(SessionType, "HasData");
-            sessionIsPaused = Get<bool>(SessionType, "IsPaused");
-            sessionIsSpikes = Get<bool>(SessionType, "IsSpikes");
-            sessionFollowingNewest = Get<bool>(SessionType, "FollowingNewest");
-            sessionSnapshot = Get<object>(SessionType, "Snapshot");
-            sessionSource = Get<object>(SessionType, "Source");
-            sessionTree = Get<object>(SessionType, "Tree");
-            sessionSearch = Get<object>(SessionType, "Search");
-            sessionStep = NeedMethod(SessionType, "Step", new[] { typeof(int) });
-            sessionJumpToNewest = NeedMethod(SessionType, "JumpToNewest", Type.EmptyTypes);
-            sessionSetPaused = NeedMethod(SessionType, "SetPaused", new[] { typeof(bool) });
-            sessionBeginSelection = NeedMethod(SessionType, "BeginSelection", new[] { typeof(int) });
-            sessionExtendSelection = NeedMethod(SessionType, "ExtendSelection", new[] { typeof(int) });
-            sessionClearSelection = NeedMethod(SessionType, "ClearSelection", Type.EmptyTypes);
-            sessionSelectZoneTimeRange = NeedMethod(SessionType, "SelectZoneTimeRange", new[] { typeof(int), typeof(long), typeof(long) });
-            sessionInvalidate = NeedMethod(SessionType, "Invalidate", Type.EmptyTypes);
-            sessionTryGetSnapshotAt = NeedMethod(SessionType, "TryGetSnapshotAt", null);
-            sessionTryGetSelectionBand = NeedMethod(SessionType, "TryGetSelectionBand", null);
-            frameStoreCountOf = NeedMethod(frameStoreType, "CountOf", null);
-
-            sectionView = Get<object>(SectionType, "View");
-            sectionCollapseSelected = NeedMethod(SectionType, "CollapseSelected", Type.EmptyTypes);
-            sectionOpenContextMenu = NeedMethod(SectionType, "OpenContextMenu", Type.EmptyTypes);
-            viewRows = Get<IList>(ViewType, "Rows");
-            viewSelectedIndex = Get<int>(ViewType, "SelectedIndex");
-            viewColumns = Get<Array>(ViewType, "Columns");
-            viewLabelHeader = Get<Delegate>(ViewType, "LabelHeader");
-            viewLabelSort = Get<Delegate>(ViewType, "LabelSort");
-            viewRootCrumb = Get<Delegate>(ViewType, "RootCrumb");
-            viewDetailHeader = Get<string>(ViewType, "DetailHeader");
-            viewSearchStatus = Get<string>(ViewType, "SearchStatus");
-            viewCrumbs = Get<IList>(ViewType, "crumbs");
-            viewSelect = NeedMethod(ViewType, "Select", new[] { typeof(int) });
-            viewMoveSelection = NeedMethod(ViewType, "MoveSelection", new[] { typeof(int) });
-            viewActivateSelected = NeedMethod(ViewType, "ActivateSelected", new[] { typeof(bool) });
-            viewCopySelectedRow = NeedMethod(ViewType, "CopySelectedRow", Type.EmptyTypes);
-            viewSelectNextMatch = NeedMethod(ViewType, "SelectNextMatch", new[] { typeof(int) });
-            callTreeFlamegraph = Get<bool>(CallTreeType, "FlamegraphMode");
-            allocFooter = Get<string>(AllocType, "footer");
-            vramFooter = Get<string>(VramType, "footer");
-
-            rowLabel = Get<string>(rowType, "Label");
-            rowDetail = Get<string>(rowType, "Detail");
-            rowPercentText = Get<string>(rowType, "PercentText");
-            rowTotalText = Get<string>(rowType, "TotalText");
-            rowSelfText = Get<string>(rowType, "SelfText");
-            rowDeltaText = Get<string>(rowType, "DeltaText");
-            rowCallsText = Get<string>(rowType, "CallsText");
-            rowAllocText = Get<string>(rowType, "AllocText");
-            rowDepth = Get<int>(rowType, "Depth");
-            rowHasChildren = Get<bool>(rowType, "HasChildren");
-            rowExpanded = Get<bool>(rowType, "Expanded");
-            rowDimmed = Get<bool>(rowType, "Dimmed");
-            rowEnsureDisplayText = NeedMethod(rowType, "EnsureDisplayText", Type.EmptyTypes);
-
-            columnKind = Get<object>(columnType, "kind");
-            columnHeader = Get<Delegate>(columnType, "header");
-            columnSort = Get<Delegate>(columnType, "sort");
-
-            treeActiveSortColumn = Get<object>(profilerTreeType, "ActiveSortColumn");
-            treeSortAscending = Get<bool>(profilerTreeType, "SortAscending");
-
-            settingsIsOpen = Get<bool>(SettingsType, "IsOpen");
-            settingsToggle = NeedMethod(SettingsType, "Toggle", Type.EmptyTypes);
-            threadItems = Get<IList>(ThreadFilterType, "items");
-            threadOpenField = AccessTools.Field(ThreadFilterType, "open");
-            threadPopupRect = AccessTools.Field(ThreadFilterType, "popupRect");
-            threadToggleSelectAll = NeedMethod(ThreadFilterType, "ToggleSelectAll", Type.EmptyTypes);
-            threadButtonLabel = Get<string>(ThreadFilterType, "buttonLabel");
-            threadButtonBusy = Get<string>(ThreadFilterType, "buttonBusyText");
-            threadItemId = Get<int>(threadItemType, "threadId");
-            threadItemLabel = Get<string>(threadItemType, "label");
-            threadItemBusy = Get<string>(threadItemType, "busyText");
-            threadItemUtil = Get<string>(threadItemType, "utilText");
-            registryIsSelected = NeedMethod(registryType, "IsSelected", new[] { typeof(int) });
-            registrySetSelected = NeedMethod(registryType, "SetSelected", new[] { typeof(int), typeof(bool) });
-            registryAllSelected = AccessTools.Property(registryType, "AllSelected");
-            registrySelectOnly = NeedMethod(registryType, "SelectOnly", new[] { typeof(int) });
-
-            histogramPauseMarks = Get<object>(histogramType, "pauseMarks");
-            Type barRingType = Need("Verse.ProfilerUI.ProfilerBarRing");
-            barRingCount = Get<int>(barRingType, "Count");
-            barRingItem = AccessTools.Property(barRingType, "Item");
-
-            flameZoneSelected = AccessTools.Field(flameType, "ZoneSelected");
-            flameHighlightZone = NeedMethod(flameType, "HighlightZone", new[] { typeof(int), typeof(int) });
-            flameZoneSelfUs = NeedMethod(flameType, "ZoneSelfUs", new[] { zoneChunkType, typeof(int) });
-            zoneSelectionCtor = AccessTools.Constructor(zoneSelectionType, new[] { typeof(int), typeof(int), typeof(int) });
-
-            appendMs = NeedMethod(profilerTreeType, "AppendMs", new[] { typeof(StringBuilder), typeof(float), typeof(string), typeof(string) });
-            appendAllocBytes = NeedMethod(profilerTreeType, "AppendAllocBytes", new[] { typeof(StringBuilder), typeof(long), typeof(string) });
-            appendFrameMs = NeedMethod(profilerTreeType, "AppendFrameMs", new[] { typeof(StringBuilder), typeof(float), typeof(string) });
-
-            collectChunks = NeedMethod(frameProfilerType, "CollectChunks",
-                new[] { snapshotType, typeof(int), typeof(long), typeof(long), typeof(List<>).MakeGenericType(zoneChunkType) });
-            getLabel = NeedMethod(frameProfilerType, "GetLabel", new[] { labelIdType });
-            pathLabel = NeedMethod(frameProfilerType, "PathLabel", new[] { typeof(int) });
-
-            snapshotFrameIndex = Get<int>(snapshotType, "frameIndex");
-            snapshotOrdinal = Get<int>(snapshotType, "captureOrdinal");
-            snapshotSectionCount = Get<int>(snapshotType, "sectionCount");
-            snapshotGen0 = Get<int>(snapshotType, "gen0Collections");
-            snapshotGen1 = Get<int>(snapshotType, "gen1Collections");
-            snapshotGen2 = Get<int>(snapshotType, "gen2Collections");
-            snapshotPauseCount = Get<int>(snapshotType, "pauseCount");
-            snapshotAllocObjects = Get<int>(snapshotType, "allocatedObjectCount");
-            snapshotTickDelta = Get<int>(snapshotType, "tickDelta");
-            snapshotTotalMs = Get<float>(snapshotType, "totalMs");
-            snapshotPauseMs = Get<float>(snapshotType, "pauseMs");
-            snapshotPromoted = Get<long>(snapshotType, "promotedBytes");
-            snapshotAllocBytes = Get<long>(snapshotType, "DisplayAllocBytes");
-            snapshotBegin = Get<long>(snapshotType, "beginTimeNanoseconds");
-            snapshotEnd = Get<long>(snapshotType, "endTimeNanoseconds");
-            snapshotIsSpike = Get<bool>(snapshotType, "isSpike");
-            snapshotSections = Get<Array>(snapshotType, "sections");
-            sectionThreadId = Get<int>(threadSectionType, "threadId");
-            sectionNameLabel = Get<object>(threadSectionType, "nameLabelId");
-            sectionStart = Get<long>(threadSectionType, "startNanoseconds");
-            sectionEnd = Get<long>(threadSectionType, "endNanoseconds");
-            sectionBusy = Get<long>(threadSectionType, "busyNanoseconds");
-            chunkBase = Get<long>(zoneChunkType, "baseNs");
-            chunkAllocStats = Get<Array>(zoneChunkType, "allocStats");
-            Type allocStatType = Need("Waylith.Profiling.FrameProfiler+NodeAllocStat");
-            allocTotal = Get<int>(allocStatType, "totalBytes");
-            allocSelf = Get<int>(allocStatType, "selfBytes");
-            allocCount = Get<int>(allocStatType, "count");
-            Type pathEntryType = Need("Waylith.Profiling.FrameProfiler+PathEntry");
-            snapshotPathEntries = Get<Array>(snapshotType, "pathEntries");
-            sectionFirstPath = Get<int>(threadSectionType, "firstPathEntry");
-            pathSelfUs = Get<float>(pathEntryType, "selfMicroseconds");
-            pathAllocBytes = Get<int>(pathEntryType, "allocBytes");
-            sessionBudgetMs = Get<float>(SessionType, "BudgetMs");
-            Type pauseType = Need("Waylith.Profiling.FrameProfiler+PauseSpan");
-            snapshotPauses = Get<Array>(snapshotType, "pauses");
-            pauseStart = Get<int>(pauseType, "startMicroseconds");
-            pauseSuspended = Get<int>(pauseType, "suspendedMicroseconds");
-            pauseEnd = Get<int>(pauseType, "endMicroseconds");
-            pauseGeneration = Get<int>(pauseType, "condemnedGeneration");
-            pauseThread = Get<int>(pauseType, "triggeringThreadId");
-            pauseReason = Get<object>(pauseType, "reason");
-            pausePromoted = Get<long>(pauseType, "promotedBytes");
-            pauseCollected = Get<long>(pauseType, "collectedBytes");
-            describePause = NeedMethod(frameProfilerType, "DescribePause", new[] { Need("Waylith.Profiling.RuntimePauseReason"), typeof(int) });
-            chunkNodes = Get<Array>(zoneChunkType, "nodes");
-            chunkCount = Get<int>(zoneChunkType, "Count");
-            nodePathId = Get<int>(zoneNodeType, "pathId");
-            nodeSubtreeEnd = Get<int>(zoneNodeType, "subtreeEnd");
-            nodeStart = Get<long>(zoneNodeType, "StartNanoseconds");
-            nodeEnd = Get<long>(zoneNodeType, "EndNanoseconds");
-            nodeIsOpen = Get<bool>(zoneNodeType, "IsOpen");
-
-            return barRingItem != null && threadOpenField != null && threadPopupRect != null && registryAllSelected != null && flameZoneSelected != null && zoneSelectionCtor != null;
-        }
-
-        private static Type Need(string name)
-        {
-            Type type = AccessTools.TypeByName(name);
-            if (type == null)
+            WindowType = s.Supplied("Window_FrameProfiler", windowType);
+            Type sessionType = s.Type("Verse.ProfilerUI.ProfilerSession");
+            Type sectionType = s.Type("Verse.ProfilerUI.ProfilerRowSection");
+            ViewType = s.Type("Verse.ProfilerUI.ProfilerRowListView");
+            CallTreeType = s.Type("Verse.ProfilerUI.ProfilerCallTreeTable");
+            SettingsType = s.Type("Verse.ProfilerUI.ProfilerSettingsDrawer");
+            ThreadFilterType = s.Type("Verse.ProfilerUI.ProfilerThreadFilter");
+            ProfilerGuiType = s.Type("Verse.ProfilerUI.ProfilerGui");
+            Type rowType = s.Type("Verse.ProfilerUI.ProfilerRowData");
+            Type columnType = s.Type("Verse.ProfilerUI.ProfilerColumn");
+            Type profilerTreeType = s.Type("Verse.ProfilerUI.ProfilerTreeModel");
+            Type searchType = s.Type("Verse.ProfilerUI.ProfilerSearchModel");
+            Type frameStoreType = s.Type("Verse.ProfilerUI.ProfilerFrameStore");
+            Type histogramType = s.Type("Verse.ProfilerUI.ProfilerHistogramWidget");
+            Type barRingType = s.Type("Verse.ProfilerUI.ProfilerBarRing");
+            Type flameType = s.Type("Verse.ProfilerUI.ProfilerFlamechartWidget");
+            Type zoneSelectionType = s.Type("Verse.ProfilerUI.ProfilerZoneSelection");
+            Type registryType = s.Type("Verse.ProfilerUI.ProfilerThreadRegistry");
+            Type threadItemType = s.Type("Verse.ProfilerUI.ProfilerThreadFilter+Item");
+            Type frameProfilerType = s.Type("Waylith.Profiling.FrameProfiler");
+            Type snapshotType = s.Type("Waylith.Profiling.FrameProfiler+FrameSnapshot");
+            Type threadSectionType = s.Type("Waylith.Profiling.FrameProfiler+ThreadSection");
+            Type allocStatType = s.Type("Waylith.Profiling.FrameProfiler+NodeAllocStat");
+            Type pathEntryType = s.Type("Waylith.Profiling.FrameProfiler+PathEntry");
+            Type pauseType = s.Type("Waylith.Profiling.FrameProfiler+PauseSpan");
+            Type pauseReasonType = s.Type("Waylith.Profiling.RuntimePauseReason");
+            Type labelIdType = s.Type("Waylith.Profiling.ProfilerLabelId");
+            Type zoneChunkType = s.Type("Waylith.Profiling.ZoneChunk");
+            Type zoneNodeType = s.Type("Waylith.Profiling.ZoneNode");
+            if (!s.Ready)
             {
-                throw new MissingMemberException(name);
+                return false;
             }
-            return type;
-        }
+            zoneChunkListType = typeof(List<>).MakeGenericType(zoneChunkType);
 
-        private static MethodInfo NeedMethod(Type type, string name, Type[] parameters)
-        {
-            MethodInfo method = AccessTools.Method(type, name, parameters);
-            if (method == null)
+            windowSession = Get<object>(s, WindowType, "session");
+            windowHistogram = Get<object>(s, WindowType, "histogram");
+            windowCallTree = Get<object>(s, WindowType, "callTree");
+            windowVramTable = Get<object>(s, WindowType, "vramTable");
+            windowActiveSection = Get<object>(s, WindowType, "activeSection");
+            windowFlamechart = Get<object>(s, WindowType, "flamechart");
+            windowThreadFilter = Get<object>(s, WindowType, "threadFilter");
+            windowSettings = Get<object>(s, WindowType, "settings");
+            windowCopyView = s.Method(WindowType, "CopyView", Type.EmptyTypes);
+
+            sessionHasData = Get<bool>(s, sessionType, "HasData");
+            sessionIsPaused = Get<bool>(s, sessionType, "IsPaused");
+            sessionIsSpikes = Get<bool>(s, sessionType, "IsSpikes");
+            sessionFollowingNewest = Get<bool>(s, sessionType, "FollowingNewest");
+            sessionSnapshot = Get<object>(s, sessionType, "Snapshot");
+            sessionSource = Get<object>(s, sessionType, "Source");
+            sessionTree = Get<object>(s, sessionType, "Tree");
+            sessionSearch = Get<object>(s, sessionType, "Search");
+            sessionBudgetMs = Get<float>(s, sessionType, "BudgetMs");
+            searchQuery = Get<string>(s, searchType, "Query");
+            sessionStep = s.Method(sessionType, "Step", new[] { typeof(int) });
+            sessionJumpToNewest = s.Method(sessionType, "JumpToNewest", Type.EmptyTypes);
+            sessionSetPaused = s.Method(sessionType, "SetPaused", new[] { typeof(bool) });
+            sessionBeginSelection = s.Method(sessionType, "BeginSelection", new[] { typeof(int) });
+            sessionExtendSelection = s.Method(sessionType, "ExtendSelection", new[] { typeof(int) });
+            sessionClearSelection = s.Method(sessionType, "ClearSelection", Type.EmptyTypes);
+            sessionSelectZoneTimeRange = s.Method(sessionType, "SelectZoneTimeRange", new[] { typeof(int), typeof(long), typeof(long) });
+            sessionInvalidate = s.Method(sessionType, "Invalidate", Type.EmptyTypes);
+            sessionTryGetSnapshotAt = s.Method(sessionType, "TryGetSnapshotAt");
+            sessionTryGetSelectionBand = s.Method(sessionType, "TryGetSelectionBand");
+            frameStoreCountOf = Static<int>(s.Method(frameStoreType, "CountOf"));
+
+            sectionView = Get<object>(s, sectionType, "View");
+            sectionCollapseSelected = s.Method(sectionType, "CollapseSelected", Type.EmptyTypes);
+            sectionOpenContextMenu = s.Method(sectionType, "OpenContextMenu", Type.EmptyTypes);
+            viewRows = Get<IList>(s, ViewType, "Rows");
+            viewSelectedIndex = Get<int>(s, ViewType, "SelectedIndex");
+            viewColumns = Get<Array>(s, ViewType, "Columns");
+            viewLabelHeader = Get<Func<string>>(s, ViewType, "LabelHeader");
+            viewLabelSort = Get<Action>(s, ViewType, "LabelSort");
+            viewRootCrumb = Get<Func<string>>(s, ViewType, "RootCrumb");
+            viewCrumbs = Get<List<ValueTuple<string, int>>>(s, ViewType, "crumbs");
+            viewSelect = s.Method(ViewType, "Select", new[] { typeof(int) });
+            viewActivateSelected = s.Method(ViewType, "ActivateSelected", new[] { typeof(bool) });
+            viewCopySelectedRow = s.Method(ViewType, "CopySelectedRow", Type.EmptyTypes);
+            viewSelectNextMatch = s.Method(ViewType, "SelectNextMatch", new[] { typeof(int) });
+            callTreeFlamegraph = Get<bool>(s, CallTreeType, "FlamegraphMode");
+
+            rowLabel = Get<string>(s, rowType, "Label");
+            rowDetail = Get<string>(s, rowType, "Detail");
+            rowPercentText = Get<string>(s, rowType, "PercentText");
+            rowTotalText = Get<string>(s, rowType, "TotalText");
+            rowSelfText = Get<string>(s, rowType, "SelfText");
+            rowDeltaText = Get<string>(s, rowType, "DeltaText");
+            rowCallsText = Get<string>(s, rowType, "CallsText");
+            rowAllocText = Get<string>(s, rowType, "AllocText");
+            rowDepth = Get<int>(s, rowType, "Depth");
+            rowHasChildren = Get<bool>(s, rowType, "HasChildren");
+            rowExpanded = Get<bool>(s, rowType, "Expanded");
+            rowDimmed = Get<bool>(s, rowType, "Dimmed");
+            rowEnsureDisplayText = Instance(rowType, s.Method(rowType, "EnsureDisplayText", Type.EmptyTypes));
+
+            columnKind = Get<object>(s, columnType, "kind");
+            columnHeader = Get<Func<string>>(s, columnType, "header");
+            columnSort = Get<Action>(s, columnType, "sort");
+
+            treeActiveSortColumn = Get<object>(s, profilerTreeType, "ActiveSortColumn");
+            treeSortAscending = Get<bool>(s, profilerTreeType, "SortAscending");
+
+            settingsIsOpen = Get<bool>(s, SettingsType, "IsOpen");
+            settingsToggle = s.Method(SettingsType, "Toggle", Type.EmptyTypes);
+            threadItems = Get<IList>(s, ThreadFilterType, "items");
+            threadOpenField = s.Field(ThreadFilterType, "open");
+            threadOpen = Get<bool>(s, ThreadFilterType, "open");
+            threadPopupRect = Get<UnityEngine.Rect>(s, ThreadFilterType, "popupRect");
+            threadToggleSelectAll = s.Method(ThreadFilterType, "ToggleSelectAll", Type.EmptyTypes);
+            threadItemId = Get<int>(s, threadItemType, "threadId");
+            threadItemLabel = Get<string>(s, threadItemType, "label");
+            threadItemBusy = Get<string>(s, threadItemType, "busyText");
+            threadItemUtil = Get<string>(s, threadItemType, "utilText");
+            registryIsSelected = Typed<Func<int, bool>>(s.Method(registryType, "IsSelected", new[] { typeof(int) }));
+            registrySetSelected = Typed<Action<int, bool>>(s.Method(registryType, "SetSelected", new[] { typeof(int), typeof(bool) }));
+            registrySelectOnly = Typed<Action<int>>(s.Method(registryType, "SelectOnly", new[] { typeof(int) }));
+            registryAllSelected = Typed<Func<bool>>(s.Property(registryType, "AllSelected")?.GetGetMethod(true));
+
+            histogramPauseMarks = Get<object>(s, histogramType, "pauseMarks");
+            barRingCount = Get<int>(s, barRingType, "Count");
+            barRingItem = s.Property(barRingType, "Item");
+
+            flameZoneSelected = s.Field(flameType, "ZoneSelected");
+            flameHighlightZone = s.Method(flameType, "HighlightZone", new[] { typeof(int), typeof(int) });
+            flameZoneSelfUs = Static<int, float>(s.Method(flameType, "ZoneSelfUs", new[] { zoneChunkType, typeof(int) }));
+            zoneSelectionCtor = s.Constructor(zoneSelectionType, new[] { typeof(int), typeof(int), typeof(int) });
+
+            appendMs = Typed<Action<StringBuilder, float, string, string>>(
+                s.Method(profilerTreeType, "AppendMs", new[] { typeof(StringBuilder), typeof(float), typeof(string), typeof(string) }));
+            appendAllocBytes = Typed<Action<StringBuilder, long, string>>(
+                s.Method(profilerTreeType, "AppendAllocBytes", new[] { typeof(StringBuilder), typeof(long), typeof(string) }));
+
+            collectChunks = s.Method(frameProfilerType, "CollectChunks",
+                new[] { snapshotType, typeof(int), typeof(long), typeof(long), zoneChunkListType });
+            MethodInfo getLabel = s.Method(frameProfilerType, "GetLabel", new[] { labelIdType });
+            MethodInfo pathLabel = s.Method(frameProfilerType, "PathLabel", new[] { typeof(int) });
+            labelOf = Static<string>(getLabel);
+            if (getLabel != null && pathLabel != null)
             {
-                throw new MissingMemberException(type.FullName, name);
+                ParameterExpression pathId = Expression.Parameter(typeof(int), "pathId");
+                pathName = Expression.Lambda<Func<int, string>>(Expression.Call(getLabel, Expression.Call(pathLabel, pathId)), pathId).Compile();
             }
-            return method;
+            describePause = Static<int, string>(s.Method(frameProfilerType, "DescribePause", new[] { pauseReasonType, typeof(int) }));
+
+            snapshotFrameIndex = Get<int>(s, snapshotType, "frameIndex");
+            snapshotOrdinal = Get<int>(s, snapshotType, "captureOrdinal");
+            snapshotSectionCount = Get<int>(s, snapshotType, "sectionCount");
+            snapshotGen0 = Get<int>(s, snapshotType, "gen0Collections");
+            snapshotGen1 = Get<int>(s, snapshotType, "gen1Collections");
+            snapshotGen2 = Get<int>(s, snapshotType, "gen2Collections");
+            snapshotPauseCount = Get<int>(s, snapshotType, "pauseCount");
+            snapshotAllocObjects = Get<int>(s, snapshotType, "allocatedObjectCount");
+            snapshotTotalMs = Get<float>(s, snapshotType, "totalMs");
+            snapshotPauseMs = Get<float>(s, snapshotType, "pauseMs");
+            snapshotPromoted = Get<long>(s, snapshotType, "promotedBytes");
+            snapshotAllocBytes = Get<long>(s, snapshotType, "DisplayAllocBytes");
+            snapshotBegin = Get<long>(s, snapshotType, "beginTimeNanoseconds");
+            snapshotEnd = Get<long>(s, snapshotType, "endTimeNanoseconds");
+            snapshotIsSpike = Get<bool>(s, snapshotType, "isSpike");
+            snapshotSections = Get<Array>(s, snapshotType, "sections");
+            snapshotPathEntries = Get<Array>(s, snapshotType, "pathEntries");
+            snapshotPauses = Get<Array>(s, snapshotType, "pauses");
+            sectionThreadId = Get<int>(s, threadSectionType, "threadId");
+            sectionNameLabel = Get<object>(s, threadSectionType, "nameLabelId");
+            sectionStart = Get<long>(s, threadSectionType, "startNanoseconds");
+            sectionEnd = Get<long>(s, threadSectionType, "endNanoseconds");
+            sectionBusy = Get<long>(s, threadSectionType, "busyNanoseconds");
+            sectionFirstPath = Get<int>(s, threadSectionType, "firstPathEntry");
+            chunkBase = Get<long>(s, zoneChunkType, "baseNs");
+            chunkAllocStats = Get<Array>(s, zoneChunkType, "allocStats");
+            chunkNodes = Get<Array>(s, zoneChunkType, "nodes");
+            chunkCount = Get<int>(s, zoneChunkType, "Count");
+            allocTotal = Get<int>(s, allocStatType, "totalBytes");
+            allocSelf = Get<int>(s, allocStatType, "selfBytes");
+            allocCount = Get<int>(s, allocStatType, "count");
+            pathSelfUs = Get<float>(s, pathEntryType, "selfMicroseconds");
+            pathAllocBytes = Get<int>(s, pathEntryType, "allocBytes");
+            pauseStart = Get<int>(s, pauseType, "startMicroseconds");
+            pauseSuspended = Get<int>(s, pauseType, "suspendedMicroseconds");
+            pauseEnd = Get<int>(s, pauseType, "endMicroseconds");
+            pauseGeneration = Get<int>(s, pauseType, "condemnedGeneration");
+            pauseThread = Get<int>(s, pauseType, "triggeringThreadId");
+            pauseReason = Get<object>(s, pauseType, "reason");
+            pausePromoted = Get<long>(s, pauseType, "promotedBytes");
+            pauseCollected = Get<long>(s, pauseType, "collectedBytes");
+            nodePathId = Get<int>(s, zoneNodeType, "pathId");
+            nodeSubtreeEnd = Get<int>(s, zoneNodeType, "subtreeEnd");
+            nodeStart = Get<long>(s, zoneNodeType, "StartNanoseconds");
+            nodeEnd = Get<long>(s, zoneNodeType, "EndNanoseconds");
+            nodeIsOpen = Get<bool>(s, zoneNodeType, "IsOpen");
+
+            return s.Ready;
         }
 
         /// <summary>Compiled read of a field or property on a boxed instance, cast to <typeparamref name="T"/>.</summary>
-        private static Func<object, T> Get<T>(Type type, string member)
+        private static Func<object, T> Get<T>(ReflectionSurface s, Type type, string member)
         {
-            ParameterExpression instance = Expression.Parameter(typeof(object), "instance");
-            Expression target = type.IsValueType ? (Expression)Expression.Unbox(instance, type) : Expression.Convert(instance, type);
-            MemberInfo info = (MemberInfo)AccessTools.Field(type, member) ?? AccessTools.Property(type, member);
+            MemberInfo info = s.FieldOrProperty(type, member);
             if (info == null)
             {
-                throw new MissingMemberException(type.FullName, member);
+                return null;
             }
+            ParameterExpression instance = Expression.Parameter(typeof(object), "instance");
+            Expression target = type.IsValueType ? (Expression)Expression.Unbox(instance, type) : Expression.Convert(instance, type);
             Expression read = Expression.MakeMemberAccess(target, info);
             return Expression.Lambda<Func<object, T>>(Expression.Convert(read, typeof(T)), instance).Compile();
+        }
+
+        private static T Typed<T>(MethodInfo method) where T : Delegate
+        {
+            return method == null ? null : AccessTools.MethodDelegate<T>(method);
+        }
+
+        private static Action<object> Instance(Type type, MethodInfo method)
+        {
+            if (method == null)
+            {
+                return null;
+            }
+            ParameterExpression instance = Expression.Parameter(typeof(object), "instance");
+            return Expression.Lambda<Action<object>>(Expression.Call(Expression.Convert(instance, type), method), instance).Compile();
+        }
+
+        /// <summary>A static method whose first parameter is a 1.7-only type, taken boxed.</summary>
+        private static Func<object, TResult> Static<TResult>(MethodInfo method)
+        {
+            if (method == null)
+            {
+                return null;
+            }
+            ParameterExpression arg = Expression.Parameter(typeof(object), "arg");
+            Expression call = Expression.Call(method, Expression.Convert(arg, method.GetParameters()[0].ParameterType));
+            return Expression.Lambda<Func<object, TResult>>(call, arg).Compile();
+        }
+
+        private static Func<object, TArg, TResult> Static<TArg, TResult>(MethodInfo method)
+        {
+            if (method == null)
+            {
+                return null;
+            }
+            ParameterExpression arg = Expression.Parameter(typeof(object), "arg");
+            ParameterExpression second = Expression.Parameter(typeof(TArg), "second");
+            Expression call = Expression.Call(method, Expression.Convert(arg, method.GetParameters()[0].ParameterType), second);
+            return Expression.Lambda<Func<object, TArg, TResult>>(call, arg, second).Compile();
         }
 
         private static object Call(MethodInfo method, object instance, params object[] args)
@@ -397,33 +396,11 @@ namespace RimWorldAccess.Shell
 
         internal static object Session(object window) => windowSession(window);
         internal static object ActiveSection(object window) => windowActiveSection(window);
-        internal static object Flamechart(object window) => windowFlamechart(window);
-        internal static object ThreadFilter(object window) => windowThreadFilter(window);
-        internal static object Settings(object window) => windowSettings(window);
-        internal static object Histogram(object window) => windowHistogram(window);
-        internal static string StatusText(object window) => windowStatusText(window) ?? "";
-        internal static string FrameStepperText(object window) => windowFrameStepper(window) ?? "";
-        internal static string SearchQuery(object window) => windowSearchQuery(window) ?? "";
         internal static void CopyView(object window) => Call(windowCopyView, window);
 
         internal static bool ActiveIsCallTree(object window) => ReferenceEquals(windowActiveSection(window), windowCallTree(window));
-        internal static bool ActiveIsAlloc(object window) => ReferenceEquals(windowActiveSection(window), windowAllocTable(window));
         internal static bool ActiveIsVram(object window) => ReferenceEquals(windowActiveSection(window), windowVramTable(window));
         internal static bool FlamegraphMode(object window) => callTreeFlamegraph(windowCallTree(window));
-
-        /// <summary>The alloc or VRAM table's footer line, or empty when the active section has none.</summary>
-        internal static string ActiveFooter(object window)
-        {
-            if (ActiveIsAlloc(window))
-            {
-                return allocFooter(windowAllocTable(window)) ?? "";
-            }
-            if (ActiveIsVram(window))
-            {
-                return vramFooter(windowVramTable(window)) ?? "";
-            }
-            return "";
-        }
 
         // ---- Session ----
 
@@ -439,27 +416,18 @@ namespace RimWorldAccess.Shell
         internal static void ExtendSelection(object session, int newestOffset) => Call(sessionExtendSelection, session, newestOffset);
         internal static void ClearSelection(object session) => Call(sessionClearSelection, session);
         internal static void Invalidate(object session) => Call(sessionInvalidate, session);
+        internal static bool SearchActive(object session) => !string.IsNullOrEmpty(searchQuery(sessionSearch(session)));
+        internal static float BudgetMs(object session) => sessionBudgetMs(session);
 
         /// <summary>What a flamechart drag across one thread's lane does: that thread alone, over that span of the frame.</summary>
         internal static void SelectTimeRange(object session, int ordinal, int threadId, long startNs, long endNs)
         {
-            registrySelectOnly.Invoke(null, new object[] { threadId });
+            registrySelectOnly(threadId);
             Call(sessionSelectZoneTimeRange, session, ordinal, startNs, endNs);
-        }
-        internal static bool SearchActive(object session) => SearchQueryOf(session).Length > 0;
-
-        private static string SearchQueryOf(object session)
-        {
-            object search = sessionSearch(session);
-            PropertyInfo query = AccessTools.Property(search.GetType(), "Query");
-            return (query.GetValue(search) as string) ?? "";
         }
 
         /// <summary>Recorded frames in the active source (ring buffer or spikes); offset 0 is the newest.</summary>
-        internal static int FrameCount(object session)
-        {
-            return (int)frameStoreCountOf.Invoke(null, new[] { sessionSource(session) });
-        }
+        internal static int FrameCount(object session) => frameStoreCountOf(sessionSource(session));
 
         internal static object SnapshotAt(object session, int newestOffset)
         {
@@ -485,32 +453,27 @@ namespace RimWorldAccess.Shell
         internal static IList Rows(object view) => viewRows(view);
         internal static int SelectedIndex(object view) => viewSelectedIndex(view);
         internal static void Select(object view, int index) => Call(viewSelect, view, index);
-        internal static void MoveSelection(object view, int direction) => Call(viewMoveSelection, view, direction);
         internal static void ActivateSelected(object view, bool expandOnly) => Call(viewActivateSelected, view, expandOnly);
         internal static bool CopySelectedRow(object view) => (bool)Call(viewCopySelectedRow, view);
         internal static void SelectNextMatch(object view, int direction) => Call(viewSelectNextMatch, view, direction);
-        internal static string SearchStatus(object view) => viewSearchStatus(view) ?? "";
-        internal static string DetailHeader(object view) => viewDetailHeader(view);
-        internal static string LabelHeader(object view) => (string)viewLabelHeader(view).DynamicInvoke();
-        internal static Delegate LabelSort(object view) => viewLabelSort(view);
+        internal static string LabelHeader(object view) => viewLabelHeader(view)();
+        internal static Action LabelSort(object view) => viewLabelSort(view);
 
         /// <summary>The breadcrumb trail vanilla draws under the table: root crumb, then each ancestor of the selected row.</summary>
         internal static List<string> Crumbs(object view)
         {
-            List<string> crumbs = new List<string> { (string)viewRootCrumb(view).DynamicInvoke() };
-            IList entries = viewCrumbs(view);
-            for (int i = 0; i < entries.Count; i++)
+            List<string> crumbs = new List<string> { viewRootCrumb(view)() };
+            foreach (ValueTuple<string, int> entry in viewCrumbs(view))
             {
-                object tuple = entries[i];
-                crumbs.Add((string)AccessTools.Field(tuple.GetType(), "Item1").GetValue(tuple));
+                crumbs.Add(entry.Item1);
             }
             return crumbs;
         }
 
         internal static int ColumnCount(object view) => viewColumns(view)?.Length ?? 0;
         internal static string ColumnKind(object view, int column) => columnKind(viewColumns(view).GetValue(column)).ToString();
-        internal static string ColumnHeader(object view, int column) => (string)columnHeader(viewColumns(view).GetValue(column)).DynamicInvoke();
-        internal static Delegate ColumnSort(object view, int column) => columnSort(viewColumns(view).GetValue(column));
+        internal static string ColumnHeader(object view, int column) => columnHeader(viewColumns(view).GetValue(column))();
+        internal static Action ColumnSort(object view, int column) => columnSort(viewColumns(view).GetValue(column));
 
         /// <summary>The sort the call tree applies: its active column name ("Total", "Label", ...) and direction.</summary>
         internal static string ActiveSortColumn(object session) => treeActiveSortColumn(sessionTree(session)).ToString();
@@ -528,7 +491,7 @@ namespace RimWorldAccess.Shell
         /// <summary>A cell's text exactly as the table draws it, by <c>ProfilerColumnKind</c> name.</summary>
         internal static string RowCell(object row, string kind)
         {
-            rowEnsureDisplayText.Invoke(row, null);
+            rowEnsureDisplayText(row);
             switch (kind)
             {
                 case "Percent": return rowPercentText(row) ?? "";
@@ -550,9 +513,7 @@ namespace RimWorldAccess.Shell
         internal static string ThreadItemLabel(object item) => threadItemLabel(item) ?? "";
         internal static string ThreadItemBusy(object item) => threadItemBusy(item) ?? "";
         internal static string ThreadItemUtil(object item) => threadItemUtil(item) ?? "";
-        internal static string ThreadButtonLabel(object window) => threadButtonLabel(windowThreadFilter(window)) ?? "";
-        internal static string ThreadButtonBusy(object window) => threadButtonBusy(windowThreadFilter(window)) ?? "";
-        internal static bool ThreadPopupOpen(object window) => (bool)threadOpenField.GetValue(windowThreadFilter(window));
+        internal static bool ThreadPopupOpen(object window) => threadOpen(windowThreadFilter(window));
 
         internal static void SetThreadPopupOpen(object window, bool open)
         {
@@ -566,7 +527,7 @@ namespace RimWorldAccess.Shell
         /// </summary>
         internal static UnityEngine.Rect ThreadRowScreenRect(Window window, int row)
         {
-            UnityEngine.Rect popup = (UnityEngine.Rect)threadPopupRect.GetValue(windowThreadFilter(window));
+            UnityEngine.Rect popup = threadPopupRect(windowThreadFilter(window));
             if (popup.width <= 0f)
             {
                 return default(UnityEngine.Rect);
@@ -578,13 +539,9 @@ namespace RimWorldAccess.Shell
         }
 
         internal static void ToggleSelectAllThreads(object window) => Call(threadToggleSelectAll, windowThreadFilter(window));
-        internal static bool AllThreadsSelected() => (bool)registryAllSelected.GetValue(null);
-        internal static bool ThreadSelected(int threadId) => (bool)registryIsSelected.Invoke(null, new object[] { threadId });
-
-        internal static void SetThreadSelected(int threadId, bool value)
-        {
-            registrySetSelected.Invoke(null, new object[] { threadId, value });
-        }
+        internal static bool AllThreadsSelected() => registryAllSelected();
+        internal static bool ThreadSelected(int threadId) => registryIsSelected(threadId);
+        internal static void SetThreadSelected(int threadId, bool value) => registrySetSelected(threadId, value);
 
         // ---- Histogram ----
 
@@ -624,7 +581,6 @@ namespace RimWorldAccess.Shell
         internal static long PromotedBytes(object snapshot) => snapshotPromoted(snapshot);
         internal static long AllocBytes(object snapshot) => snapshotAllocBytes(snapshot);
         internal static int AllocObjects(object snapshot) => snapshotAllocObjects(snapshot);
-        internal static int TickDelta(object snapshot) => snapshotTickDelta(snapshot);
         internal static bool IsSpike(object snapshot) => snapshotIsSpike(snapshot);
         internal static long BeginNs(object snapshot) => snapshotBegin(snapshot);
         internal static long EndNs(object snapshot) => snapshotEnd(snapshot);
@@ -632,7 +588,7 @@ namespace RimWorldAccess.Shell
         internal static int SectionCount(object snapshot) => snapshotSectionCount(snapshot);
         internal static object SectionAt(object snapshot, int index) => snapshotSections(snapshot).GetValue(index);
         internal static int SectionThreadId(object section) => sectionThreadId(section);
-        internal static string SectionName(object section) => (string)getLabel.Invoke(null, new[] { sectionNameLabel(section) });
+        internal static string SectionName(object section) => labelOf(sectionNameLabel(section));
         internal static long SectionStartNs(object section) => sectionStart(section);
         internal static long SectionEndNs(object section) => sectionEnd(section);
         internal static long SectionBusyNs(object section) => sectionBusy(section);
@@ -640,7 +596,7 @@ namespace RimWorldAccess.Shell
         /// <summary>The zone chunks one thread recorded inside [startNs, endNs).</summary>
         internal static IList Chunks(object snapshot, int threadId, long startNs, long endNs)
         {
-            IList chunks = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(zoneChunkType));
+            IList chunks = (IList)Activator.CreateInstance(zoneChunkListType);
             collectChunks.Invoke(null, new object[] { snapshot, threadId, startNs, endNs, chunks });
             return chunks;
         }
@@ -671,8 +627,6 @@ namespace RimWorldAccess.Shell
             allocBytes = pathAllocBytes(entry);
         }
 
-        internal static float BudgetMs(object session) => sessionBudgetMs(session);
-
         /// <summary>One runtime pause (a garbage collection or other suspension) inside a frame.</summary>
         internal struct Pause
         {
@@ -696,7 +650,7 @@ namespace RimWorldAccess.Shell
                 int start = pauseStart(span), suspended = pauseSuspended(span), end = pauseEnd(span);
                 pauses.Add(new Pause
                 {
-                    Name = (string)describePause.Invoke(null, new[] { pauseReason(span), (object)pauseGeneration(span) }),
+                    Name = describePause(pauseReason(span), pauseGeneration(span)),
                     StartUs = start,
                     WaitingUs = suspended - start,
                     StoppedUs = end - suspended,
@@ -707,6 +661,7 @@ namespace RimWorldAccess.Shell
             }
             return pauses;
         }
+
         internal static int ChunkCount(object chunk) => Math.Min(chunkCount(chunk), chunkNodes(chunk).Length);
         internal static object NodeAt(object chunk, int index) => chunkNodes(chunk).GetValue(index);
         internal static int NodePathId(object node) => nodePathId(node);
@@ -714,30 +669,23 @@ namespace RimWorldAccess.Shell
         internal static long NodeStartNs(object node) => nodeStart(node);
         internal static long NodeEndNs(object node) => nodeEnd(node);
         internal static bool NodeIsOpen(object node) => nodeIsOpen(node);
-        internal static string PathName(int pathId) => (string)getLabel.Invoke(null, new[] { pathLabel.Invoke(null, new object[] { pathId }) });
-        internal static float ZoneSelfUs(object chunk, int index) => (float)flameZoneSelfUs.Invoke(null, new[] { chunk, index });
+        internal static string PathName(int pathId) => pathName(pathId);
+        internal static float ZoneSelfUs(object chunk, int index) => flameZoneSelfUs(chunk, index);
 
         // ---- Formatting, through the profiler's own helpers ----
 
         internal static string FormatMs(float ms)
         {
-            StringBuilder sb = new StringBuilder();
-            appendMs.Invoke(null, new object[] { sb, ms, "0.000", " " });
-            return sb.ToString();
-        }
-
-        internal static string FormatFrameMs(float ms)
-        {
-            StringBuilder sb = new StringBuilder();
-            appendFrameMs.Invoke(null, new object[] { sb, ms, "0.0" });
-            return sb.ToString();
+            formatBuffer.Length = 0;
+            appendMs(formatBuffer, ms, "0.000", " ");
+            return formatBuffer.ToString();
         }
 
         internal static string FormatBytes(long bytes)
         {
-            StringBuilder sb = new StringBuilder();
-            appendAllocBytes.Invoke(null, new object[] { sb, bytes, " " });
-            return sb.ToString();
+            formatBuffer.Length = 0;
+            appendAllocBytes(formatBuffer, bytes, " ");
+            return formatBuffer.ToString();
         }
     }
 }

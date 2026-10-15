@@ -185,9 +185,10 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPostfix]
-        public static void Postfix(int __state, ref string __result)
+        public static void Postfix(int __state, Rect rect, ref string __result)
         {
             WidgetCapture.MaybeOverrideText(__state, ref __result);
+            FrameProfilerCapture.OnTextField(rect, ref __result, false);
         }
     }
 
@@ -201,9 +202,10 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPostfix]
-        public static void Postfix(int __state, ref string __result)
+        public static void Postfix(int __state, Rect rect, ref string __result)
         {
             WidgetCapture.MaybeOverrideText(__state, ref __result);
+            FrameProfilerCapture.OnTextField(rect, ref __result, true);
         }
     }
 

@@ -21,16 +21,22 @@ namespace RimWorldAccess.Shell
             public Func<FrameProfilerScope, ProfilerControl, bool> Matches;
             /// <summary>For a two-segment group: press the segment that is not active.</summary>
             public bool Toggle;
+            /// <summary>The scope already claims this chord with a handler of its own.</summary>
+            public bool OwnClaim;
+            /// <summary>What a bare-glyph button is spoken as: the action its click runs.</summary>
+            public string SpokenKey;
+            /// <summary>A frame stepper, whose effect is the frame it lands on.</summary>
+            public bool StepsFrames;
         }
 
         private static readonly List<HotkeyTarget> hotkeyTargets = new List<HotkeyTarget>
         {
             Button("frameProfiler.settings", ProfilerZone.Title, ProfilerControlKind.Chip, "Settings"),
-            Button(SharedMenuGrammar.Cancel, ProfilerZone.Title, ProfilerControlKind.Ghost, "×"),
-            new HotkeyTarget { ActionId = "frameProfiler.pause", Matches = (s, c) => c.Zone == ProfilerZone.Toolbar && c.Kind == ProfilerControlKind.Chip },
-            Button("frameProfiler.olderFrame", ProfilerZone.Toolbar, ProfilerControlKind.Ghost, "◀"),
-            Button("frameProfiler.newerFrame", ProfilerZone.Toolbar, ProfilerControlKind.Ghost, "▶"),
-            Button("frameProfiler.newestFrame", ProfilerZone.Toolbar, ProfilerControlKind.Ghost, "▶▶"),
+            Glyph(SharedMenuGrammar.Cancel, ProfilerZone.Title, "×", "RimWorldAccess.FrameProfiler.Control.Close", ownClaim: true),
+            new HotkeyTarget { ActionId = "frameProfiler.pause", OwnClaim = true, Matches = (s, c) => c.Zone == ProfilerZone.Toolbar && c.Kind == ProfilerControlKind.Chip },
+            FrameStep("frameProfiler.olderFrame", "◀", "RimWorldAccess.FrameProfiler.Control.OlderFrame"),
+            FrameStep("frameProfiler.newerFrame", "▶", "RimWorldAccess.FrameProfiler.Control.NewerFrame"),
+            FrameStep("frameProfiler.newestFrame", "▶▶", "RimWorldAccess.FrameProfiler.Control.NewestFrame"),
             Segments("frameProfiler.toggleSource", ProfilerZone.Toolbar, 0),
             Segments("frameProfiler.toggleHistogramMode", ProfilerZone.HistogramHeader, 0),
             Button("frameProfiler.clearFrames", ProfilerZone.HistogramHeader, ProfilerControlKind.Ghost, "Clear"),
@@ -41,9 +47,9 @@ namespace RimWorldAccess.Shell
             new HotkeyTarget { ActionId = "frameProfiler.threads", Matches = (s, c) => c.Kind == ProfilerControlKind.ThreadButton },
             new HotkeyTarget { ActionId = "frameProfiler.search", Matches = (s, c) => c.Kind == ProfilerControlKind.SearchField },
             new HotkeyTarget { ActionId = "frameProfiler.invert", Matches = (s, c) => c.Zone == ProfilerZone.TabStrip && c.Kind == ProfilerControlKind.Chip && c.Label.EndsWith("Invert") },
-            Button("frameProfiler.expandAll", ProfilerZone.TabStrip, ProfilerControlKind.Ghost, "+"),
-            Button("frameProfiler.collapseAll", ProfilerZone.TabStrip, ProfilerControlKind.Ghost, "−"),
-            Button("frameProfiler.copyView", ProfilerZone.TabStrip, ProfilerControlKind.Ghost, "Copy"),
+            Glyph("frameProfiler.expandAll", ProfilerZone.TabStrip, "+", "RimWorldAccess.FrameProfiler.Control.ExpandAll"),
+            Glyph("frameProfiler.collapseAll", ProfilerZone.TabStrip, "−", "RimWorldAccess.FrameProfiler.Control.CollapseAll"),
+            new HotkeyTarget { ActionId = "frameProfiler.copyView", OwnClaim = true, Matches = (s, c) => c.Zone == ProfilerZone.TabStrip && c.Kind == ProfilerControlKind.Ghost && c.Label == "Copy" },
             Button("frameProfiler.vramBaseline", ProfilerZone.TabStrip, ProfilerControlKind.Chip, "Baseline"),
             Button("frameProfiler.vramClearBaseline", ProfilerZone.TabStrip, ProfilerControlKind.Chip, "Clear Δ"),
             Button("frameProfiler.vramDeltaSort", ProfilerZone.TabStrip, ProfilerControlKind.Chip, "Δ sort"),
@@ -53,6 +59,21 @@ namespace RimWorldAccess.Shell
         private static HotkeyTarget Button(string actionId, ProfilerZone zone, ProfilerControlKind kind, string label)
         {
             return new HotkeyTarget { ActionId = actionId, Matches = (s, c) => c.Zone == zone && c.Kind == kind && c.Label == label };
+        }
+
+        private static HotkeyTarget Glyph(string actionId, ProfilerZone zone, string glyph, string spokenKey, bool ownClaim = false)
+        {
+            HotkeyTarget target = Button(actionId, zone, ProfilerControlKind.Ghost, glyph);
+            target.SpokenKey = spokenKey;
+            target.OwnClaim = ownClaim;
+            return target;
+        }
+
+        private static HotkeyTarget FrameStep(string actionId, string glyph, string spokenKey)
+        {
+            HotkeyTarget target = Glyph(actionId, ProfilerZone.Toolbar, glyph, spokenKey, ownClaim: true);
+            target.StepsFrames = true;
+            return target;
         }
 
         /// <summary>A two-segment group, by its order among the zone's segment groups.</summary>
@@ -84,18 +105,11 @@ namespace RimWorldAccess.Shell
             for (int i = 0; i < hotkeyTargets.Count; i++)
             {
                 HotkeyTarget target = hotkeyTargets[i];
-                if (target.ActionId.StartsWith("frameProfiler.", StringComparison.Ordinal) && !ExistingClaim(target.ActionId))
+                if (!target.OwnClaim)
                 {
                     Claim(target.ActionId, e => PressHotkey(target), when: NotEditing);
                 }
             }
-        }
-
-        /// <summary>Chords the window already had (pause, frame steps, copy view) keep their own handlers.</summary>
-        private static bool ExistingClaim(string actionId)
-        {
-            return actionId == "frameProfiler.pause" || actionId == "frameProfiler.olderFrame" || actionId == "frameProfiler.newerFrame"
-                || actionId == "frameProfiler.newestFrame" || actionId == "frameProfiler.copyView";
         }
 
         /// <summary>A segment group's position among the groups its zone drew this pass.</summary>
@@ -121,14 +135,14 @@ namespace RimWorldAccess.Shell
             return -1;
         }
 
-        /// <summary>The spoken chord for a control row, or null when it has none.</summary>
-        private string HotkeyFor(ProfilerControl control)
+        /// <summary>The hotkey entry a control row answers to, or null when it has none.</summary>
+        private HotkeyTarget TargetFor(ProfilerControl control)
         {
             for (int i = 0; i < hotkeyTargets.Count; i++)
             {
                 if (hotkeyTargets[i].Matches(this, control))
                 {
-                    return ChordDisplay(hotkeyTargets[i].ActionId);
+                    return hotkeyTargets[i];
                 }
             }
             return null;
@@ -156,9 +170,7 @@ namespace RimWorldAccess.Shell
             switch (control.Kind)
             {
                 case ProfilerControlKind.ThreadButton:
-                    FrameProfilerAccess.SetThreadPopupOpen(window, true);
-                    SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
-                    Defer(Pending.Current);
+                    OpenThreadPopup();
                     return;
                 case ProfilerControlKind.SearchField:
                     MoveCursorTo(RegionKind.TableControls, row => row.IsControl && row.Control.Kind == ProfilerControlKind.SearchField);
@@ -186,7 +198,7 @@ namespace RimWorldAccess.Shell
         /// <summary>Speaks one control's row as focus would, without moving the cursor onto it.</summary>
         private void AnnounceControl(ProfilerControl control)
         {
-            ElementDescription d = DescribeRow(new Row { Control = control, IsControl = true });
+            ElementDescription d = DescribeRow(new Row { Control = control });
             TolkHelper.SpeakData(AnnouncementComposer.ComposeFocus(d, TranslatedShellVocabulary.Instance, TextDialogShared.StandardComposeOptions()));
         }
 
@@ -218,8 +230,7 @@ namespace RimWorldAccess.Shell
             {
                 if (match(rows[i]))
                 {
-                    Model.MoveToRegion(region);
-                    Model.CurrentRegion?.MoveTo(i);
+                    LandCursorAt(region, i, announce: false);
                     return;
                 }
             }

@@ -642,7 +642,10 @@ namespace RimWorldAccess.Shell
             if (!CursorInTreeRegion || treeIndex < 0 || treeIndex >= Tree.Count)
             {
                 // No tree context for a sibling-scoped jump: fall back to the flat region edge.
-                if (first) region.MoveFirst(); else region.MoveLast();
+                if (!MenuHelper.SoundMove(first ? region.MoveFirst() : region.MoveLast()))
+                {
+                    return;
+                }
                 NotifyCursorSettled();
                 AnnounceCurrent(CellAxis.Row);
                 return;

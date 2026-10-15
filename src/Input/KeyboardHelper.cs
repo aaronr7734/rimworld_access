@@ -59,26 +59,22 @@ namespace RimWorldAccess
                     return true;
                 if (!NativeLibraryLoader.IsMacOS)
                     return false;
-                // Mac Tab substitution: Option stands in for Ctrl, which is undeliverable with Tab.
-                if (Event.current != null && Event.current.keyCode == KeyCode.Tab)
+                if (Event.current != null && OptionStandsInForCtrl(Event.current.keyCode))
                     return Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt);
                 // Outside the Tab special case, Cmd substitutes for Ctrl as usual.
                 return Input.GetKey(KeyCode.LeftCommand) || Input.GetKey(KeyCode.RightCommand);
             }
         }
 
-        /// <summary>
-        /// User-facing label for the Ctrl modifier of a Tab chord: "Option" on macOS, where Ctrl+Tab
-        /// maps to Option+Tab (see IsCtrlHeld). <see cref="CtrlLabelFor"/> names it for any key.
-        /// </summary>
-        public static string CtrlLabel =>
-            NativeLibraryLoader.IsMacOS ? "Option" : "Ctrl";
+        /// <summary>Mac only: Ctrl is undeliverable with Tab, so Option stands in for it there.</summary>
+        private static bool OptionStandsInForCtrl(KeyCode key) => key == KeyCode.Tab;
 
+        /// <summary>The key that plays Ctrl in a chord with <paramref name="key"/>, as <see cref="IsCtrlHeld"/> reads it.</summary>
         public static string CtrlLabelFor(KeyCode key)
         {
             if (!NativeLibraryLoader.IsMacOS)
                 return "Ctrl";
-            return key == KeyCode.Tab ? "Option" : "Command";
+            return OptionStandsInForCtrl(key) ? "Option" : "Command";
         }
 
         /// <summary>Twin detection's order-free half: 1.7 sends a keypress's character before its keyCode event, which the frame stamps assume comes first.</summary>
