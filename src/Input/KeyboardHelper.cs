@@ -68,12 +68,18 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// User-facing label for the Ctrl modifier on this platform, so help text matches the keyboard
-        /// the user has. "Option" on macOS, because the cross-platform Ctrl+Tab shortcut maps to
-        /// Option+Tab there (see IsCtrlHeld).
+        /// User-facing label for the Ctrl modifier of a Tab chord: "Option" on macOS, where Ctrl+Tab
+        /// maps to Option+Tab (see IsCtrlHeld). <see cref="CtrlLabelFor"/> names it for any key.
         /// </summary>
         public static string CtrlLabel =>
             NativeLibraryLoader.IsMacOS ? "Option" : "Ctrl";
+
+        public static string CtrlLabelFor(KeyCode key)
+        {
+            if (!NativeLibraryLoader.IsMacOS)
+                return "Ctrl";
+            return key == KeyCode.Tab ? "Option" : "Command";
+        }
 
         /// <summary>Twin detection's order-free half: 1.7 sends a keypress's character before its keyCode event, which the frame stamps assume comes first.</summary>
         internal static bool IsPhysicallyDown(KeyCode key)

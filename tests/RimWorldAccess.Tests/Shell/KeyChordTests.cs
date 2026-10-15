@@ -129,8 +129,9 @@ public class KeyChordTests
         var previous = KeyChordFormat.CtrlLabel;
         try
         {
-            KeyChordFormat.CtrlLabel = () => "Option";
-            Assert.Equal("Option+M", KeyChord.Parse("Ctrl+M").DisplayLabel);
+            KeyChordFormat.CtrlLabel = key => key == KeyCode.Tab ? "Option" : "Command";
+            Assert.Equal("Command+M", KeyChord.Parse("Ctrl+M").DisplayLabel);
+            Assert.Equal("Option+Tab", KeyChord.Parse("Ctrl+Tab").DisplayLabel);
         }
         finally
         {

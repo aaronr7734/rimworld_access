@@ -598,11 +598,12 @@ namespace RimWorldAccess.Shell
         {
             { "Ctrl", "RimWorldAccess.Shell.Key.Ctrl" },
             { "Option", "RimWorldAccess.Shell.Key.Option" },
+            { "Command", "RimWorldAccess.Shell.Key.Command" },
         };
 
         private static void InstallChordDisplayHooks()
         {
-            KeyChordFormat.CtrlLabel = () => SpokenModifierName(KeyboardHelper.CtrlLabel);
+            KeyChordFormat.CtrlLabel = key => SpokenModifierName(KeyboardHelper.CtrlLabelFor(key));
             KeyChordFormat.ShiftLabel = () => "RimWorldAccess.Shell.Key.Shift".Translate().Resolve();
             // The Alt key IS Option on a Mac keyboard, so every Alt chord reads as the key the
             // player actually presses.

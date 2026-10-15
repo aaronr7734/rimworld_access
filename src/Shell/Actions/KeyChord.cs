@@ -206,7 +206,7 @@ namespace RimWorldAccess.Shell
                 var sb = new StringBuilder();
                 if (Ctrl)
                 {
-                    sb.Append(KeyChordFormat.CtrlLabel());
+                    sb.Append(KeyChordFormat.CtrlLabel(Key));
                     sb.Append('+');
                 }
                 if (Shift)
@@ -258,15 +258,15 @@ namespace RimWorldAccess.Shell
     /// <summary>
     /// Display hooks for KeyChord.DisplayLabel. Pure defaults here; the game
     /// side installs platform- and language-aware providers at startup
-    /// (ShellBootstrap.InstallChordDisplayHooks: macOS substitutes Option for
-    /// Ctrl per KeyboardHelper.CtrlLabel, and every worded key name comes from
+    /// (ShellBootstrap.InstallChordDisplayHooks: macOS names Ctrl as the key that
+    /// fires it, see KeyboardHelper.IsCtrlHeld, and every worded key name comes from
     /// the Shell.Key.* Keyed table) without the struct ever touching a game
     /// API. The English defaults below are the exact strings those keys carry,
     /// so unhooked contexts — the test project above all — read identically.
     /// </summary>
     public static class KeyChordFormat
     {
-        public static Func<string> CtrlLabel = () => "Ctrl";
+        public static Func<KeyCode, string> CtrlLabel = key => "Ctrl";
         public static Func<string> ShiftLabel = () => "Shift";
         public static Func<string> AltLabel = () => "Alt";
 
