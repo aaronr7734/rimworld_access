@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 using HarmonyLib;
 using UnityEngine;
@@ -22,21 +23,33 @@ namespace RimWorldAccess.Shell
     /// Screen rects alone cannot match two draws safely: the translation does not clamp to the
     /// active clip, so a row scrolled below a ScrollView's fold still resolves to a real
     /// off-screen rect that can numerically collide with an unrelated widget below the fold.
-    /// <see cref="ClipKey"/> captures the active clip context (<c>GUIClip.visibleRect</c> + stack
-    /// depth) so callers can require CONTEXT equality alongside rect overlap: two draws in the
-    /// same context have consistent screen rects by construction, and draws in different contexts
-    /// never match regardless of numeric overlap.
+    /// <see cref="ClipKey"/> captures the active clip context (visible rect + stack depth) so
+    /// callers can require CONTEXT equality alongside rect overlap; draws in different contexts
+    /// never match regardless of numeric overlap. 1.7 lacks Unity's GUIClip members (WaylithClip).
     /// </summary>
     public static class GuiSpace
     {
-        private static readonly Func<Rect> getVisibleRect = ResolveVisibleRect();
-        private static readonly Func<int> getDepth = ResolveDepth();
+        private static readonly Func<Rect> getVisibleRect;
+        private static readonly Func<int> getDepth;
+
+        static GuiSpace()
+        {
+            Type guiClipType = AccessTools.TypeByName("UnityEngine.GUIClip");
+            bool unityClip = guiClipType != null && AccessTools.Property(guiClipType, "visibleRect") != null;
+            if (!unityClip && WaylithClip.TryBind())
+            {
+                getVisibleRect = WaylithClip.VisibleRect;
+                getDepth = WaylithClip.Depth;
+                return;
+            }
+            getVisibleRect = ResolveVisibleRect();
+            getDepth = ResolveDepth();
+        }
 
         /// <summary>
-        /// The active GUIClip stack's context: the running intersection of every enclosing
+        /// The active clip stack's context: the running intersection of every enclosing
         /// BeginGroup/ScrollView clip rect, plus stack depth to disambiguate two contexts sharing
-        /// one visible rect. Exact-field equality is correct within a single pass, since both
-        /// values come from the same live GUIClip stack.
+        /// one visible rect. Exact-field equality is correct within a single pass.
         /// </summary>
         public struct ClipKey : IEquatable<ClipKey>
         {
@@ -227,6 +240,81 @@ namespace RimWorldAccess.Shell
                 return default(ClipKey);
             }
             return new ClipKey { VisibleRect = getVisibleRect(), Depth = getDepth() };
+        }
+
+        /// <summary>GUIClip's readings rebuilt from 1.7's <c>UnityStubs.Gui.IGuiBackend</c> group stack (clip rect in parent-local space, content origin, UI points). Reflection: absent on 1.6.</summary>
+        private static class WaylithClip
+        {
+            private delegate void GetGroupFn(object backend, int index, out Rect rect, out Vector2 contentOrigin);
+
+            private static Func<object> current;
+            private static Func<object, int> groupCount;
+            private static GetGroupFn getGroup;
+
+            internal static bool TryBind()
+            {
+                try
+                {
+                    Type holder = AccessTools.TypeByName("UnityStubs.Gui.GuiBackend");
+                    Type backendType = AccessTools.TypeByName("UnityStubs.Gui.IGuiBackend");
+                    PropertyInfo currentProp = holder == null ? null : AccessTools.Property(holder, "Current");
+                    PropertyInfo countProp = backendType == null ? null : AccessTools.Property(backendType, "GroupCount");
+                    MethodInfo getGroupMethod = backendType == null ? null : AccessTools.Method(backendType, "GetGroup");
+                    if (currentProp == null || countProp == null || getGroupMethod == null)
+                    {
+                        return false;
+                    }
+
+                    current = Expression.Lambda<Func<object>>(
+                        Expression.Convert(Expression.Property(null, currentProp), typeof(object))).Compile();
+
+                    ParameterExpression backend = Expression.Parameter(typeof(object), "backend");
+                    groupCount = Expression.Lambda<Func<object, int>>(
+                        Expression.Property(Expression.Convert(backend, backendType), countProp), backend).Compile();
+
+                    ParameterExpression index = Expression.Parameter(typeof(int), "index");
+                    ParameterExpression rect = Expression.Parameter(typeof(Rect).MakeByRefType(), "rect");
+                    ParameterExpression origin = Expression.Parameter(typeof(Vector2).MakeByRefType(), "contentOrigin");
+                    getGroup = Expression.Lambda<GetGroupFn>(
+                        Expression.Call(Expression.Convert(backend, backendType), getGroupMethod, index, rect, origin),
+                        backend, index, rect, origin).Compile();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning("[RimWorld Access] GuiSpace failed to bind the 1.7 GUI backend's group stack: " + ex);
+                    return false;
+                }
+            }
+
+            internal static int Depth()
+            {
+                object backend = current();
+                return backend == null ? 0 : groupCount(backend);
+            }
+
+            /// <summary>The running intersection of the screen and every open group, in the innermost group's local space, as GUIClip.visibleRect reports it.</summary>
+            internal static Rect VisibleRect()
+            {
+                float xMin = 0f;
+                float yMin = 0f;
+                float xMax = UI.screenWidth;
+                float yMax = UI.screenHeight;
+                Vector2 parentOrigin = Vector2.zero;
+                object backend = current();
+                int count = backend == null ? 0 : groupCount(backend);
+                for (int i = 0; i < count; i++)
+                {
+                    getGroup(backend, i, out Rect clip, out Vector2 origin);
+                    xMin = Mathf.Max(xMin, clip.xMin + parentOrigin.x);
+                    yMin = Mathf.Max(yMin, clip.yMin + parentOrigin.y);
+                    xMax = Mathf.Min(xMax, clip.xMax + parentOrigin.x);
+                    yMax = Mathf.Min(yMax, clip.yMax + parentOrigin.y);
+                    parentOrigin = origin;
+                }
+                return Rect.MinMaxRect(xMin - parentOrigin.x, yMin - parentOrigin.y,
+                    Mathf.Max(xMin, xMax) - parentOrigin.x, Mathf.Max(yMin, yMax) - parentOrigin.y);
+            }
         }
     }
 }
