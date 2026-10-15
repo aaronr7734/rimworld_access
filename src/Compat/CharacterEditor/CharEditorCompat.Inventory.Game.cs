@@ -149,7 +149,7 @@ namespace RimWorldAccess
             try
             {
                 if (evt != null)
-                    evt.modifiers = modifiers;
+                    KeyboardHelper.SetEventModifiers(evt, modifiers);
                 method.Invoke(instance, args);
             }
             catch (Exception ex)
@@ -159,7 +159,7 @@ namespace RimWorldAccess
             finally
             {
                 if (evt != null)
-                    evt.modifiers = original;
+                    KeyboardHelper.SetEventModifiers(evt, original);
             }
         }
 

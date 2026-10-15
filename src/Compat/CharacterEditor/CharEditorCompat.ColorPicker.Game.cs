@@ -446,7 +446,7 @@ namespace RimWorldAccess
             try
             {
                 if (Event.current != null)
-                    Event.current.modifiers = EventModifiers.Control;
+                    KeyboardHelper.SetEventModifiers(Event.current, EventModifiers.Control);
                 aColorSelectedByGeneMethod.Invoke(dlg, new object[] { gene.def.IconColor, gene });
             }
             catch (Exception ex)
@@ -456,7 +456,7 @@ namespace RimWorldAccess
             finally
             {
                 if (Event.current != null)
-                    Event.current.modifiers = original;
+                    KeyboardHelper.SetEventModifiers(Event.current, original);
             }
         }
 

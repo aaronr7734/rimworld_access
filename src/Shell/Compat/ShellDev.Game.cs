@@ -107,7 +107,7 @@ namespace RimWorldAccess.Shell
             {
                 modifiers |= EventModifiers.Alt;
             }
-            synthetic.modifiers = modifiers;
+            KeyboardHelper.SetEventModifiers(synthetic, modifiers);
 
             Event.current = synthetic;
             KeyboardHelper.InjectionOverrideActive = true;

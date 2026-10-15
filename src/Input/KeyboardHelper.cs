@@ -81,8 +81,7 @@ namespace RimWorldAccess
             return !InjectionOverrideActive && (Input.GetKey(key) || Input.GetKeyDown(key));
         }
 
-        // Tracks the frame when a real KeyCode.RightBracket was seen, so we don't
-        // also remap the follow-up character event that Unity sends for the same keypress.
+        // The frame a real KeyCode.RightBracket arrived, so its follow-up character event is not remapped too.
         private static int lastRightBracketFrame = -1;
 
         /// <summary>
@@ -210,6 +209,14 @@ namespace RimWorldAccess
                 default:
                     return key;
             }
+        }
+
+        /// <summary>RimWorld 1.7 stores Event.shift/alt apart from modifiers (Unity derived them), so all three are written.</summary>
+        public static void SetEventModifiers(Event e, EventModifiers modifiers)
+        {
+            e.modifiers = modifiers;
+            e.shift = (modifiers & EventModifiers.Shift) != 0;
+            e.alt = (modifiers & EventModifiers.Alt) != 0;
         }
 
         /// <summary>Applies <see cref="RemapCharacterToKeyCode"/> globally by writing back to Event.current.keyCode, so every downstream patch sees the remapped key.</summary>
