@@ -41,6 +41,14 @@ namespace RimWorldAccess
                 });
             }
 
+            if (VefCreateOutpostCompat.Ready)
+            {
+                ScopeForWindow.RegisterHierarchy(VefCreateOutpostCompat.DialogType, delegate (Window w)
+                {
+                    return new VefCreateOutpostScope(w);
+                });
+            }
+
             if (VefPreceptOptionsCompat.Ready)
             {
                 ScopeForWindow.RegisterHierarchy(VefPreceptOptionsCompat.DialogType, delegate (Window w)
