@@ -192,6 +192,37 @@ namespace RimWorldAccess
             return category;
         }
 
+        private static bool IsPlayerOutpost(WorldObject worldObj)
+        {
+            return worldObj is MapParent && !(worldObj is Settlement) && worldObj.Faction == Faction.OfPlayer;
+        }
+
+        private static WorldScannerCategory CreateOutpostsCategory(PlanetTile originTile)
+        {
+            var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.Outposts".Translate());
+            var subcat = new WorldScannerSubcategory("RimWorldAccess.WorldScanner.Sub.PlayerOutposts".Translate());
+
+            var allObjects = Find.WorldObjects?.AllWorldObjects;
+            if (allObjects != null)
+            {
+                foreach (var worldObj in allObjects)
+                {
+                    if (!IsPlayerOutpost(worldObj) || !worldObj.Tile.Valid)
+                        continue;
+
+                    var item = new WorldScannerItem(worldObj);
+                    string kind = worldObj.def?.label;
+                    if (!string.IsNullOrEmpty(kind) && !string.Equals(kind, item.Label, StringComparison.OrdinalIgnoreCase))
+                        item.Label = "RimWorldAccess.WorldScanner.NamedOutpost".Translate(item.Label, kind);
+                    subcat.Items.Add(item);
+                }
+            }
+
+            SortItemsByDistance(subcat.Items, originTile);
+            category.Subcategories.Add(subcat);
+            return category;
+        }
+
         private static WorldScannerCategory CreateOtherSitesCategory(PlanetTile originTile)
         {
             var category = new WorldScannerCategory("RimWorldAccess.WorldScanner.Cat.OtherSites".Translate());
@@ -221,7 +252,7 @@ namespace RimWorldAccess
 
                 foreach (var worldObj in allObjects)
                 {
-                    if (worldObj is Settlement || worldObj is Caravan)
+                    if (worldObj is Settlement || worldObj is Caravan || IsPlayerOutpost(worldObj))
                         continue;
                     if (questTiles.Contains(worldObj.Tile))
                         continue;

@@ -626,6 +626,7 @@
   <RimWorldAccess.WorldScanner.Cat.Settlements>Yerleşimler</RimWorldAccess.WorldScanner.Cat.Settlements>
   <RimWorldAccess.WorldScanner.Cat.QuestSites>Görev Bölgeleri</RimWorldAccess.WorldScanner.Cat.QuestSites>
   <RimWorldAccess.WorldScanner.Cat.Caravans>Kervanlar</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.Outposts>Karakollar</RimWorldAccess.WorldScanner.Cat.Outposts>
   <RimWorldAccess.WorldScanner.Cat.OtherSites>Diğer Bölgeler</RimWorldAccess.WorldScanner.Cat.OtherSites>
   <RimWorldAccess.WorldScanner.Cat.Biomes>Biyomlar</RimWorldAccess.WorldScanner.Cat.Biomes>
   <RimWorldAccess.WorldScanner.Cat.Roads>Yollar</RimWorldAccess.WorldScanner.Cat.Roads>
@@ -649,6 +650,8 @@
   <RimWorldAccess.WorldScanner.Sub.Hostile>Düşman</RimWorldAccess.WorldScanner.Sub.Hostile>
   <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Etkin Görevler</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Oyuncu Kervanları</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.PlayerOutposts>Oyuncu Karakolları</RimWorldAccess.WorldScanner.Sub.PlayerOutposts>
+  <RimWorldAccess.WorldScanner.NamedOutpost>{0}, {1}</RimWorldAccess.WorldScanner.NamedOutpost>
   <RimWorldAccess.WorldScanner.Sub.Sites>Bölgeler</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>Tüm Biyomlar</RimWorldAccess.WorldScanner.Sub.AllBiomes>
   <RimWorldAccess.WorldScanner.Unreachable>Erişilemez</RimWorldAccess.WorldScanner.Unreachable>

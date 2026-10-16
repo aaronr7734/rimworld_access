@@ -626,6 +626,7 @@
   <RimWorldAccess.WorldScanner.Cat.Settlements>Colonies</RimWorldAccess.WorldScanner.Cat.Settlements>
   <RimWorldAccess.WorldScanner.Cat.QuestSites>Sites de quête</RimWorldAccess.WorldScanner.Cat.QuestSites>
   <RimWorldAccess.WorldScanner.Cat.Caravans>Caravanes</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.Outposts>Avant-postes</RimWorldAccess.WorldScanner.Cat.Outposts>
   <RimWorldAccess.WorldScanner.Cat.OtherSites>Autres sites</RimWorldAccess.WorldScanner.Cat.OtherSites>
   <RimWorldAccess.WorldScanner.Cat.Biomes>Biomes</RimWorldAccess.WorldScanner.Cat.Biomes>
   <RimWorldAccess.WorldScanner.Cat.Roads>Routes</RimWorldAccess.WorldScanner.Cat.Roads>
@@ -649,6 +650,8 @@
   <RimWorldAccess.WorldScanner.Sub.Hostile>Hostiles</RimWorldAccess.WorldScanner.Sub.Hostile>
   <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Quêtes actives</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Caravanes du joueur</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.PlayerOutposts>Avant-postes du joueur</RimWorldAccess.WorldScanner.Sub.PlayerOutposts>
+  <RimWorldAccess.WorldScanner.NamedOutpost>{0}, {1}</RimWorldAccess.WorldScanner.NamedOutpost>
   <RimWorldAccess.WorldScanner.Sub.Sites>Sites</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>Tous les biomes</RimWorldAccess.WorldScanner.Sub.AllBiomes>
   <RimWorldAccess.WorldScanner.Unreachable>Inaccessible</RimWorldAccess.WorldScanner.Unreachable>

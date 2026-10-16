@@ -622,6 +622,7 @@
   <RimWorldAccess.WorldScanner.Cat.Settlements>定居点</RimWorldAccess.WorldScanner.Cat.Settlements>
   <RimWorldAccess.WorldScanner.Cat.QuestSites>任务地点</RimWorldAccess.WorldScanner.Cat.QuestSites>
   <RimWorldAccess.WorldScanner.Cat.Caravans>远行队</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.Outposts>前哨站</RimWorldAccess.WorldScanner.Cat.Outposts>
   <RimWorldAccess.WorldScanner.Cat.OtherSites>其他地点</RimWorldAccess.WorldScanner.Cat.OtherSites>
   <RimWorldAccess.WorldScanner.Cat.Biomes>生物群系</RimWorldAccess.WorldScanner.Cat.Biomes>
   <RimWorldAccess.WorldScanner.Cat.Roads>道路</RimWorldAccess.WorldScanner.Cat.Roads>
@@ -645,6 +646,8 @@
   <RimWorldAccess.WorldScanner.Sub.Hostile>敌对</RimWorldAccess.WorldScanner.Sub.Hostile>
   <RimWorldAccess.WorldScanner.Sub.ActiveQuests>进行中的任务</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>玩家远行队</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.PlayerOutposts>玩家前哨站</RimWorldAccess.WorldScanner.Sub.PlayerOutposts>
+  <RimWorldAccess.WorldScanner.NamedOutpost>{0}（{1}）</RimWorldAccess.WorldScanner.NamedOutpost>
   <RimWorldAccess.WorldScanner.Sub.Sites>地点</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>全部生物群系</RimWorldAccess.WorldScanner.Sub.AllBiomes>
   <RimWorldAccess.WorldScanner.Unreachable>无法抵达</RimWorldAccess.WorldScanner.Unreachable>

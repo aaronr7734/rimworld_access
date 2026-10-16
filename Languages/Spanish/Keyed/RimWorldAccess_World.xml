@@ -625,6 +625,7 @@
   <RimWorldAccess.WorldScanner.Cat.Settlements>Asentamientos</RimWorldAccess.WorldScanner.Cat.Settlements>
   <RimWorldAccess.WorldScanner.Cat.QuestSites>Sitios de misión</RimWorldAccess.WorldScanner.Cat.QuestSites>
   <RimWorldAccess.WorldScanner.Cat.Caravans>Caravanas</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.Outposts>Puestos avanzados</RimWorldAccess.WorldScanner.Cat.Outposts>
   <RimWorldAccess.WorldScanner.Cat.OtherSites>Otros sitios</RimWorldAccess.WorldScanner.Cat.OtherSites>
   <RimWorldAccess.WorldScanner.Cat.Biomes>Biomas</RimWorldAccess.WorldScanner.Cat.Biomes>
   <RimWorldAccess.WorldScanner.Cat.Roads>Caminos</RimWorldAccess.WorldScanner.Cat.Roads>
@@ -648,6 +649,8 @@
   <RimWorldAccess.WorldScanner.Sub.Hostile>Hostiles</RimWorldAccess.WorldScanner.Sub.Hostile>
   <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Misiones activas</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Caravanas del jugador</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.PlayerOutposts>Puestos avanzados del jugador</RimWorldAccess.WorldScanner.Sub.PlayerOutposts>
+  <RimWorldAccess.WorldScanner.NamedOutpost>{0}, {1}</RimWorldAccess.WorldScanner.NamedOutpost>
   <RimWorldAccess.WorldScanner.Sub.Sites>Sitios</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>Todos los biomas</RimWorldAccess.WorldScanner.Sub.AllBiomes>
   <RimWorldAccess.WorldScanner.Unreachable>Inalcanzable</RimWorldAccess.WorldScanner.Unreachable>

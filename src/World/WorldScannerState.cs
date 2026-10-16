@@ -237,6 +237,7 @@ namespace RimWorldAccess
                 CreateSettlementsCategory,
                 CreateQuestSitesCategory,
                 CreateCaravansCategory,
+                CreateOutpostsCategory,
                 CreateOtherSitesCategory,
                 CreateLandmarksCategory,
                 CreateBiomesCategory,

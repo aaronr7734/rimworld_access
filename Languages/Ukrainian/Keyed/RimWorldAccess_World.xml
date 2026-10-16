@@ -629,6 +629,7 @@
   <RimWorldAccess.WorldScanner.Cat.Settlements>Поселення</RimWorldAccess.WorldScanner.Cat.Settlements>
   <RimWorldAccess.WorldScanner.Cat.QuestSites>Місця завдань</RimWorldAccess.WorldScanner.Cat.QuestSites>
   <RimWorldAccess.WorldScanner.Cat.Caravans>Каравани</RimWorldAccess.WorldScanner.Cat.Caravans>
+  <RimWorldAccess.WorldScanner.Cat.Outposts>Аванпости</RimWorldAccess.WorldScanner.Cat.Outposts>
   <RimWorldAccess.WorldScanner.Cat.OtherSites>Інші локації</RimWorldAccess.WorldScanner.Cat.OtherSites>
   <RimWorldAccess.WorldScanner.Cat.Biomes>Біоми</RimWorldAccess.WorldScanner.Cat.Biomes>
   <RimWorldAccess.WorldScanner.Cat.Roads>Дороги</RimWorldAccess.WorldScanner.Cat.Roads>
@@ -649,6 +650,8 @@
   <RimWorldAccess.WorldScanner.Sub.Hostile>Ворожі</RimWorldAccess.WorldScanner.Sub.Hostile>
   <RimWorldAccess.WorldScanner.Sub.ActiveQuests>Активні завдання</RimWorldAccess.WorldScanner.Sub.ActiveQuests>
   <RimWorldAccess.WorldScanner.Sub.PlayerCaravans>Каравани гравця</RimWorldAccess.WorldScanner.Sub.PlayerCaravans>
+  <RimWorldAccess.WorldScanner.Sub.PlayerOutposts>Аванпости гравця</RimWorldAccess.WorldScanner.Sub.PlayerOutposts>
+  <RimWorldAccess.WorldScanner.NamedOutpost>{0}, {1}</RimWorldAccess.WorldScanner.NamedOutpost>
   <RimWorldAccess.WorldScanner.Sub.Sites>Локації</RimWorldAccess.WorldScanner.Sub.Sites>
   <RimWorldAccess.WorldScanner.Sub.AllBiomes>Усі біоми</RimWorldAccess.WorldScanner.Sub.AllBiomes>
   <RimWorldAccess.WorldScanner.Unreachable>Недосяжно</RimWorldAccess.WorldScanner.Unreachable>
