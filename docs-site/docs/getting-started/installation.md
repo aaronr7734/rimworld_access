@@ -54,7 +54,12 @@ A manual install does not include Harmony. You will need to download it separate
 
 Regardless of how you installed it, the final step is the same. RimWorld's own mod list is not screen-reader accessible until RimWorld Access is already running, so instead of switching the mod on inside the game, you drop in a settings file that has it switched on already.
 
-Download [`ModsConfig.xml`](../files/ModsConfig.xml){ download="ModsConfig.xml" } and place it in RimWorld's Config folder. It comes ready-made with Harmony and RimWorld Access already enabled. The Config folder can be found at the following locations:
+Download the settings file for your version of RimWorld and place it in RimWorld's Config folder:
+
+- **RimWorld 1.6:** [`ModsConfig.xml`](../files/ModsConfig.xml){ download="ModsConfig.xml" }
+- **RimWorld 1.7 (beta):** [`ModsConfig.xml`](../files/ModsConfig-1.7.xml){ download="ModsConfig.xml" }
+
+Both come ready-made with Harmony and RimWorld Access already enabled. Make sure you grab the one that matches your game, because RimWorld switches every mod off if the file was made for a different version. The Config folder can be found at the following locations:
 
 - **Windows:** `%localappdata%low\Ludeon Studios\RimWorld by Ludeon Studios\Config`
 - **macOS:** `~/Library/Application Support/RimWorld/Config`
