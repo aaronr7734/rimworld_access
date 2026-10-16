@@ -91,6 +91,7 @@ namespace RimWorldAccess
         public static bool Execute(Gizmo gizmo, GizmoHandlerContext ctx)
         {
             EnsureInitialized();
+            Shell.ScopeForWindow.ArmDeliberateGenericAttach();
             Type runtimeType = gizmo.GetType();
 
             if (byType.TryResolve(runtimeType, out IGizmoHandler typeHandler)
