@@ -140,10 +140,9 @@ namespace RimWorldAccess.Shell
         /// its parameters is constrained to, or null when no such closure
         /// exists. Harmony refuses an open definition outright, and Mono
         /// compiles one shared body for every reference-type instantiation, so
-        /// patching the constraint's own instantiation reaches all of them —
-        /// the mechanism <c>RimWorldAccessMod.ApplyDropdownRoleBracket</c>
-        /// already relies on. A value-type instantiation gets its own body and
-        /// simply stays vanilla.
+        /// patching the constraint's own instantiation reaches all of them. On
+        /// 1.7's CoreCLR a patch on a generic method never runs, so there these
+        /// sites stay vanilla, as a value-type instantiation always does.
         /// </summary>
         private static MethodInfo CloseOverReferenceTypes(MethodInfo method)
         {

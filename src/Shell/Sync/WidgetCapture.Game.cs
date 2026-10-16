@@ -503,9 +503,14 @@ namespace RimWorldAccess.Shell
         /// </summary>
         private const int LivePostLifetimeFrames = 3;
 
-        // >0 while TabDrawer.DrawTabs is on the call stack — see RecordLabel. A counter, not a
-        // bool: DrawTabsOverflow calls the core overload in a loop.
+        // >0 while TabRecord.Draw is on the call stack — see RecordLabel.
         private static int tabStripDepth;
+
+        // The strip RecordTab is building: its sink, first slot's index, screen row, and slots so far.
+        private static List<CapturedWidget> tabStripSink;
+        private static int tabStripStart;
+        private static float tabStripScreenY;
+        private static readonly List<int> tabStripSlots = new List<int>();
 
         // >0 while a self-captioning Widgets primitive is on the call stack (ButtonText,
         // CheckboxLabeled, RadioButtonLabeled, HorizontalSlider, CustomButtonText — each draws its
@@ -525,12 +530,6 @@ namespace RimWorldAccess.Shell
         // defensive symmetry rather than a currently-live guard.
         private static int checkboxMultiDepth;
         private static int savedCheckboxMultiDepth;
-
-        // >0 while a vanilla Widgets.Dropdown generic body is on the call stack. The opener button
-        // it draws records with DropdownOpener set, so presentation speaks the ComboBox role.
-        // Stays 0 whenever the open-generic patch could not be applied.
-        private static int dropdownDepth;
-        private static int savedDropdownDepth;
 
         // >0 while Listing_Standard.ButtonTextLabeledPct's body is on the call stack — the
         // label+button-in-one-row dropdown-style setting pattern. Its Widgets.ButtonText records

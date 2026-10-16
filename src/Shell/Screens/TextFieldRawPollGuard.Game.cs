@@ -41,15 +41,8 @@ namespace RimWorldAccess.Shell
     /// POSTFIX every time <see cref="MaskAcceptPoll"/> was called, even when it masked nothing,
     /// so a masked keyCode never survives past the one call it was meant to hide from.
     ///
-    /// <b>Nesting.</b> Two distinct patched <c>DoWindowContents</c> MethodInfos (e.g. closed
-    /// generics <c>DialogTemplate&lt;ThingDef&gt;</c> and <c>DialogTemplate&lt;GeneDef&gt;</c>)
-    /// can, under Mono, share one compiled method body when their generic arguments are both
-    /// reference types. If two callers both detour that shared body, their prefix/postfix pairs
-    /// NEST within one window pass: outer prefix, inner prefix, body, inner postfix, outer
-    /// postfix. <see cref="maskDepth"/> makes that safe -- only the outermost
-    /// <see cref="MaskAcceptPoll"/> call actually stashes/masks, and only the matching outermost
-    /// <see cref="RestoreAcceptPoll"/> call actually restores, so an inner pair can never clobber
-    /// the outer stash.
+    /// <b>Nesting.</b> Two masking brackets on one window pass nest; <see cref="maskDepth"/> lets
+    /// only the outermost pair stash and restore, so an inner pair never clobbers the outer stash.
     /// </summary>
     internal static class TextFieldRawPollGuard
     {
@@ -66,8 +59,7 @@ namespace RimWorldAccess.Shell
         {
             if (maskDepth > 0)
             {
-                // An outer prefix/postfix pair already owns this pass's mask (a nested detour on
-                // a shared generic body -- see class remarks). Track the nesting and defer to it.
+                // An outer pair already owns this pass's mask; see class remarks.
                 maskDepth++;
                 return;
             }

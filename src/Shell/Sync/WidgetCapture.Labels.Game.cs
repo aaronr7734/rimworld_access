@@ -13,7 +13,7 @@ namespace RimWorldAccess.Shell
     {
         internal static void RecordLabel(Rect rect, string label)
         {
-            // Inside a DrawTabs strip every Widgets.Label is a tab caption, already a Tab row.
+            // Inside TabRecord.Draw every Widgets.Label is the tab caption, already a Tab row.
             if (!passOpen || tabStripDepth > 0)
             {
                 return;
@@ -250,81 +250,140 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// One whole TabDrawer.DrawTabs strip, recorded from the patched core overload's prefix.
-        /// Per-tab rects are recomputed with the drawer's own layout formula; the prefix runs before
-        /// its BeginGroup, so these window-space rects are where the tabs land and the focus ring
-        /// may draw against them directly. A pending activation invokes the record's own
-        /// clickedAction with vanilla's click behavior — sound first, selected tab a no-op — BEFORE
-        /// the strip draws, so the switched page renders this same pass.
+        /// One tab, from TabRecord.Draw. The selected tab draws last, so each row is inserted at
+        /// its visual slot (x = slot * (width - overlap)); a new screen row, a repeated slot or an
+        /// interleaved record starts a new strip. Activation fires clickedAction before the page draws.
         /// </summary>
-        internal static void RecordTabs(Rect baseRect, System.Collections.IList tabs, float maxTabWidth)
+        internal static void RecordTab(TabRecord tab, Rect rect)
         {
-            if (!passOpen || tabs == null || tabs.Count == 0)
+            if (!passOpen || tab == null)
             {
                 return;
             }
-            float tabWidth = (baseRect.width + (float)(tabs.Count - 1) * 10f) / (float)tabs.Count;
-            if (tabWidth > maxTabWidth)
-            {
-                tabWidth = maxTabWidth;
-            }
-            gapLinePending = false;
             List<CapturedWidget> sink = CurrentSink;
-            for (int i = 0; i < tabs.Count; i++)
+            float step = rect.width - TabDrawer.TabHoriztonalOverlap;
+            int slot = step > 0f ? Mathf.RoundToInt(rect.x / step) : tabStripSlots.Count;
+            float screenY = GuiSpace.ToScreen(rect).y;
+            if (!ReferenceEquals(sink, tabStripSink) || sink.Count != tabStripStart + tabStripSlots.Count
+                || screenY != tabStripScreenY || slot < 0 || tabStripSlots.Contains(slot))
             {
-                TabRecord tab = tabs[i] as TabRecord;
-                if (tab == null)
-                {
-                    continue;
-                }
-                int index = sink.Count;
-                Rect rect = new Rect(baseRect.x + (float)i * (tabWidth - 10f), baseRect.y - 31f, tabWidth, 32f);
-                if (detachedPass)
-                {
-                    // Armed detached channel: switch to this one tab with vanilla's click
-                    // semantics, as the live branch below does. Tabs carry no gate.
-                    if (MaybeArmMatch(WidgetKind.Tab, tab.label ?? "", index))
-                    {
-                        armedFired = true;
-                        if (!tab.Selected)
-                        {
-                            SoundDefOf.RowTabSelect.PlayOneShotOnCamera();
-                            if (tab.clickedAction != null)
-                            {
-                                tab.clickedAction();
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    MaybeLiveActivateMatch(WidgetKind.Tab, tab.label ?? "", index);
-                    if (liveActivateFireIndex == index)
-                    {
-                        ClearPendingActivate();
-                        if (!tab.Selected)
-                        {
-                            SoundDefOf.RowTabSelect.PlayOneShotOnCamera();
-                            if (tab.clickedAction != null)
-                            {
-                                tab.clickedAction();
-                            }
-                        }
-                    }
-                }
-                sink.Add(new CapturedWidget
-                {
-                    Kind = WidgetKind.Tab,
-                    Label = tab.label ?? "",
-                    Rect = rect,
-                    ScreenRect = GuiSpace.ToScreen(rect),
-                    VisibleScreenRect = GuiSpace.VisibleScreenRect(rect),
-                    Clip = GuiSpace.CurrentClip(),
-                    Selected = tab.Selected,
-                    Tip = tab.GetTip(),
-                });
-                DrawFocusRingIfFocused(index, rect);
+                tabStripSink = sink;
+                tabStripStart = sink.Count;
+                tabStripScreenY = screenY;
+                tabStripSlots.Clear();
             }
+            int insertAt = tabStripStart;
+            for (int i = 0; i < tabStripSlots.Count; i++)
+            {
+                if (tabStripSlots[i] < slot)
+                {
+                    insertAt++;
+                }
+            }
+            tabStripSlots.Add(slot);
+            // TabDrawer's slots are contiguous from 0, so a row's final index is known before the
+            // selected tab lands; a hand-placed Draw keeps the index it was inserted at.
+            int index = step > 0f && Mathf.Abs(rect.x - slot * step) < 0.5f ? tabStripStart + slot : insertAt;
+            gapLinePending = false;
+            string label = tab.label ?? "";
+            bool fire;
+            if (detachedPass)
+            {
+                fire = MaybeArmMatch(WidgetKind.Tab, label, index);
+                armedFired |= fire;
+            }
+            else
+            {
+                MaybeLiveActivateMatch(WidgetKind.Tab, label, index);
+                fire = liveActivateFireIndex == index;
+                if (fire)
+                {
+                    ClearPendingActivate();
+                }
+            }
+            if (fire && !tab.Selected)
+            {
+                SoundDefOf.RowTabSelect.PlayOneShotOnCamera();
+                tab.clickedAction?.Invoke();
+            }
+            sink.Insert(insertAt, new CapturedWidget
+            {
+                Kind = WidgetKind.Tab,
+                Label = label,
+                Rect = rect,
+                ScreenRect = GuiSpace.ToScreen(rect),
+                VisibleScreenRect = GuiSpace.VisibleScreenRect(rect),
+                Clip = GuiSpace.CurrentClip(),
+                Selected = tab.Selected,
+                Tip = tab.GetTip(),
+            });
+            DrawFocusRingIfFocused(index, rect);
+        }
+
+        // Spans the recorder, tap prefix, Harmony's replacement and a forwarding overload.
+        private const int CallerFrameWindow = 8;
+
+        private const int CallerVerdictCapacity = 512;
+
+        private static readonly Dictionary<CallerVerdictKey, bool> callerVerdicts = new Dictionary<CallerVerdictKey, bool>();
+
+        private struct CallerVerdictKey : IEquatable<CallerVerdictKey>
+        {
+            public Window Window;
+            public Rect Rect;
+            public string Label;
+            public string Method;
+
+            public bool Equals(CallerVerdictKey other)
+            {
+                return ReferenceEquals(Window, other.Window) && Rect == other.Rect && Label == other.Label
+                    && ReferenceEquals(Method, other.Method);
+            }
+
+            public override bool Equals(object obj)
+            {
+                return obj is CallerVerdictKey other && Equals(other);
+            }
+
+            public override int GetHashCode()
+            {
+                return Rect.GetHashCode() ^ (Label ?? "").GetHashCode() ^ Method.GetHashCode();
+            }
+        }
+
+        /// <summary>Stands in for a bracket on a generic method; a StackTrace captures the whole stack, so verdicts are kept per window and scroll-invariant rect.</summary>
+        private static bool CalledFrom(Type declaringType, string name, Rect rect, string label)
+        {
+            CallerVerdictKey key = new CallerVerdictKey
+            {
+                Window = Find.WindowStack != null ? Find.WindowStack.currentlyDrawnWindow : null,
+                Rect = rect,
+                Label = label,
+                Method = name,
+            };
+            if (callerVerdicts.TryGetValue(key, out bool verdict))
+            {
+                return verdict;
+            }
+            System.Diagnostics.StackTrace trace = new System.Diagnostics.StackTrace(2, false);
+            int frames = Math.Min(trace.FrameCount, CallerFrameWindow);
+            for (int i = 0; i < frames && !verdict; i++)
+            {
+                MethodBase method = trace.GetFrame(i).GetMethod();
+                verdict = method != null && method.Name == name && method.DeclaringType == declaringType;
+            }
+            if (callerVerdicts.Count >= CallerVerdictCapacity)
+            {
+                callerVerdicts.Clear();
+            }
+            callerVerdicts[key] = verdict;
+            return verdict;
+        }
+
+        /// <summary>TabDrawer's click target for a tab whose row already exists; y = 1 is the drawer's own slot offset.</summary>
+        private static bool IsTabDrawerHotspot(Rect rect)
+        {
+            return rect.y == 1f && rect.height == TabDrawer.TabHeight && CalledFrom(typeof(TabDrawer), "DrawTabs", rect, null);
         }
 
         internal static void EnterTabStrip()

@@ -11,26 +11,6 @@ using Verse.Sound;
 namespace RimWorldAccess.Shell
 {
     /// <summary>
-    /// Role bracket for the vanilla Widgets.Dropdown generic core: its opener button records with
-    /// DropdownOpener set, so presentation speaks the ComboBox role. Applied MANUALLY from the mod
-    /// bootstrap rather than via a [HarmonyPatch] attribute — patching an open generic is officially
-    /// unsupported by Harmony and can silently skip value-type instantiations. Finalizer-safe: the
-    /// guarded decrement tolerates an imbalance from a thrown menuGenerator.
-    /// </summary>
-    internal static class WidgetCaptureDropdownBracket
-    {
-        public static void Prefix()
-        {
-            WidgetCapture.EnterDropdown();
-        }
-
-        public static void Postfix()
-        {
-            WidgetCapture.ExitDropdown();
-        }
-    }
-
-    /// <summary>
     /// Brackets Listing_Standard.ButtonTextLabeledPct so its inner Widgets.ButtonText records with
     /// DropdownOpener set, the same signal a real Widgets.Dropdown opener carries. The non-Pct
     /// ButtonTextLabeled overload delegates straight into this one, so one bracket covers both public

@@ -44,7 +44,6 @@ namespace RimWorldAccess
             // see ImeFunnel.RouteImeCommittedChar and FocusStack.OfferChar for the successor.
 
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
-            ApplyDropdownRoleBracket(HarmonyInstance);
 
             // DLC-safe: patch Start() on each Dialog_BeginLordJob subclass we don't already
             // patch declaratively. The shared prefix returns false while LordJobDialogState is
@@ -67,39 +66,6 @@ namespace RimWorldAccess
             WhatsNewState.CheckForUpdateAtStartup();
 
             Application.quitting += OnApplicationQuit;
-        }
-
-        private static void ApplyDropdownRoleBracket(Harmony harmony)
-        {
-            // Harmony refuses to patch an open generic method definition
-            // (NotSupportedException) — patching Dropdown<Target, Payload>
-            // directly never installs. Resolve the Color-taking generic core
-            // (the other overload delegates to it) and close it with
-            // MakeGenericMethod(object, object). On Mono every reference-type
-            // instantiation of a generic method shares one compiled body, so
-            // this single closed reference-type patch covers every vanilla
-            // call site (both Target and Payload are reference types at every
-            // call site in decompiled Verse/RimWorld code). Value-type
-            // instantiations, if any exist, stay unpatched and just keep the
-            // plain Button role — capture itself rides the non-generic
-            // draggable taps and never depends on this bracket. Do NOT also
-            // patch other closed reference-type forms: two detours over the
-            // same shared Mono body nest their prefix/postfix pairs (see
-            // TextFieldRawPollGuard's maskDepth header).
-            try
-            {
-                MethodInfo dropdownCoreDefinition = AccessTools.GetDeclaredMethods(typeof(Widgets))
-                    .First(m => m.Name == "Dropdown" && m.IsGenericMethodDefinition
-                        && m.GetParameters().Any(p => p.ParameterType == typeof(Color)));
-                MethodInfo dropdownCoreClosed = dropdownCoreDefinition.MakeGenericMethod(typeof(object), typeof(object));
-                harmony.Patch(dropdownCoreClosed,
-                    prefix: new HarmonyMethod(typeof(WidgetCaptureDropdownBracket), nameof(WidgetCaptureDropdownBracket.Prefix)),
-                    postfix: new HarmonyMethod(typeof(WidgetCaptureDropdownBracket), nameof(WidgetCaptureDropdownBracket.Postfix)));
-            }
-            catch (Exception ex)
-            {
-                Log.Warning("[RimWorld Access] Widgets.Dropdown role bracket unavailable (" + ex.GetType().Name + "); dropdown openers will announce as plain buttons.");
-            }
         }
 
         private static void ApplyLordJobStartPatches(Harmony harmony)

@@ -25,6 +25,8 @@ namespace RimWorldAccess.Shell
         public struct CapturedField
         {
             public Rect Rect;
+            public Rect ScreenRect;
+
             public string Text;
         }
 
@@ -58,6 +60,7 @@ namespace RimWorldAccess.Shell
             }
             CapturedField field;
             field.Rect = rect;
+            field.ScreenRect = GuiSpace.ToScreen(rect);
             field.Text = text ?? "";
             items.Add(field);
         }

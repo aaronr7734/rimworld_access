@@ -221,37 +221,16 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// The tab-strip tap. TabDrawer's DrawTabs and DrawTabsOverflow both delegate to the one
-    /// core <c>DrawTabs&lt;TTabRecord&gt;(Rect, List&lt;TTabRecord&gt;, float)</c>, so this
-    /// single patch sees every vanilla-drawn strip. It targets the <see cref="TabRecord"/>
-    /// instantiation, whose compiled body Mono shares with every reference-type
-    /// instantiation, so TabRecord subclasses ride along — hence the prefix takes the list as
-    /// <c>object</c> (lists are not covariant) and the recorder walks it as a plain IList.
+    /// The tab tap. TabRecord.Draw is the non-generic call every TabDrawer strip makes per tab;
+    /// the bracket keeps the caption Label it draws from recording a second row.
     /// </summary>
-    [HarmonyPatch]
-    internal static class WidgetCaptureTabDrawerPatch
+    [HarmonyPatch(typeof(TabRecord), nameof(TabRecord.Draw))]
+    internal static class WidgetCaptureTabRecordDrawPatch
     {
-        static MethodBase TargetMethod()
-        {
-            foreach (MethodInfo method in typeof(TabDrawer).GetMethods(BindingFlags.Public | BindingFlags.Static))
-            {
-                if (method.Name != "DrawTabs" || !method.IsGenericMethodDefinition)
-                {
-                    continue;
-                }
-                ParameterInfo[] parameters = method.GetParameters();
-                if (parameters.Length == 3 && parameters[0].ParameterType == typeof(Rect))
-                {
-                    return method.MakeGenericMethod(typeof(TabRecord));
-                }
-            }
-            return null;
-        }
-
         [HarmonyPrefix]
-        public static void Prefix(Rect baseRect, object tabs, float maxTabWidth)
+        public static void Prefix(TabRecord __instance, Rect rect)
         {
-            WidgetCapture.RecordTabs(baseRect, tabs as System.Collections.IList, maxTabWidth);
+            WidgetCapture.RecordTab(__instance, rect);
             WidgetCapture.EnterTabStrip();
         }
 
@@ -592,7 +571,7 @@ namespace RimWorldAccess.Shell
         [HarmonyPrefix]
         public static void Prefix(Rect rect, string label, bool active, out int __state)
         {
-            __state = WidgetCapture.RecordButton(rect, label, !active);
+            __state = WidgetCapture.RecordButton(rect, label, !active, mayOpenDropdown: true);
             WidgetCapture.EnterSelfCaptioned(label);
         }
 
@@ -608,15 +587,16 @@ namespace RimWorldAccess.Shell
     /// ButtonInvisibleDraggable, the icon-mode Dropdown opener's click target.
     /// RecordInvisibleButton honors all three suppression counters, so a draggable drawn
     /// inside a bracketing widget records nothing and a standalone one records as an
-    /// InvisibleButton, carrying DropdownOpener when inside a Dropdown body.
+    /// InvisibleButton, carrying DropdownOpener when Widgets.Dropdown drew it.
     /// </summary>
     [HarmonyPatch(typeof(Widgets), "ButtonInvisibleDraggable", new Type[] { typeof(Rect), typeof(bool) })]
     internal static class WidgetCaptureButtonInvisibleDraggablePatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Rect butRect, out int __state)
+        public static void Prefix(Rect butRect, bool doMouseoverSound, out int __state)
         {
-            __state = WidgetCapture.RecordInvisibleButton(butRect);
+            // Widgets.Dropdown draws its icon opener silently; Checkbox's toggle never is.
+            __state = WidgetCapture.RecordInvisibleButton(butRect, mayOpenDropdown: !doMouseoverSound);
         }
 
         [HarmonyPostfix]

@@ -21,7 +21,7 @@ namespace RimWorldAccess.Shell
         Slider,
         /// <summary>Widgets.TextField or Widgets.TextArea (see <see cref="CapturedWidget.MultiLine"/>). TextFieldNumeric&lt;T&gt;, TextEntryLabeled and IntEntry's numeric box all funnel to one of these two.</summary>
         TextField,
-        /// <summary>One TabRecord from a TabDrawer.DrawTabs tab strip — every DrawTabs/DrawTabsOverflow overload funnels through the one patched core.</summary>
+        /// <summary>One TabRecord, recorded as TabRecord.Draw draws it.</summary>
         Tab,
         /// <summary>Widgets.FillableBar — a bar whose only information is <see cref="CapturedWidget.FillPercent"/> (any caption is a separate Label row); non-interactive, presented as a read-only value row.</summary>
         FillableBar,

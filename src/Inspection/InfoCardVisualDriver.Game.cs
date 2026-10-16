@@ -115,7 +115,7 @@ namespace RimWorldAccess
         /// live tab changed on its own — a mouse click on the tab strip — the cursor follows
         /// it instead, so the click sticks rather than being fought on the next pass. No
         /// announcement here: the tab-strip click is already spoken by the generic
-        /// WidgetCaptureTabDrawerPatch hover/click capture, so speaking it again here would
+        /// WidgetCaptureTabRecordDrawPatch hover/click capture, so speaking it again here would
         /// double it up.
         /// </summary>
         private static void DriveTab(Dialog_InfoCard dialog, Shell.InfoCardScope scope, InspectionTreeItem row)

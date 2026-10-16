@@ -147,7 +147,7 @@ namespace RimWorldAccess.Shell
         }
 
         internal static int RecordButton(Rect rect, string label, bool disabled, bool closeX = false, bool nameFromTip = false,
-            bool needsLateTipName = false, bool labelIsTextureName = false)
+            bool needsLateTipName = false, bool labelIsTextureName = false, bool mayOpenDropdown = false)
         {
             if (!passOpen)
             {
@@ -165,7 +165,7 @@ namespace RimWorldAccess.Shell
             int index = sink.Count;
             MaybeArmMatch(WidgetKind.Button, label ?? "", index);
             MaybeLiveActivateMatch(WidgetKind.Button, label ?? "", index);
-            CapturedWidget row = new CapturedWidget { Kind = WidgetKind.Button, Label = label ?? "", Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), RecordColor = GUI.color, Disabled = disabled, DropdownOpener = dropdownDepth > 0 || labeledButtonDepth > 0, CloseX = closeX, NameFromTip = nameFromTip, NeedsLateTipName = needsLateTipName, LabelIsTextureName = labelIsTextureName };
+            CapturedWidget row = new CapturedWidget { Kind = WidgetKind.Button, Label = label ?? "", Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), RecordColor = GUI.color, Disabled = disabled, DropdownOpener = labeledButtonDepth > 0 || (mayOpenDropdown && DrawnByDropdown(rect, label)), CloseX = closeX, NameFromTip = nameFromTip, NeedsLateTipName = needsLateTipName, LabelIsTextureName = labelIsTextureName };
             if (intEntryDepth > 0)
             {
                 // Draw order is the button's identity: vanilla draws -10x, -1x, +10x, +1x

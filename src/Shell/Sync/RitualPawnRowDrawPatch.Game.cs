@@ -1,5 +1,4 @@
 using System;
-using System.Reflection;
 using HarmonyLib;
 using RimWorld;
 using UnityEngine;
@@ -37,26 +36,17 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// Harmony cannot patch the open generic <c>PawnRoleSelectionWidgetBase&lt;&gt;</c>, so this
-    /// targets ONE closed instantiation: RoleType is constrained <c>class, ILordJobRole</c>, so
-    /// every instantiation is a reference type and Mono's generic code sharing gives them all the
-    /// same method body — patching the <c>ILordJobRole</c> form covers every subclass widget,
-    /// vanilla and modded. Same shape as <see cref="RenameDrawPatch"/>; <c>__instance</c> is not
-    /// injected because the identity a ring needs is the <c>pawn</c> argument alone.
+    /// The one non-generic call inside PawnRoleSelectionWidgetBase&lt;RoleType&gt;.DrawPawnPortraitInternal.
+    /// The tile is the portrait plus the name strip beneath it, which is iconSize tall (both are
+    /// 20 times the widget's scale).
     /// </summary>
-    [HarmonyPatch]
+    [HarmonyPatch(typeof(PawnPortraitIconsDrawer), nameof(PawnPortraitIconsDrawer.DrawPawnPortraitIcons))]
     internal static class PawnPortraitDrawPatch
     {
-        static MethodBase TargetMethod()
-        {
-            return AccessTools.Method(typeof(PawnRoleSelectionWidgetBase<ILordJobRole>), "DrawPawnPortraitInternal");
-        }
-
-        /// <summary>The visible tile is the portrait plus the name strip beneath it (50f + 20f, both scaled).</summary>
         [HarmonyPostfix]
-        public static void Postfix(Rect r, Pawn pawn, float scale)
+        public static void Postfix(Rect portraitRect, Pawn p, float iconSize)
         {
-            RitualPawnRowDrawPatch.Record(pawn, new Rect(r.x, r.y, r.width * scale, 70f * scale));
+            RitualPawnRowDrawPatch.Record(p, new Rect(portraitRect.x, portraitRect.y, portraitRect.width, portraitRect.height + iconSize));
         }
     }
 }

@@ -72,9 +72,9 @@ namespace RimWorldAccess.Shell
         /// <see cref="CompositeMember"/> role. This layer never decides fusion versus orphan: it
         /// records whenever unsuppressed and leaves that to the owning scope's presentation pass.
         /// </summary>
-        internal static int RecordInvisibleButton(Rect rect)
+        internal static int RecordInvisibleButton(Rect rect, bool mayOpenDropdown = false)
         {
-            if (!passOpen || selfCaptionDepth > 0 || tabStripDepth > 0 || checkboxMultiDepth > 0)
+            if (!passOpen || selfCaptionDepth > 0 || tabStripDepth > 0 || checkboxMultiDepth > 0 || IsTabDrawerHotspot(rect))
             {
                 return -1;
             }
@@ -107,7 +107,7 @@ namespace RimWorldAccess.Shell
                 medicalCareOrdinal++;
             }
             MaybeLiveActivateMatch(WidgetKind.InvisibleButton, label, index);
-            CapturedWidget row = new CapturedWidget { Kind = WidgetKind.InvisibleButton, Label = label, Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), DropdownOpener = dropdownDepth > 0 };
+            CapturedWidget row = new CapturedWidget { Kind = WidgetKind.InvisibleButton, Label = label, Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip() };
             if (colorBoxDepth > 0)
             {
                 // Widgets.ColorBox's own hotspot: its click assigns the caller's ref Color with no
@@ -139,6 +139,10 @@ namespace RimWorldAccess.Shell
             {
                 row.Composite = CompositeMember.SelectableDefRow;
             }
+            else if (mayOpenDropdown)
+            {
+                row.DropdownOpener = DrawnByDropdown(rect, label);
+            }
             sink.Add(row);
             DrawFocusRingIfFocused(index, rect);
             return index;
@@ -158,22 +162,10 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        /// <summary>
-        /// Start of a Widgets.Dropdown body: the opener button it draws records with DropdownOpener
-        /// set. The guarded decrement tolerates an imbalance from a thrown menuGenerator, and the
-        /// pass reset clears any single-pass leak — the shape every bracket here follows.
-        /// </summary>
-        internal static void EnterDropdown()
+        /// <summary>Whether Widgets.Dropdown, which is generic and so unpatchable on 1.7, drew this opener.</summary>
+        private static bool DrawnByDropdown(Rect rect, string label)
         {
-            dropdownDepth++;
-        }
-
-        internal static void ExitDropdown()
-        {
-            if (dropdownDepth > 0)
-            {
-                dropdownDepth--;
-            }
+            return CalledFrom(typeof(Widgets), "Dropdown", rect, label);
         }
 
         /// <summary>Listing_Standard.ButtonTextLabeledPct's bracket — see labeledButtonDepth.</summary>

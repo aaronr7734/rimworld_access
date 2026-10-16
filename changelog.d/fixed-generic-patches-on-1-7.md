@@ -1,0 +1,1 @@
+Fixed several screens on RimWorld 1.7 that quietly lost part of their support: tab strips in mod windows read as plain buttons and Tab did nothing, dropdowns no longer said they were dropdowns, rename dialogs lost track of their field after a few seconds, and the styling station and ritual screens lost their focus cursor.

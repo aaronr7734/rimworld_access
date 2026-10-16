@@ -111,12 +111,12 @@ namespace RimWorldAccess.Shell
             {
                 pendingRangeAdjustSet = false;
             }
-            // If a DrawTabs, self-captioned or CheckboxMulti body threw, its postfix never ran
+            // If a TabRecord.Draw, self-captioned or CheckboxMulti body threw, its postfix never ran
             // and the depth would suppress labels and InvisibleButton rows forever.
             tabStripDepth = 0;
+            tabStripSink = null;
             selfCaptionDepth = 0;
             checkboxMultiDepth = 0;
-            dropdownDepth = 0;
             labeledButtonDepth = 0;
             numericFieldDepth = 0;
             fieldLabelDepth = 0;
@@ -202,8 +202,6 @@ namespace RimWorldAccess.Shell
             tabStripDepth = 0;
             savedCheckboxMultiDepth = checkboxMultiDepth;
             checkboxMultiDepth = 0;
-            savedDropdownDepth = dropdownDepth;
-            dropdownDepth = 0;
             savedLabeledButtonDepth = labeledButtonDepth;
             labeledButtonDepth = 0;
             savedNumericFieldDepth = numericFieldDepth;
@@ -374,7 +372,6 @@ namespace RimWorldAccess.Shell
             focusedIndex = savedFocusedIndex;
             tabStripDepth = savedTabStripDepth;
             checkboxMultiDepth = savedCheckboxMultiDepth;
-            dropdownDepth = savedDropdownDepth;
             labeledButtonDepth = savedLabeledButtonDepth;
             numericFieldDepth = savedNumericFieldDepth;
             fieldLabelDepth = savedFieldLabelDepth;

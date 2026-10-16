@@ -30,7 +30,7 @@ namespace RimWorldAccess.Shell
     /// through <see cref="ButtonTextCapture.RequestClick"/>, running its submit body unmodified.
     /// Vanilla's focus-blind raw KeyDown poll at the top of DoWindowContents is therefore masked on
     /// EVERY frame — <see cref="ShouldMaskAcceptPoll"/> is always true — by masking
-    /// Event.current.keyCode for exactly vanilla's body rather than calling Use(): the focused
+    /// Event.current.keyCode for the window's pass rather than calling Use(): the focused
     /// window's pass can run before the dispatcher's and shares Event state with it, so Use() here
     /// would starve this scope's own Enter claims. Leaving OK's Enter to that raw poll made the key
     /// depend on GUI pass order, since the dispatcher's modal swallow Uses the event first. The draw
@@ -194,10 +194,13 @@ namespace RimWorldAccess.Shell
             get { return OkActionId; }
         }
 
-        /// <summary>Vanilla draws OK last, whatever else the dialog put above it; -1 before the first capture pass.</summary>
-        private static int OkCaptureIndex()
+        /// <summary>
+        /// Vanilla draws OK last in the contents; only Window's own Close button can follow it
+        /// inside the InnerWindowOnGUI bracket. -1 before the first capture pass.
+        /// </summary>
+        private int OkCaptureIndex()
         {
-            return ButtonTextCapture.Items.Count - 1;
+            return ButtonTextCapture.Items.Count - (dialog.doCloseButton ? 2 : 1);
         }
 
         private void ClickOk()
@@ -251,7 +254,8 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
-            Rect rect = TextFieldCapture.Items[0].Rect;
+            // Drawn after InnerWindowOnGUI closes the content group the field was recorded in.
+            Rect rect = GuiSpace.FromScreen(TextFieldCapture.Items[0].ScreenRect);
             if (rect.width <= 0f)
             {
                 return;
@@ -315,7 +319,7 @@ namespace RimWorldAccess.Shell
             return "Rename".Translate().ToString();
         }
 
-        private static string ResolveOkLabel()
+        private string ResolveOkLabel()
         {
             int index = OkCaptureIndex();
             if (index >= 0)
@@ -334,61 +338,27 @@ namespace RimWorldAccess.Shell
     /// Brackets ButtonTextCapture/TextFieldCapture to the dialog's own draw and drives the scope's
     /// per-pass echo and focus ring, all inside the window's own GUI pass.
     ///
-    /// Harmony CANNOT patch the open generic Dialog_Rename&lt;&gt;: Mono throws NotSupportedException
-    /// at patch time, poisoning the mod's whole static constructor. T is constrained
-    /// <c>class, IRenameable</c>, so Mono's generic sharing gives every instantiation one body and the
-    /// Dialog_Rename&lt;IRenameable&gt; target covers them all. An override that skips base
-    /// (Education's Dialog_RenameClassroom) escapes it, so every override is patched too; only the
-    /// outermost bracket acts, since an override that calls base nests two.
+    /// Hooks Window.InnerWindowOnGUI because 1.7's CoreCLR drops a generic class's patch once it
+    /// re-JITs; the base hook also covers overrides that skip base. The wider bracket also masks
+    /// Notify_PressedAccept, which is harmless: the scope owns every Enter.
     /// </summary>
     [HarmonyPatch]
     public static class RenameDrawPatch
     {
-        private static object bracketedDialog;
-
-        static IEnumerable<MethodBase> TargetMethods()
+        static MethodBase TargetMethod()
         {
-            yield return AccessTools.Method(typeof(Dialog_Rename<IRenameable>), "DoWindowContents");
-            foreach (Type type in SafeTypeSweep.SubclassesSafe(typeof(Window), (_, ex) => ModLogger.LimitedError("Rename dialog override sweep", ex)))
-            {
-                if (!SafeTypeSweep.TryEvaluate(type, t => IsRenameSubclass(t) ? AccessTools.DeclaredMethod(t, "DoWindowContents", new[] { typeof(Rect) }) : null,
-                        out MethodInfo declared, (_, ex) => ModLogger.LimitedError("Rename dialog override sweep", ex)))
-                {
-                    continue;
-                }
-                if (declared != null && !declared.IsAbstract && !declared.ContainsGenericParameters)
-                {
-                    yield return declared;
-                }
-            }
-        }
-
-        private static bool IsRenameSubclass(Type type)
-        {
-            for (Type t = type.BaseType; t != null; t = t.BaseType)
-            {
-                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Dialog_Rename<>))
-                {
-                    return true;
-                }
-            }
-            return false;
+            return AccessTools.Method(typeof(Window), "InnerWindowOnGUI", new[] { typeof(int) });
         }
 
         [HarmonyPrefix]
-        public static void Prefix(object __instance, out bool __state)
+        public static void Prefix(Window __instance, out bool __state)
         {
             __state = false;
-            if (bracketedDialog != null)
-            {
-                return;
-            }
             try
             {
-                RenameScope scope = RenameScope.OwningScope(__instance as Window);
+                RenameScope scope = RenameScope.OwningScope(__instance);
                 if (scope != null)
                 {
-                    bracketedDialog = __instance;
                     __state = true;
                     // Mask vanilla's raw Return poll: every row's Enter is this scope's, so the
                     // poll can never submit the rename from under one.
@@ -403,7 +373,7 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPostfix]
-        public static void Postfix(object __instance, bool __state)
+        public static void Postfix(Window __instance, bool __state)
         {
             if (!__state)
             {
@@ -412,7 +382,7 @@ namespace RimWorldAccess.Shell
             try
             {
                 TextFieldRawPollGuard.RestoreAcceptPoll();
-                RenameScope scope = RenameScope.OwningScope(__instance as Window);
+                RenameScope scope = RenameScope.OwningScope(__instance);
                 if (scope != null)
                 {
                     scope.OnGuiPass();
@@ -421,15 +391,6 @@ namespace RimWorldAccess.Shell
             catch (Exception ex)
             {
                 ModLogger.LimitedError("Rename dialog draw pass error", ex);
-            }
-        }
-
-        [HarmonyFinalizer]
-        public static void Finalizer(bool __state)
-        {
-            if (__state)
-            {
-                bracketedDialog = null;
             }
         }
     }

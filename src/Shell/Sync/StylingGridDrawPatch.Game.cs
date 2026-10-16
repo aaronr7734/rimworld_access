@@ -17,7 +17,7 @@ namespace RimWorldAccess.Shell
     /// this screen deliberately does not auto-select on settle, so the keyboard cursor has no
     /// indicator of its own.
     ///
-    /// None of the three methods hands out a per-tile rect, so each is bracketed and the tiles
+    /// None of the three grids hands out a per-tile rect, so each is bracketed and the tiles
     /// arrive through the one widget every tile calls exactly once, <c>Widgets.ButtonInvisible</c>
     /// (:585) — the deity-box shape <see cref="IdeoBoxDrawPatch"/> documents. Identity comes
     /// from vanilla's own draw order: <c>tmpStyleItems</c> (:107) is filled and sorted
@@ -52,6 +52,7 @@ namespace RimWorldAccess.Shell
         private static readonly List<Tile> tiles = new List<Tile>();
 
         private static bool armed;
+        private static bool gridOpened;
         private static StylingTabKind recordingTab;
         private static Rect recordingOutRect;
 
@@ -115,6 +116,7 @@ namespace RimWorldAccess.Shell
                     return;
                 }
                 armed = true;
+                gridOpened = true;
                 Recording = true;
                 recordingTab = tab;
                 recordingOutRect = rect;
@@ -124,6 +126,47 @@ namespace RimWorldAccess.Shell
             catch (Exception ex)
             {
                 ModLogger.LimitedError("Styling grid capture error", ex);
+            }
+        }
+
+        /// <summary>The station whose DrawTabs is on the stack; only its own scroll views can be a style grid.</summary>
+        private static Dialog_StylingStation DrawingTabsOf;
+
+        internal static void BeginStationTabs(Dialog_StylingStation dialog)
+        {
+            DrawingTabsOf = dialog;
+            gridOpened = false;
+        }
+
+        /// <summary>An empty style list skips the grid's scroll view entirely, so nothing must stay published for it.</summary>
+        internal static void EndStationTabs()
+        {
+            Dialog_StylingStation dialog = DrawingTabsOf;
+            DrawingTabsOf = null;
+            End();
+            Event ev = Event.current;
+            if (!gridOpened && dialog != null && ev != null && ev.type != EventType.Layout && IsStyleItemTab(CurrentTab(dialog)))
+            {
+                published = false;
+            }
+        }
+
+        private static bool IsStyleItemTab(StylingTabKind tab)
+        {
+            return tab == StylingTabKind.Hair || tab == StylingTabKind.Beard
+                || tab == StylingTabKind.FaceTattoo || tab == StylingTabKind.BodyTattoo;
+        }
+
+        internal static void BeginStyleItemGrid(Rect outRect)
+        {
+            if (DrawingTabsOf == null)
+            {
+                return;
+            }
+            StylingTabKind tab = CurrentTab(DrawingTabsOf);
+            if (IsStyleItemTab(tab))
+            {
+                Begin(DrawingTabsOf, tab, outRect);
             }
         }
 
@@ -198,31 +241,39 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// The four style tabs' grid. <c>DrawStylingItemType&lt;T&gt;</c> is constrained
-    /// <c>where T : StyleItemDef</c>, so every instantiation is a reference type sharing one
-    /// Mono method body — patching the <c>HairDef</c> form covers all four tabs (the
-    /// <c>PawnRoleSelectionWidgetBase</c> precedent in <see cref="PawnPortraitDrawPatch"/>).
-    /// Patching a second closed form would nest a second detour over that same body.
+    /// The four style tabs' grid. DrawStylingItemType&lt;T&gt; is generic and so unpatchable on
+    /// 1.7; its only caller, the non-generic DrawTabs, scopes the grid's own scroll view instead.
+    /// The bracket opens at that scroll view, after TabDrawer's hotspots, so tile order holds.
     /// </summary>
-    [HarmonyPatch]
-    internal static class StylingItemGridBracketPatch
+    [HarmonyPatch(typeof(Dialog_StylingStation), "DrawTabs")]
+    internal static class StylingItemGridScopePatch
     {
-        static MethodBase TargetMethod()
-        {
-            return AccessTools.Method(typeof(Dialog_StylingStation), "DrawStylingItemType")
-                .MakeGenericMethod(typeof(HairDef));
-        }
-
         [HarmonyPrefix]
-        public static void Prefix(Dialog_StylingStation __instance, Rect rect)
+        public static void Prefix(Dialog_StylingStation __instance)
         {
-            StylingGridDrawPatch.Begin(__instance, StylingGridDrawPatch.CurrentTab(__instance), rect);
+            StylingGridDrawPatch.BeginStationTabs(__instance);
         }
 
         [HarmonyFinalizer]
         public static void Finalizer()
         {
-            StylingGridDrawPatch.End();
+            StylingGridDrawPatch.EndStationTabs();
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class StylingItemGridBracketPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return AccessTools.Method(typeof(Widgets), "BeginScrollView",
+                new[] { typeof(Rect), typeof(Vector2).MakeByRefType(), typeof(Rect), typeof(bool) });
+        }
+
+        [HarmonyPrefix]
+        public static void Prefix(Rect outRect)
+        {
+            StylingGridDrawPatch.BeginStyleItemGrid(outRect);
         }
     }
 

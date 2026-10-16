@@ -653,7 +653,7 @@ namespace RimWorldAccess.Shell
 
         /// <summary>
         /// Fires one tab's own vanilla handler: the posted activation makes
-        /// <c>WidgetCapture.RecordTabs</c> invoke that TabRecord's <c>clickedAction</c> with
+        /// <c>WidgetCapture.RecordTab</c> invoke that TabRecord's <c>clickedAction</c> with
         /// vanilla's click semantics on the next pass. No selection state is set here, and a tab
         /// carries no vanilla gate. <paramref name="armStateChange"/> is false for
         /// <see cref="CycleTab"/>, which arms its own combined announcement instead and passes
