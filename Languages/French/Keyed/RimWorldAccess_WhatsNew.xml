@@ -82,6 +82,25 @@ Correction de la sortie forcée du mode placement quand on saute vers un colon a
 Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
 Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc4>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc5>Cette mise à jour ajoute la prise en charge de RimWorld 1.7, ainsi qu'une série de correctifs pour les mods et le pilote automatique de combat.\n
+Nouveautés.\n
+RimWorld Access prend désormais en charge RimWorld 1.7.\n
+L'écran Créer un avant-poste de Vanilla Outposts Expanded est maintenant accessible. Chaque avant-poste occupe une ligne qui indique si vous pouvez le construire et ce qui manque, et Entrée le crée.\n
+Le scanner du monde a une nouvelle catégorie Avant-postes pour vos avant-postes et vos campements.\n
+Dans Progression: Education, les listes d'enseignants et d'élèves des boîtes de dialogue de cours incluent désormais les détails de chaque colon, comme ses autres cours et ce qu'une séance va lui apprendre.\n
+Le profileur d'images de RimWorld 1.7, dans le menu des actions de débogage, est maintenant accessible. La plupart des commandes ont leur propre raccourci, annoncé quand vous vous y placez.\n
+Corrections.\n
+Correction du pilote automatique de combat qui ne faisait rien pour les animaux mobilisés avec des mods comme Draftable Animals.\n
+Correction des personnages en pilote automatique réglés pour garder leurs distances qui reculaient devant des ennemis de mêlée qui ne peuvent pas les atteindre, comme un prisonnier enfermé dans une cellule ou un pillard derrière un mur.\n
+Correction de certaines fenêtres de mods ouvertes depuis un bouton de commande qui restaient muettes et inaccessibles au clavier.\n
+Correction de l'avertissement de rayon de construction qui ne couvrait que les arbres anima. Les arbres Gauranlen, les sanctuaires de la nature et la pierre d'animus vous avertissent maintenant aussi, et chacun a son propre réglage Avertissement de rayon de construction.\n
+Correction de l'écran des quêtes qui affichait « Aucune récompense » quand une quête décrit sa récompense dans son texte, comme l'offre de trahison. Les détails d'une quête listent aussi des liens comme « Quête secondaire de », que vous suivez avec Entrée ou Alt+I.\n
+Correction de boutons qui disparaissaient parfois des écrans de mods. Dans Progression: Education, choisir High-tech comme spécialité de maîtrise ne masque plus les boutons de spécialité.\n
+Correction des boîtes de renommage de certains mods, comme le nom d'une nouvelle salle de classe dans Progression: Education, qui n'avaient pas de bouton OK et refusaient de se fermer.\n
+Sur Mac, les raccourcis qui utilisent Ctrl sont maintenant annoncés comme Command, la touche sur laquelle vous appuyez réellement. Les raccourcis Ctrl+Tab disent toujours Option, car c'est la touche utilisée là.\n
+Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
+Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc5>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access a été mis à jour. Choisissez Ouvrir le journal des modifications pour lire ce qui a changé sur le site web.</RimWorldAccess.WhatsNew.Message.Default>
 

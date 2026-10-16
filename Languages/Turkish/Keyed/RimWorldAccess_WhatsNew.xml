@@ -83,6 +83,25 @@ Alt ve bir rakamla bir koloniciye atlarken yerleştirme modundan atılma sorunu 
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc5>Bu güncelleme RimWorld 1.7 desteğini ve modlar ile savaş otopilotu için bir dizi düzeltmeyi getiriyor.\n
+Yeni özellikler.\n
+RimWorld Access artık RimWorld 1.7'yi destekliyor.\n
+Vanilla Outposts Expanded'ın Karakol oluştur ekranı artık erişilebilir. Her karakol tek bir satır; inşa edip edemeyeceğini ve neyin eksik olduğunu söylüyor, Enter ise onu oluşturuyor.\n
+Dünya tarayıcısında karakolların ve kampların için yeni bir Karakollar kategorisi var.\n
+Progression: Education'da ders diyaloglarındaki öğretmen ve öğrenci listeleri artık her kolonicinin ayrıntılarını içeriyor; diğer dersleri ve bir seansın ona ne kadar öğreteceği gibi.\n
+RimWorld 1.7'nin hata ayıklama eylemleri menüsündeki kare profilleyicisi artık erişilebilir. Kontrollerin çoğunun kendi kısayolu var ve onlara geçtiğinde söyleniyor.\n
+Düzeltmeler.\n
+Draftable Animals gibi modlarla askere alınan hayvanlar için savaş otopilotunun hiçbir şey yapmaması düzeltildi.\n
+Mesafesini korumaya ayarlanmış otopilot karakterlerinin, kendilerine ulaşamayan yakın dövüş düşmanlarından, örneğin hücreye kilitli bir mahkumdan veya duvarın arkasındaki bir akıncıdan geri çekilmesi düzeltildi.\n
+Komut düğmesinden açılan bazı mod pencerelerinin sessiz kalması ve klavyeyle erişilememesi düzeltildi.\n
+İnşa yarıçapı uyarısının yalnızca ruh ağaçlarını kapsaması düzeltildi. Gauranlen ağaçları, doğa mabetleri ve ruh taşı da artık seni uyarıyor ve her birinin kendi İnşa yarıçapı uyarısı anahtarı var.\n
+Bir görev ödülünü metninde anlattığında, örneğin ihanet teklifinde, görev ekranının "Ödül yok" demesi düzeltildi. Görev ayrıntıları artık "Şunun alt görevi" gibi bağlantıları da listeliyor ve Enter veya Alt+I onları takip ediyor.\n
+Düğmelerin bazen mod ekranlarından kaybolması düzeltildi. Progression: Education'da yeterlilik odağı olarak Yüksek teknoloji'yi seçmek artık odak düğmelerini gizlemiyor.\n
+Bazı modların yeniden adlandırma kutularının, örneğin Progression: Education'da yeni bir sınıfı adlandırırken, Tamam düğmesinin olmaması ve kapanmayı reddetmesi düzeltildi.\n
+Mac'te Ctrl kullanan kısayollar artık gerçekte bastığın tuş olan Command olarak söyleniyor. Ctrl+Tab kısayolları ise orada o tuş olduğu için hâlâ Option diyor.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 

@@ -82,6 +82,25 @@ Adaptive Storage Framework 的储存现在有完整的「内容」列表。每�
 你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
 完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc4>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc5>这次更新加入了对 RimWorld 1.7 的支持，还修复了一批模组和战斗自动驾驶的问题。\n
+新功能。\n
+RimWorld Access 现在支持 RimWorld 1.7。\n
+Vanilla Outposts Expanded 的“创建前哨站”界面现在可以使用了。每个前哨站是一行，会告诉你能不能建造、还缺什么，按 Enter 就能创建。\n
+世界扫描器新增了“前哨站”分类，收录你的前哨站和营地。\n
+在 Progression: Education 中，课堂对话框里的教师和学生列表现在包含每位殖民者的详细信息，比如他们的其他课程，以及一节课能教会他们多少。\n
+RimWorld 1.7 的帧分析器（在调试操作菜单中）现在可以使用了。大多数控件都有自己的快捷键，移动到它们时会读出来。\n
+修复。\n
+修复了战斗自动驾驶对使用 Draftable Animals 等模组征召的动物不起作用的问题。\n
+修复了设置为保持距离的自动驾驶角色会从够不着他们的近战敌人那里后退的问题，比如关在牢房里的囚犯，或墙后面的袭击者。\n
+修复了一些从指令按钮打开的模组窗口没有任何语音、也无法用键盘操作的问题。\n
+修复了建造半径警告只覆盖仙树的问题。现在母树、自然圣地和法石也会警告你，并且各自有独立的“建造半径警告”开关。\n
+修复了当任务在文字中描述奖励时（比如背叛提议），任务界面却显示“无奖励”的问题。任务详情现在还会列出“子任务”之类的链接，按 Enter 或 Alt+I 即可跟随。\n
+修复了模组界面中按钮有时会消失的问题。在 Progression: Education 中，选择“高科技”作为熟练度专精不再会隐藏专精按钮。\n
+修复了某些模组的重命名框（比如在 Progression: Education 中给新教室命名）没有“确定”按钮、无法关闭的问题。\n
+在 Mac 上，使用 Ctrl 的快捷键现在会读作 Command，也就是你实际按的键。Ctrl+Tab 快捷键仍然读作 Option，因为那里按的是这个键。\n
+你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
+完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc5>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access 已更新。请选择「打开更新日志」以在网站上阅读更新内容。</RimWorldAccess.WhatsNew.Message.Default>
 

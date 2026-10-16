@@ -83,6 +83,25 @@ Corrigido o modo de colocação sendo fechado ao pular para um colono com Alt e 
 Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
 Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc5>Esta atualização traz suporte ao RimWorld 1.7, além de um conjunto de correções para mods e para o piloto automático de combate.\n
+Novidades.\n
+O RimWorld Access agora oferece suporte ao RimWorld 1.7.\n
+A tela Criar posto avançado do Vanilla Outposts Expanded agora é acessível. Cada posto avançado é uma linha que diz se você pode construí-lo e o que está faltando, e o Enter o cria.\n
+O scanner do mundo ganhou uma nova categoria Postos avançados para seus postos avançados e acampamentos.\n
+No Progression: Education, as listas de professores e alunos nos diálogos de aulas agora incluem os detalhes de cada colono, como as outras aulas dele e quanto uma sessão vai ensinar a ele.\n
+O profiler de frames do RimWorld 1.7, que fica no menu de ações de depuração, agora é acessível. A maioria dos controles tem seu próprio atalho, anunciado conforme você se move até eles.\n
+Correções.\n
+Corrigido o piloto automático de combate que não fazia nada com animais recrutados por mods como o Draftable Animals.\n
+Corrigido personagens em piloto automático configurados para manter distância que recuavam de inimigos corpo a corpo que não conseguem alcançá-los, como um prisioneiro trancado em uma cela ou um invasor atrás de uma parede.\n
+Corrigido algumas janelas de mods abertas a partir de um botão de comando que ficavam em silêncio e inacessíveis pelo teclado.\n
+Corrigido o aviso de raio de construção que cobria só as árvores anima. As árvores Gauranlena, os santuários da natureza e a pedra animus agora também avisam você, e cada um tem seu próprio botão de Aviso de raio de construção.\n
+Corrigido a tela de missões que dizia "Sem recompensas" quando uma missão descreve a recompensa no texto, como a oferta de traição. Os detalhes da missão agora também listam links como "Missão secundária de", e o Enter ou Alt+I os segue.\n
+Corrigido botões que às vezes sumiam das telas de mods. No Progression: Education, escolher Alta tecnologia como foco de proficiência não esconde mais os botões de foco.\n
+Corrigido caixas de renomear de alguns mods, como dar nome a uma nova sala de aula no Progression: Education, que não tinham botão OK e se recusavam a fechar.\n
+No Mac, os atalhos que usam Ctrl agora são anunciados como Command, a tecla que você realmente aperta. Os atalhos Ctrl+Tab continuam dizendo Option, porque é essa a tecla ali.\n
+Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi atualizado. Escolha Abrir changelog para ler o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 
