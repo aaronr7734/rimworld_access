@@ -20,7 +20,7 @@ namespace RimWorldAccess
         /// main-menu keyboard helper and named neither the mod nor its author. Logs and patch
         /// listings from before this change refer to the old id.
         /// </summary>
-        public static readonly string HarmonyId = "aaronr7734.rimworldaccess";
+        public const string HarmonyId = "aaronr7734.rimworldaccess";
 
         public static Harmony HarmonyInstance { get; private set; }
 

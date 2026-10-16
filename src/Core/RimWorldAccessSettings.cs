@@ -280,6 +280,7 @@ namespace RimWorldAccess
         public RimWorldAccessMod_Settings(ModContentPack content) : base(content)
         {
             Settings = GetSettings<RimWorldAccessSettings>();
+            CombatAutopilotThinkTreeHook.Apply(new HarmonyLib.Harmony(RimWorldAccessMod.HarmonyId));
         }
 
         public override string SettingsCategory()

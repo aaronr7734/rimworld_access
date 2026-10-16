@@ -73,6 +73,11 @@ namespace RimWorldAccess
     /// </summary>
     public class JobGiver_CombatAutopilot : JobGiver_AIFightEnemy
     {
+        internal static JobGiver_CombatAutopilot Create(float acquireRadius, float keepRadius)
+        {
+            return new JobGiver_CombatAutopilot { targetAcquireRadius = acquireRadius, targetKeepRadius = keepRadius };
+        }
+
         private const float MeleeHoldOffDistSq = 9f;
         private const int RepollTicks = 100;
         private const int ApproachExpiryTicks = 60;

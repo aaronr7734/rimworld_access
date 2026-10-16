@@ -61,8 +61,9 @@
     </value>
   </Operation>
 
-  <!-- Draftable animals (modded races inheriting the Animal tree) draft without
-       JobGiver_Orders; hook their forced-goto slot instead, as Search and Destroy did. -->
+  <!-- Draftable-animal mods that draft without JobGiver_Orders get the forced-goto slot,
+       as Search and Destroy did. Ones that add JobGiver_Orders, and any tree a later-loading
+       mod adds it to, are covered by CombatAutopilotThinkTreeHook. -->
   <Operation Class="PatchOperationInsert">
     <xpath>Defs/ThinkTreeDef[defName="Animal"]/thinkRoot[@Class="ThinkNode_Priority"]/subNodes/li[@Class="ThinkNode_ConditionalForcedGoto"]</xpath>
     <order>Append</order>
