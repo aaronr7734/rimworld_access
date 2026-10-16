@@ -319,8 +319,8 @@
   <RimWorldAccess.Building.Place.NoBlueprintsPlaced>未放置蓝图</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
   <RimWorldAccess.Building.Place.NoDesignationsPlaced>未放置标记</RimWorldAccess.Building.Place.NoDesignationsPlaced>
   <RimWorldAccess.Building.Place.ObstaclesFound>发现 {0} 个障碍物</RimWorldAccess.Building.Place.ObstaclesFound>
-  <RimWorldAccess.Building.Place.MeditationDisableHint>在树形菜单中禁用警告开关以在此建造</RimWorldAccess.Building.Place.MeditationDisableHint>
-  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <RimWorldAccess.Building.Place.WarnToggleDisableHint>关闭“{0}”以在此建造</RimWorldAccess.Building.Place.WarnToggleDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = WarnToggleDisableHint. -->
   <RimWorldAccess.Building.Place.MeditationProtectedBy>受 {0} 保护。{1}。</RimWorldAccess.Building.Place.MeditationProtectedBy>
   <RimWorldAccess.Building.Place.WillReplaceSuffix>将替换 {0}</RimWorldAccess.Building.Place.WillReplaceSuffix>
   <RimWorldAccess.Building.Place.WillReplaceItem>{0} x{1}</RimWorldAccess.Building.Place.WillReplaceItem>

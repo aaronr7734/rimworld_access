@@ -345,8 +345,9 @@
   <RimWorldAccess.Building.Place.NoBlueprintsPlaced>No blueprints placed</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
   <RimWorldAccess.Building.Place.NoDesignationsPlaced>No designations placed</RimWorldAccess.Building.Place.NoDesignationsPlaced>
   <RimWorldAccess.Building.Place.ObstaclesFound>{0} obstacles found</RimWorldAccess.Building.Place.ObstaclesFound>
-  <RimWorldAccess.Building.Place.MeditationDisableHint>Disable warning toggle on the tree to build here</RimWorldAccess.Building.Place.MeditationDisableHint>
-  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <!-- {0} = vanilla CommandWarnInBuildingRadius gizmo label. -->
+  <RimWorldAccess.Building.Place.WarnToggleDisableHint>Turn off {0} to build here</RimWorldAccess.Building.Place.WarnToggleDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = WarnToggleDisableHint. -->
   <RimWorldAccess.Building.Place.MeditationProtectedBy>Protected by {0}. {1}.</RimWorldAccess.Building.Place.MeditationProtectedBy>
   <RimWorldAccess.Building.Place.WillReplaceSuffix>Will replace {0}</RimWorldAccess.Building.Place.WillReplaceSuffix>
   <RimWorldAccess.Building.Place.WillReplaceItem>{0} x{1}</RimWorldAccess.Building.Place.WillReplaceItem>

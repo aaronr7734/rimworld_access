@@ -319,8 +319,8 @@
   <RimWorldAccess.Building.Place.NoBlueprintsPlaced>Проекты не размещены</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
   <RimWorldAccess.Building.Place.NoDesignationsPlaced>Указания не размещены</RimWorldAccess.Building.Place.NoDesignationsPlaced>
   <RimWorldAccess.Building.Place.ObstaclesFound>Найдено {0_numCase ? препятствие : препятствия : препятствий}</RimWorldAccess.Building.Place.ObstaclesFound>
-  <RimWorldAccess.Building.Place.MeditationDisableHint>Отключите переключатель предупреждений на дереве, чтобы строить здесь</RimWorldAccess.Building.Place.MeditationDisableHint>
-  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <RimWorldAccess.Building.Place.WarnToggleDisableHint>Отключите «{0}», чтобы строить здесь</RimWorldAccess.Building.Place.WarnToggleDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = WarnToggleDisableHint. -->
   <RimWorldAccess.Building.Place.MeditationProtectedBy>Защищено: {0}. {1}.</RimWorldAccess.Building.Place.MeditationProtectedBy>
   <RimWorldAccess.Building.Place.WillReplaceSuffix>Будет заменено: {0}</RimWorldAccess.Building.Place.WillReplaceSuffix>
   <RimWorldAccess.Building.Place.WillReplaceItem>{0} x{1}</RimWorldAccess.Building.Place.WillReplaceItem>

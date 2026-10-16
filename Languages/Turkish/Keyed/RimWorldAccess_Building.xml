@@ -323,8 +323,8 @@
   <RimWorldAccess.Building.Place.NoBlueprintsPlaced>Taslak yerleştirilmedi</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
   <RimWorldAccess.Building.Place.NoDesignationsPlaced>Emir verilmedi</RimWorldAccess.Building.Place.NoDesignationsPlaced>
   <RimWorldAccess.Building.Place.ObstaclesFound>{0} engel bulundu</RimWorldAccess.Building.Place.ObstaclesFound>
-  <RimWorldAccess.Building.Place.MeditationDisableHint>Buraya inşa etmek için ağaçtaki uyarı düğmesini kapat</RimWorldAccess.Building.Place.MeditationDisableHint>
-  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <RimWorldAccess.Building.Place.WarnToggleDisableHint>Buraya inşa etmek için "{0}" seçeneğini kapat</RimWorldAccess.Building.Place.WarnToggleDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = WarnToggleDisableHint. -->
   <RimWorldAccess.Building.Place.MeditationProtectedBy>{0} tarafından korunuyor. {1}.</RimWorldAccess.Building.Place.MeditationProtectedBy>
   <RimWorldAccess.Building.Place.WillReplaceSuffix>Değiştirilecek: {0}</RimWorldAccess.Building.Place.WillReplaceSuffix>
   <RimWorldAccess.Building.Place.WillReplaceItem>{0} x{1}</RimWorldAccess.Building.Place.WillReplaceItem>

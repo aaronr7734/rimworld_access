@@ -323,8 +323,8 @@
   <RimWorldAccess.Building.Place.NoBlueprintsPlaced>Nenhum projecto colocado</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
   <RimWorldAccess.Building.Place.NoDesignationsPlaced>Nenhuma designação colocada</RimWorldAccess.Building.Place.NoDesignationsPlaced>
   <RimWorldAccess.Building.Place.ObstaclesFound>{0} obstáculos encontrados</RimWorldAccess.Building.Place.ObstaclesFound>
-  <RimWorldAccess.Building.Place.MeditationDisableHint>Desactiva o aviso na árvore para construir aqui</RimWorldAccess.Building.Place.MeditationDisableHint>
-  <!-- {0} = comma-joined protecting thing labels, {1} = MeditationDisableHint. -->
+  <RimWorldAccess.Building.Place.WarnToggleDisableHint>Desactiva "{0}" para construir aqui</RimWorldAccess.Building.Place.WarnToggleDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = WarnToggleDisableHint. -->
   <RimWorldAccess.Building.Place.MeditationProtectedBy>Protegido por {0}. {1}.</RimWorldAccess.Building.Place.MeditationProtectedBy>
   <RimWorldAccess.Building.Place.WillReplaceSuffix>Vai substituir {0}</RimWorldAccess.Building.Place.WillReplaceSuffix>
   <RimWorldAccess.Building.Place.WillReplaceItem>{0} x{1}</RimWorldAccess.Building.Place.WillReplaceItem>

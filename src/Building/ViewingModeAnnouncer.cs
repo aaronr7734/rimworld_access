@@ -837,7 +837,7 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(protectionSummary))
                 {
                     parts.Add(protectionSummary);
-                    parts.Add("RimWorldAccess.Building.Place.MeditationDisableHint".Translate());
+                    parts.Add(MeditationProtectionHelper.DisableHint());
                 }
             }
 

@@ -1289,7 +1289,7 @@ namespace RimWorldAccess
                 string protectionSummary = MeditationProtectionHelper.FormatShapeSummary(
                     result.ProtectedCount, result.ProtectedByLabels);
                 parts.Add(protectionSummary);
-                parts.Add("RimWorldAccess.Building.Place.MeditationDisableHint".Translate());
+                parts.Add(MeditationProtectionHelper.DisableHint());
             }
 
             return string.Join(". ", parts);

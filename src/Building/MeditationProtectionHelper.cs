@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using RimWorld;
 using Verse;
 
@@ -42,27 +43,17 @@ namespace RimWorldAccess
             if (map == null || def == null || faction == null)
                 return result;
 
-            foreach (Thing focus in MeditationUtility
-                .GetMeditationFociAffectedByBuilding(map, def, faction, pos, rotation))
+            IEnumerable<Thing> affected = MeditationUtility
+                .GetMeditationFociAffectedByBuilding(map, def, faction, pos, rotation)
+                .Concat(GauranlenUtility.GetConnectionsAffectedByBuilding(map, def, faction, pos, rotation));
+            foreach (Thing thing in affected)
             {
-                if (IsToggleEnabled(focus))
+                if (IsToggleEnabled(thing))
                 {
                     result.IsProtected = true;
-                    string label = focus.LabelShort ?? focus.def?.label ?? "RimWorldAccess.Building.Meditation.FocusFallback".Translate().ToString();
-                    if (!result.AffectedThingLabels.Contains(label))
-                    {
-                        result.AffectedThingLabels.Add(label);
-                    }
-                }
-            }
-
-            foreach (Thing tree in GauranlenUtility
-                .GetConnectionsAffectedByBuilding(map, def, faction, pos, rotation))
-            {
-                if (IsToggleEnabled(tree))
-                {
-                    result.IsProtected = true;
-                    string label = tree.LabelShort ?? tree.def?.label ?? "tree";
+                    string label = thing.LabelShort.NullOrEmpty()
+                        ? "RimWorldAccess.Building.Meditation.FocusFallback".Translate().ToString()
+                        : thing.LabelShort;
                     if (!result.AffectedThingLabels.Contains(label))
                     {
                         result.AffectedThingLabels.Add(label);
@@ -85,7 +76,12 @@ namespace RimWorldAccess
                 return string.Empty;
 
             string thingList = string.Join(", ", result.AffectedThingLabels);
-            return "RimWorldAccess.Building.Place.MeditationProtectedBy".Translate(thingList, "RimWorldAccess.Building.Place.MeditationDisableHint".Translate());
+            return "RimWorldAccess.Building.Place.MeditationProtectedBy".Translate(thingList, DisableHint());
+        }
+
+        public static string DisableHint()
+        {
+            return "RimWorldAccess.Building.Place.WarnToggleDisableHint".Translate("CommandWarnInBuildingRadius".Translate());
         }
 
         public static string FormatShapeSummary(int protectedCount, HashSet<string> allAffectedLabels)
