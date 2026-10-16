@@ -1,1 +1,0 @@
-Building too close to a Gauranlen tree, nature shrine, or animus stone is now caught the same way as building near an anima tree. Each of them now has the anima tree's Build radius warning toggle, so you can turn the guard off for any one of them. Trees and shrines in existing saves start with the warning on.

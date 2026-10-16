@@ -6,6 +6,30 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](https:
 
 <!-- BUILD_CHANGELOG_INSERT: release notes are compiled here from changelog.d/ fragments by scripts/build_changelog.py. Do not remove this marker. -->
 
+## [2.0 RC 5] - 2026-10-15
+
+This update adds support for RimWorld 1.7, along with a batch of fixes for mods and the combat autopilot.
+
+### Added
+
+- RimWorld Access now supports RimWorld 1.7.
+- Vanilla Outposts Expanded's Create outpost screen is now accessible. Each outpost is one row that tells you whether you can build it and what's missing, and Enter creates it.
+- The world scanner has a new Outposts category for your outposts and camps.
+- In Progression: Education, the teacher and student lists in class dialogs now include each colonist's details, like their other classes and how much a session will teach them.
+- RimWorld 1.7's frame profiler, found in the debug actions menu, is now accessible. Most controls have their own shortcuts, announced as you move to them.
+
+### Fixed
+
+- Fixed the combat autopilot doing nothing for animals drafted with mods like Draftable Animals.
+- Fixed autopilot pawns set to keep their distance backing away from melee enemies that can't reach them, like a prisoner locked in a cell or a raider behind a wall.
+- Fixed some mod windows opened from a command button staying silent and unreachable from the keyboard.
+- Fixed the build radius warning only covering anima trees. Gauranlen trees, nature shrines and the animus stone now warn you too, and each has its own Build radius warning toggle.
+- Fixed the quest screen saying "No rewards" when a quest describes its reward in its text, like the betrayal offer. Quest details now also list links like "Subquest of", and Enter or Alt+I follows them.
+- Fixed buttons sometimes disappearing from mod screens. In Progression: Education, choosing High-tech as a proficiency focus no longer hides the focus buttons.
+- Fixed rename boxes from some mods, like naming a new classroom in Progression: Education, having no OK button and refusing to close.
+- On a Mac, shortcuts that use Ctrl are now announced as Command, the key you actually press. Ctrl+Tab shortcuts still say Option, since that's the key there.
+
+
 ## [2.0 RC 4] - 2026-10-03
 
 Just one small fix this time.

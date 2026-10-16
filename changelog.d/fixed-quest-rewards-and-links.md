@@ -1,1 +1,0 @@
-Fixed the quest screen saying "No rewards" for quests that only describe their reward in the text, like the betrayal offer. Quest details now also list the links the vanilla screen shows, such as "Subquest of", and Enter or Alt+I follows them.

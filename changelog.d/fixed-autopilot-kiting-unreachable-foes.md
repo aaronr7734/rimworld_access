@@ -1,1 +1,0 @@
-Fixed combat autopilot pawns with Keep distance breaking position to back away from melee enemies that can't reach them, like a prisoner locked in a cell or a raider on the other side of a wall. Wounded pawns no longer fall back from them either.
