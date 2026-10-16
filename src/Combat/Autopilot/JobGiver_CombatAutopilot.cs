@@ -1689,7 +1689,13 @@ namespace RimWorldAccess
             }
             return candidate.Thing is Pawn hostile
                 && (IsTargetingPawn(hostile, pawn)
-                    || (hostile.CurrentEffectiveVerb?.verbProps.IsMeleeAttack ?? false));
+                    || ((hostile.CurrentEffectiveVerb?.verbProps.IsMeleeAttack ?? false)
+                        && CanWalkTo(hostile, pawn)));
+        }
+
+        private static bool CanWalkTo(Pawn hostile, Pawn pawn)
+        {
+            return hostile.CanReach(pawn, PathEndMode.Touch, Danger.Deadly);
         }
 
         private static IntVec3 NearestThreatPosition(Pawn pawn, List<Thing> threats)
@@ -1766,11 +1772,12 @@ namespace RimWorldAccess
             return Math.Max(KiteMinSafeDist, Math.Min(dist, max));
         }
 
-        /// <summary>Nearest melee foe that could turn on this pawn: targeting it, or not yet committed to anyone.</summary>
+        /// <summary>Nearest melee foe that could turn on this pawn: targeting it or uncommitted, and able to walk to it now (no bashing: a broken door flips this next poll).</summary>
         private static Pawn ClosestKiteThreat(Pawn pawn, float maxDist)
         {
             return ClosestMeleeThreat(pawn, maxDist,
-                hostile => IsTargetingPawn(hostile, pawn) || hostile.mindState?.enemyTarget == null);
+                hostile => (IsTargetingPawn(hostile, pawn) || hostile.mindState?.enemyTarget == null)
+                    && CanWalkTo(hostile, pawn));
         }
 
         /// <summary>
@@ -1814,12 +1821,8 @@ namespace RimWorldAccess
                 {
                     continue;
                 }
-                if (extra != null && !extra(hostile))
-                {
-                    continue;
-                }
                 float distSq = hostile.Position.DistanceToSquared(pawn.Position);
-                if (distSq < bestDistSq)
+                if (distSq < bestDistSq && (extra == null || extra(hostile)))
                 {
                     bestDistSq = distSq;
                     best = hostile;
