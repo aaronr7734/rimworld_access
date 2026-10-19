@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using RimWorld;
@@ -18,6 +19,10 @@ namespace RimWorldAccess
     {
         private static Assembly assembly = Assembly.GetExecutingAssembly();
 
+        // Created clips are never freed (Waylith's UnloadUnusedAssets is a no-op and
+        // AudioClip has no finalizer), so build each clip once and reuse it.
+        private static readonly Dictionary<string, AudioClip> clipCache = new Dictionary<string, AudioClip>();
+
         /// <summary>
         /// Load an embedded audio file and return as Unity AudioClip.
         /// </summary>
@@ -25,14 +30,23 @@ namespace RimWorldAccess
         /// <returns>AudioClip if successful, null otherwise</returns>
         public static AudioClip LoadEmbeddedAudio(string resourcePath)
         {
+            if (clipCache.TryGetValue(resourcePath, out AudioClip cached))
+                return cached;
+
+            AudioClip clip = DecodeEmbeddedAudio(resourcePath);
+            if (clip != null)
+                clipCache[resourcePath] = clip;
+            return clip;
+        }
+
+        private static AudioClip DecodeEmbeddedAudio(string resourcePath)
+        {
             try
             {
-                // Construct the full resource name
                 // Format: rimworld_access.Sounds.filename.extension
                 // Note: MSBuild uses lowercase assembly name for embedded resources
                 string resourceName = $"rimworld_access.Sounds.{resourcePath.Replace('/', '.').Replace('\\', '.')}";
 
-                // Get the embedded resource stream
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     if (stream == null)
