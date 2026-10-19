@@ -101,6 +101,12 @@ On a Mac, shortcuts that use Ctrl are now announced as Command, the key you actu
 You can reopen this any time from What's New in the main menu or the pause menu.\n
 Press Escape, or choose Close, when you are done. Thank you for playing, and enjoy!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc6>Just one small fix this time.\n
+Fixes.\n
+Fixed RimWorld Access's own sounds, like terrain sounds and the menu wrap sound, cutting out after a few hours of play on RimWorld 1.7 until you restarted the game.\n
+You can reopen this any time from What's New in the main menu or the pause menu.\n
+Press Escape, or choose Close, when you are done. Thank you for playing, and enjoy!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access has been updated. Choose Open Changelog to read what changed on the website.</RimWorldAccess.WhatsNew.Message.Default>
 

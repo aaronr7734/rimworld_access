@@ -101,6 +101,12 @@ RimWorld 1.7 的帧分析器（在调试操作菜单中）现在可以使用了�
 你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
 完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc5>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc6>这次只有一个小修复。\n
+修复。\n
+修复了在 RimWorld 1.7 上游玩几个小时后，RimWorld Access 自带的音效（例如地形音效和菜单循环音效）会失效、直到重启游戏才恢复的问题。\n
+你可以随时从主菜单或暂停菜单中的「更新说明」重新打开这段内容。\n
+完成后按 Escape 键，或选择「关闭」。感谢你的游玩，祝你游戏愉快！</RimWorldAccess.WhatsNew.Message.2_0_rc6>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access 已更新。请选择「打开更新日志」以在网站上阅读更新内容。</RimWorldAccess.WhatsNew.Message.Default>
 

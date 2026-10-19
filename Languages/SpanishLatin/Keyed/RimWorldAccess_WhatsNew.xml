@@ -102,6 +102,12 @@ En Mac, los atajos que usan Ctrl ahora se anuncian como Command, la tecla que re
 Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o el menú de pausa.\n
 Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, ¡y que lo disfrutes!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc6>Esta vez es solo una pequeña corrección.\n
+Correcciones.\n
+Se corrigió que los sonidos propios de RimWorld Access, como los sonidos del terreno y el sonido de vuelta al inicio de los menús, dejaran de escucharse después de unas horas de juego en RimWorld 1.7 hasta reiniciar el juego.\n
+Puedes volver a abrir esto en cualquier momento desde Novedades en el menú principal o el menú de pausa.\n
+Presiona Escape, o elige Cerrar, cuando hayas terminado. Gracias por jugar, ¡y que lo disfrutes!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access se ha actualizado. Elige Abrir registro de cambios para leer qué cambió en el sitio web.</RimWorldAccess.WhatsNew.Message.Default>
 

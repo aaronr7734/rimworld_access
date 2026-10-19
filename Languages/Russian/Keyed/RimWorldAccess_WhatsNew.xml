@@ -80,6 +80,12 @@ RimWorld Access теперь поддерживает RimWorld 1.7.\n
 На Mac сочетания с Ctrl теперь озвучиваются как Command, то есть клавиша, которую вы нажимаете на самом деле. Сочетания с Ctrl+Tab по-прежнему называют Option, потому что там нажимается именно она.\n
 Вы можете открыть это сообщение снова в любое время через «Что нового» в главном меню или меню паузы.\n
 Когда закончите, нажмите Escape или выберите «Закрыть». Спасибо, что играете, и приятной игры!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
+
+  <RimWorldAccess.WhatsNew.Message.2_0_rc6>На этот раз всего одно небольшое исправление.\n
+Исправления.\n
+Исправлено пропадание собственных звуков RimWorld Access, таких как звуки местности и звук перехода по кругу в меню, после нескольких часов игры в RimWorld 1.7 вплоть до перезапуска игры.\n
+Вы можете открыть это сообщение снова в любое время через «Что нового» в главном меню или меню паузы.\n
+Когда закончите, нажмите Escape или выберите «Закрыть». Спасибо, что играете, и приятной игры!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access обновлён. Выберите «Открыть список изменений», чтобы прочитать об изменениях на сайте.</RimWorldAccess.WhatsNew.Message.Default>
   <RimWorldAccess.WhatsNew.Button.NextAnnouncement>Перейти к следующему объявлению (осталось {0})</RimWorldAccess.WhatsNew.Button.NextAnnouncement>
   <RimWorldAccess.WhatsNew.Button.MarkAllRead>Отметить все {0_numCase ? объявление : объявления : объявлений} как прочитанные</RimWorldAccess.WhatsNew.Button.MarkAllRead>

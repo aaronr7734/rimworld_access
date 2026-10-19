@@ -102,6 +102,12 @@ Mac'te Ctrl kullanan kısayollar artık gerçekte bastığın tuş olan Command 
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc6>Bu sefer sadece küçük bir düzeltme var.\n
+Düzeltmeler.\n
+RimWorld 1.7'de birkaç saat oynadıktan sonra RimWorld Access'in kendi seslerinin, örneğin zemin seslerinin ve menü başa dönme sesinin, oyunu yeniden başlatana kadar kesilmesi sorunu düzeltildi.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 
