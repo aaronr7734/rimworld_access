@@ -6,6 +6,15 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](change
 
 <!-- BUILD_CHANGELOG_INSERT: do not remove this marker. -->
 
+## [2.0 RC 6] - 2026-10-19
+
+Just one small fix this time.
+
+### Fixed
+
+- Fixed RimWorld Access's own sounds, like terrain sounds and the menu wrap sound, cutting out after a few hours of play on RimWorld 1.7 until you restarted the game.
+
+
 ## [2.0 RC 5] - 2026-10-15
 
 This update adds support for RimWorld 1.7, along with a batch of fixes for mods and the combat autopilot.
