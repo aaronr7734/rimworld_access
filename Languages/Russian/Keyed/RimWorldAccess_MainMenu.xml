@@ -642,6 +642,4 @@
   <RimWorldAccess.Credits.Skipping>Титры пропускаются. Закрытие через {0_numCase ? секунду : секунды : секунд}.</RimWorldAccess.Credits.Skipping>
   <RimWorldAccess.Credits.AlreadySkipping>Титры уже пропускаются.</RimWorldAccess.Credits.AlreadySkipping>
 
-  <RimWorldAccess.PawnFilter.TraitEffects>Эффекты: {0}.</RimWorldAccess.PawnFilter.TraitEffects>
-  <RimWorldAccess.PawnFilter.TraitCannotDo>Не может: {0}</RimWorldAccess.PawnFilter.TraitCannotDo>
 </LanguageData>
