@@ -7,7 +7,7 @@
   <RWA_InspectingThings.helpText>想详细了解光标所在处的东西，按回车。这会打开一个树形视图，列出全部细节：殖民者的健康和装备、建筑的内容物、植物的生长情况等等。\n\n用方向键在树中移动，按 Esc 返回地图。\n\n你也可以按斜杠键（/）打开搜索，然后输入文字，跳转到你想找的内容。对于一名受伤的殖民者，按斜杠键（/）打开搜索，输入「腿」可听到其腿部的伤情，或输入「感染」查看是否有感染。</RWA_InspectingThings.helpText>
 
   <RWA_JumpModes.label>快速穿越地图</RWA_JumpModes.label>
-  <RWA_JumpModes.helpText>一次只移动一格地穿越地图很慢。按住 Ctrl 再按方向键，即可朝该方向在地图上跳跃前进。\n\n共有四种跳跃模式。按住 Shift 再按上或下键可在它们之间切换。固定距离按设定的格数移动，按住 Shift 再按左或右键可调整该格数。不可通行会停在殖民者能走到的最后一格。地形会停在地面不同的下一格。建筑会停在建筑物不同的下一格，蓝图按建成后的物件计算。</RWA_JumpModes.helpText>
+  <RWA_JumpModes.helpText>一次只移动一格地穿越地图很慢。按住 Ctrl 再按方向键，即可朝该方向在地图上跳跃前进。\n\n共有四种跳跃模式。按住 Shift 再按上或下键可在它们之间切换。固定距离按设定的格数移动，按住 Shift 再按左或右键可调整该格数。不可通行会停在殖民者能走到的最后一格。地形会停在地面不同的下一格。建筑从不停在空地上：先到所在建筑的另一端，再到下一个建筑物，蓝图按建成后的物件计算。</RWA_JumpModes.helpText>
 
   <RWA_CoordinateJump.label>跳转到坐标</RWA_CoordinateJump.label>
   <RWA_CoordinateJump.helpText>要让光标直接移到一个已知位置，按住 Ctrl 再按 G。\n\n输入 X 坐标，按空格移到 Z 字段，输入 Z 坐标，按回车跳转。按 Esc 取消。</RWA_CoordinateJump.helpText>

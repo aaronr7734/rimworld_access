@@ -8,7 +8,7 @@ using Verse.Sound;
 namespace RimWorldAccess.Shell
 {
     /// <summary>
-    /// The colony's social and combat logs, one tab each, every entry in the world, filterable,
+    /// The colony's social and combat logs, one tab each, entries from the current map, filterable,
     /// over <see cref="GlobalLog"/>. A self-drawn window paired with <see cref="GlobalLogScope"/>, the
     /// same shape as <see cref="DialogueLogWindow"/>: it draws the scope's own rows and filter
     /// state, and every mouse action runs the scope's method, so the two cannot drift.
@@ -557,12 +557,13 @@ namespace RimWorldAccess.Shell
             GlobalLogKind view = s.GlobalLogView;
             bool combat = view == GlobalLogKind.Combat;
             GlobalLogOwners owners = OwnersFor(s, view);
+            Map map = Find.CurrentMap;
             IReadOnlyList<GlobalLogRecord> records = log.Records;
             for (int i = 0; i < records.Count; i++)
             {
                 GlobalLogRecord record = records[i];
                 if (record.Kind == view && (!combat || s.GlobalLogShowAll || record.ShowInCompactView)
-                    && !record.Broken && (record.Owners & owners) != 0)
+                    && !record.Broken && (record.Owners & owners) != 0 && record.OnMap(map))
                 {
                     rows.Add(record);
                 }

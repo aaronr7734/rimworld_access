@@ -64,7 +64,7 @@ namespace RimWorldAccess
             /// Gets the base item name with material prefix and quality suffix, without quantity.
             /// Used by both GetDisplayLabel and external code for stack labels.
             /// </summary>
-            public string GetItemName()
+            public string GetItemName(Thing conditionSource = null)
             {
                 string itemName;
                 if (Stuff != null)
@@ -81,17 +81,22 @@ namespace RimWorldAccess
                     itemName = char.ToUpper(itemName[0]) + itemName.Substring(1);
                 }
 
+                var extras = new List<string>();
                 if (Quality.HasValue)
-                {
-                    itemName += $" ({Quality.Value})";
-                }
+                    extras.Add(Quality.Value.GetLabel());
+                string condition = ItemLabelHelper.ConditionPercent(conditionSource);
+                if (condition != null)
+                    extras.Add(condition);
+                if (extras.Count > 0)
+                    itemName += " (" + string.Join(", ", extras) + ")";
 
                 return itemName;
             }
 
             public string GetDisplayLabel()
             {
-                string name = GetItemName();
+                // A lone unstackable item reads its own condition, as the map cursor does.
+                string name = GetItemName(Stacks.Count == 1 ? Stacks[0].Thing : null);
                 int carried = CarriedCount;
                 if (carried > 0)
                 {

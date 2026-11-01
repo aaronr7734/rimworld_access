@@ -46,7 +46,7 @@ So to lay out a 12-tile wall: set the preset distance to 12 with **Shift+Right**
 
 The jump distance counts the starting tile, so a distance of 13 moves the cursor 14 tiles including the start. To enclose a 12-by-12 interior, set the jump distance to 13: the walls form a 14-by-14 exterior, and the two wall tiles on each side leave 12 by 12 of open floor inside.
 
-**Impassable** jumps the cursor to the last tile a colonist could walk to in that direction, which is handy when you want to pick up exactly where an existing structure ends. **Terrain** and **Structure** jump to the next tile whose ground or building is different, which is the quick way to find the far corner of a room or the end of a wall you already built. See [the map page](../concepts/the-map.md) for all four.
+**Impassable** jumps the cursor to the last tile a colonist could walk to in that direction, which is handy when you want to pick up exactly where an existing structure ends. **Terrain** jumps to the next tile whose ground is different, and **Structure** jumps to the far end of the wall or building you are standing on, then on to the next building. Together they are the quick way to find the far corner of a room or the end of a wall you already built. See [the map page](../concepts/the-map.md) for all four.
 
 **Shift+Up** and **Shift+Down** cycle through all available jump modes. These keys change the mode; they do not move the cursor.
 

@@ -31,12 +31,21 @@ namespace RimWorldAccess
             var parts = new List<string>();
             if (thing.TryGetQuality(out QualityCategory quality))
                 parts.Add(quality.GetLabel());
-            if (thing.def.useHitPoints && thing.HitPoints < thing.MaxHitPoints && thing.def.stackLimit == 1)
-                parts.Add(((float)thing.HitPoints / thing.MaxHitPoints).ToStringPercent());
+            string condition = ConditionPercent(thing);
+            if (condition != null)
+                parts.Add(condition);
             if (thing is Apparel apparel && apparel.WornByCorpse)
                 parts.Add("WornByCorpseChar".Translate());
 
             return parts.Count > 0 ? label + " (" + string.Join(", ", parts) + ")" : label;
+        }
+
+        /// <summary>The damaged-item percent GenLabel.LabelExtras shows, or null when vanilla shows none.</summary>
+        public static string ConditionPercent(Thing thing)
+        {
+            if (thing == null || !thing.def.useHitPoints || thing.HitPoints >= thing.MaxHitPoints || thing.def.stackLimit != 1)
+                return null;
+            return ((float)thing.HitPoints / thing.MaxHitPoints).ToStringPercent();
         }
     }
 }

@@ -545,7 +545,7 @@ namespace RimWorldAccess
         /// <summary>Display label for an individual stack node, with its location and flags.</summary>
         private static string BuildStackLabel(InventoryHelper.InventoryItem item, InventoryHelper.InventoryStack stack)
         {
-            string name = item.GetItemName();
+            string name = item.GetItemName(stack.Thing);
             string suffix = "";
             if (stack.IsTainted)
                 suffix += "RimWorldAccess.Inspection.Inventory.Label.StackTaintedSuffix".Translate();

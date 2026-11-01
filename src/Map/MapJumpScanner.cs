@@ -80,17 +80,52 @@ namespace RimWorldAccess
             }
 
             TileIdentity origin = IdentityAt(mode, start, map);
+            IntVec3 runEnd = start;
 
             for (; cell.InBounds(map); cell += direction)
             {
-                if (IdentityAt(mode, cell, map).Matches(origin))
+                TileIdentity identity = IdentityAt(mode, cell, map);
+                if (identity.Matches(origin))
+                {
+                    runEnd = cell;
+                    continue;
+                }
+
+                if (mode == JumpMode.Structure && identity.Matches(TileIdentity.Bare))
+                    return StructureAcrossBareGround(runEnd, start, cell, direction, map, out destination);
+
+                destination = cell;
+                return true;
+            }
+
+            return mode == JumpMode.Structure && !origin.Matches(TileIdentity.Bare)
+                && TryLandOnRunEnd(runEnd, start, out destination);
+        }
+
+        /// <summary>Stops on the crossed run's last tile, or from that tile on the next structure.</summary>
+        private static bool StructureAcrossBareGround(IntVec3 runEnd, IntVec3 start, IntVec3 firstBare,
+            IntVec3 direction, Map map, out IntVec3 destination)
+        {
+            if (TryLandOnRunEnd(runEnd, start, out destination))
+                return true;
+
+            for (IntVec3 cell = firstBare; cell.InBounds(map); cell += direction)
+            {
+                if (IdentityAt(JumpMode.Structure, cell, map).Matches(TileIdentity.Bare))
                     continue;
 
                 destination = cell;
                 return true;
             }
 
+            destination = start;
             return false;
+        }
+
+        private static bool TryLandOnRunEnd(IntVec3 runEnd, IntVec3 start, out IntVec3 destination)
+        {
+            destination = runEnd;
+            return runEnd != start;
         }
 
         /// <summary>Whether a tile stops a walking pawn, read from the game's own path grid.</summary>

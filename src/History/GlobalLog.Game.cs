@@ -42,6 +42,9 @@ namespace RimWorldAccess
         public GlobalLogKind Kind;
         public LogEntry Entry;
 
+        /// <summary>The map the entry happened on; -1 when unknown, which shows it on every map.</summary>
+        public int MapId = -1;
+
         private Pawn[] pawns = NoPawns;
         private string text;
         private GlobalLogOwners removedOwners;
@@ -58,6 +61,7 @@ namespace RimWorldAccess
             TicksAbs = entry.Tick;
             Kind = kind;
             pawns = CollectPawns(entry);
+            MapId = MapIdOf(pawns);
             // Deterministic: every override seeds on the log id and construction-time fields.
             compact = entry.ShowInCompactView();
         }
@@ -152,6 +156,24 @@ namespace RimWorldAccess
             return pawn.RaceProps.Humanlike ? GlobalLogOwners.Colonists : GlobalLogOwners.ColonyAnimals;
         }
 
+        private static int MapIdOf(Pawn[] concerned)
+        {
+            for (int i = 0; i < concerned.Length; i++)
+            {
+                Map map = concerned[i].MapHeld;
+                if (map != null)
+                {
+                    return map.uniqueID;
+                }
+            }
+            return -1;
+        }
+
+        internal bool OnMap(Map map)
+        {
+            return MapId < 0 || map == null || MapId == map.uniqueID;
+        }
+
         private static Pawn[] CollectPawns(LogEntry entry)
         {
             List<Pawn> found = null;
@@ -177,6 +199,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref text, "text");
             Scribe_Values.Look(ref removedOwners, "removedOwners");
             Scribe_Values.Look(ref compact, "compact", true);
+            Scribe_Values.Look(ref MapId, "mapId", -1);
             List<Pawn> pawnList = Scribe.mode == LoadSaveMode.Saving ? new List<Pawn>(pawns) : null;
             Scribe_Collections.Look(ref pawnList, "pawns", LookMode.Reference);
             if (Scribe.mode == LoadSaveMode.ResolvingCrossRefs)

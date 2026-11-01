@@ -46,7 +46,7 @@
   <ConceptDef ParentName="RWA_DocBase">
     <defName>RWA_JumpModes</defName>
     <label>Crossing the map quickly</label>
-    <helpText>Crossing the map one tile at a time is slow. Hold Ctrl and press an arrow key to leap across the map in that direction instead.\n\nFour jump modes are available. Hold Shift and press Up or Down to switch between them. Preset distance moves a set number of tiles, and Shift with Left or Right changes that number. Impassable stops on the last tile a colonist could walk to. Terrain stops on the next tile whose ground is different. Structure stops on the next tile whose building is different, and a blueprint counts as the thing it will become.</helpText>
+    <helpText>Crossing the map one tile at a time is slow. Hold Ctrl and press an arrow key to leap across the map in that direction instead.\n\nFour jump modes are available. Hold Shift and press Up or Down to switch between them. Preset distance moves a set number of tiles, and Shift with Left or Right changes that number. Impassable stops on the last tile a colonist could walk to. Terrain stops on the next tile whose ground is different. Structure never stops on open ground: it goes to the far end of the building you are on, then on to the next building, and a blueprint counts as the thing it will become.</helpText>
   </ConceptDef>
 
   <ConceptDef ParentName="RWA_DocBase">

@@ -35,7 +35,7 @@ Tile-by-tile movement is fine for close work, but crossing the map one step at a
 - **Preset distance:** jumps a fixed number of tiles in the direction you choose.
 - **Impassable:** jumps to the last tile a colonist could walk to that way, stopping before a wall, a rock face, deep water, or anything else that would block a pawn.
 - **Terrain:** jumps to the next tile whose ground is different, so a stretch of sand or a paved floor crosses in one press.
-- **Structure:** jumps to the next tile whose building is different, so a run of marble wall crosses in one press and lands where that wall changes or ends. Standing on open ground, it finds the next building instead.
+- **Structure:** never lands on open ground. Standing on a building, it jumps to the last tile of that run, so a stretch of marble wall crosses in one press and stops on its far end. If a different building comes right after, it stops there instead. Press again from the end and it skips the open ground to the next building, which is also where it goes when you start on open ground.
 
 Blueprints and frames count as the thing they will become, so a colony under construction navigates like the one being built.
 
@@ -46,7 +46,7 @@ Controls:
 - **Shift+Left / Shift+Right** adjust the preset distance by 1.
 - **Shift+Ctrl+Left / Shift+Ctrl+Right** adjust the preset distance by 10.
 
-The scanning modes cover an unpredictable number of tiles, so they announce the distance before describing where the cursor landed, for example "7 tiles. Marble wall." When there is nothing to jump to, the mod says so and stays put: "blocked", "no terrain change that way", "no structure change that way", or "map boundary".
+The scanning modes cover an unpredictable number of tiles, so they announce the distance before describing where the cursor landed, for example "7 tiles. Marble wall." When there is nothing to jump to, the mod says so and stays put: "blocked", "no terrain change that way", "no structure that way", or "map boundary".
 
 No jump crosses into unexplored ground. A scan stops at the fog line, so a jump never tells you what is hiding in the dark.
 
