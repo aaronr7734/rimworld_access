@@ -637,4 +637,6 @@
   <RimWorldAccess.Credits.Opened>制作人员名单。{0} 项。用方向键阅读。按 Escape 激活 {1}。</RimWorldAccess.Credits.Opened>
   <RimWorldAccess.Credits.Skipping>正在跳过制作人员名单。{0} 秒后关闭。</RimWorldAccess.Credits.Skipping>
   <RimWorldAccess.Credits.AlreadySkipping>已经在跳过制作人员名单。</RimWorldAccess.Credits.AlreadySkipping>
+  <RimWorldAccess.PawnFilter.TraitEffects>效果：{0}。</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>无法执行：{0}</RimWorldAccess.PawnFilter.TraitCannotDo>
 </LanguageData>

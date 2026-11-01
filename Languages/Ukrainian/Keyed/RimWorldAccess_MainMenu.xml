@@ -663,4 +663,6 @@
   <!-- Spoken when the skip starts. {0} = the seconds the screen itself waits before closing. -->
   <RimWorldAccess.Credits.Skipping>Титри пропускаються. Закриється через {0} секунд.</RimWorldAccess.Credits.Skipping>
   <RimWorldAccess.Credits.AlreadySkipping>Титри вже пропускаються.</RimWorldAccess.Credits.AlreadySkipping>
+  <RimWorldAccess.PawnFilter.TraitEffects>Ефекти: {0}.</RimWorldAccess.PawnFilter.TraitEffects>
+  <RimWorldAccess.PawnFilter.TraitCannotDo>Не може: {0}</RimWorldAccess.PawnFilter.TraitCannotDo>
 </LanguageData>
