@@ -14,9 +14,10 @@ namespace RimWorldAccess.Shell
         public bool IsExpandable;
         public bool IsExpanded;
 
-        /// <summary>Drawn with <see cref="Widgets.DefIcon"/> when set; <see cref="IconStuff"/> is its material.</summary>
+        /// <summary>Drawn with <see cref="Widgets.DefIcon"/> unless <see cref="IconThing"/> is set; <see cref="IconStuff"/> is its material.</summary>
         public Def Icon;
         public ThingDef IconStuff;
+        public Thing IconThing;
 
         /// <summary>Right-aligned secondary text (a count), or null.</summary>
         public string RightText;
@@ -63,11 +64,7 @@ namespace RimWorldAccess.Shell
         /// <summary>Beneath <see cref="FloatMenuTwin"/>'s layer, so a row's context menu draws over the tree.</summary>
         private const WindowLayer TwinLayer = WindowLayer.Dialog;
 
-        private const float RowHeight = 28f;
-        private const float IndentPerLevel = 17f;
-        private const float CaretSize = 18f;
-        private const float ColumnGap = 4f;
-        private const float RightColumnWidth = 90f;
+        private const float RowHeight = TreeRowPainter.RowHeight;
         private const float ScrollBarWidth = 16f;
         private const float TitleGap = 8f;
 
@@ -282,7 +279,7 @@ namespace RimWorldAccess.Shell
             int focused = scopeIsTop ? activeMount.FocusedIndex : -1;
             if (focused != lastFocusedIndex)
             {
-                ClampScrollTo(focused, outRect.height, viewRect.height);
+                TreeRowPainter.ClampScrollTo(ref scrollPosition, focused, outRect.height, viewRect.height);
                 lastFocusedIndex = focused;
             }
 
@@ -316,7 +313,8 @@ namespace RimWorldAccess.Shell
                     rowHitRows.Add(i);
                 }
 
-                DrawRow(activeMount.RowAt(i), rowRect, i, i == focused);
+                // Mouse feedback only while the row can actually take a click.
+                TreeRowPainter.DrawRow(activeMount.RowAt(i), rowRect, i, i == focused, i == focused, mouseover: scopeIsTop);
                 if (i == focused)
                 {
                     // The twin is the surface, so its own draw pass publishes the mirror-pushed
@@ -334,34 +332,47 @@ namespace RimWorldAccess.Shell
                 activeMount.ActivateRow(pendingActivation);
             }
         }
+    }
 
-        private static void DrawRow(TreeTwinRow row, Rect rowRect, int index, bool isFocused)
+    /// <summary>The tree row look shared by <see cref="TreeTwinWindow"/> and <see cref="MapOverviewWindow"/>.</summary>
+    internal static class TreeRowPainter
+    {
+        internal const float RowHeight = 28f;
+        private const float IndentPerLevel = 17f;
+        private const float CaretSize = 18f;
+        private const float ColumnGap = 4f;
+        private const float RightColumnWidth = 90f;
+
+        internal static void DrawRow(TreeTwinRow row, Rect rowRect, int index, bool selected, bool ringed, bool mouseover)
         {
             if (index % 2 == 1)
             {
                 Widgets.DrawLightHighlight(rowRect);
             }
-            if (isFocused)
+            if (selected)
             {
                 Widgets.DrawHighlightSelected(rowRect);
             }
-            if (scopeIsTop)
+            if (mouseover)
             {
-                // Mouse feedback only while the row can actually take a click.
                 Widgets.DrawHighlightIfMouseover(rowRect);
             }
 
             float x = rowRect.x + row.Level * IndentPerLevel;
             if (row.IsExpandable)
             {
-                // Listing_Tree's own caret pair, drawn rather than a ButtonImage: the row's click is
-                // already consumed above and runs the same expand path.
+                // Listing_Tree's own caret pair, drawn: the row's click runs the same expand path.
                 Rect caretRect = new Rect(x, rowRect.y + (RowHeight - CaretSize) / 2f, CaretSize, CaretSize);
                 GUI.DrawTexture(caretRect, row.IsExpanded ? TexButton.Collapse : TexButton.Reveal);
             }
             x += CaretSize + ColumnGap;
 
-            if (row.Icon != null)
+            if (row.IconThing != null)
+            {
+                Widgets.ThingIcon(new Rect(x, rowRect.y, RowHeight, RowHeight), row.IconThing);
+                x += RowHeight + ColumnGap;
+            }
+            else if (row.Icon != null)
             {
                 Widgets.DefIcon(new Rect(x, rowRect.y, RowHeight, RowHeight), row.Icon, row.IconStuff);
                 x += RowHeight + ColumnGap;
@@ -379,19 +390,19 @@ namespace RimWorldAccess.Shell
                 Text.Anchor = TextAnchor.MiddleLeft;
                 GUI.color = previous;
             }
-            if (labelWidth > 0f)
+            if (labelWidth > 0f && row.Label != null)
             {
                 Widgets.Label(new Rect(x, rowRect.y, labelWidth, RowHeight), row.Label.Truncate(labelWidth));
             }
 
-            if (isFocused)
+            if (ringed)
             {
                 FocusRing.Draw(rowRect);
             }
         }
 
         /// <summary>Keeps the focused row inside the view with one clamp per focus change.</summary>
-        private static void ClampScrollTo(int focused, float viewHeight, float contentHeight)
+        internal static void ClampScrollTo(ref Vector2 scrollPosition, int focused, float viewHeight, float contentHeight)
         {
             if (focused < 0)
             {

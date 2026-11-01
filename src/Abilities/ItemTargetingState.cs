@@ -85,9 +85,7 @@ namespace RimWorldAccess
         /// </summary>
         public static string BuildSuccessAnnouncement(LocalTargetInfo target)
         {
-            string targetLabel = target.HasThing
-                ? target.Thing.LabelShort
-                : "RimWorldAccess.Abilities.Label.Target".Translate().ToString();
+            string targetLabel = KeyboardTargeterConfirm.TargetLabel(target);
             if (itemLabel != null)
                 return "RimWorldAccess.Abilities.Item.SuccessUsing".Translate(itemLabel, targetLabel);
             return "RimWorldAccess.Abilities.Item.SuccessSelected".Translate(targetLabel);

@@ -72,6 +72,25 @@ public class TableModelTests
     }
 
     [Fact]
+    public void SetSort_AdoptedStateDrivesTheNextCycleStep()
+    {
+        var table = new TableModel(new ListModel(5), 3);
+        table.NextColumn();
+
+        table.SetSort(1, descending: true);
+        Assert.Equal(1, table.SortColumnIndex);
+        Assert.True(table.SortDescending);
+        Assert.Equal(SortCycleResult.SortedAscending, table.ToggleSortCycle(true));
+
+        table.SetSort(-1, descending: true);
+        Assert.False(table.HasActiveSort);
+        Assert.False(table.SortDescending);
+
+        table.SetSort(3, descending: true);
+        Assert.False(table.HasActiveSort);
+    }
+
+    [Fact]
     public void SortCycle_UnsortableColumnRefusesAndKeepsState()
     {
         var table = new TableModel(new ListModel(5), 2);

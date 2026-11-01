@@ -28,12 +28,18 @@ namespace RimWorldAccess.Shell
             return def == null ? KeyCode.None : def.MainKey;
         }
 
-        /// <summary>Readable label for the binding's primary live key, or null when the
-        /// def is null or nothing is bound — callers announce nothing rather than "None".</summary>
+        /// <summary>Readable label for the binding's primary live key; null when unbound, so callers never say "None".</summary>
         internal static string HotkeyLabel(KeyBindingDef def)
         {
             KeyCode key = BoundKey(def);
             return key == KeyCode.None ? null : key.ToStringReadable();
+        }
+
+        /// <summary>As <see cref="HotkeyLabel"/>, but null when any claim beneath every modal takes the bare key, whatever its when-guard.</summary>
+        internal static string ReachableHotkeyLabel(KeyBindingDef def)
+        {
+            KeyCode key = BoundKey(def);
+            return key == KeyCode.None || FocusStack.ClaimedBelowModals(KeyChord.Of(key)) ? null : key.ToStringReadable();
         }
     }
 }

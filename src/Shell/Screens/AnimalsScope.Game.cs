@@ -160,7 +160,7 @@ namespace RimWorldAccess.Shell
 
         /// <summary>
         /// Row default: in submenu mode Enter applies the highlighted option; in table mode this
-        /// runs only for the display-only columns, which just re-announce.
+        /// runs only for the display-only columns, which say they are read only.
         /// </summary>
         protected override void ActivateContentItem(int region, int index)
         {
@@ -171,8 +171,7 @@ namespace RimWorldAccess.Shell
             }
             if (index < 0 || index >= animalsList.Count)
                 return;
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
+            AnnounceCurrentCellReadOnly();
         }
 
         protected override TableColumnInfo ContentColumnInfo(int region, int column)

@@ -94,6 +94,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Orden restablecido al predeterminado</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Esta columna no se puede ordenar</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter ordena</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, solo lectura</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>Pulsa Intro para ir a {0}</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -113,6 +115,10 @@
   <RimWorldAccess.Shell.Generic.ColumnRemoved>Columna {0} eliminada</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>{0} movida a la columna {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} es la última columna y no se puede eliminar</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>Las columnas solo se pueden mover desde la fila de encabezado</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>Las columnas solo se pueden eliminar desde la fila de encabezado</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0} añadida como primera columna</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>{0} añadida, a la derecha de {1}</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.Incapable>incapaz</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>entrenado</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0} a {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

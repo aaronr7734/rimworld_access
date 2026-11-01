@@ -15,10 +15,7 @@ namespace RimWorldAccess.Shell
     {
         private const float FilterColumnWidth = 220f;
         private const float FilterRowHeight = 28f;
-        private const float RowHeight = 28f;
-        private const float IndentPerLevel = 17f;
-        private const float CaretSize = 18f;
-        private const float ColumnGap = 4f;
+        private const float RowHeight = TreeRowPainter.RowHeight;
 
         private Vector2 scrollPosition;
         private int scrolledTo = -1;
@@ -100,15 +97,7 @@ namespace RimWorldAccess.Shell
             int focused = scope.CurrentRowIndex;
             if (focused >= 0 && focused != scrolledTo)
             {
-                float top = focused * RowHeight;
-                if (top < scrollPosition.y)
-                {
-                    scrollPosition.y = top;
-                }
-                else if (top + RowHeight > scrollPosition.y + outer.height)
-                {
-                    scrollPosition.y = top + RowHeight - outer.height;
-                }
+                TreeRowPainter.ClampScrollTo(ref scrollPosition, focused, outer.height, viewRect.height);
                 scrolledTo = focused;
             }
 
@@ -123,7 +112,16 @@ namespace RimWorldAccess.Shell
                 {
                     continue;
                 }
-                DrawRow(rows[i], rowRect, i, i == focused, ringed && i == focused);
+                InspectionTreeItem item = rows[i];
+                var row = new TreeTwinRow
+                {
+                    Label = item.SearchText,
+                    Level = Mathf.Max(0, item.IndentLevel),
+                    IsExpandable = item.IsExpandable,
+                    IsExpanded = item.IsExpanded,
+                    IconThing = RowIcon(item),
+                };
+                TreeRowPainter.DrawRow(row, rowRect, i, i == focused, ringed && i == focused, mouseover: true);
                 if (i == focused)
                 {
                     scope.FocusedRowRect = GuiSpace.VisibleScreenRect(rowRect);
@@ -136,46 +134,10 @@ namespace RimWorldAccess.Shell
             Text.Anchor = TextAnchor.UpperLeft;
             Widgets.EndScrollView();
 
+            // After the scroll view: activating a row can close this window.
             if (clickedIndex >= 0)
             {
-                scope.SelectRow(clickedIndex);
-            }
-        }
-
-        /// <summary>Indent, Listing_Tree's caret pair, an optional icon and the row's full text, as <see cref="TreeTwinWindow"/> paints a tree row.</summary>
-        private void DrawRow(InspectionTreeItem item, Rect rowRect, int index, bool isSelected, bool isFocused)
-        {
-            if (index % 2 == 1)
-            {
-                Widgets.DrawLightHighlight(rowRect);
-            }
-            if (isSelected)
-            {
-                Widgets.DrawHighlightSelected(rowRect);
-            }
-            Widgets.DrawHighlightIfMouseover(rowRect);
-
-            float x = rowRect.x + Mathf.Max(0, item.IndentLevel) * IndentPerLevel;
-            if (item.IsExpandable)
-            {
-                Rect caretRect = new Rect(x, rowRect.y + (RowHeight - CaretSize) / 2f, CaretSize, CaretSize);
-                GUI.DrawTexture(caretRect, item.IsExpanded ? TexButton.Collapse : TexButton.Reveal);
-            }
-            x += CaretSize + ColumnGap;
-            Thing icon = RowIcon(item);
-            if (icon != null)
-            {
-                Widgets.ThingIcon(new Rect(x, rowRect.y, RowHeight, RowHeight), icon);
-                x += RowHeight + ColumnGap;
-            }
-            float labelWidth = rowRect.xMax - x - ColumnGap;
-            if (labelWidth > 0f)
-            {
-                Widgets.Label(new Rect(x, rowRect.y, labelWidth, RowHeight), item.SearchText.Truncate(labelWidth));
-            }
-            if (isFocused)
-            {
-                FocusRing.Draw(rowRect);
+                scope.ClickRow(clickedIndex);
             }
         }
 
@@ -209,10 +171,8 @@ namespace RimWorldAccess.Shell
     ///
     /// The tree rebuilds silently at most every <see cref="LiveRebuildSeconds"/>, and only when
     /// <see cref="ContentSignature"/> moved, never under a search or before its auto-expansion is
-    /// restored. Nodes are matched across rebuilds by Data alone, which must be unique among
-    /// siblings: expansion carries over, an emptied node collapses, and the cursor stays on its
-    /// node wherever it moved, provided it is still visible. Otherwise the cursor takes the row
-    /// now at its old place in its old list, the new last row, or the list's parent once empty.
+    /// restored. Rebuilds ride <see cref="TreeStatePreserve.CursorRule.FollowData"/>, so every
+    /// node's Data must be unique among its siblings.
     /// </summary>
     public abstract class MapOverviewScope : TreeRegionScope
     {
@@ -340,17 +300,7 @@ namespace RimWorldAccess.Shell
             lastRebuildTime = Time.realtimeSinceStartup;
 
             int oldIndex = CurrentRowIndex;
-            InspectionTreeItem focused = oldIndex >= 0 ? Tree.Visible[oldIndex] : null;
-            InspectionTreeItem oldRoot = Tree.Root;
-            InspectionTreeItem root = BuildRoot(shown);
-            if (oldRoot != null)
-            {
-                CarryExpansion(oldRoot, root);
-            }
-            SetTreeRoot(root);
-
-            InspectionTreeItem landing = focused != null ? Relocate(focused, root) : null;
-            int index = landing != null ? TreeStatePreserve.VisibleIndexFor(Tree, landing) : -1;
+            int index = SetTreeRootPreservingState(BuildRoot(shown), oldIndex, TreeStatePreserve.CursorRule.FollowData);
             if (index < 0)
             {
                 index = Math.Min(Math.Max(oldIndex, 0), Tree.Count - 1);
@@ -358,121 +308,10 @@ namespace RimWorldAccess.Shell
             Tree.SetSelectedIndex(index);
             RefreshModel();
             Model.Region(TreeRegionIndex)?.MoveTo(index);
-            // The swap resets boundary tracking. Keeping the old parent lets submenu mode name the
-            // group a followed row moved into on the next arrow.
-            CurrentPanel.LastAnnouncedParent = focused != null ? Counterpart(focused.Parent, root) : null;
             if (CurrentPanel.LastAnnouncedParent == null && index >= 0 && index < Tree.Count)
             {
                 CurrentPanel.LastAnnouncedParent = Tree.Visible[index].Parent;
             }
-        }
-
-        /// <summary>Expansion by Data; a node rebuilt without children stays collapsed.</summary>
-        private static void CarryExpansion(InspectionTreeItem from, InspectionTreeItem to)
-        {
-            List<InspectionTreeItem> children = to.Children;
-            for (int i = 0; i < children.Count; i++)
-            {
-                InspectionTreeItem child = children[i];
-                InspectionTreeItem old = child.Children.Count > 0 ? ChildWithData(from, child.Data) : null;
-                if (old != null)
-                {
-                    child.IsExpanded = old.IsExpanded;
-                    CarryExpansion(old, child);
-                }
-            }
-        }
-
-        private InspectionTreeItem Relocate(InspectionTreeItem focused, InspectionTreeItem root)
-        {
-            InspectionTreeItem same = Counterpart(focused, root) ?? FindAtLevel(root, focused.Data, focused.IndentLevel);
-            if (same != null && TreeStatePreserve.VisibleIndexFor(Tree, same) >= 0)
-            {
-                return same;
-            }
-            return Successor(focused, root);
-        }
-
-        /// <summary>The row now at <paramref name="old"/>'s place in its list, the new last row, or the parent once the list is empty.</summary>
-        private static InspectionTreeItem Successor(InspectionTreeItem old, InspectionTreeItem root)
-        {
-            InspectionTreeItem oldParent = old.Parent;
-            if (oldParent == null)
-            {
-                return null;
-            }
-            InspectionTreeItem parent = Counterpart(oldParent, root);
-            if (parent == null)
-            {
-                return Successor(oldParent, root);
-            }
-            List<InspectionTreeItem> children = parent.Children;
-            if (children.Count == 0)
-            {
-                return parent;
-            }
-            int at = oldParent.Children.IndexOf(old);
-            return children[Mathf.Clamp(at, 0, children.Count - 1)];
-        }
-
-        /// <summary>The rebuilt node at the same Data path as <paramref name="old"/>, or null.</summary>
-        private static InspectionTreeItem Counterpart(InspectionTreeItem old, InspectionTreeItem root)
-        {
-            if (old == null)
-            {
-                return null;
-            }
-            if (old.Parent == null)
-            {
-                return root;
-            }
-            InspectionTreeItem parent = Counterpart(old.Parent, root);
-            return parent != null ? ChildWithData(parent, old.Data) : null;
-        }
-
-        private static InspectionTreeItem ChildWithData(InspectionTreeItem parent, object data)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            List<InspectionTreeItem> children = parent.Children;
-            for (int i = 0; i < children.Count; i++)
-            {
-                if (data.Equals(children[i].Data))
-                {
-                    return children[i];
-                }
-            }
-            return null;
-        }
-
-        /// <summary>A row whose Data moved to another parent: the first match at its old depth.</summary>
-        private static InspectionTreeItem FindAtLevel(InspectionTreeItem node, object data, int level)
-        {
-            if (data == null)
-            {
-                return null;
-            }
-            List<InspectionTreeItem> children = node.Children;
-            for (int i = 0; i < children.Count; i++)
-            {
-                InspectionTreeItem child = children[i];
-                if (child.IndentLevel == level)
-                {
-                    if (data.Equals(child.Data))
-                    {
-                        return child;
-                    }
-                    continue;
-                }
-                InspectionTreeItem found = FindAtLevel(child, data, level);
-                if (found != null)
-                {
-                    return found;
-                }
-            }
-            return null;
         }
 
         /// <summary>The tree region's retained cursor, so its row stays highlighted while another region has focus.</summary>
@@ -494,13 +333,13 @@ namespace RimWorldAccess.Shell
             get { return Model.RegionIndex == TreeRegionIndex; }
         }
 
-        /// <summary>A mouse click on a row: moves the keyboard cursor there and reads it, as if arrowed to.</summary>
-        internal void SelectRow(int index)
+        /// <summary>A mouse click on a row: moves the keyboard cursor there and activates it, exactly as Enter would.</summary>
+        internal void ClickRow(int index)
         {
             if (index >= 0 && index < Tree.Count)
             {
                 Tree.SetSelectedIndex(index);
-                LandCursorAt(TreeRegionIndex, index);
+                TwinActivateRow(index);
             }
         }
 

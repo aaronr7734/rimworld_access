@@ -489,4 +489,29 @@ public class FocusDispatchTests
         Assert.False(core.Dispatch(snapshot, null, out string id2));
         Assert.Null(id2);
     }
+
+    [Fact]
+    public void ClaimedBelowModals_SeesClaimsBelowTheLowestModal_IgnoringWhenGuards()
+    {
+        var core = new FocusStackCore();
+        var catalog = new ActionCatalog();
+        var journal = new List<string>();
+        var map = new RecordingScope("map", journal, isModal: false);
+        var observer = new RecordingScope("observer", journal, isModal: false);
+        var menu = new RecordingScope("menu", journal);
+        core.Push(map);
+        core.Push(observer);
+        core.Push(menu);
+        catalog.Register(Screen("map", "map.search", "Z"));
+        catalog.Register(Screen("observer", "observer.peek", "X"));
+        catalog.Register(Screen("menu", "menu.only", "Q"));
+        map.AddClaim("map.search", when: () => false);
+        observer.AddClaim("observer.peek", propagate: true);
+        menu.AddClaim("menu.only");
+
+        Assert.True(core.ClaimedBelowModals(KeyChord.Parse("Z"), catalog));
+        Assert.False(core.ClaimedBelowModals(KeyChord.Parse("Ctrl+Z"), catalog));
+        Assert.False(core.ClaimedBelowModals(KeyChord.Parse("X"), catalog));
+        Assert.False(core.ClaimedBelowModals(KeyChord.Parse("Q"), catalog));
+    }
 }

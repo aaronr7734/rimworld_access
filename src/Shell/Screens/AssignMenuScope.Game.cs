@@ -150,13 +150,12 @@ namespace RimWorldAccess.Shell
             return d;
         }
 
-        /// <summary>Row default (Enter with no cell action): the display-only Ideo/Xenotype columns just re-announce.</summary>
+        /// <summary>Row default (Enter with no cell action): the display-only Ideo/Xenotype columns say they are read only.</summary>
         protected override void ActivateContentItem(int region, int index)
         {
             if (index < 0 || index >= pawnsList.Count)
                 return;
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
+            AnnounceCurrentCellReadOnly();
         }
 
         protected override TableColumnInfo ContentColumnInfo(int region, int column)
@@ -182,6 +181,13 @@ namespace RimWorldAccess.Shell
             return AssignMenuHelper.GetCellTip(pawnsList[row], column);
         }
 
+        protected override string ContentCellHint(int region, int row, int column)
+        {
+            if (row < 0 || row >= pawnsList.Count)
+                return null;
+            return PawnColumnCellReader.CellHint(AssignMenuHelper.GetColumnDef(column), pawnsList[row]);
+        }
+
         /// <summary>
         /// Enter on an interactive column: Name jumps to the pawn and closes the menu (this scope's
         /// own behavior, not the registry's select-and-jump-in-place); Ideo/Xenotype fall back to
@@ -202,7 +208,7 @@ namespace RimWorldAccess.Shell
                 return true;
             }
             if (AssignMenuHelper.IsDisplayOnlyColumn(column))
-                return false; // Ideo/Xenotype -> row default (re-announce).
+                return false; // Ideo/Xenotype -> row default (read only).
 
             PawnTable table = PawnColumnMutationHelper.CreateDetachedTable(PawnTableDefOf.Assign);
             AssignMenuHelper.ActivationOutcome outcome = AssignMenuHelper.ActivateCell(pawn, column, table, out string blockedReason);

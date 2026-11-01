@@ -294,8 +294,7 @@ namespace RimWorldAccess
         /// <summary>The bare animal name, without activity, for row labels.</summary>
         public static string GetAnimalName(Pawn pawn)
         {
-            string name = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
-            return $"{name} ({pawn.def.LabelCap})";
+            return pawn.Name != null ? $"{pawn.Name.ToStringShort} ({pawn.def.LabelCap})" : pawn.def.LabelCap.ToString();
         }
 
         /// <summary>The animal name with its current activity, for the Name column value.</summary>

@@ -102,6 +102,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Tri réinitialisé, ordre par défaut</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Cette colonne n'est pas triable</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Entrée : trier</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, lecture seule</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>Appuyez sur Entrée pour aller à {0}</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -130,6 +132,10 @@
   <RimWorldAccess.Shell.Generic.ColumnRemoved>Colonne {0} retirée</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>{0} déplacé à la colonne {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} est la dernière colonne et ne peut pas être retirée</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>Les colonnes ne peuvent être déplacées que depuis la ligne d'en-tête</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>Les colonnes ne peuvent être retirées que depuis la ligne d'en-tête</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0} ajouté comme première colonne</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>{0} ajouté, à droite de {1}</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.Incapable>incapable</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>entraîné</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0} à {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

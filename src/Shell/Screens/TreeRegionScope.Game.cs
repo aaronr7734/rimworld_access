@@ -256,18 +256,28 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// Replaces the tree root while preserving expansion state and landing the cursor back on
-        /// the same LOGICAL node rather than the same row index. Takes and returns CONTENT-REGION
-        /// indices (including PrefixRowCount); returns -1 when the old cursor node is gone from
-        /// the rebuilt tree, leaving the caller's numeric clamp in force. Does NOT move the region
-        /// cursor — call <see cref="SyncRegionFromCurrentTree"/>, then announce once.
+        /// Replaces the tree root, keeping expansion and the cursor's LOGICAL node rather than its row
+        /// index. Takes and returns CONTENT-REGION indices (PrefixRowCount included); -1 leaves the
+        /// caller's numeric clamp in force. Does NOT move the region cursor: call
+        /// <see cref="SyncRegionFromCurrentTree"/>, then announce once. Under FollowData the boundary
+        /// tracking keeps the old cursor's parent, so submenu mode names a group the row moved into.
         /// </summary>
         protected int SetTreeRootPreservingState(InspectionTreeItem newRoot, int regionCursorIndex)
         {
             return SetTreeRootPreservingState(defaultPanel, newRoot, regionCursorIndex);
         }
 
+        protected int SetTreeRootPreservingState(InspectionTreeItem newRoot, int regionCursorIndex, TreeStatePreserve.CursorRule rule)
+        {
+            return SetTreeRootPreservingState(defaultPanel, newRoot, regionCursorIndex, rule);
+        }
+
         protected int SetTreeRootPreservingState(TreePanel panel, InspectionTreeItem newRoot, int regionCursorIndex)
+        {
+            return SetTreeRootPreservingState(panel, newRoot, regionCursorIndex, TreeStatePreserve.CursorRule.NearestAncestor);
+        }
+
+        protected int SetTreeRootPreservingState(TreePanel panel, InspectionTreeItem newRoot, int regionCursorIndex, TreeStatePreserve.CursorRule rule)
         {
             int prefixRows = PrefixRowCountFor(RegionOf(panel));
             int treeCursor = regionCursorIndex - prefixRows;
@@ -277,8 +287,8 @@ namespace RimWorldAccess.Shell
             {
                 SyncTreeSettings(panel);
                 panel.Tree.SetRoot(r);
-            }, treeCursor, OnBeforeExpandNode);
-            panel.LastAnnouncedParent = null;
+            }, treeCursor, OnBeforeExpandNode, rule, out InspectionTreeItem formerParent);
+            panel.LastAnnouncedParent = formerParent;
             return restored >= 0 ? restored + prefixRows : -1;
         }
 

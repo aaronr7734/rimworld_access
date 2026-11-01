@@ -360,10 +360,8 @@ namespace RimWorldAccess
         {
             if (!isActive || currentAbility == null || casterMap == null)
             {
-                string label = target.HasThing
-                    ? target.Thing.LabelShort
-                    : "RimWorldAccess.Abilities.Label.Location".Translate().ToString();
-                return "RimWorldAccess.Abilities.Success.TargetingLocation".Translate(label);
+                return "RimWorldAccess.Abilities.Success.TargetingLocation".Translate(
+                    KeyboardTargeterConfirm.TargetLabel(target));
             }
 
             if (currentAbility.def.HasAreaOfEffect)

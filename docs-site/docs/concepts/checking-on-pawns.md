@@ -19,9 +19,11 @@ These prioritize the thing under the cursor first, then fall back to the pawn yo
 
 ## Finding who has an item
 
-Press **Alt+Shift+G** to open the gear menu. It lists every weapon, piece of apparel and carried item held by anyone you can see on the map, split into Equipment, Apparel and Inventory like the gear tab. All three sections are always there, and each one tells you how many items it holds and how many pawns hold them, like "Equipment. 13 items, 9 holders", or just "None". Under each item are the pawns holding it, marked as colonist, prisoner, visitor, hostile and so on, along with the item's condition when it is damaged. Start typing an item's name to find it, even inside a closed section.
+Press **Alt+Shift+G** to open the gear menu. It is one list of every weapon and piece of apparel worn or held by anyone you can see on the map, with weapons and belts first, then apparel in the gear tab's order. Things pawns carry in their inventory are left out; the inventory screens cover those. Each row names the item and who has it, like "Duster (normal), worn by Bob, Dylan, Harry". Identical items share a row, so a duster of a different quality, or one that is tainted, gets its own. When only one pawn has the item, the row also says its condition if it is damaged.
 
-Press **Enter** on a pawn to close the menu, jump to them and open their gear tab with the cursor on that item. If only one pawn holds the item, Enter on the item does the same. You can also open this menu from the F12 extras menu.
+Press **Right arrow** on an item to step into the pawns who have it, then **Up** and **Down** to move between them. Each pawn is marked as colonist, prisoner, visitor, hostile and so on, along with the condition of their piece when it is damaged. Press **Left arrow** to go back to the item. Start typing an item's or pawn's name to find it.
+
+Press **Enter** on a pawn to close the menu, jump to them and open their gear tab with the cursor on that item. If only one pawn has the item, Enter on the item does the same. You can also open this menu from the F12 extras menu.
 
 Press **Tab** to reach the filters: Colonists, Colony animals, Colony mechanoids, Prisoners and slaves, Visitors, and Hostiles. They all start checked. Press **Enter** or **Space** on one to hide or show that group's gear, and the menu tells you how many holders are left. Pawns with no faction at all, like a wild man, count as visitors here. The menu remembers your filters, separately from the health overview.
 

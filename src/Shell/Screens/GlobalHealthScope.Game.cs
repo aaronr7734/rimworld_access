@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using RimWorld;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess.Shell
 {
@@ -71,6 +72,7 @@ namespace RimWorldAccess.Shell
         public GlobalHealthScope(GlobalHealthWindow window) : base(window)
         {
             this.window = window;
+            Claim(SharedMenuGrammar.Info, e => PerformInfoCard());
         }
 
         public override string Name
@@ -153,17 +155,28 @@ namespace RimWorldAccess.Shell
         /// </summary>
         private void OpenHealthTab(Pawn pawn)
         {
-            if (!CameraJumper.CanJump(pawn))
+            if (pawn.Destroyed || !pawn.Spawned || !CameraJumper.CanJump(pawn))
             {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
                 TolkHelper.SpeakData("RimWorldAccess.GlobalHealth.JumpUnavailable".Translate());
                 return;
             }
             window.Close();
             CameraJumper.TryJumpAndSelect(pawn);
-            if (InspectPaneUtility.OpenTab(typeof(ITab_Pawn_Health)) == null)
+            if (!WindowlessInspectionState.OpenTabLandingOn(typeof(ITab_Pawn_Health), null))
             {
                 MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
             }
+        }
+
+        private void PerformInfoCard()
+        {
+            if (CurrentTreeItem()?.Data is Pawn pawn)
+            {
+                Find.WindowStack.Add(new Dialog_InfoCard(pawn));
+                return;
+            }
+            InfoCardState.SpeakNoInfoCardAvailable();
         }
 
         // Tree.
@@ -311,6 +324,12 @@ namespace RimWorldAccess.Shell
                 return one
                     ? "RimWorldAccess.GlobalHealth.Summary.BleedOutOne".Translate(name, period)
                     : "RimWorldAccess.GlobalHealth.Summary.BleedOut".Translate(name, entries.Count, period);
+            }
+            if (first.Bleeding == BleedOutKind.Deathless)
+            {
+                return one
+                    ? "RimWorldAccess.GlobalHealth.Summary.DeathlessOne".Translate(name)
+                    : "RimWorldAccess.GlobalHealth.Summary.Deathless".Translate(name, entries.Count);
             }
             return one
                 ? "RimWorldAccess.GlobalHealth.Summary.NotSoonOne".Translate(name)

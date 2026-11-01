@@ -78,6 +78,14 @@ namespace RimWorldAccess.Shell
                 regionSpecs.Add(new RegionSpec(capturedButtons.Count + DeclaredActionCount()));
             }
             Model.SetRegions(regionSpecs, WrapItems);
+            for (int i = 0; i < content; i++)
+            {
+                TableModel table = Model.Table(i);
+                if (table != null && TryGetLiveSort(i, out int sortColumn, out bool sortDescending))
+                {
+                    table.SetSort(sortColumn, sortDescending);
+                }
+            }
             // Only skip a Buttons region reader flow can still reach: the flow needs a
             // non-empty flowing content region to leave from, or the toolbar is unreachable.
             Model.CycleSkipRegion = !ActionsRegionInTabCycle && HasActionsRegion() && LastFlowingContentRegion() >= 0

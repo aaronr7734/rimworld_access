@@ -11,16 +11,16 @@ namespace RimWorldAccess.Shell
     /// </summary>
     public static class TreeStatePreserve
     {
-        /// <summary>
-        /// Replaces <paramref name="tree"/>'s root while preserving expansion and the cursor's logical
-        /// node. Returns the flat visible index of the restored cursor node, or -1 when the old node
-        /// no longer exists (callers keep their numeric-clamp fallback).
-        /// <paramref name="applyRoot"/> is how the caller sets the new root — this method owns only
-        /// the identity walk, never root assignment. <paramref name="onBeforeExpand"/> follows
-        /// <see cref="TreeModel{T}.OnBeforeExpand"/>'s contract and is required for a tree that
-        /// populates children lazily: without it the walk cannot descend past a still-unbuilt lazy
-        /// section and every path beneath one dies at depth 1. Null for eagerly built trees.
-        /// </summary>
+        public enum CursorRule
+        {
+            /// <summary>Nodes match by Data, label or position; a vanished cursor lands on its nearest surviving ancestor, expanded into view.</summary>
+            NearestAncestor,
+
+            /// <summary>Nodes match by Data alone; a node rebuilt childless stays collapsed. A vanished cursor follows its Data to a visible
+            /// row at its old depth, else takes the row at its old place in the deepest surviving list, or that list's owner once empty.</summary>
+            FollowData,
+        }
+
         public static int SetRootPreservingState(
             TreeModel<InspectionTreeItem> tree,
             InspectionTreeItem newRoot,
@@ -28,6 +28,29 @@ namespace RimWorldAccess.Shell
             int currentVisibleIndex,
             Action<InspectionTreeItem> onBeforeExpand = null)
         {
+            return SetRootPreservingState(tree, newRoot, applyRoot, currentVisibleIndex, onBeforeExpand,
+                CursorRule.NearestAncestor, out InspectionTreeItem _);
+        }
+
+        /// <summary>
+        /// Replaces <paramref name="tree"/>'s root while preserving expansion and the cursor's logical
+        /// node. Returns the restored cursor's flat visible index, or -1 when nothing visible survives
+        /// (callers keep their numeric clamp). <paramref name="applyRoot"/> sets the new root; this
+        /// method owns only the identity walk. <paramref name="onBeforeExpand"/> follows
+        /// <see cref="TreeModel{T}.OnBeforeExpand"/>'s contract; a lazily populated tree needs it.
+        /// <paramref name="formerParent"/>, FollowData only, is the rebuilt twin of the old cursor's parent.
+        /// </summary>
+        public static int SetRootPreservingState(
+            TreeModel<InspectionTreeItem> tree,
+            InspectionTreeItem newRoot,
+            Action<InspectionTreeItem> applyRoot,
+            int currentVisibleIndex,
+            Action<InspectionTreeItem> onBeforeExpand,
+            CursorRule rule,
+            out InspectionTreeItem formerParent)
+        {
+            formerParent = null;
+            bool dataOnly = rule == CursorRule.FollowData;
             List<PathSegment> cursorPath = null;
             var expandedPaths = new List<List<PathSegment>>();
             IReadOnlyList<InspectionTreeItem> visible = tree.Visible;
@@ -55,7 +78,7 @@ namespace RimWorldAccess.Shell
 
             foreach (List<PathSegment> path in expandedPaths)
             {
-                InspectionTreeItem node = ResolvePath(newRoot, path, path.Count, false, out bool _, onBeforeExpand);
+                InspectionTreeItem node = ResolvePath(newRoot, path, path.Count, false, out bool _, onBeforeExpand, dataOnly);
                 if (node != null)
                 {
                     // The node itself is about to be marked expanded, so populate its children first:
@@ -64,13 +87,20 @@ namespace RimWorldAccess.Shell
                     {
                         onBeforeExpand(node);
                     }
-                    node.IsExpanded = true;
+                    if (!dataOnly || node.Children.Count > 0)
+                    {
+                        node.IsExpanded = true;
+                    }
                 }
             }
             tree.Reflatten();
 
-            // Nearest-surviving-ancestor walk: a row that activated something can be gone from the
-            // rebuilt tree entirely, so land on its closest surviving ancestor rather than clamping.
+            if (dataOnly)
+            {
+                return cursorPath != null ? FollowData(tree, newRoot, cursorPath, cursorNode, onBeforeExpand, out formerParent) : -1;
+            }
+
+            // A row that activated something can be gone entirely: land on its closest surviving ancestor.
             for (int depth = cursorPath != null ? cursorPath.Count : 0; depth > 0; depth--)
             {
                 InspectionTreeItem node = ResolvePath(newRoot, cursorPath, depth, true, out bool expandedAny, onBeforeExpand);
@@ -90,6 +120,47 @@ namespace RimWorldAccess.Shell
                 }
             }
             return -1;
+        }
+
+        private static int FollowData(TreeModel<InspectionTreeItem> tree, InspectionTreeItem newRoot, List<PathSegment> cursorPath,
+            InspectionTreeItem oldCursor, Action<InspectionTreeItem> onBeforeExpand, out InspectionTreeItem formerParent)
+        {
+            int depth = cursorPath.Count;
+            formerParent = depth > 1 ? ResolvePath(newRoot, cursorPath, depth - 1, false, out bool _, onBeforeExpand, true) : newRoot;
+            InspectionTreeItem same = formerParent != null ? MatchChild(formerParent, cursorPath[depth - 1], true) : null;
+            int index = same != null ? VisibleIndexFor(tree, same) : -1;
+            if (index < 0)
+            {
+                object data = cursorPath[depth - 1].Data;
+                IReadOnlyList<InspectionTreeItem> visible = tree.Visible;
+                for (int i = 0; data != null && i < visible.Count; i++)
+                {
+                    if (visible[i].IndentLevel == oldCursor.IndentLevel && data.Equals(visible[i].Data))
+                    {
+                        index = i;
+                        break;
+                    }
+                }
+            }
+            for (int level = depth - 1; index < 0 && level >= 0; level--)
+            {
+                InspectionTreeItem list = level > 0 ? ResolvePath(newRoot, cursorPath, level, false, out bool _, onBeforeExpand, true) : newRoot;
+                if (list == null)
+                {
+                    continue;
+                }
+                List<InspectionTreeItem> children = list.Children;
+                InspectionTreeItem landing = children.Count == 0
+                    ? list
+                    : children[Math.Min(Math.Max(cursorPath[level].Index, 0), children.Count - 1)];
+                index = VisibleIndexFor(tree, landing);
+                break;
+            }
+            if (index >= 0)
+            {
+                tree.SetSelectedIndex(index);
+            }
+            return index;
         }
 
         /// <summary>
@@ -177,7 +248,7 @@ namespace RimWorldAccess.Shell
         /// descended into or expanded; without it a lazy section's children never exist for
         /// <see cref="MatchChild"/> to search and the walk dies at the first such node.
         /// </summary>
-        private static InspectionTreeItem ResolvePath(InspectionTreeItem root, List<PathSegment> path, int depth, bool expandAncestors, out bool expandedAny, Action<InspectionTreeItem> onBeforeExpand)
+        private static InspectionTreeItem ResolvePath(InspectionTreeItem root, List<PathSegment> path, int depth, bool expandAncestors, out bool expandedAny, Action<InspectionTreeItem> onBeforeExpand, bool dataOnly = false)
         {
             expandedAny = false;
             InspectionTreeItem node = root;
@@ -187,7 +258,7 @@ namespace RimWorldAccess.Shell
                 {
                     onBeforeExpand(node);
                 }
-                InspectionTreeItem child = MatchChild(node, path[level]);
+                InspectionTreeItem child = MatchChild(node, path[level], dataOnly);
                 if (child == null)
                 {
                     return null;
@@ -214,9 +285,20 @@ namespace RimWorldAccess.Shell
         /// finally the same POSITION when the sibling count is unchanged, so an in-place relabel keeps
         /// the cursor on the row the player just acted on rather than throwing it to an ancestor.
         /// </summary>
-        private static InspectionTreeItem MatchChild(InspectionTreeItem parent, PathSegment segment)
+        private static InspectionTreeItem MatchChild(InspectionTreeItem parent, PathSegment segment, bool dataOnly = false)
         {
             List<InspectionTreeItem> children = parent.Children;
+            if (dataOnly)
+            {
+                for (int i = 0; segment.Data != null && i < children.Count; i++)
+                {
+                    if (segment.Data.Equals(children[i].Data))
+                    {
+                        return children[i];
+                    }
+                }
+                return null;
+            }
             InspectionTreeItem dataMatch = null;
             int dataMatchCount = 0;
             InspectionTreeItem labelMatch = null;

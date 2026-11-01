@@ -414,6 +414,18 @@ namespace RimWorldAccess.Shell
             return null;
         }
 
+        protected virtual string ContentCellHint(int region, int row, int column)
+        {
+            return null;
+        }
+
+        protected virtual bool TryGetLiveSort(int region, out int column, out bool descending)
+        {
+            column = -1;
+            descending = false;
+            return false;
+        }
+
         /// <summary>A radio cell's chosen state, or null for a cell with none.</summary>
         protected virtual bool? ContentCellSelected(int region, int row, int column)
         {

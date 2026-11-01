@@ -51,7 +51,8 @@
 
   <!-- Targeting success announcements (single-select path). -->
   <RimWorldAccess.Combat.Target.Targeting>Apuntando a: {0}</RimWorldAccess.Combat.Target.Targeting>
-  <RimWorldAccess.Combat.Target.TargetingLocation>Apuntando a la ubicación</RimWorldAccess.Combat.Target.TargetingLocation>
+  <RimWorldAccess.Combat.Target.LocationAt>ubicación en {0}</RimWorldAccess.Combat.Target.LocationAt>
+  <RimWorldAccess.Combat.Target.TurretForcedTargetSet>{0}: blanco obligado asignado, {1}</RimWorldAccess.Combat.Target.TurretForcedTargetSet>
   <RimWorldAccess.Combat.Target.Selected>Objetivo seleccionado: {0}</RimWorldAccess.Combat.Target.Selected>
 
   <!-- Second-phase (destination) selection, e.g. Skip ability. -->

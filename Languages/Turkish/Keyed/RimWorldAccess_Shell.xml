@@ -102,6 +102,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Sıralama temizlendi, varsayılan düzen</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Bu sütun sıralanamaz</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter tuşu sıralar</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, salt okunur</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>{0} kişisine gitmek için Enter'a bas</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -129,6 +131,10 @@
   <RimWorldAccess.Shell.Generic.CellNotReadable>değer mevcut değil</RimWorldAccess.Shell.Generic.CellNotReadable>
   <RimWorldAccess.Shell.Generic.ColumnRemoved>{0} sütunu kaldırıldı</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>{0} sütunu {1}. sıraya taşındı</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>Sütunlar yalnızca başlık satırından taşınabilir</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>Sütunlar yalnızca başlık satırından kaldırılabilir</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0} ilk sütun olarak eklendi</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>{0} eklendi, {1} sütununun sağında</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} son sütun, kaldırılamaz</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>yapamaz</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>eğitimli</RimWorldAccess.Shell.Generic.Trained>

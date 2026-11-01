@@ -94,6 +94,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>已清除排序，恢复默认顺序</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>此列不支持排序</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>按 Enter 排序</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, 只读</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>按 Enter 跳转到 {0}</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -112,6 +114,10 @@
   <RimWorldAccess.Shell.Generic.CellNotReadable>值不可用</RimWorldAccess.Shell.Generic.CellNotReadable>
   <RimWorldAccess.Shell.Generic.ColumnRemoved>已移除 {0} 列</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>{0} 已移至第 {1} 列</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>只能在表头行移动列</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>只能在表头行移除列</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0} 已添加为第一列</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>已添加 {0}, 位于 {1} 右侧</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} 是最后一列，无法移除</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>无能力</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>已训练</RimWorldAccess.Shell.Generic.Trained>

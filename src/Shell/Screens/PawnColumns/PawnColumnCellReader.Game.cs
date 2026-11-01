@@ -46,6 +46,23 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        public static string CellHint(PawnColumnDef def, Pawn pawn)
+        {
+            if (def == null || pawn == null)
+            {
+                return null;
+            }
+            try
+            {
+                return PawnColumnHandlerRegistry.Resolve(def).CellHint(def, pawn);
+            }
+            catch (Exception ex)
+            {
+                LogFailure(def, ex);
+                return null;
+            }
+        }
+
         /// <summary>
         /// Enter for the windowless bespoke tabs: only handlers declaring
         /// <see cref="IPawnColumnHandler.ActivatesCellWithoutTable"/> are invoked (null table);

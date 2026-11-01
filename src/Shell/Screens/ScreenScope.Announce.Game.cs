@@ -301,6 +301,7 @@ namespace RimWorldAccess.Shell
             d.Extras = axis == CellAxis.Column
                 ? cellTip
                 : TooltipTextJoin.Append(ContentRowTip(regionIndex, row), new[] { cellTip });
+            d.Hint = ContentCellHint(regionIndex, row, column);
             return d;
         }
 

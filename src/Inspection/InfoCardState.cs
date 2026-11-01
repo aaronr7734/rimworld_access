@@ -191,6 +191,25 @@ namespace RimWorldAccess
             }
         }
 
+        /// <summary>Closes every stacked card, nested ones first, and tears the state down without announcing.</summary>
+        private static void CloseAllCards()
+        {
+            var cards = Find.WindowStack.Windows.OfType<Dialog_InfoCard>().ToList();
+            closingFromAccessibility = true;
+            try
+            {
+                for (int i = cards.Count - 1; i > 0; i--)
+                    Find.WindowStack.TryRemove(cards[i], doCloseSound: false);
+                if (cards.Count > 0)
+                    cards[0].Close();
+            }
+            finally
+            {
+                closingFromAccessibility = false;
+            }
+            Close();
+        }
+
         /// <summary>Restores state from the stack for a dialog, for PostClose's external-closure path.</summary>
         public static void RestoreFromStack(Dialog_InfoCard remainingCard)
         {
@@ -453,10 +472,9 @@ namespace RimWorldAccess
         /// Activates one resolved hyperlink, riding the same shape ladder vanilla's
         /// <c>Hyperlink.ActivateHyperlink</c> does. A shape with a real info card of its own opens a
         /// NESTED card through this class's save/restore stack, so Escape backs out to the card the
-        /// player came from. A shape vanilla never gives a card (ideo, quest) rides vanilla's own
-        /// ActivateHyperlink instead: it closes our dialog as a side effect, which
-        /// <see cref="InfoCardPatch"/>'s PostClose external-closure branch already handles. The
-        /// gene-owner shape has no accessible surface unless the pawn is selectable on a map
+        /// player came from. A shape vanilla never gives a card (ideo, quest) closes every stacked
+        /// card and rides vanilla's own ActivateHyperlink. The gene-owner shape has no accessible
+        /// surface unless the pawn is selectable on a map
         /// (vanilla's own gate), so it speaks the resolved label rather than doing nothing.
         /// </summary>
         private static void ActivateHyperlinkForInspection(Dialog_InfoCard.Hyperlink link)
@@ -466,9 +484,9 @@ namespace RimWorldAccess
                 if (ThingSelectionUtility.SelectableByMapClick(link.thing))
                 {
                     link.ActivateHyperlink();
-                    // The Genes tab opens beneath the card, which keeps the keyboard.
+                    // The Genes tab opens beneath the cards, which keep the keyboard.
                     if (GeneInspectionState.IsActive)
-                        Find.WindowStack.TryRemove(typeof(Dialog_InfoCard));
+                        CloseAllCards();
                 }
                 else
                     TolkHelper.SpeakData(InfoCardDataExtractor.GetHyperlinkLabel(link));
@@ -476,6 +494,7 @@ namespace RimWorldAccess
             }
             if (link.ideo != null || link.quest != null)
             {
+                CloseAllCards();
                 link.ActivateHyperlink();
                 return;
             }

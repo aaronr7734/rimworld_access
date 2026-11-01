@@ -51,7 +51,10 @@
 
   <!-- Targeting success announcements (single-select path). -->
   <RimWorldAccess.Combat.Target.Targeting>A visar: {0}</RimWorldAccess.Combat.Target.Targeting>
-  <RimWorldAccess.Combat.Target.TargetingLocation>A visar local</RimWorldAccess.Combat.Target.TargetingLocation>
+  <!-- {0} = map coordinates, formatted as the cursor reports them. -->
+  <RimWorldAccess.Combat.Target.LocationAt>local em {0}</RimWorldAccess.Combat.Target.LocationAt>
+  <!-- {0} = turret label, {1} = target label or LocationAt. -->
+  <RimWorldAccess.Combat.Target.TurretForcedTargetSet>Alvo forçado de {0} designado: {1}</RimWorldAccess.Combat.Target.TurretForcedTargetSet>
   <RimWorldAccess.Combat.Target.Selected>Alvo seleccionado: {0}</RimWorldAccess.Combat.Target.Selected>
 
   <!-- Second-phase (destination) selection, e.g. Skip ability. -->

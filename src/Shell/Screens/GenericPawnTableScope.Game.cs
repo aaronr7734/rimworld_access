@@ -34,6 +34,9 @@ namespace RimWorldAccess.Shell
         private static readonly AccessTools.FieldRef<MainTabWindow_PawnTable, PawnTable> tableField =
             AccessTools.FieldRefAccess<MainTabWindow_PawnTable, PawnTable>("table");
 
+        private static readonly AccessTools.FieldRef<PawnTable, PawnTableDef> tableDefField =
+            AccessTools.FieldRefAccess<PawnTable, PawnTableDef>("def");
+
         /// <summary>
         /// The vanilla tabs already driven by a windowless accessible screen.
         /// Their windows stay open and rendered, so attaching the generic tier too
@@ -56,6 +59,12 @@ namespace RimWorldAccess.Shell
         private readonly List<PawnColumnDef> columns = new List<PawnColumnDef>();
         private int labelColumn = -1;
         private bool announcedOpen;
+        private bool focused;
+
+        // Keyed by def, not instance: a customizing mod rebuilds the PawnTable on every column edit.
+        private PawnTableDef snapshotTableDef;
+        private readonly List<PawnColumnDef> snapshotColumns = new List<PawnColumnDef>();
+        private string pendingColumnAdded;
 
         /// <summary>The ScopeForWindow hierarchy factory. Null = no scope (vanilla flow untouched).</summary>
         internal static FocusScope TryCreate(Window window)
@@ -89,9 +98,9 @@ namespace RimWorldAccess.Shell
             this.tableSupplier = tableSupplier;
             Claim("pawnTable.cyclePriorityDown", e => AdjustCurrentCell(-1), when: () => CurrentCellAdjustable());
             Claim("pawnTable.cyclePriorityUp", e => AdjustCurrentCell(1), when: () => CurrentCellAdjustable());
-            Claim(SharedMenuGrammar.ReorderLeft, e => MoveCurrentColumn(-1), when: HeaderColumnEditable);
-            Claim(SharedMenuGrammar.ReorderRight, e => MoveCurrentColumn(1), when: HeaderColumnEditable);
-            Claim("pawnTable.removeColumn", e => RemoveCurrentColumn(), when: HeaderColumnEditable);
+            Claim(SharedMenuGrammar.ReorderLeft, e => MoveCurrentColumn(-1), when: ColumnsEditable);
+            Claim(SharedMenuGrammar.ReorderRight, e => MoveCurrentColumn(1), when: ColumnsEditable);
+            Claim("pawnTable.removeColumn", e => RemoveCurrentColumn(), when: ColumnsEditable);
         }
 
         public override string Name
@@ -257,6 +266,55 @@ namespace RimWorldAccess.Shell
                     rows.Add(pawn);
                 }
             }
+            NoteAddedColumn(tableDefField(table));
+        }
+
+        private void NoteAddedColumn(PawnTableDef tableDef)
+        {
+            int added = tableDef != null && ReferenceEquals(tableDef, snapshotTableDef)
+                ? InsertedColumnIndex()
+                : -1;
+            snapshotTableDef = tableDef;
+            snapshotColumns.Clear();
+            snapshotColumns.AddRange(columns);
+            if (added < 0)
+            {
+                return;
+            }
+            string label = ColumnHeaderLabel(columns[added]);
+            string text = added == 0
+                ? "RimWorldAccess.Shell.Generic.ColumnAddedFirst".Loc(label).ToString()
+                : "RimWorldAccess.Shell.Generic.ColumnAddedRightOf".Loc(label, ColumnHeaderLabel(columns[added - 1])).ToString();
+            if (focused)
+            {
+                TolkHelper.SpeakData(text);
+            }
+            else
+            {
+                pendingColumnAdded = text;
+            }
+        }
+
+        /// <summary>Positional, so a duplicate of an existing column still counts as an insertion.</summary>
+        private int InsertedColumnIndex()
+        {
+            if (snapshotColumns.Count == 0 || columns.Count != snapshotColumns.Count + 1)
+            {
+                return -1;
+            }
+            int index = 0;
+            while (index < snapshotColumns.Count && ReferenceEquals(columns[index], snapshotColumns[index]))
+            {
+                index++;
+            }
+            for (int i = index; i < snapshotColumns.Count; i++)
+            {
+                if (!ReferenceEquals(columns[i + 1], snapshotColumns[i]))
+                {
+                    return -1;
+                }
+            }
+            return index;
         }
 
         protected override int ContentItemCount(int region)
@@ -390,6 +448,23 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        protected override string ContentCellHint(int region, int row, int column)
+        {
+            if (row < 0 || row >= rows.Count || column < 0 || column >= columns.Count)
+            {
+                return null;
+            }
+            return PawnColumnCellReader.CellHint(columns[column], rows[row]);
+        }
+
+        protected override bool TryGetLiveSort(int region, out int column, out bool descending)
+        {
+            PawnTable table = tableSupplier();
+            column = table != null && table.SortingBy != null ? columns.IndexOf(table.SortingBy) : -1;
+            descending = table != null && table.SortingDescending;
+            return table != null;
+        }
+
         protected override bool ActivateContentCell(int region, int row, int column)
         {
             if (row < 0 || row >= rows.Count || column < 0 || column >= columns.Count)
@@ -484,7 +559,7 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        private bool HeaderColumnEditable()
+        private bool ColumnsEditable()
         {
             if (PawnTableColumnEditorRegistry.Resolve(tableSupplier()) == null)
             {
@@ -492,11 +567,27 @@ namespace RimWorldAccess.Shell
             }
             RefreshModel();
             TableModel model = Model.CurrentTable;
-            return model != null && model.Rows.Index == 0 && model.ColumnIndex >= 0 && model.ColumnIndex < columns.Count;
+            return model != null && model.ColumnIndex >= 0 && model.ColumnIndex < columns.Count;
+        }
+
+        private bool OnHeaderRow(string refusal)
+        {
+            TableModel model = Model.CurrentTable;
+            if (model != null && model.Rows.Index == 0)
+            {
+                return true;
+            }
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            TolkHelper.SpeakData(refusal);
+            return false;
         }
 
         private void RemoveCurrentColumn()
         {
+            if (!OnHeaderRow("RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly".Loc().ToString()))
+            {
+                return;
+            }
             PawnTable table = tableSupplier();
             IPawnTableColumnEditor editor = PawnTableColumnEditorRegistry.Resolve(table);
             TableModel model = Model.CurrentTable;
@@ -527,6 +618,10 @@ namespace RimWorldAccess.Shell
 
         private void MoveCurrentColumn(int direction)
         {
+            if (!OnHeaderRow("RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly".Loc().ToString()))
+            {
+                return;
+            }
             PawnTable table = tableSupplier();
             IPawnTableColumnEditor editor = PawnTableColumnEditorRegistry.Resolve(table);
             TableModel model = Model.CurrentTable;
@@ -566,11 +661,9 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// Fires the captured button this cell's geometry owns through
-        /// <see cref="WidgetCapture.RequestActivate"/>: the next capture pass
-        /// matches the widget by kind, label and ordinal and forces its click
-        /// branch, so the mod's own handler runs unmodified. Silent afterward — the
-        /// click's own side effect announces itself.
+        /// Fires the captured button this cell owns through <see cref="WidgetCapture.RequestActivate"/>,
+        /// matched by kind, label and ordinal on the next pass so the mod's own handler runs. Silent:
+        /// the click's own side effect announces itself.
         /// </summary>
         private bool ActivateCellExtra(int row, int column)
         {
@@ -668,15 +761,14 @@ namespace RimWorldAccess.Shell
             return ordinal;
         }
 
-        /// <summary>Enter on a cell with no action re-announces the row.</summary>
+        /// <summary>Enter on a cell with no action says it is read only.</summary>
         protected override void ActivateContentItem(int region, int index)
         {
             if (index < 0 || index >= rows.Count)
             {
                 return;
             }
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
+            AnnounceCurrentCellReadOnly();
         }
 
         /// <summary>
@@ -717,18 +809,34 @@ namespace RimWorldAccess.Shell
             columns.Clear();
             labelColumn = -1;
             announcedOpen = false;
+            snapshotTableDef = null;
+            snapshotColumns.Clear();
+            pendingColumnAdded = null;
             TypeaheadReset();
         }
 
         public override void OnPop()
         {
+            focused = false;
             PawnTableExtrasRouter.SetActiveTable(null);
             base.OnPop();
+        }
+
+        public override void OnUnfocus()
+        {
+            focused = false;
+            base.OnUnfocus();
         }
 
         public override void OnFocus()
         {
             base.OnFocus();
+            focused = true;
+            if (pendingColumnAdded != null)
+            {
+                TolkHelper.SpeakData(pendingColumnAdded);
+                pendingColumnAdded = null;
+            }
             if (announcedOpen)
             {
                 return;

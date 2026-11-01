@@ -7,9 +7,8 @@ using Verse.Sound;
 namespace RimWorldAccess.Shell
 {
     /// <summary>
-    /// Every piece of gear held by a visible pawn on the current map, item first: the gear tab's
-    /// Equipment, Apparel and Inventory sections, each item under them, and each holder under the
-    /// item.
+    /// Everything a visible pawn on the current map wields or wears, one row per kind of item with
+    /// its holders under it. Carried inventory is left to the inventory screens.
     /// </summary>
     public sealed class GlobalGearWindow : MapOverviewWindow
     {
@@ -47,19 +46,9 @@ namespace RimWorldAccess.Shell
     /// <summary>
     /// Keyboard scope for <see cref="GlobalGearWindow"/>. Read only: Enter on a holder, or on an
     /// item with a single holder, closes the window and opens that pawn's gear tab on the item.
-    /// The three sections always exist, each labelled with what it holds.
     /// </summary>
     public sealed class GlobalGearScope : MapOverviewScope
     {
-        internal enum Section
-        {
-            Equipment,
-            Apparel,
-            Inventory,
-        }
-
-        private static readonly Section[] Sections = { Section.Equipment, Section.Apparel, Section.Inventory };
-
         /// <summary>One holder row's datum; equal by the held thing, so a rebuild finds it again.</summary>
         internal sealed class Holder
         {
@@ -90,7 +79,6 @@ namespace RimWorldAccess.Shell
         private readonly GlobalGearWindow window;
         private readonly List<Pawn> pawnsBuffer = new List<Pawn>();
         private int listedCount;
-        private bool announcedOpen;
 
         public GlobalGearScope(GlobalGearWindow window) : base(window)
         {
@@ -141,15 +129,9 @@ namespace RimWorldAccess.Shell
             base.OnPop();
         }
 
-        public override void OnFocus()
+        protected override string ComposeOpenAnnouncement()
         {
-            base.OnFocus();
-            if (!announcedOpen)
-            {
-                announcedOpen = true;
-                SoundDefOf.TabOpen.PlayOneShotOnCamera();
-            }
-            AnnounceCurrentItem();
+            return "RimWorldAccess.GlobalGear.Title".Translate();
         }
 
         protected override string FilterChangedAnnouncement(string state)
@@ -190,48 +172,26 @@ namespace RimWorldAccess.Shell
             return pawnsBuffer;
         }
 
-        private static List<Thing> SectionThings(Pawn pawn, Section section)
+        /// <summary>What the pawn wields and wears, in the gear tab's Equipment then Apparel order.</summary>
+        private static IEnumerable<Thing> GearThings(Pawn pawn)
         {
-            List<InteractiveGearHelper.GearItem> items;
-            switch (section)
-            {
-                case Section.Equipment:
-                    items = InteractiveGearHelper.GetEquipmentItems(pawn);
-                    break;
-                case Section.Apparel:
-                    items = InteractiveGearHelper.GetApparelItems(pawn);
-                    break;
-                default:
-                    if (CarriesTradeStock(pawn))
-                    {
-                        return new List<Thing>();
-                    }
-                    items = InteractiveGearHelper.GetInventoryItems(pawn);
-                    break;
-            }
-            var things = new List<Thing>(items.Count);
-            foreach (InteractiveGearHelper.GearItem item in items)
+            foreach (InteractiveGearHelper.GearItem item in InteractiveGearHelper.GetEquipmentItems(pawn))
             {
                 if (item.Thing != null)
                 {
-                    things.Add(item.Thing);
+                    yield return item.Thing;
                 }
             }
-            return things;
-        }
-
-        /// <summary>A visiting trader's or pack animal's inventory is the caravan's stock, not gear.</summary>
-        private static bool CarriesTradeStock(Pawn pawn)
-        {
-            if (pawn.Faction == Faction.OfPlayer)
+            foreach (InteractiveGearHelper.GearItem item in InteractiveGearHelper.GetApparelItems(pawn))
             {
-                return false;
+                if (item.Thing != null)
+                {
+                    yield return item.Thing;
+                }
             }
-            TraderCaravanRole role = pawn.GetTraderCaravanRole();
-            return role == TraderCaravanRole.Trader || role == TraderCaravanRole.Carrier;
         }
 
-        /// <summary>Everything a row speaks: holders, their names and groups, stacks, condition.</summary>
+        /// <summary>Everything a row speaks: holders, their names and groups, condition.</summary>
         protected override int ContentSignature(MapPawnGroupFilter shown)
         {
             int hash = (int)shown;
@@ -247,7 +207,6 @@ namespace RimWorldAccess.Shell
                 }
                 hash = AddGear(hash, pawn.equipment?.AllEquipmentListForReading);
                 hash = AddGear(hash, pawn.apparel?.WornApparel);
-                hash = AddGear(hash, pawn.inventory?.innerContainer);
             }
             return hash;
         }
@@ -264,13 +223,24 @@ namespace RimWorldAccess.Shell
                 {
                     T thing = things[i];
                     hash = hash * 31 + thing.thingIDNumber;
-                    hash = hash * 31 + thing.stackCount;
                     hash = hash * 31 + thing.HitPoints;
                 }
             }
             return hash;
         }
 
+        private sealed class ItemGroup
+        {
+            public string Name;
+            public int Rank;
+            public int ListOrder;
+            public readonly List<Holder> Holders = new List<Holder>();
+        }
+
+        /// <summary>
+        /// One row per kind of item, grouped by def, stuff, quality and vanilla's label without hit
+        /// points, so a tainted piece stays apart from a clean one. Holders sit under it.
+        /// </summary>
         protected override InspectionTreeItem BuildRoot(MapPawnGroupFilter shown)
         {
             var root = new InspectionTreeItem
@@ -280,134 +250,102 @@ namespace RimWorldAccess.Shell
                 IsExpanded = true,
                 IsExpandable = false,
             };
-            List<Pawn> pawns = ListedPawns(shown);
+            var groups = new Dictionary<(ThingDef, ThingDef, QualityCategory?, string), ItemGroup>();
             var holderPawns = new HashSet<Pawn>();
-            var allHolders = new HashSet<Pawn>();
-            foreach (Section section in Sections)
-            {
-                holderPawns.Clear();
-                AttachSection(root, section, pawns, holderPawns);
-                allHolders.UnionWith(holderPawns);
-            }
-            listedCount = allHolders.Count;
-            return root;
-        }
-
-        private static void AttachSection(InspectionTreeItem root, Section section, List<Pawn> pawns, HashSet<Pawn> holderPawns)
-        {
-            var groups = new Dictionary<(ThingDef, ThingDef, QualityCategory?, string), InspectionTreeItem>();
-            var counts = new Dictionary<InspectionTreeItem, int>();
-            var holders = new Dictionary<InspectionTreeItem, List<Holder>>();
-            foreach (Pawn pawn in pawns)
+            foreach (Pawn pawn in ListedPawns(shown))
             {
                 MapPawnGroup group = MapPawnGroups.Of(pawn);
-                foreach (Thing thing in SectionThings(pawn, section))
+                foreach (Thing thing in GearThings(pawn))
                 {
                     QualityCategory? quality = thing.TryGetQuality(out QualityCategory q) ? q : (QualityCategory?)null;
                     string name = thing.GetCustomLabelNoCount(includeHp: false).CapitalizeFirst(thing.def).StripTags();
                     var key = (thing.def, thing.Stuff, quality, name);
-                    if (!groups.TryGetValue(key, out InspectionTreeItem itemNode))
+                    if (!groups.TryGetValue(key, out ItemGroup itemGroup))
                     {
-                        itemNode = new InspectionTreeItem
-                        {
-                            Type = InspectionTreeItem.ItemType.Item,
-                            ExpandedLabel = name,
-                            Data = key,
-                            LinkedDef = thing.def,
-                            IndentLevel = 1,
-                            IsExpandable = true,
-                        };
-                        groups[key] = itemNode;
-                        counts[itemNode] = 0;
-                        holders[itemNode] = new List<Holder>();
+                        itemGroup = new ItemGroup { Name = name, Rank = SortRank(thing), ListOrder = ApparelListOrder(thing) };
+                        groups[key] = itemGroup;
                     }
-                    counts[itemNode] += thing.stackCount;
-                    holders[itemNode].Add(new Holder(pawn, thing, group));
+                    itemGroup.Holders.Add(new Holder(pawn, thing, group));
                     holderPawns.Add(pawn);
                 }
             }
+            listedCount = holderPawns.Count;
 
-            var itemNodes = new List<InspectionTreeItem>(groups.Values);
-            itemNodes.Sort((a, b) => string.Compare(a.ExpandedLabel, b.ExpandedLabel, StringComparison.CurrentCultureIgnoreCase));
-            int total = 0;
-            string sectionName = SectionLabel(section);
-            var sectionNode = new InspectionTreeItem
+            var ordered = new List<KeyValuePair<(ThingDef, ThingDef, QualityCategory?, string), ItemGroup>>(groups);
+            ordered.Sort((a, b) =>
             {
-                Type = InspectionTreeItem.ItemType.SubCategory,
-                ExpandedLabel = sectionName,
-                Data = section,
-                IndentLevel = 0,
-                IsExpandable = itemNodes.Count > 0,
-            };
-            foreach (InspectionTreeItem itemNode in itemNodes)
-            {
-                total += counts[itemNode];
-                itemNode.Label = "RimWorldAccess.GlobalGear.Item".Translate(itemNode.ExpandedLabel, counts[itemNode]);
-                List<Holder> list = holders[itemNode];
-                list.Sort((a, b) => a.Group != b.Group
-                    ? a.Group.CompareTo(b.Group)
-                    : string.Compare(a.Pawn.LabelShort, b.Pawn.LabelShort, StringComparison.CurrentCultureIgnoreCase));
-                foreach (Holder holder in list)
+                ItemGroup x = a.Value, y = b.Value;
+                if (x.Rank != y.Rank)
                 {
-                    InspectNodeFactory.Attach(itemNode, new InspectionTreeItem
-                    {
-                        Type = InspectionTreeItem.ItemType.Item,
-                        Label = MapPawnGroups.NameWithGroup(holder.Pawn.LabelShort, holder.Group),
-                        Detail = HolderDetail(holder.Thing),
-                        Data = holder,
-                        IndentLevel = 2,
-                    });
+                    return x.Rank.CompareTo(y.Rank);
                 }
-                InspectNodeFactory.Attach(sectionNode, itemNode);
+                if (x.ListOrder != y.ListOrder)
+                {
+                    return y.ListOrder.CompareTo(x.ListOrder);
+                }
+                return string.Compare(x.Name, y.Name, StringComparison.CurrentCultureIgnoreCase);
+            });
+            foreach (KeyValuePair<(ThingDef, ThingDef, QualityCategory?, string), ItemGroup> entry in ordered)
+            {
+                InspectNodeFactory.Attach(root, ItemNode(entry.Key, entry.Value));
             }
-            sectionNode.Label = SectionSummary(sectionName, total, holderPawns.Count);
-            InspectNodeFactory.Attach(root, sectionNode);
+            return root;
         }
 
-        /// <summary>The gear tab's own section headings.</summary>
-        private static string SectionLabel(Section section)
+        private static InspectionTreeItem ItemNode(object key, ItemGroup itemGroup)
         {
-            switch (section)
+            List<Holder> holders = itemGroup.Holders;
+            holders.Sort((a, b) => a.Group != b.Group
+                ? a.Group.CompareTo(b.Group)
+                : string.Compare(a.Pawn.LabelShort, b.Pawn.LabelShort, StringComparison.CurrentCultureIgnoreCase));
+            Thing first = holders[0].Thing;
+            string name = holders.Count == 1 ? ItemLabelHelper.LabelWithCondition(first).StripTags() : itemGroup.Name;
+            var names = new List<string>(holders.Count);
+            foreach (Holder holder in holders)
             {
-                case Section.Equipment:
-                    return "Equipment".Translate();
-                case Section.Apparel:
-                    return "Apparel".Translate();
-                default:
-                    return "Inventory".Translate();
+                names.Add(holder.Pawn.LabelShort);
             }
+            var itemNode = new InspectionTreeItem
+            {
+                Type = InspectionTreeItem.ItemType.Item,
+                Label = (first is Apparel ? "RimWorldAccess.GlobalGear.WornBy" : "RimWorldAccess.GlobalGear.EquippedBy")
+                    .Translate(name, names.ToCommaList()),
+                Data = key,
+                LinkedDef = first.def,
+                IndentLevel = 0,
+                IsExpandable = true,
+            };
+            foreach (Holder holder in holders)
+            {
+                InspectNodeFactory.Attach(itemNode, new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Item,
+                    Label = MapPawnGroups.NameWithGroup(holder.Pawn.LabelShort, holder.Group),
+                    Detail = HolderDetail(holder.Thing),
+                    Data = holder,
+                    IndentLevel = 1,
+                });
+            }
+            return itemNode;
         }
 
-        private static string SectionSummary(string name, int items, int holders)
+        /// <summary>The gear tab's section: weapons and belts under Equipment, the rest under Apparel.</summary>
+        private static int SortRank(Thing thing)
         {
-            if (items == 0)
-            {
-                return "RimWorldAccess.GlobalGear.Summary.None".Translate(name);
-            }
-            if (items == 1)
-            {
-                return "RimWorldAccess.GlobalGear.Summary.OneItem".Translate(name);
-            }
-            return holders == 1
-                ? "RimWorldAccess.GlobalGear.Summary.OneHolder".Translate(name, items)
-                : "RimWorldAccess.GlobalGear.Summary.Items".Translate(name, items, holders);
+            return thing is Apparel apparel && !apparel.def.apparel.layers.Contains(ApparelLayerDefOf.Belt) ? 1 : 0;
         }
 
-        /// <summary>
-        /// The stack count, then the condition under GenLabel.LabelExtras' own rule for showing it.
-        /// </summary>
+        /// <summary>ITab_Pawn_Gear's apparel order key, sorted descending.</summary>
+        private static int ApparelListOrder(Thing thing)
+        {
+            List<BodyPartGroupDef> parts = thing.def.apparel?.bodyPartGroups;
+            return parts != null && parts.Count > 0 ? parts[0].listOrder : 0;
+        }
+
         private static string HolderDetail(Thing thing)
         {
-            var parts = new List<string>(2);
-            if (thing.stackCount > 1)
-            {
-                parts.Add("RimWorldAccess.GlobalGear.StackCount".Translate(thing.stackCount));
-            }
-            if (thing.def.useHitPoints && thing.HitPoints < thing.MaxHitPoints && thing.def.stackLimit == 1)
-            {
-                parts.Add("RimWorldAccess.GlobalGear.Condition".Translate(((float)thing.HitPoints / thing.MaxHitPoints).ToStringPercent()));
-            }
-            return parts.Count > 0 ? string.Join(". ", parts) : null;
+            string condition = ItemLabelHelper.ConditionPercent(thing);
+            return condition != null ? (string)"RimWorldAccess.GlobalGear.Condition".Translate(condition) : null;
         }
 
         // Content.

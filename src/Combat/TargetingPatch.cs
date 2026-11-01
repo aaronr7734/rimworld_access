@@ -207,12 +207,14 @@ namespace RimWorldAccess
                     return false;
                 }
 
+                // An order that speaks a message (hold fire, melee range) already reported its outcome.
+                long orderMessagesBefore = NotificationAccessibilityPatch.MessageEmissionCount;
+                long orderAttemptsBefore = NotificationAccessibilityPatch.MessageAttemptCount;
+                // Turrets take OrderAttack: Verb.OrderForceTarget assumes a pawn caster and throws.
+                var turret = (targetingSource as Verb)?.caster as Building_TurretGun;
                 try
                 {
-                    // Turrets take OrderAttack on the building: Verb.OrderForceTarget assumes a
-                    // pawn caster and throws.
-                    var verb = targetingSource as Verb;
-                    if (verb?.caster is Building_TurretGun turret)
+                    if (turret != null)
                     {
                         // Pre-check range so a failure keeps targeting open.
                         float distance = (target.Cell - turret.Position).LengthHorizontal;
@@ -278,7 +280,15 @@ namespace RimWorldAccess
 
                 // Build the announcement BEFORE StopTargeting, which closes AbilityTargetingState.
                 string successMessage;
-                if (JumpTargetingState.IsActive)
+                if (NotificationAccessibilityPatch.MessageEmissionCount != orderMessagesBefore)
+                {
+                    successMessage = null;
+                }
+                else if (NotificationAccessibilityPatch.MessageAttemptCount != orderAttemptsBefore)
+                {
+                    successMessage = NotificationAccessibilityPatch.LastAttemptedMessageText;
+                }
+                else if (JumpTargetingState.IsActive)
                 {
                     successMessage = JumpTargetingState.BuildSuccessAnnouncement(cursorPosition);
                 }
@@ -290,20 +300,18 @@ namespace RimWorldAccess
                 {
                     successMessage = ItemTargetingState.BuildSuccessAnnouncement(target);
                 }
+                else if (turret != null)
+                {
+                    successMessage = "RimWorldAccess.Combat.Target.TurretForcedTargetSet".Translate(
+                        turret.LabelShortCap, KeyboardTargeterConfirm.TargetLabel(target));
+                }
                 else if (GenericTargetingState.IsActive)
                 {
                     successMessage = GenericTargetingState.BuildSuccessAnnouncement(target);
                 }
                 else
                 {
-                    if (target.HasThing)
-                    {
-                        successMessage = "RimWorldAccess.Combat.Target.Targeting".Translate(target.Thing.LabelShort);
-                    }
-                    else
-                    {
-                        successMessage = "RimWorldAccess.Combat.Target.TargetingLocation".Translate();
-                    }
+                    successMessage = "RimWorldAccess.Combat.Target.Targeting".Translate(KeyboardTargeterConfirm.TargetLabel(target));
                 }
 
                 // A destination selector means a second phase (Skip). The state must learn the
@@ -327,7 +335,7 @@ namespace RimWorldAccess
                             destInfo = "RimWorldAccess.Combat.Target.SelectDestinationInRange".Translate(props.range.ToString("F0"));
                         }
                     }
-                    TolkHelper.SpeakData($"{successMessage}. {destInfo}");
+                    TolkHelper.SpeakData(successMessage == null ? destInfo : $"{successMessage}. {destInfo}");
                 }
                 else
                 {
@@ -462,9 +470,7 @@ namespace RimWorldAccess
                     return false;
                 }
 
-                string targetLabel = target.HasThing
-                    ? target.Thing.LabelShort
-                    : "RimWorldAccess.Combat.Target.GenericLocationLabel".Translate().ToString();
+                string targetLabel = KeyboardTargeterConfirm.TargetLabel(target);
                 if (isMultiSelect && multiPawns != null && multiPawns.Count > 1)
                 {
                     string everyone = ((string)"ConfirmAbandonHomeNegativeThoughts_Everyone".Translate()).TrimEnd(':', ' ');

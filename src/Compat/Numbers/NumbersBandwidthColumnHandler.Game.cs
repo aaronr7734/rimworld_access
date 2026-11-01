@@ -7,10 +7,7 @@ using Verse;
 
 namespace RimWorldAccess
 {
-    /// <summary>
-    /// Numbers' mechanitor bandwidth blocks: used over total, with the tooltip its DoCell builds
-    /// from <c>MechanitorBandwidthGizmo</c>'s parts, one sentence per tooltip paragraph.
-    /// </summary>
+    /// <summary>Numbers' mechanitor bandwidth blocks: used over total, then the cell tooltip one sentence per paragraph.</summary>
     internal sealed class NumbersBandwidthColumnHandler : PawnColumnHandler
     {
         public static void Register()
@@ -41,6 +38,7 @@ namespace RimWorldAccess
             {
                 return null;
             }
+            // Transcribed from MechanitorBandwidthGizmo's parts: Numbers builds this tip inline in DoCell, with no method to call.
             var parts = new List<string> { "BandwidthGizmoTip".Translate().Resolve() };
             if (tracker.UsedBandwidthFromSubjects > 0)
             {

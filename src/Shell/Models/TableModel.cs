@@ -102,6 +102,13 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        public void SetSort(int column, bool descending)
+        {
+            bool valid = column >= 0 && column < columnCount;
+            sortColumnIndex = valid ? column : -1;
+            sortDescending = valid && descending;
+        }
+
         public MoveResult NextColumn()
         {
             return MoveColumnBy(1);

@@ -535,6 +535,40 @@ namespace RimWorldAccess.Shell
             return false;
         }
 
+        public bool ClaimedBelowModals(KeyChord chord, ActionCatalog catalog)
+        {
+            for (int i = 0; i < scopes.Count; i++)
+            {
+                FocusScope scope = scopes[i];
+                if (!scope.IsLive)
+                {
+                    continue;
+                }
+                if (scope.IsModal)
+                {
+                    return false;
+                }
+                IReadOnlyList<FocusScope.ClaimEntry> claims = scope.Claims;
+                for (int c = 0; c < claims.Count; c++)
+                {
+                    InputAction action;
+                    if (claims[c].Propagate || !catalog.TryGet(claims[c].ActionId, out action))
+                    {
+                        continue;
+                    }
+                    IReadOnlyList<KeyChord> bindings = action.Bindings;
+                    for (int b = 0; b < bindings.Count; b++)
+                    {
+                        if (bindings[b] == chord)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
         /// <summary>
         /// Offers a typed character to the stack, top-down: the first live scope with a consuming
         /// <see cref="FocusScope.CharSink"/> wins, and a live modal scope blocks everything beneath

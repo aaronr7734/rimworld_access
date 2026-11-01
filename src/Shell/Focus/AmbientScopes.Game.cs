@@ -374,12 +374,7 @@ namespace RimWorldAccess.Shell
             }
             // A non-null KeyBindingDef bound to KeyCode.None opens nothing: some mods
             // (Character Editor's "HotkeyEditor") attach one even with no key assigned.
-            string hotkeyLabel = VanillaBindings.HotkeyLabel(def.hotKey);
-            if (hotkeyLabel != null)
-            {
-                return hotkeyLabel;
-            }
-            return null;
+            return VanillaBindings.ReachableHotkeyLabel(def.hotKey);
         }
 
         private static List<ExtraMenuOption> BuildExtraMenuOptions()

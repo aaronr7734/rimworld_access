@@ -2,15 +2,9 @@
 <LanguageData>
   <!-- Global gear screen (src/Shell/Screens/GlobalGearScope.Game.cs). Holder rows use the shared PawnGroup strings in RimWorldAccess_GlobalHealth.xml. -->
   <RimWorldAccess.GlobalGear.Title>Снаряжение на карте</RimWorldAccess.GlobalGear.Title>
-  <!-- Section summaries. {0} = the gear tab's section name, {1} = how many items it holds, {2} = how many pawns hold them. -->
-  <RimWorldAccess.GlobalGear.Summary.None>{0}. Нет</RimWorldAccess.GlobalGear.Summary.None>
-  <RimWorldAccess.GlobalGear.Summary.Items>{0}. {1_numCase ? предмет : предмета : предметов}, {2_numCase ? владелец : владельца : владельцев}</RimWorldAccess.GlobalGear.Summary.Items>
-  <RimWorldAccess.GlobalGear.Summary.OneHolder>{0}. {1_numCase ? предмет : предмета : предметов}, 1 владелец</RimWorldAccess.GlobalGear.Summary.OneHolder>
-  <RimWorldAccess.GlobalGear.Summary.OneItem>{0}. 1 предмет, 1 владелец</RimWorldAccess.GlobalGear.Summary.OneItem>
-  <!-- {0} = the item's name, {1} = how many are held. -->
-  <RimWorldAccess.GlobalGear.Item>{0} x{1}</RimWorldAccess.GlobalGear.Item>
-  <!-- {0} = the stack count. -->
-  <RimWorldAccess.GlobalGear.StackCount>{0} в стопке</RimWorldAccess.GlobalGear.StackCount>
+  <!-- One row per kind of item. {0} = the item label, {1} = the short names of everyone holding one, comma-separated. -->
+  <RimWorldAccess.GlobalGear.WornBy>{0}, надето на {1}</RimWorldAccess.GlobalGear.WornBy>
+  <RimWorldAccess.GlobalGear.EquippedBy>{0}, оружие: {1}</RimWorldAccess.GlobalGear.EquippedBy>
   <!-- {0} = hit points as a percentage, already formatted ("43%"). -->
   <RimWorldAccess.GlobalGear.Condition>прочность {0}</RimWorldAccess.GlobalGear.Condition>
   <RimWorldAccess.GlobalGear.JumpUnavailable>Невозможно перейти к этому персонажу.</RimWorldAccess.GlobalGear.JumpUnavailable>

@@ -671,6 +671,17 @@ namespace RimWorldAccess.Shell
             return string.IsNullOrEmpty(tip) ? null : tip;
         }
 
+        protected override string ContentCellHint(int region, int row, int column)
+        {
+            CmrDetailPawnTable table = DetailTable(region);
+            if (table == null || row < 0 || row >= table.Rows.Count
+                || column < 0 || column >= table.Columns.Count)
+            {
+                return null;
+            }
+            return PawnColumnCellReader.CellHint(table.Columns[column], table.Rows[row]);
+        }
+
         protected override bool ActivateContentCell(int region, int row, int column)
         {
             CmrDetailPawnTable table = DetailTable(region);

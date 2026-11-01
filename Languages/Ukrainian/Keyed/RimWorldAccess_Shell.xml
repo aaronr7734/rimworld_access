@@ -96,6 +96,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Сортування скинуто, усталений порядок</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Цей стовпець не сортується</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter — сортування</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, лише для читання</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>Натисніть Enter, щоб перейти до: {0}</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -115,6 +117,10 @@
   <RimWorldAccess.Shell.Generic.ColumnRemoved>Стовпець «{0}» вилучено</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>{0}: переміщено до стовпця {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0}: це останній стовпець, його не можна вилучити</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>Стовпці можна переміщувати лише з рядка заголовків</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>Стовпці можна вилучати лише з рядка заголовків</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0}: додано як перший стовпець</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>{0}: додано праворуч від {1}</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.Incapable>нездатний</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>навчено</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>з {0} до {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

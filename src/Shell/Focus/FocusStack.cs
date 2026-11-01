@@ -111,6 +111,11 @@ namespace RimWorldAccess.Shell
             return core.Dispatch(e, ActionRegistry.Catalog, out consumedActionId);
         }
 
+        public static bool ClaimedBelowModals(KeyChord chord)
+        {
+            return core.ClaimedBelowModals(chord, ActionRegistry.Catalog);
+        }
+
         public static bool OfferChar(char c)
         {
             return core.OfferChar(c);

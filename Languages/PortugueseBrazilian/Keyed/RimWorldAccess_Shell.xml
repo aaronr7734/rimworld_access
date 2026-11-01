@@ -102,6 +102,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Ordenação removida, ordem padrão</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Esta coluna não pode ser ordenada</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter ordena</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, somente leitura</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>Pressione Enter para ir até {0}</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -130,6 +132,10 @@
   <RimWorldAccess.Shell.Generic.ColumnRemoved>Coluna {0} removida</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>Coluna {0} movida para a coluna {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>A coluna {0} é a última e não pode ser removida</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>As colunas só podem ser movidas a partir da linha de cabeçalho</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>As colunas só podem ser removidas a partir da linha de cabeçalho</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>Coluna {0} adicionada como a primeira coluna</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>Coluna {0} adicionada, à direita de {1}</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.Incapable>incapaz</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>treinado</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0} a {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

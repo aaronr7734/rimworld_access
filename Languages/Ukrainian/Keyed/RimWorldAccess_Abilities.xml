@@ -30,7 +30,6 @@
   <RimWorldAccess.Abilities.Label.Invalid>неприпустимо</RimWorldAccess.Abilities.Label.Invalid>
   <RimWorldAccess.Abilities.Label.Location>місце</RimWorldAccess.Abilities.Label.Location>
   <RimWorldAccess.Abilities.Label.Ground>земля</RimWorldAccess.Abilities.Label.Ground>
-  <RimWorldAccess.Abilities.Label.Target>ціль</RimWorldAccess.Abilities.Label.Target>
   <RimWorldAccess.Abilities.Label.Item>предмет</RimWorldAccess.Abilities.Label.Item>
   <RimWorldAccess.Abilities.Label.Permit>дозвіл</RimWorldAccess.Abilities.Label.Permit>
   <RimWorldAccess.Abilities.Label.Jump>Стрибок</RimWorldAccess.Abilities.Label.Jump>
@@ -277,9 +276,8 @@
        in the Combat TargetingPatch). {0}/{1} are pre-formatted distances/ranges. -->
   <RimWorldAccess.Abilities.Generic.OutOfRangeError>Поза межами дальності. Відстань: {0}, макс. дальність: {1}</RimWorldAccess.Abilities.Generic.OutOfRangeError>
   <RimWorldAccess.Abilities.Generic.TooCloseError>Занадто близько. Відстань: {0}, мін. дальність: {1}</RimWorldAccess.Abilities.Generic.TooCloseError>
-  <RimWorldAccess.Abilities.Generic.LocationFallback>місце</RimWorldAccess.Abilities.Generic.LocationFallback>
   <RimWorldAccess.Abilities.Generic.TargetSelected>Ціль вибрано: {0}</RimWorldAccess.Abilities.Generic.TargetSelected>
-  <RimWorldAccess.Abilities.Generic.SourceTarget>{0}: {1}</RimWorldAccess.Abilities.Generic.SourceTarget>
+  <RimWorldAccess.Abilities.Generic.SourceTargetSet>{0}: ціль встановлено — {1}</RimWorldAccess.Abilities.Generic.SourceTargetSet>
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Abilities.Teleport.Impassable>Сюди не телепортувати, клітина непрохідна</RimWorldAccess.Abilities.Teleport.Impassable>
   <RimWorldAccess.Abilities.Teleport.DoorClosed>Сюди не телепортувати, двері зачинені</RimWorldAccess.Abilities.Teleport.DoorClosed>

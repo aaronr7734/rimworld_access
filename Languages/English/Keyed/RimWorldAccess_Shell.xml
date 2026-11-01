@@ -102,6 +102,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Sort cleared, default order</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>This column cannot sort</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter sorts</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, read only</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>Press Enter to jump to {0}</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -130,6 +132,10 @@
   <RimWorldAccess.Shell.Generic.ColumnRemoved>{0} column removed</RimWorldAccess.Shell.Generic.ColumnRemoved>
   <RimWorldAccess.Shell.Generic.ColumnMoved>{0} moved to column {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
   <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} is the last column and cannot be removed</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>Columns can only be moved from the header row</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>Columns can only be removed from the header row</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0} added as the first column</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>{0} added, right of {1}</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.Incapable>incapable</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>trained</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0} to {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

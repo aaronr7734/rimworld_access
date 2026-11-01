@@ -92,7 +92,7 @@ These prioritize whatever is under the cursor, then fall back to the pawn select
 | **Alt+K** | Top 3 skills |
 | **Alt+P** | Skills table for all colonists |
 | **Alt+B** | Read the selected pawn's combat log (10 most recent battle entries) |
-| **Alt+Shift+G** | Open the gear menu: everything held by anyone on the map, grouped by item, with who holds it |
+| **Alt+Shift+G** | Open the gear menu: every weapon and piece of apparel on the map, one row per item, with who has it |
 | **Alt+Shift+H** | Open the health overview: every downed, bleeding, or injured pawn on the map |
 
 Alt+H, Alt+M, Alt+N, and Alt+G work on your pawns, enemy pawns, and animals. Alt+P opens a sortable table covering every colonist.

@@ -13,6 +13,8 @@
   <RimWorldAccess.GlobalHealth.Summary.BleedOutOne>{0}. 1 personagem, morre por hemorragia em {1}</RimWorldAccess.GlobalHealth.Summary.BleedOutOne>
   <RimWorldAccess.GlobalHealth.Summary.NotSoon>{0}. {1} personagens, nenhuma em perigo imediato</RimWorldAccess.GlobalHealth.Summary.NotSoon>
   <RimWorldAccess.GlobalHealth.Summary.NotSoonOne>{0}. 1 personagem, sem perigo imediato</RimWorldAccess.GlobalHealth.Summary.NotSoonOne>
+  <RimWorldAccess.GlobalHealth.Summary.Deathless>{0}. {1} personagens, todas imortais</RimWorldAccess.GlobalHealth.Summary.Deathless>
+  <RimWorldAccess.GlobalHealth.Summary.DeathlessOne>{0}. 1 personagem, imortal</RimWorldAccess.GlobalHealth.Summary.DeathlessOne>
   <RimWorldAccess.GlobalHealth.Summary.LowestHealth>{0}. {1} personagens, a menor com {2} de saúde</RimWorldAccess.GlobalHealth.Summary.LowestHealth>
   <RimWorldAccess.GlobalHealth.Summary.HealthOne>{0}. 1 personagem, {1} de saúde</RimWorldAccess.GlobalHealth.Summary.HealthOne>
   <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->

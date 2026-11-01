@@ -87,5 +87,14 @@ namespace RimWorldAccess
                 .FirstOrFallback(LocalTargetInfo.Invalid);
             return target.IsValid ? target : new LocalTargetInfo(cell);
         }
+
+        public static string TargetLabel(LocalTargetInfo target)
+        {
+            if (target.HasThing)
+                return target.Thing.LabelShort;
+            IntVec3 cell = target.Cell;
+            return "RimWorldAccess.Combat.Target.LocationAt".Translate(
+                "RimWorldAccess.Input.Cursor.Coordinates".Translate(cell.x, cell.z)).ToString();
+        }
     }
 }

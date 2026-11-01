@@ -132,7 +132,7 @@ namespace RimWorldAccess.Shell
             }
             description.Label = LabelOf(def);
             description.Role = ElementRole.Button;
-            string hotkeyLabel = VanillaBindings.HotkeyLabel(def.hotKey);
+            string hotkeyLabel = VanillaBindings.ReachableHotkeyLabel(def.hotKey);
             if (hotkeyLabel != null)
             {
                 description.Hotkey = hotkeyLabel;

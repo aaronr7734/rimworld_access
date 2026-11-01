@@ -112,8 +112,7 @@ namespace RimWorldAccess
 
         public static string GetMechName(Pawn pawn)
         {
-            string name = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
-            return $"{name} ({pawn.def.LabelCap})";
+            return pawn.Name != null ? $"{pawn.Name.ToStringShort} ({pawn.def.LabelCap})" : pawn.def.LabelCap.ToString();
         }
 
         private static string GetMechNameWithActivity(Pawn pawn)

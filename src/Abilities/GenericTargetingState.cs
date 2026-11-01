@@ -169,12 +169,10 @@ namespace RimWorldAccess
 
         public static string BuildSuccessAnnouncement(LocalTargetInfo target)
         {
-            string targetLabel = target.HasThing
-                ? target.Thing.LabelShort
-                : (string)"RimWorldAccess.Abilities.Generic.LocationFallback".Translate();
+            string targetLabel = KeyboardTargeterConfirm.TargetLabel(target);
             return string.IsNullOrEmpty(sourceLabel)
                 ? (string)"RimWorldAccess.Abilities.Generic.TargetSelected".Translate(targetLabel)
-                : (string)"RimWorldAccess.Abilities.Generic.SourceTarget".Translate(sourceLabel, targetLabel);
+                : (string)"RimWorldAccess.Abilities.Generic.SourceTargetSet".Translate(sourceLabel, targetLabel);
         }
 
         private static string BuildStartAnnouncement()

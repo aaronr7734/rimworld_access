@@ -39,6 +39,8 @@ namespace RimWorldAccess.Shell
         /// <summary>The cell's tooltip, when the worker exposes one; null otherwise.</summary>
         string CellTip(PawnColumnDef def, Pawn pawn);
 
+        string CellHint(PawnColumnDef def, Pawn pawn);
+
         /// <summary>Enter on the cell. See <see cref="PawnColumnActivation"/> for the announcement contract.</summary>
         PawnColumnActivation ActivateCell(PawnColumnDef def, Pawn pawn, PawnTable table);
 

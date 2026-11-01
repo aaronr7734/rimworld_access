@@ -51,8 +51,11 @@
 
   <!-- Targeting success announcements (single-select path). -->
   <RimWorldAccess.Combat.Target.Targeting>Ciblage : {0}</RimWorldAccess.Combat.Target.Targeting>
-  <RimWorldAccess.Combat.Target.TargetingLocation>Ciblage d'un emplacement</RimWorldAccess.Combat.Target.TargetingLocation>
   <RimWorldAccess.Combat.Target.Selected>Cible sélectionnée : {0}</RimWorldAccess.Combat.Target.Selected>
+  <!-- {0} = map coordinates, formatted as the cursor reports them. -->
+  <RimWorldAccess.Combat.Target.LocationAt>emplacement en {0}</RimWorldAccess.Combat.Target.LocationAt>
+  <!-- {0} = turret label, {1} = target label or LocationAt. -->
+  <RimWorldAccess.Combat.Target.TurretForcedTargetSet>Cible forcée de {0} définie : {1}</RimWorldAccess.Combat.Target.TurretForcedTargetSet>
 
   <!-- Second-phase (destination) selection, e.g. Skip ability. -->
   <RimWorldAccess.Combat.Target.SelectDestination>Sélectionnez maintenant une destination</RimWorldAccess.Combat.Target.SelectDestination>

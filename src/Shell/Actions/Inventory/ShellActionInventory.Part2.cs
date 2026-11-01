@@ -144,14 +144,15 @@ namespace RimWorldAccess.Shell
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.I) })); // caravan inspect when one is selected, else detailed tile info; yields to gizmo-menu typeahead
             c.Register(new InputAction("world.object.select",
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.Return), KeyChord.Of(KeyCode.KeypadEnter) })); // opens world-object selection at the current tile
-            // Ctrl+arrows: next biome boundary, on WorldScope and StartingSiteScreenScope alike.
-            c.Register(new InputAction("world.cursor.biomeJumpNorth",
+            // Ctrl+arrows: next biome boundary, on WorldScope and StartingSiteScreenScope alike. The
+            // startingSite ids are kept: an id is the key of a saved rebind.
+            c.Register(new InputAction("startingSite.biomeJumpNorth",
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, ctrl: true) }));
-            c.Register(new InputAction("world.cursor.biomeJumpSouth",
+            c.Register(new InputAction("startingSite.biomeJumpSouth",
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, ctrl: true) }));
-            c.Register(new InputAction("world.cursor.biomeJumpWest",
+            c.Register(new InputAction("startingSite.biomeJumpWest",
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow, ctrl: true) }));
-            c.Register(new InputAction("world.cursor.biomeJumpEast",
+            c.Register(new InputAction("startingSite.biomeJumpEast",
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.RightArrow, ctrl: true) }));
             // ---- WorldGen starting-site screen -> StartingSiteScreenScope ----
             // startingSite.announceTile belongs to the shared WorldMapElement; its name is kept.

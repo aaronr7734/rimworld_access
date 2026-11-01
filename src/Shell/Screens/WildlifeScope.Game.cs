@@ -138,13 +138,12 @@ namespace RimWorldAccess.Shell
             return d;
         }
 
-        /// <summary>Enter on a non-interactive column re-announces and does nothing else.</summary>
+        /// <summary>Enter on a non-interactive column says it is read only.</summary>
         protected override void ActivateContentItem(int region, int index)
         {
             if (index < 0 || index >= wildlifeList.Count)
                 return;
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            AnnounceCurrentItem();
+            AnnounceCurrentCellReadOnly();
         }
 
         protected override TableColumnInfo ContentColumnInfo(int region, int column)

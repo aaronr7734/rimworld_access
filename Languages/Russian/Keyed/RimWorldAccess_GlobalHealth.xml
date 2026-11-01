@@ -13,6 +13,8 @@
   <RimWorldAccess.GlobalHealth.Summary.BleedOutOne>{0}. 1 персонаж, истечёт кровью через {1}</RimWorldAccess.GlobalHealth.Summary.BleedOutOne>
   <RimWorldAccess.GlobalHealth.Summary.NotSoon>{0}. {1_numCase ? персонаж : персонажа : персонажей}, никому не грозит немедленная опасность</RimWorldAccess.GlobalHealth.Summary.NotSoon>
   <RimWorldAccess.GlobalHealth.Summary.NotSoonOne>{0}. 1 персонаж, нет немедленной опасности</RimWorldAccess.GlobalHealth.Summary.NotSoonOne>
+  <RimWorldAccess.GlobalHealth.Summary.Deathless>{0}. {1_numCase ? персонаж : персонажа : персонажей}, все несмертные</RimWorldAccess.GlobalHealth.Summary.Deathless>
+  <RimWorldAccess.GlobalHealth.Summary.DeathlessOne>{0}. 1 персонаж, несмертный</RimWorldAccess.GlobalHealth.Summary.DeathlessOne>
   <RimWorldAccess.GlobalHealth.Summary.LowestHealth>{0}. {1_numCase ? персонаж : персонажа : персонажей}, наименьшее здоровье {2}</RimWorldAccess.GlobalHealth.Summary.LowestHealth>
   <RimWorldAccess.GlobalHealth.Summary.HealthOne>{0}. 1 персонаж, здоровье {1}</RimWorldAccess.GlobalHealth.Summary.HealthOne>
   <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->

@@ -38,6 +38,11 @@ namespace RimWorldAccess.Shell
             return null;
         }
 
+        public virtual string CellHint(PawnColumnDef def, Pawn pawn)
+        {
+            return null;
+        }
+
         public virtual PawnColumnActivation ActivateCell(PawnColumnDef def, Pawn pawn, PawnTable table)
         {
             return PawnColumnActivation.NotHandled;
@@ -149,7 +154,8 @@ namespace RimWorldAccess.Shell
             return label != null ? label.ToString().StripTags() : "";
         }
 
-        /// <summary>Vanilla's hover text, composed as DoCell does (RimWorld/PawnColumnWorker_Label.cs:82-84).</summary>
+        /// <summary>Vanilla's hover text (RimWorld/PawnColumnWorker_Label.cs:82-84) minus the mouse instruction
+        /// <see cref="CellHint"/> replaces and the LabelCap every PawnTooltip* template opens with.</summary>
         public override string CellTip(PawnColumnDef def, Pawn pawn)
         {
             Pawn subject = CellSubject(pawn);
@@ -157,8 +163,20 @@ namespace RimWorldAccess.Shell
             {
                 return null;
             }
-            string tip = "ClickToJumpTo".Translate() + "\n\n" + subject.GetTooltip().text;
-            return SpeechFlatten.ToSentences(tip.StripTags());
+            string tip = subject.GetTooltip().text ?? "";
+            string name = subject.LabelCap;
+            if (!string.IsNullOrEmpty(name) && tip.StartsWith(name, StringComparison.Ordinal))
+            {
+                tip = tip.Substring(name.Length);
+            }
+            tip = SpeechFlatten.ToSentences(tip.StripTags().Trim());
+            return string.IsNullOrEmpty(tip) ? null : tip;
+        }
+
+        public override string CellHint(PawnColumnDef def, Pawn pawn)
+        {
+            string label = CellSubject(pawn) != null ? CellText(def, pawn) : "";
+            return string.IsNullOrEmpty(label) ? null : "RimWorldAccess.Shell.Table.JumpToPawnHint".Translate(label).ToString();
         }
 
         public override PawnColumnActivation ActivateCell(PawnColumnDef def, Pawn pawn, PawnTable table)

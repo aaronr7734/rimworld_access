@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
+using RimWorld;
 using Verse;
 using Verse.Sound;
 
@@ -239,6 +240,18 @@ namespace RimWorldAccess.Shell
                 return;
             }
             ActivateContentItem(Model.RegionIndex, region.Index);
+        }
+
+        protected void AnnounceCurrentCellReadOnly()
+        {
+            TableModel table = Model.CurrentTable;
+            if (table == null)
+                return;
+            TableColumnInfo info = ContentColumnInfo(Model.RegionIndex, table.ColumnIndex);
+            SoundDefOf.ClickReject.PlayOneShotOnCamera();
+            TolkHelper.SpeakData(info == null || string.IsNullOrEmpty(info.Label)
+                ? TranslatedShellVocabulary.Instance.Word(ElementStateWord.ReadOnly)
+                : "RimWorldAccess.Shell.Table.CellReadOnly".Translate(info.Label).ToString());
         }
 
         /// <summary>
