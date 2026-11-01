@@ -3,9 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>字段</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>派系名称</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>定居点名称</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelZone>区域名称</RimWorldAccess.TextInput.LabelZone>
-  <RimWorldAccess.TextInput.LabelStorage>储存区名称</RimWorldAccess.TextInput.LabelStorage>
-  <RimWorldAccess.TextInput.LabelPen>畜栏名称</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>剧情标题</RimWorldAccess.TextInput.LabelScenarioTitle>
   <RimWorldAccess.TextInput.LabelScenarioSummary>剧情摘要</RimWorldAccess.TextInput.LabelScenarioSummary>
   <RimWorldAccess.TextInput.LabelScenarioDescription>剧情描述</RimWorldAccess.TextInput.LabelScenarioDescription>
@@ -41,5 +38,4 @@
   <RimWorldAccess.TextInput.RejectedSpecial>无法粘贴，包含禁用的语法字符</RimWorldAccess.TextInput.RejectedSpecial>
   <RimWorldAccess.TextInput.RejectedFilename>无法粘贴，包含文件名中不允许的字符</RimWorldAccess.TextInput.RejectedFilename>
   <RimWorldAccess.TextInput.RejectedCustom>无法接受该值: {0}</RimWorldAccess.TextInput.RejectedCustom>
-  <RimWorldAccess.TextInput.LabelPlan>计划名称</RimWorldAccess.TextInput.LabelPlan>
 </LanguageData>

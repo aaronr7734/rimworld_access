@@ -31,6 +31,7 @@ namespace RimWorldAccess
         private static bool pawnJustSelected = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static bool isExecutingGizmo = false;
+        private static bool menuInterceptedDuringExecution = false;
 
         /// <summary>Which opener built the current list, so a toggle can rebuild it in place.</summary>
         private enum MenuSource { None, Selection, CursorTile, World }
@@ -45,6 +46,13 @@ namespace RimWorldAccess
 
         /// <summary>True while a gizmo's own handler runs — DialogInterceptionPatch intercepts FloatMenus only then.</summary>
         public static bool IsExecutingGizmo => isExecutingGizmo;
+
+        internal static void NoteMenuInterceptedDuringExecution()
+        {
+            menuInterceptedDuringExecution = true;
+        }
+
+        internal static bool LastExecutionOpenedMenu => menuInterceptedDuringExecution;
 
         /// <summary>Whether a pawn was just selected via the , or . keys; cleared when the map cursor moves.</summary>
         public static bool PawnJustSelected
@@ -829,6 +837,13 @@ namespace RimWorldAccess
         /// <summary>Executes the gizmo under the cursor, then closes the menu.</summary>
         public static void ExecuteSelected()
         {
+            ExecuteSelected(0);
+        }
+
+        /// <param name="mouseButton">1 replays vanilla's right-click on a gizmo with no float menu options.</param>
+        private static void ExecuteSelected(int mouseButton)
+        {
+            menuInterceptedDuringExecution = false;
             if (!isActive || availableGizmos.Count == 0)
                 return;
 
@@ -867,6 +882,7 @@ namespace RimWorldAccess
 
             Event fakeEvent = new Event();
             fakeEvent.type = EventType.Used;
+            fakeEvent.button = mouseButton;
 
             // Lets DialogInterceptionPatch intercept any FloatMenu the gizmo opens.
             isExecutingGizmo = true;
@@ -930,8 +946,7 @@ namespace RimWorldAccess
                     }
                 }
 
-                // Every other gizmo kind resolves through the handler registry; see
-                // GizmoHandlerRegistry for the resolution order.
+                // Every other gizmo kind resolves through GizmoHandlerRegistry's ordered tiers.
                 bool runEpilogue = GizmoHandlerRegistry.Execute(selectedGizmo, handlerContext);
 
                 if (runEpilogue)
@@ -954,6 +969,8 @@ namespace RimWorldAccess
             finally
             {
                 isExecutingGizmo = false;
+                if (menuInterceptedDuringExecution)
+                    WindowlessFloatMenuState.AnnounceOpened();
             }
         }
     }

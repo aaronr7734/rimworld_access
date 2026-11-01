@@ -3,9 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>поле</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>название фракции</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>название поселения</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelZone>название области</RimWorldAccess.TextInput.LabelZone>
-  <RimWorldAccess.TextInput.LabelStorage>название склада</RimWorldAccess.TextInput.LabelStorage>
-  <RimWorldAccess.TextInput.LabelPen>название загона</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>название сценария</RimWorldAccess.TextInput.LabelScenarioTitle>
   <RimWorldAccess.TextInput.LabelScenarioSummary>краткое описание сценария</RimWorldAccess.TextInput.LabelScenarioSummary>
   <RimWorldAccess.TextInput.LabelScenarioDescription>описание сценария</RimWorldAccess.TextInput.LabelScenarioDescription>
@@ -41,5 +38,4 @@
   <RimWorldAccess.TextInput.RejectedSpecial>Нельзя вставить, содержатся запрещённые грамматические символы</RimWorldAccess.TextInput.RejectedSpecial>
   <RimWorldAccess.TextInput.RejectedFilename>Нельзя вставить, содержатся символы, недопустимые в именах файлов</RimWorldAccess.TextInput.RejectedFilename>
   <RimWorldAccess.TextInput.RejectedCustom>Нельзя принять значение: {0}</RimWorldAccess.TextInput.RejectedCustom>
-  <RimWorldAccess.TextInput.LabelPlan>название планировки</RimWorldAccess.TextInput.LabelPlan>
 </LanguageData>

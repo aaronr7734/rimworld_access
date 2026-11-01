@@ -63,6 +63,9 @@ namespace RimWorldAccess.Shell
             // is not a letter and needs no such term.
             Claim("world.formCaravan", delegate (KeyEventSnapshot e) { WorldNavigationState.FormCaravanAtSelectedSettlement(); }, when: FormCaravanLive);
             Claim("world.caravanOrders", delegate (KeyEventSnapshot e) { WorldNavigationState.GiveCaravanOrders(); }, when: WorldSideDoorLive);
+
+            Claim("map.cursor.pullFromPointer", delegate (KeyEventSnapshot e) { PointerWarpState.PullCursorToPointer(); }, when: ArrowsLive);
+            Claim("map.cursor.toggleMouseTracking", delegate (KeyEventSnapshot e) { PointerWarpState.ToggleMouseTracking(); }, when: ArrowsLive);
         }
 
         /// <summary>The cursor arrows' gate.</summary>

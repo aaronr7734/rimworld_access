@@ -104,16 +104,6 @@
        returned to the text-input layer in an AcceptanceReport — they appear
        to the user as the rejection reason.
        {0} = the conflicting name. -->
-  <RimWorldAccess.Building.Rename.Cancelled>Renomeação cancelada</RimWorldAccess.Building.Rename.Cancelled>
-  <RimWorldAccess.Building.Rename.StorageCancelled>Cancelado</RimWorldAccess.Building.Rename.StorageCancelled>
-  <RimWorldAccess.Building.Rename.PenError>Erro ao renomear marcador de curral: {0}</RimWorldAccess.Building.Rename.PenError>
-  <RimWorldAccess.Building.Rename.ZoneError>Erro ao renomear zona: {0}</RimWorldAccess.Building.Rename.ZoneError>
-  <RimWorldAccess.Building.Rename.PlanError>Erro ao renomear plano: {0}</RimWorldAccess.Building.Rename.PlanError>
-  <RimWorldAccess.Building.Rename.StorageError>Erro: {0}</RimWorldAccess.Building.Rename.StorageError>
-  <RimWorldAccess.Building.Rename.StorageMapMissing>Erro: não foi possível encontrar o mapa.</RimWorldAccess.Building.Rename.StorageMapMissing>
-  <RimWorldAccess.Building.Rename.StorageGroupCreated>Grupo de armazenamento {0} criado</RimWorldAccess.Building.Rename.StorageGroupCreated>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>nome {0} já usado por uma zona</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>nome {0} já usado por outro grupo de armazenamento</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
   <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
        Replaces the vanilla FloatMenu shown when an area designator is

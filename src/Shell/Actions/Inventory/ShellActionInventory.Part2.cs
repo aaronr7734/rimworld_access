@@ -144,18 +144,17 @@ namespace RimWorldAccess.Shell
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.I) })); // caravan inspect when one is selected, else detailed tile info; yields to gizmo-menu typeahead
             c.Register(new InputAction("world.object.select",
                 ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.Return), KeyChord.Of(KeyCode.KeypadEnter) })); // opens world-object selection at the current tile
+            // Ctrl+arrows: next biome boundary, on WorldScope and StartingSiteScreenScope alike.
+            c.Register(new InputAction("world.cursor.biomeJumpNorth",
+                ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, ctrl: true) }));
+            c.Register(new InputAction("world.cursor.biomeJumpSouth",
+                ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, ctrl: true) }));
+            c.Register(new InputAction("world.cursor.biomeJumpWest",
+                ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow, ctrl: true) }));
+            c.Register(new InputAction("world.cursor.biomeJumpEast",
+                ActionCategory.World, new List<KeyChord> { KeyChord.Of(KeyCode.RightArrow, ctrl: true) }));
             // ---- WorldGen starting-site screen -> StartingSiteScreenScope ----
-            // Name mismatch, deliberate: the four biomeJump ids and startingSite.announceTile belong
-            // to the shared WorldMapElement, not to this screen, but keep their startingSite.* names
-            // because renaming an action id throws away a player's saved rebinding.
-            c.Register(InputAction.ForScreen("startingSite", "startingSite.biomeJumpNorth",
-                new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, ctrl: true) }));
-            c.Register(InputAction.ForScreen("startingSite", "startingSite.biomeJumpSouth",
-                new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, ctrl: true) }));
-            c.Register(InputAction.ForScreen("startingSite", "startingSite.biomeJumpWest",
-                new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow, ctrl: true) }));
-            c.Register(InputAction.ForScreen("startingSite", "startingSite.biomeJumpEast",
-                new List<KeyChord> { KeyChord.Of(KeyCode.RightArrow, ctrl: true) }));
+            // startingSite.announceTile belongs to the shared WorldMapElement; its name is kept.
             c.Register(InputAction.ForScreen("startingSite", "startingSite.randomTile",
                 new List<KeyChord> { KeyChord.Of(KeyCode.R) }));
             c.Register(InputAction.ForScreen("startingSite", "startingSite.announceTile",

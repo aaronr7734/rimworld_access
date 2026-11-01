@@ -344,6 +344,10 @@
   <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>Landing at {0}. The spot is obstructed and things beneath will be crushed.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Facing {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
   <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Landing targeting ended.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.OrientTitle>Facing on arrival for {0}</RimWorldAccess.Compat.Vf.OrientTitle>
+  <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, current facing</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
+  <RimWorldAccess.Compat.Vf.OrientConfirmed>Facing {0} on arrival.</RimWorldAccess.Compat.Vf.OrientConfirmed>
+  <RimWorldAccess.Compat.Vf.OrientCancelled>Move order cancelled.</RimWorldAccess.Compat.Vf.OrientCancelled>
 
   <!-- Vehicle Framework health tab -->
   <!-- VfHealthTabAdapter / VfHealthTabCompat: text for Vehicle Framework's Health tab

@@ -79,15 +79,12 @@ namespace RimWorldAccess.Shell
             }
 
             // ---- Ctrl+arrow biome jump ----
-            // This family and startingSite.announceTile below keep "startingSite"
-            // ids despite belonging to this shared element: renaming an action id
-            // throws away a player's saved rebinding.
             if (profile.BiomeJumpLive != null)
             {
-                scope.RegisterExternalClaim("startingSite.biomeJumpNorth", delegate (KeyEventSnapshot e) { StartingSiteContext.JumpToNextBiomeInDirection(KeyCode.UpArrow); }, when: profile.BiomeJumpLive);
-                scope.RegisterExternalClaim("startingSite.biomeJumpSouth", delegate (KeyEventSnapshot e) { StartingSiteContext.JumpToNextBiomeInDirection(KeyCode.DownArrow); }, when: profile.BiomeJumpLive);
-                scope.RegisterExternalClaim("startingSite.biomeJumpWest", delegate (KeyEventSnapshot e) { StartingSiteContext.JumpToNextBiomeInDirection(KeyCode.LeftArrow); }, when: profile.BiomeJumpLive);
-                scope.RegisterExternalClaim("startingSite.biomeJumpEast", delegate (KeyEventSnapshot e) { StartingSiteContext.JumpToNextBiomeInDirection(KeyCode.RightArrow); }, when: profile.BiomeJumpLive);
+                scope.RegisterExternalClaim("world.cursor.biomeJumpNorth", delegate (KeyEventSnapshot e) { WorldNavigationState.JumpToNextBiomeInDirection(KeyCode.UpArrow); }, when: profile.BiomeJumpLive);
+                scope.RegisterExternalClaim("world.cursor.biomeJumpSouth", delegate (KeyEventSnapshot e) { WorldNavigationState.JumpToNextBiomeInDirection(KeyCode.DownArrow); }, when: profile.BiomeJumpLive);
+                scope.RegisterExternalClaim("world.cursor.biomeJumpWest", delegate (KeyEventSnapshot e) { WorldNavigationState.JumpToNextBiomeInDirection(KeyCode.LeftArrow); }, when: profile.BiomeJumpLive);
+                scope.RegisterExternalClaim("world.cursor.biomeJumpEast", delegate (KeyEventSnapshot e) { WorldNavigationState.JumpToNextBiomeInDirection(KeyCode.RightArrow); }, when: profile.BiomeJumpLive);
             }
 
             // ---- Tile-info digits 1-5 ----
@@ -104,6 +101,7 @@ namespace RimWorldAccess.Shell
             }
 
             // ---- Re-read the current tile ----
+            // Belongs to this shared element; its "startingSite" id is kept.
             if (profile.ReadTileLive != null)
             {
                 scope.RegisterExternalClaim("startingSite.announceTile", delegate (KeyEventSnapshot e) { WorldNavigationState.AnnounceTile(); }, when: profile.ReadTileLive);

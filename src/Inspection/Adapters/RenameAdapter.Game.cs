@@ -4,8 +4,8 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Synthetic "Rename" category adapter: opens the zone rename state for zones,
-    /// or the pen rename state for pen-marker buildings.
+    /// Synthetic "Rename" category adapter: opens the rename dialog vanilla's inspect pane opens
+    /// for a zone or a pen-marker building (MainTabWindow_Inspect via RenameUIUtility).
     /// </summary>
     internal sealed class RenameAdapter : InspectNodeAdapter
     {
@@ -17,7 +17,7 @@ namespace RimWorldAccess
         {
             if (obj is Zone zone)
             {
-                ZoneRenameState.Open(zone);
+                Find.WindowStack.Add(new Dialog_RenameBuildingStorage(zone));
                 return;
             }
 
@@ -26,7 +26,7 @@ namespace RimWorldAccess
                 var penMarker = building.TryGetComp<CompAnimalPenMarker>();
                 if (penMarker != null)
                 {
-                    PenRenameState.Open(penMarker);
+                    Find.WindowStack.Add(new Dialog_RenameAnimalPen(penMarker.parent.Map, penMarker));
                 }
             }
         }

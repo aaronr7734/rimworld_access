@@ -205,6 +205,10 @@
   <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>Посадка в {0}. Место занято, всё находящееся под ним будет раздавлено.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Ориентация: {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
   <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Наведение на посадку завершено.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.OrientTitle>Направление при прибытии для {0}</RimWorldAccess.Compat.Vf.OrientTitle>
+  <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, текущее направление</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
+  <RimWorldAccess.Compat.Vf.OrientConfirmed>Направление при прибытии: {0}.</RimWorldAccess.Compat.Vf.OrientConfirmed>
+  <RimWorldAccess.Compat.Vf.OrientCancelled>Приказ на перемещение отменён.</RimWorldAccess.Compat.Vf.OrientCancelled>
   <RimWorldAccess.Compat.Vf.HealthTab>Здоровье</RimWorldAccess.Compat.Vf.HealthTab>
   <RimWorldAccess.Compat.Vf.HealthProducedLine>Произведено: {0}.</RimWorldAccess.Compat.Vf.HealthProducedLine>
   <RimWorldAccess.Compat.Vf.HealthComponentsSection>Компоненты</RimWorldAccess.Compat.Vf.HealthComponentsSection>

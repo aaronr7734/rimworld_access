@@ -146,7 +146,6 @@ namespace RimWorldAccess
                             ? gameLinkTooltip
                             : "RimWorldAccess.Building.Shelf.RoomGizmoDescFallback".Translate().ToString();
 
-                        // Capture for delegate
                         IStorageGroupMember memberCapture = storageMember;
                         List<IStorageGroupMember> itemsCapture = itemsToLink;
                         List<IStorageGroupMember> differentCapture = differentGroupItems;
@@ -174,7 +173,6 @@ namespace RimWorldAccess
                 ? gameLinkTooltip
                 : "RimWorldAccess.Building.Shelf.ManualGizmoDescFallback".Translate().ToString();
 
-            // Capture for delegate
             IStorageGroupMember manualMemberCapture = storageMember;
 
             var manualGizmo = new Command_Action
@@ -191,24 +189,31 @@ namespace RimWorldAccess
             yield return manualGizmo;
 
             // === Gizmo 3: Rename/Name storage group ===
-            string renameLabel = storageMember.Group != null
-                ? "RimWorldAccess.Common.RenameLabeled".Translate(storageMember.Group.RenamableLabel)
-                : "Rename".Translate();
-
-            // Capture for delegate
-            IStorageGroupMember renameMemberCapture = storageMember;
-
-            var renameGizmo = new Command_Action
+            // Gated as MainTabWindow_Inspect gates its rename button.
+            if (storageMember.ShowRenameButton && (storageMember.Group != null || thing.Spawned))
             {
-                defaultLabel = renameLabel,
-                defaultDesc = "",
-                icon = ContentFinder<Texture2D>.Get("UI/Buttons/Rename", true),
-                action = delegate { StorageRenameState.Open(renameMemberCapture); }
-            };
-            yield return renameGizmo;
+                string renameLabel = storageMember.Group != null
+                    ? "RimWorldAccess.Common.RenameLabeled".Translate(storageMember.Group.RenamableLabel)
+                    : "Rename".Translate();
+
+                IStorageGroupMember renameMemberCapture = storageMember;
+
+                var renameGizmo = new Command_Action
+                {
+                    defaultLabel = renameLabel,
+                    defaultDesc = "",
+                    icon = ContentFinder<Texture2D>.Get("UI/Buttons/Rename", true),
+                    action = delegate
+                    {
+                        Find.WindowStack.Add(renameMemberCapture.Group != null
+                            ? (Window)new Dialog_RenameBuildingStorage(renameMemberCapture.Group)
+                            : new Dialog_RenameBuildingStorage_CreateNew(renameMemberCapture));
+                    }
+                };
+                yield return renameGizmo;
+            }
 
             // === Gizmo 4: Direct storage settings access ===
-            // Capture for delegate
             IStorageGroupMember settingsMemberCapture = storageMember;
 
             var settingsGizmo = new Command_Action

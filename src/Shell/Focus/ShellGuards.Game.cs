@@ -37,15 +37,7 @@ namespace RimWorldAccess.Shell
             // the map, so it would block all keyboard input. MapNavigationPatch consumes the arrow
             // keys directly instead.
 
-            bool owns = FocusStack.AnyLiveInputOwner
-
-                // Windowless rename sessions live in TextInputManager, whose TextSessionScope is a
-                // shadow (IsLive=false), so no live scope represents them on the stack — hence
-                // these four exact terms rather than a broader TextInputManager.IsActive.
-                || ZoneRenameState.IsActive
-                || StorageRenameState.IsActive
-                || PenRenameState.IsActive
-                || PlanRenameState.IsActive;
+            bool owns = FocusStack.AnyLiveInputOwner;
 
 #if DEBUG
             CheckDivergence(owns);
@@ -254,10 +246,6 @@ namespace RimWorldAccess.Shell
             if (WorkMenuState.IsActive) active.Add("WorkMenuState");
             if (WorkTableState.IsActive) active.Add("WorkTableState");
             if (StorageSettingsMenuState.IsActive) active.Add("StorageSettingsMenuState");
-            if (ZoneRenameState.IsActive) active.Add("ZoneRenameState");
-            if (StorageRenameState.IsActive) active.Add("StorageRenameState");
-            if (PenRenameState.IsActive) active.Add("PenRenameState");
-            if (PlanRenameState.IsActive) active.Add("PlanRenameState");
             if (PlantSelectionMenuState.IsActive) active.Add("PlantSelectionMenuState");
             if (MechControlGroupState.IsActive) active.Add("MechControlGroupState");
             if (GizmoNavigationState.IsActive) active.Add("GizmoNavigationState");

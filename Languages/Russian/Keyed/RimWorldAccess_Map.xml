@@ -261,7 +261,7 @@
        ================================================================= -->
   <RimWorldAccess.Map.Jump.Distance>Дальность перехода: {0}</RimWorldAccess.Map.Jump.Distance>
   <RimWorldAccess.Map.Jump.MinimumDistance>Минимальная дальность</RimWorldAccess.Map.Jump.MinimumDistance>
-  <RimWorldAccess.Map.Jump.Mode.PresetDistance>Режим перехода: Заданная дальность, {0} {0_numCase ? клетка : клетки : клеток}</RimWorldAccess.Map.Jump.Mode.PresetDistance>
+  <RimWorldAccess.Map.Jump.Mode.PresetDistance>Режим перехода: Заданная дальность, {0_numCase ? клетка : клетки : клеток}</RimWorldAccess.Map.Jump.Mode.PresetDistance>
   <RimWorldAccess.Map.Jump.Mode.Impassable>Режим перехода: Непроходимое</RimWorldAccess.Map.Jump.Mode.Impassable>
   <RimWorldAccess.Map.Jump.Mode.Terrain>Режим перехода: Местность</RimWorldAccess.Map.Jump.Mode.Terrain>
   <RimWorldAccess.Map.Jump.Mode.Structure>Режим перехода: Постройка</RimWorldAccess.Map.Jump.Mode.Structure>
@@ -271,7 +271,7 @@
   <RimWorldAccess.Map.Jump.NoTerrainChange>В этом направлении местность не меняется</RimWorldAccess.Map.Jump.NoTerrainChange>
   <RimWorldAccess.Map.Jump.NoStructureChange>В этом направлении нет построек</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 клетка</RimWorldAccess.Map.Jump.Moved.One>
-  <RimWorldAccess.Map.Jump.Moved.Many>{0} {0_numCase ? клетка : клетки : клеток}</RimWorldAccess.Map.Jump.Moved.Many>
+  <RimWorldAccess.Map.Jump.Moved.Many>{0_numCase ? клетка : клетки : клеток}</RimWorldAccess.Map.Jump.Moved.Many>
 
   <!-- =================================================================
        Map display name fallback (MapNavigationState.GetMapDisplayName).
@@ -688,7 +688,7 @@
   <RimWorldAccess.Map.Scanner.CatName.Plans>Планировки</RimWorldAccess.Map.Scanner.CatName.Plans>
   <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Тронный зал для {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
   <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Спальня для {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
-  <RimWorldAccess.Map.Tile.Room.Req.AllMet>все требования соблюдены</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>Все требования соблюдены</RimWorldAccess.Map.Tile.Room.Req.AllMet>
   <RimWorldAccess.Map.Tile.Room.Req.Summary>выполнено {0} из {1} требований</RimWorldAccess.Map.Tile.Room.Req.Summary>
-  <RimWorldAccess.Map.Tile.Room.Req.Missing>не хватает: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>Не хватает: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 </LanguageData>

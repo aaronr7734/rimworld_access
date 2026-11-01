@@ -68,7 +68,6 @@
 38	src/Building/ObstacleDetector.cs
 76	src/Building/OrderUndoTracker.cs
 19	src/Building/PaintColorHelper.cs
-5	src/Building/PenRenameState.cs
 29	src/Building/PlacementAidCursorPatch.cs
 27	src/Building/PlacementDescriber.Game.cs
 18	src/Building/PlacementFootprintNames.cs
@@ -79,7 +78,6 @@
 26	src/Building/PlanActionHelper.cs
 20	src/Building/PlanClipboard.cs
 46	src/Building/PlanColorHelper.cs
-4	src/Building/PlanRenameState.cs
 63	src/Building/PlantSelectionMenuState.cs
 32	src/Building/RectDesignationRouter.Game.cs
 72	src/Building/RefuelableComponentState.cs
@@ -92,8 +90,6 @@
 75	src/Building/ShelfLinkingHelper.cs
 76	src/Building/ShelfLinkingPatch.cs
 39	src/Building/ShelfLinkingState.cs
-13	src/Building/SimpleRenameSession.cs
-8	src/Building/StorageRenameState.cs
 18	src/Building/TempControlMenuState.cs
 93	src/Building/ViewingModeAnnouncer.cs
 71	src/Building/ViewingModeScannerHelper.cs
@@ -101,7 +97,6 @@
 204	src/Building/ViewingModeState.cs
 36	src/Building/ZoneEditingHelper.cs
 6	src/Building/ZoneGizmoPatch.cs
-10	src/Building/ZoneRenameState.cs
 53	src/Building/ZoneSelectionHelper.cs
 47	src/Building/ZoneUndoTracker.cs
 6	src/Combat/Autopilot/CombatAutopilotDebug.cs

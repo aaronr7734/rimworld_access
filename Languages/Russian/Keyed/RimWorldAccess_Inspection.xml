@@ -523,6 +523,8 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>Нет доступных команд для: {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>объект мира</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Дополнительных вариантов нет</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
+  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: правый клик выполнен</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire
@@ -1341,8 +1343,9 @@
   <!-- InventoryHelper category labels (CategoryNode.GetDisplayLabel).
        UncategorizedFallback is spoken when a thing has no
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
-       label, {1} = item type count. -->
+       label, {1} = item type count; CategoryWithCountOne is the singular. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Без категории</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0} (1 вид)</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} видов)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================
@@ -1386,9 +1389,7 @@
 
   <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
   <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Дальность: {0} клеток от хозяина</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
-  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>оружие</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.AttackFallback>атака</RimWorldAccess.Inspection.Gizmo.AttackFallback>
-  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Неизвестное оружие</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
   <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Неизвестная команда</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
 

@@ -616,6 +616,16 @@
   <RimWorldAccess.Map.Tile.Room.StatWithStage>{0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
   <RimWorldAccess.Map.Tile.Room.Stat>{0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
 
+  <!-- Royal title room requirements (Royalty DLC), appended to room stats for a titled noble's
+       throne room or bedroom. {0} = noble's name, {1} = title label. -->
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Salle du trône de {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Chambre de {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>Toutes les exigences sont remplies</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <!-- {0} = met count, {1} = total count. -->
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>{0} exigences remplies sur {1}</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <!-- {0} = list of unmet requirement labels, each with the game's own progress text. -->
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>Manquant : {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
+
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->
   <RimWorldAccess.Map.Tile.TempControl.Cooler>refroidissement {0}, chauffage {1}</RimWorldAccess.Map.Tile.TempControl.Cooler>

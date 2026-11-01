@@ -317,6 +317,11 @@ namespace RimWorldAccess
             if (gizmoOwners.Count > 0)
                 gizmoOwners.TryGetValue(gizmo, out owner);
 
+            TolkHelper.SpeakData(ComposeGizmoStateChange(gizmo, owner, includeLabel));
+        }
+
+        private static string ComposeGizmoStateChange(Gizmo gizmo, ISelectable owner, bool includeLabel)
+        {
             ElementDescription d = WithGizmoOwnerSelected(gizmo, owner, () => DescribeGizmo(gizmo, owner));
             string state = AnnouncementComposer.ComposeStateChange(d, TranslatedShellVocabulary.Instance);
             string label = d.Label;
@@ -324,7 +329,7 @@ namespace RimWorldAccess
                 state = label;
             else if (includeLabel && !string.IsNullOrEmpty(label))
                 state = label + ", " + state;
-            TolkHelper.SpeakData(state);
+            return state;
         }
 
         /// <summary>

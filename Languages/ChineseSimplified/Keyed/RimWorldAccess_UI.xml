@@ -145,7 +145,6 @@
   <!-- {0} = randomized name. -->
   <RimWorldAccess.UI.Name.Randomized>已随机生成：{0}</RimWorldAccess.UI.Name.Randomized>
   <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
-  <RimWorldAccess.UI.Name.Renamed>已重命名为 {0}</RimWorldAccess.UI.Name.Renamed>
 
   <!-- Dialog_GiveName field row labels, one per vanilla name-message key. -->
   <RimWorldAccess.UI.Name.FieldFaction>派系名称</RimWorldAccess.UI.Name.FieldFaction>

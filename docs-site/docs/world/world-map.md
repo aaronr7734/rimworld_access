@@ -6,6 +6,8 @@ The world map shows the planet your colony sits on. Press **F8** to open it; pre
 
 **Arrow keys** move between tiles. The camera follows. When you enter a new biome, the mod announces the biome name and reads a short description.
 
+**Ctrl+Arrow keys** jump to the next biome boundary in that direction, stopping on the first tile of a different biome. This is a quick way to find the edge of a desert or the start of a forest. If there is no other biome that way, the mod tells you how many tiles it searched.
+
 ## Reading tile information
 
 As you arrow around, the mod announces a summary for each tile, including terrain and biome. The number keys let you dig into specific details on demand:

@@ -49,7 +49,6 @@ namespace RimWorldAccess
                 CaravanFormationState.IsActive ||
                 NotificationMenuState.IsActive ||
                 QuestMenuState.IsActive ||
-                ZoneRenameState.IsActive ||
                 StorageSettingsMenuState.IsActive ||
                 PlantSelectionMenuState.IsActive ||
                 MechControlGroupState.IsActive ||

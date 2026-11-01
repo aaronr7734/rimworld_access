@@ -836,8 +836,7 @@ namespace RimWorldAccess.Shell
         private readonly WorldMapElement map = new WorldMapElement(new WorldMapElementProfile
         {
             CursorLive = ArrowsLive,
-            // Deliberate omission: the in-game world view offers no Ctrl+arrow biome jump.
-            BiomeJumpLive = null,
+            BiomeJumpLive = ArrowsLive,
             TileInfoLive = TileInfoDigitsLive,
             ScannerLive = WorldScannerBrowseLive,
             // Plain Space in game is vanilla's pause, so the world view must not claim it.

@@ -344,6 +344,10 @@
   <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>Посадка в {0}. Місце заставлене, і все під ним буде роздавлено.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Напрямок: {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
   <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Наведення на посадку завершено.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.OrientTitle>Напрямок після прибуття для {0}</RimWorldAccess.Compat.Vf.OrientTitle>
+  <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, поточний напрямок</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
+  <RimWorldAccess.Compat.Vf.OrientConfirmed>Напрямок після прибуття: {0}.</RimWorldAccess.Compat.Vf.OrientConfirmed>
+  <RimWorldAccess.Compat.Vf.OrientCancelled>Наказ на переміщення скасовано.</RimWorldAccess.Compat.Vf.OrientCancelled>
 
   <!-- Vehicle Framework health tab -->
   <!-- VfHealthTabAdapter / VfHealthTabCompat: text for Vehicle Framework's Health tab

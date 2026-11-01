@@ -344,6 +344,10 @@
   <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>Atterrissage à {0}. L'endroit est obstrué et ce qui se trouve dessous sera écrasé.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Orientation : {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
   <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Ciblage d'atterrissage terminé.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.OrientTitle>Orientation à l'arrivée pour {0}</RimWorldAccess.Compat.Vf.OrientTitle>
+  <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, orientation actuelle</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
+  <RimWorldAccess.Compat.Vf.OrientConfirmed>Orientation {0} à l'arrivée.</RimWorldAccess.Compat.Vf.OrientConfirmed>
+  <RimWorldAccess.Compat.Vf.OrientCancelled>Ordre de déplacement annulé.</RimWorldAccess.Compat.Vf.OrientCancelled>
 
   <!-- Vehicle Framework health tab -->
   <!-- VfHealthTabAdapter / VfHealthTabCompat: text for Vehicle Framework's Health tab

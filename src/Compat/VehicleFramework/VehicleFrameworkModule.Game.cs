@@ -21,6 +21,7 @@ namespace RimWorldAccess
             VfHaulTargeterCompat.Register(harmony);
             VfWorldTargeterCompat.Register(harmony);
             VfLandingTargeterCompat.Register(harmony);
+            VfOrientationCompat.Register(harmony);
             VfPassengersTabCompat.RegisterTabAdapters();
             VfUpgradesTabCompat.RegisterTabAdapters();
             VfHealthTabCompat.RegisterTabAdapters();

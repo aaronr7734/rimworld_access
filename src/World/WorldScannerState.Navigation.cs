@@ -667,6 +667,8 @@ namespace RimWorldAccess
                 }
             }
 
+            AddExternalTargetingInfo(parts, announceTile);
+
             // Standing on a multi-tile patch with a distinct center offers the second Home press;
             // during a launch the center offered is a reachable one.
             int[] hintMembers = FeatureMemberTiles(item, worldCursor.ExtraIndex);
@@ -679,6 +681,15 @@ namespace RimWorldAccess
             parts.Add("RimWorldAccess.WorldScanner.PositionOf".Translate(pos, total));
 
             TolkHelper.SpeakData(string.Join(". ", parts), SpeechPriority.Normal);
+        }
+
+        private static void AddExternalTargetingInfo(List<string> parts, PlanetTile tile)
+        {
+            if (!tile.Valid)
+                return;
+            string info = ExternalWorldTargeting.ActiveProvider?.DestinationInfo(tile);
+            if (!string.IsNullOrEmpty(info))
+                parts.Add(info);
         }
 
         private static void AnnounceCurrentInstance()
@@ -758,6 +769,8 @@ namespace RimWorldAccess
                 if (!string.IsNullOrEmpty(fuelInfo))
                     parts.Add(fuelInfo);
             }
+
+            AddExternalTargetingInfo(parts, announceTile);
 
             // Standing on this instance's patch with a distinct center offers the second Home.
             if (members != null &&

@@ -520,14 +520,19 @@ namespace RimWorldAccess
             if (room == null)
                 return "RimWorldAccess.Map.Tile.Room.None".Translate();
 
-            RoofDef roof = position.GetRoof(map);
-            if (roof == null)
-                return "RimWorldAccess.Map.Tile.Room.Outdoors".Translate();
+            string roomInfo;
+            if (position.GetRoof(map) == null)
+                roomInfo = "RimWorldAccess.Map.Tile.Room.Outdoors".Translate();
+            else if (!room.ProperRoom)
+                roomInfo = "RimWorldAccess.Map.Tile.Room.NotProper".Translate();
+            else
+                roomInfo = GetRoomStatsInfo(room);
 
-            if (!room.ProperRoom)
-                return "RimWorldAccess.Map.Tile.Room.NotProper".Translate();
-
-            return GetRoomStatsInfo(room);
+            CompAnimalPenMarker pen = AnimalPenInfo.FindPenAt(position, map);
+            string penInfo = pen != null ? AnimalPenInfo.Describe(pen) : null;
+            if (string.IsNullOrEmpty(penInfo))
+                return roomInfo;
+            return new AnnouncementBuilder().Add(roomInfo.TrimEnd('.')).Add(penInfo).Build();
         }
 
         /// <summary>

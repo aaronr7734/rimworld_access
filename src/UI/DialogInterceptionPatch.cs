@@ -83,11 +83,15 @@ namespace RimWorldAccess
                     var options = optionsField.GetValue(floatMenu) as System.Collections.Generic.List<FloatMenuOption>;
                     if (options != null && options.Count > 0)
                     {
-                        // Clear the confirming flags since we're handling it now
                         TransportPodLaunchState.ClearConfirmingFlag();
                         ExternalWorldTargeting.IsConfirming = false;
 
-                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders, playOpenSound: false);
+                        // Grouped members may open one menu each: the last wins, announced once after.
+                        bool deferAnnouncement = GizmoNavigationState.IsExecutingGizmo;
+                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders, playOpenSound: false,
+                            announceFirst: !deferAnnouncement);
+                        if (deferAnnouncement)
+                            GizmoNavigationState.NoteMenuInterceptedDuringExecution();
                         return false; // Prevent FloatMenu from being added
                     }
                 }

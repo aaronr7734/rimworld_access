@@ -129,7 +129,6 @@ namespace RimWorldAccess
                 foreach (var opt in gizmo.RightClickFloatMenuOptions)
                     options.Add(opt);
 
-                // Merge from grouped gizmos, as vanilla's GizmoGridDrawer does.
                 if (gizmoGroups.TryGetValue(gizmo, out var group))
                 {
                     for (int i = 0; i < group.Count; i++)
@@ -165,7 +164,6 @@ namespace RimWorldAccess
                 ModLogger.Error($"Exception collecting right-click options: {ex.Message}");
             }
 
-            // Registry-contributed extras append after vanilla's own options.
             GizmoHandlerRegistry.CollectExtraOptions(gizmo, options);
 
             return options;
@@ -202,13 +200,67 @@ namespace RimWorldAccess
 
             var options = CollectRightClickOptions(gizmo);
 
-            if (options.Count == 0)
+            if (options.Count > 0)
             {
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Loc());
+                WindowlessFloatMenuState.Open(options, colonistOrders: false);
                 return;
             }
 
-            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+            if (GizmoHandlerRegistry.MayBranchOnRightClick(gizmo))
+            {
+                DispatchRightButtonInput(gizmo);
+                return;
+            }
+
+            TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Loc());
+        }
+
+        /// <summary>GizmoGridDrawer.ProcessGizmoState treats a right-click with no float menu options as an
+        /// interaction: the right-button event rides the left-click ProcessInput chain. A mod may flip
+        /// other rows there, so every toggle in the menu that changed is spoken.</summary>
+        private static void DispatchRightButtonInput(Gizmo gizmo)
+        {
+            var toggles = new List<(Command_Toggle toggle, ISelectable owner, bool wasOn)>();
+            foreach (Gizmo candidate in availableGizmos)
+            {
+                if (candidate is Command_Toggle toggle && TryReadToggle(toggle, out bool isOn))
+                {
+                    gizmoOwners.TryGetValue(candidate, out ISelectable owner);
+                    toggles.Add((toggle, owner, isOn));
+                }
+            }
+            int windowsBefore = Find.WindowStack.Count;
+
+            ExecuteSelected(1);
+
+            if (LastExecutionOpenedMenu || Find.WindowStack.Count != windowsBefore)
+                return;
+
+            var changes = new List<string>();
+            foreach (var entry in toggles)
+            {
+                if (TryReadToggle(entry.toggle, out bool isOn) && isOn != entry.wasOn)
+                    changes.Add(ComposeGizmoStateChange(entry.toggle, entry.owner, includeLabel: true));
+            }
+
+            if (changes.Count > 0)
+                TolkHelper.SpeakData(JoinSentences(changes));
+            else
+                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.RightClickDone".Loc(GetGizmoLabel(gizmo)));
+        }
+
+        private static bool TryReadToggle(Command_Toggle toggle, out bool isOn)
+        {
+            try
+            {
+                isOn = toggle.isActive?.Invoke() ?? false;
+                return true;
+            }
+            catch
+            {
+                isOn = false;
+                return false;
+            }
         }
 
         // ===== Slider adjustment support =====
@@ -237,7 +289,6 @@ namespace RimWorldAccess
                 return;
             }
 
-            // The drag-slider sound, as vanilla plays it.
             SoundDefOf.DragSlider.PlayOneShotOnCamera();
 
             try

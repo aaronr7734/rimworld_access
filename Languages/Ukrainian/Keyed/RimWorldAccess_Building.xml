@@ -104,15 +104,6 @@
        returned to the text-input layer in an AcceptanceReport — they appear
        to the user as the rejection reason.
        {0} = the conflicting name. -->
-  <RimWorldAccess.Building.Rename.Cancelled>Перейменування скасовано</RimWorldAccess.Building.Rename.Cancelled>
-  <RimWorldAccess.Building.Rename.StorageCancelled>Скасовано</RimWorldAccess.Building.Rename.StorageCancelled>
-  <RimWorldAccess.Building.Rename.PenError>Помилка перейменування маркера загону: {0}</RimWorldAccess.Building.Rename.PenError>
-  <RimWorldAccess.Building.Rename.ZoneError>Помилка перейменування зони: {0}</RimWorldAccess.Building.Rename.ZoneError>
-  <RimWorldAccess.Building.Rename.StorageError>Помилка: {0}</RimWorldAccess.Building.Rename.StorageError>
-  <RimWorldAccess.Building.Rename.StorageMapMissing>Помилка: Не вдалося знайти мапу.</RimWorldAccess.Building.Rename.StorageMapMissing>
-  <RimWorldAccess.Building.Rename.StorageGroupCreated>Створено групу складу {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>назву {0} вже використовує зона</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>назву {0} вже використовує інша група складу</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
   <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
        Replaces the vanilla FloatMenu shown when an area designator is
@@ -968,7 +959,6 @@
   <RimWorldAccess.Building.PlanColor.Blue>синій</RimWorldAccess.Building.PlanColor.Blue>
   <RimWorldAccess.Building.PlanColor.Purple>фіолетовий</RimWorldAccess.Building.PlanColor.Purple>
   <RimWorldAccess.Building.PlanColor.Pink>рожевий</RimWorldAccess.Building.PlanColor.Pink>
-  <RimWorldAccess.Building.Rename.PlanError>Помилка перейменування маркера планування: {0}</RimWorldAccess.Building.Rename.PlanError>
   <RimWorldAccess.Building.Plan.Hidden>Маркер планування приховано</RimWorldAccess.Building.Plan.Hidden>
   <RimWorldAccess.Building.Plan.Deleted>Маркер планування {0} видалено</RimWorldAccess.Building.Plan.Deleted>
   <RimWorldAccess.Building.Plan.Copied>Маркер планування {0} скопійовано</RimWorldAccess.Building.Plan.Copied>

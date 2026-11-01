@@ -83,11 +83,8 @@ namespace RimWorldAccess
             byTypeName[typeName] = handler;
         }
 
-        /// <summary>
-        /// Executes the gizmo through the resolved handler chain (type, name, fallback), falling
-        /// through for a declining candidate. Returns whether GizmoNavigationState's shared
-        /// post-execution epilogue should run.
-        /// </summary>
+        /// <summary>Executes through the handler chain (type, name, fallback), skipping declining candidates;
+        /// returns whether GizmoNavigationState's shared post-execution epilogue should run.</summary>
         public static bool Execute(Gizmo gizmo, GizmoHandlerContext ctx)
         {
             EnsureInitialized();
@@ -232,15 +229,38 @@ namespace RimWorldAccess
             if (processInputOverrides.TryGetValue(gizmoType, out bool cached))
                 return cached;
 
-            System.Reflection.MethodInfo method = gizmoType.GetMethod(
+            System.Reflection.MethodInfo method = FindProcessInput(gizmoType);
+            bool overridden = method != null && method.DeclaringType != typeof(Gizmo);
+            processInputOverrides[gizmoType] = overridden;
+            return overridden;
+        }
+
+        private static readonly Dictionary<Type, bool> modProcessInputs = new Dictionary<Type, bool>();
+
+        // No game ProcessInput reads the event's button, so only an override declared outside the
+        // game assembly can make a right-click without float menu options differ from a left-click.
+        public static bool MayBranchOnRightClick(Gizmo gizmo)
+        {
+            if (gizmo == null)
+                return false;
+            Type gizmoType = gizmo.GetType();
+            if (modProcessInputs.TryGetValue(gizmoType, out bool cached))
+                return cached;
+
+            System.Reflection.MethodInfo method = FindProcessInput(gizmoType);
+            bool fromMod = method != null && method.DeclaringType.Assembly != typeof(Gizmo).Assembly;
+            modProcessInputs[gizmoType] = fromMod;
+            return fromMod;
+        }
+
+        private static System.Reflection.MethodInfo FindProcessInput(Type gizmoType)
+        {
+            return gizmoType.GetMethod(
                 "ProcessInput",
                 System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public,
                 null,
                 new Type[] { typeof(UnityEngine.Event) },
                 null);
-            bool overridden = method != null && method.DeclaringType != typeof(Gizmo);
-            processInputOverrides[gizmoType] = overridden;
-            return overridden;
         }
 
         /// <summary>

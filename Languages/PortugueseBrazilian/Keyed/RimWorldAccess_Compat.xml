@@ -344,6 +344,10 @@
   <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>Pousando em {0}. O local está obstruído e os objetos abaixo serão destruídos.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Voltado para {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
   <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Direcionamento de pouso encerrado.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.OrientTitle>Direção na chegada para {0}</RimWorldAccess.Compat.Vf.OrientTitle>
+  <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, direção atual</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
+  <RimWorldAccess.Compat.Vf.OrientConfirmed>Voltado para {0} na chegada.</RimWorldAccess.Compat.Vf.OrientConfirmed>
+  <RimWorldAccess.Compat.Vf.OrientCancelled>Ordem de movimento cancelada.</RimWorldAccess.Compat.Vf.OrientCancelled>
 
   <!-- Vehicle Framework health tab -->
   <!-- VfHealthTabAdapter / VfHealthTabCompat: text for Vehicle Framework's Health tab

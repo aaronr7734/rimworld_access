@@ -625,11 +625,11 @@
        {0} = nombre del noble, {1} = etiqueta del título. -->
   <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Sala del trono de {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
   <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Dormitorio de {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
-  <RimWorldAccess.Map.Tile.Room.Req.AllMet>todos los requisitos cumplidos</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>Todos los requisitos cumplidos</RimWorldAccess.Map.Tile.Room.Req.AllMet>
   <!-- {0} = requisitos cumplidos, {1} = requisitos totales. -->
   <RimWorldAccess.Map.Tile.Room.Req.Summary>{0} de {1} requisitos cumplidos</RimWorldAccess.Map.Tile.Room.Req.Summary>
   <!-- {0} = lista de requisitos no cumplidos separada por punto y coma. -->
-  <RimWorldAccess.Map.Tile.Room.Req.Missing>faltan: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>Faltan: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->

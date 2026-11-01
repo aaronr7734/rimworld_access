@@ -3,10 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>campo</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>nombre de la facción</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>nombre del asentamiento</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelZone>nombre del área</RimWorldAccess.TextInput.LabelZone>
-  <RimWorldAccess.TextInput.LabelPlan>nombre de la planificación</RimWorldAccess.TextInput.LabelPlan>
-  <RimWorldAccess.TextInput.LabelStorage>nombre del almacén</RimWorldAccess.TextInput.LabelStorage>
-  <RimWorldAccess.TextInput.LabelPen>nombre del corral</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>título del escenario</RimWorldAccess.TextInput.LabelScenarioTitle>
   <RimWorldAccess.TextInput.LabelScenarioSummary>resumen del escenario</RimWorldAccess.TextInput.LabelScenarioSummary>
   <RimWorldAccess.TextInput.LabelScenarioDescription>descripción del escenario</RimWorldAccess.TextInput.LabelScenarioDescription>

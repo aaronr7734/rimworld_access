@@ -344,6 +344,10 @@
   <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>İniş yapılıyor: {0}. Nokta engelli, altındaki nesneler ezilecek.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Yön: {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
   <RimWorldAccess.Compat.Vf.LandingTargetingEnded>İniş hedeflemesi sona erdi.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.OrientTitle>{0} için varışta yön</RimWorldAccess.Compat.Vf.OrientTitle>
+  <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, şu anki yön</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
+  <RimWorldAccess.Compat.Vf.OrientConfirmed>Varışta yön {0}.</RimWorldAccess.Compat.Vf.OrientConfirmed>
+  <RimWorldAccess.Compat.Vf.OrientCancelled>Hareket emri iptal edildi.</RimWorldAccess.Compat.Vf.OrientCancelled>
 
   <!-- Vehicle Framework health tab -->
   <!-- VfHealthTabAdapter / VfHealthTabCompat: text for Vehicle Framework's Health tab

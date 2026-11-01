@@ -30,7 +30,7 @@ namespace RimWorldAccess
                 defaultLabel = renameLabel,
                 defaultDesc = "",
                 icon = ContentFinder<Texture2D>.Get("UI/Buttons/Rename", true),
-                action = delegate { ZoneRenameState.Open(__instance); }
+                action = delegate { Find.WindowStack.Add(new Dialog_RenameBuildingStorage(__instance)); }
             };
             yield return renameGizmo;
 

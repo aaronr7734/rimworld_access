@@ -110,10 +110,6 @@
 
   <!-- =================================================================
        Item announcement composition for the inventory tabs.
-       *.SoloAvailable: only one party has the item; {0} = count.
-       *.SoloPrice: bare price line, {0} = formatted price.
-       *.SoloPriceWithQuality: with price-quality suffix; {0} = price,
-                              {1} = quality phrase.
        *.NotTradeable: trader will not trade this item.
        *.YoursAt / TheirsAt: shared item; {0} = count, {1} = price.
        *.YoursAtWithQuality / TheirsAtWithQuality: same plus quality;
@@ -262,8 +258,6 @@
   <RimWorldAccess.Trade.Max.Gifting>Don de la totalité : {0} {1}, {2}</RimWorldAccess.Trade.Max.Gifting>
   <RimWorldAccess.Trade.Reset.SingleItem>{0} réinitialisé</RimWorldAccess.Trade.Reset.SingleItem>
   <RimWorldAccess.Trade.Reset.CannotResetBalance>Impossible de réinitialiser la ligne de solde</RimWorldAccess.Trade.Reset.CannotResetBalance>
-  <RimWorldAccess.Trade.Item.SoloAvailable>{0} disponibles</RimWorldAccess.Trade.Item.SoloAvailable>
-  <RimWorldAccess.Trade.Item.SoloPriceWithQuality>{0}, {1}</RimWorldAccess.Trade.Item.SoloPriceWithQuality>
   <RimWorldAccess.Trade.Item.NotTradeable>Non échangeable</RimWorldAccess.Trade.Item.NotTradeable>
   <RimWorldAccess.Trade.Item.YoursAt>Vous : {0} à {1}</RimWorldAccess.Trade.Item.YoursAt>
   <RimWorldAccess.Trade.Item.TheirsAt>Commerçant : {0} à {1}</RimWorldAccess.Trade.Item.TheirsAt>

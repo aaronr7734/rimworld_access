@@ -515,6 +515,8 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>{0} için kullanılabilir komut yok</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>dünya nesnesi</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Ek seçenek yok</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
+  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: sağ tıklama yapıldı</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire
@@ -1358,8 +1360,9 @@
   <!-- InventoryHelper category labels (CategoryNode.GetDisplayLabel).
        UncategorizedFallback is spoken when a thing has no
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
-       label, {1} = item type count. -->
+       label, {1} = item type count; CategoryWithCountOne is the singular. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Kategorisiz</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0} (1 tür)</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} tür)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================
@@ -1403,9 +1406,7 @@
 
   <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
   <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Menzil: efendisinden {0} kare</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
-  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>silah</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.AttackFallback>saldırı</RimWorldAccess.Inspection.Gizmo.AttackFallback>
-  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Bilinmeyen silah</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
   <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Bilinmeyen Komut</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
 

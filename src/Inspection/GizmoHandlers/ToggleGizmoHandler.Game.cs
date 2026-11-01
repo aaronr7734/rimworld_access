@@ -31,17 +31,17 @@ namespace RimWorldAccess
             {
                 // Propagate to grouped gizmos first (vanilla order)
                 GizmoNavigationState.PropagateToGroupedGizmos(gizmo, ctx.FakeEvent);
-                // Execute the toggle
                 gizmo.ProcessInput(ctx.FakeEvent);
-                // Process group input
                 GizmoNavigationState.ProcessGroupInput(gizmo, ctx.FakeEvent);
 
                 // One announcement per action: the REFRESHED state in the mod's
                 // standard state-change grammar. Bare ("checked") while the row
                 // stays focused; label-prefixed ("Draft, checked") when the menu
                 // is closing behind a one-shot activation.
+                // A right-click may change other rows or nothing, so its caller speaks the outcome.
                 bool menuStaysOpen = GizmoNavigationState.MenuSupportsInPlaceRefresh;
-                GizmoNavigationState.SpeakGizmoStateChange(toggle, includeLabel: !menuStaysOpen);
+                if (ctx.FakeEvent.button != 1)
+                    GizmoNavigationState.SpeakGizmoStateChange(toggle, includeLabel: !menuStaysOpen);
                 if (menuStaysOpen)
                     GizmoNavigationState.RefreshListKeepingCursor(toggle);
             }

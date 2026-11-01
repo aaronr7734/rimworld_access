@@ -334,7 +334,6 @@ REFLECTION_WRITE_BASELINE = {
 }
 
 TEXTFIELD_LITERAL_BASELINE = {
-    "src/Building/StorageRenameState.cs": 1,
     "src/MainMenu/PawnFilterPresetSaveState.cs": 1,
     "src/Shell/Screens/FileListScope.Game.cs": 1,
     # RimworldTogetherChatScope's message field: 512 mirrors DLG_Chat.DrawInput's own

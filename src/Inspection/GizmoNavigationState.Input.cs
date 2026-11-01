@@ -264,8 +264,8 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Right bracket: right-click options when the gizmo has them, otherwise
-        /// the no-options speech.
+        /// Right bracket: right-click options when the gizmo has them, the gizmo's own
+        /// right-button input when a mod may handle it there, otherwise the no-options speech.
         /// </summary>
         public static void HandleRightBracket()
         {
@@ -284,7 +284,7 @@ namespace RimWorldAccess
                     return;
             }
 
-            if (HasRightClickOptions(rbGizmo))
+            if (HasRightClickOptions(rbGizmo) || GizmoHandlerRegistry.MayBranchOnRightClick(rbGizmo))
                 ExecuteRightClick();
             else
                 TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions".Loc());

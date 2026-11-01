@@ -523,6 +523,8 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>{0} 无可用命令</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>世界对象</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>无更多选项</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
+  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: 已右键点击</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire
@@ -1343,6 +1345,7 @@
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
        label, {1} = item type count. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>未分类</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0}（1 种）</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0}（{1} 种）</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================
@@ -1386,9 +1389,7 @@
 
   <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
   <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>范围: 距主人 {0} 格</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
-  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>武器</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.AttackFallback>攻击</RimWorldAccess.Inspection.Gizmo.AttackFallback>
-  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>未知武器</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
   <RimWorldAccess.Inspection.Gizmo.UnknownCommand>未知命令</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
 

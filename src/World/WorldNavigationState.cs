@@ -39,6 +39,8 @@ namespace RimWorldAccess
         /// <summary>Latitude beyond which compass directions become unreliable, in degrees.</summary>
         private const float PoleLatitudeThreshold = 75f;
 
+        private static readonly List<PlanetTile> neighborBuffer = new List<PlanetTile>();
+
         /// <summary>Whether world navigation is active; other systems suppress their input while it is.</summary>
         public static bool IsActive => isActive;
 
@@ -342,39 +344,78 @@ namespace RimWorldAccess
             if (Find.WorldGrid == null)
                 return false;
 
-            List<PlanetTile> neighbors = new List<PlanetTile>();
-            Find.WorldGrid.GetTileNeighbors(currentSelectedTile, neighbors);
-
-            if (neighbors.Count == 0)
-                return false;
-
-            UnityEngine.Vector3 currentPos = Find.WorldGrid.GetTileCenter(currentSelectedTile);
-
-            PlanetTile bestNeighbor = PlanetTile.Invalid;
-            float bestDot = -2f; // Start with impossibly low value
-
-            foreach (PlanetTile neighbor in neighbors)
-            {
-                UnityEngine.Vector3 neighborPos = Find.WorldGrid.GetTileCenter(neighbor);
-                UnityEngine.Vector3 directionToNeighbor = (neighborPos - currentPos).normalized;
-
-                float dot = UnityEngine.Vector3.Dot(directionToNeighbor, desiredDirection);
-
-                if (dot > bestDot)
-                {
-                    bestDot = dot;
-                    bestNeighbor = neighbor;
-                }
-            }
-
+            PlanetTile bestNeighbor = BestNeighborToward(currentSelectedTile, desiredDirection);
             if (!bestNeighbor.Valid)
                 return false;
 
             currentSelectedTile = bestNeighbor;
+            FinishCursorMove();
+            return true;
+        }
 
+        /// <summary>Ctrl+arrow: jumps to the first tile of another biome in a compass direction.</summary>
+        public static void JumpToNextBiomeInDirection(UnityEngine.KeyCode arrowKey)
+        {
+            if (!isInitialized || Find.WorldGrid == null)
+                return;
+
+            if (!currentSelectedTile.Valid)
+            {
+                if (context == WorldNavContext.WorldGen)
+                    StartingSiteContext.SelectRandomTile();
+                return;
+            }
+
+            BiomeDef currentBiome = currentSelectedTile.Tile?.PrimaryBiome;
+            if (currentBiome == null)
+            {
+                TolkHelper.Speak("RimWorldAccess.StartingSite.CannotDetermineBiome".Loc());
+                return;
+            }
+
+            UnityEngine.Vector3 desiredDirection = CompassDirection(currentSelectedTile, arrowKey);
+            if (desiredDirection == UnityEngine.Vector3.zero)
+                return;
+
+            PlanetTile walker = currentSelectedTile;
+            int iterations = 0;
+            const int maxIterations = 1000;
+
+            while (iterations < maxIterations)
+            {
+                PlanetTile bestNeighbor = BestNeighborToward(walker, desiredDirection);
+                if (!bestNeighbor.Valid)
+                    break;
+
+                if (bestNeighbor.Tile?.PrimaryBiome != currentBiome)
+                {
+                    CurrentSelectedTile = bestNeighbor;
+                    FinishCursorMove();
+                    return;
+                }
+
+                walker = bestNeighbor;
+                iterations++;
+            }
+
+            TolkHelper.Speak("RimWorldAccess.StartingSite.NoDifferentBiomeFound".Loc(iterations));
+        }
+
+        /// <summary>Alt+Shift+J on the planet: moves the cursor onto the hovered tile, leaving the camera still so the tile stays under the pointer.</summary>
+        public static void PullCursorToTile(PlanetTile tile)
+        {
+            if (!isInitialized || !tile.Valid)
+                return;
+
+            CurrentSelectedTile = tile;
+            FinishCursorMove(moveCamera: false);
+        }
+
+        private static void FinishCursorMove(bool moveCamera = true)
+        {
             SyncSelectionWithGame();
 
-            if (Find.WorldCameraDriver != null)
+            if (moveCamera && Find.WorldCameraDriver != null)
             {
                 Find.WorldCameraDriver.JumpTo(currentSelectedTile);
             }
@@ -387,8 +428,49 @@ namespace RimWorldAccess
             }
 
             AnnounceTile();
+        }
 
-            return true;
+        /// <summary>The scanner's own north/east calculation, so arrow keys match what it reports.</summary>
+        private static UnityEngine.Vector3 CompassDirection(PlanetTile tile, UnityEngine.KeyCode key)
+        {
+            UnityEngine.Vector3 up = Find.WorldGrid.GetTileCenter(tile).normalized;
+            UnityEngine.Vector3 north = UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3.up, up).normalized;
+            UnityEngine.Vector3 east = UnityEngine.Vector3.Cross(up, north).normalized;
+
+            switch (key)
+            {
+                case UnityEngine.KeyCode.UpArrow:
+                    return north;
+                case UnityEngine.KeyCode.DownArrow:
+                    return -north;
+                case UnityEngine.KeyCode.RightArrow:
+                    return east;
+                case UnityEngine.KeyCode.LeftArrow:
+                    return -east;
+                default:
+                    return UnityEngine.Vector3.zero;
+            }
+        }
+
+        private static PlanetTile BestNeighborToward(PlanetTile tile, UnityEngine.Vector3 direction)
+        {
+            neighborBuffer.Clear();
+            Find.WorldGrid.GetTileNeighbors(tile, neighborBuffer);
+
+            UnityEngine.Vector3 origin = Find.WorldGrid.GetTileCenter(tile);
+            PlanetTile best = PlanetTile.Invalid;
+            float bestDot = -2f;
+            for (int i = 0; i < neighborBuffer.Count; i++)
+            {
+                UnityEngine.Vector3 toNeighbor = (Find.WorldGrid.GetTileCenter(neighborBuffer[i]) - origin).normalized;
+                float dot = UnityEngine.Vector3.Dot(toNeighbor, direction);
+                if (dot > bestDot)
+                {
+                    bestDot = dot;
+                    best = neighborBuffer[i];
+                }
+            }
+            return best;
         }
 
         /// <summary>Cycles to the next available planet layer.</summary>
@@ -511,13 +593,20 @@ namespace RimWorldAccess
             if (!currentSelectedTile.Valid)
                 return;
 
+            TolkHelper.SpeakData(ComposeTileAnnouncement(currentSelectedTile,
+                BiomeDescriptionTracker.GetBiomeDescriptionIfNew(currentSelectedTile), prefix));
+        }
+
+        /// <summary>The cursor's utterance for any tile, state-free; the caller owns the change-only biome paragraph.</summary>
+        internal static string ComposeTileAnnouncement(PlanetTile tile, string biomeDesc, string prefix = null)
+        {
             string fuelCostInfo = null;
             if (context == WorldNavContext.InGame && TransportPodLaunchState.IsActive)
             {
                 int originTile = TransportPodLaunchState.GetOriginTile();
                 if (originTile >= 0 && Find.WorldGrid != null)
                 {
-                    float distance = Find.WorldGrid.ApproxDistanceInTiles(originTile, currentSelectedTile);
+                    float distance = Find.WorldGrid.ApproxDistanceInTiles(originTile, tile);
                     if (distance > 0.1f)
                     {
                         fuelCostInfo = TransportPodLaunchState.GetFuelCostAnnouncement(distance);
@@ -526,25 +615,23 @@ namespace RimWorldAccess
             }
             else if (context == WorldNavContext.InGame && GravshipDestinationState.ShouldAnnounceFuelCosts())
             {
-                fuelCostInfo = GravshipDestinationState.GetFuelCostAnnouncement(currentSelectedTile);
+                fuelCostInfo = GravshipDestinationState.GetFuelCostAnnouncement(tile);
             }
 
             string abilityDestInfo = null;
             if (context == WorldNavContext.InGame && WorldAbilityTargetingState.IsActive)
             {
-                abilityDestInfo = WorldAbilityTargetingState.GetDestinationInfo(currentSelectedTile);
+                abilityDestInfo = WorldAbilityTargetingState.GetDestinationInfo(tile);
             }
 
-            // Get destination info from an active external world-targeting provider
-            // (e.g. Vehicle Framework aerial launch), in-game only.
             string externalTargetingInfo = null;
             if (context == WorldNavContext.InGame && ExternalWorldTargeting.ActiveProvider != null)
             {
-                externalTargetingInfo = ExternalWorldTargeting.ActiveProvider.DestinationInfo(currentSelectedTile);
+                externalTargetingInfo = ExternalWorldTargeting.ActiveProvider.DestinationInfo(tile);
             }
 
             string tileInfo = WorldInfoHelper.GetTileSummary(
-                currentSelectedTile,
+                tile,
                 includeRouteInfo: context == WorldNavContext.InGame,
                 minimal: false,
                 fuelCostInfo: fuelCostInfo);
@@ -562,20 +649,19 @@ namespace RimWorldAccess
             // WorldGen: append faction proximity warning (change-only) before biome description
             if (context == WorldNavContext.WorldGen)
             {
-                string factionWarning = StartingSiteContext.GetFactionProximityWarning(currentSelectedTile);
+                string factionWarning = StartingSiteContext.GetFactionProximityWarning(tile);
                 if (!string.IsNullOrEmpty(factionWarning))
                 {
                     tileInfo = AppendSentence(tileInfo, factionWarning);
                 }
 
-                BiomeDef biome = currentSelectedTile.Tile?.PrimaryBiome;
+                BiomeDef biome = tile.Tile?.PrimaryBiome;
                 if (biome != null && !string.IsNullOrEmpty(biome.settleWarning))
                 {
                     tileInfo = AppendSentence(tileInfo, "Warning".Translate() + ": " + biome.settleWarning);
                 }
             }
 
-            string biomeDesc = BiomeDescriptionTracker.GetBiomeDescriptionIfNew(currentSelectedTile);
             if (!string.IsNullOrEmpty(biomeDesc))
             {
                 tileInfo = AppendSentence(tileInfo, biomeDesc);
@@ -588,8 +674,7 @@ namespace RimWorldAccess
                 tileInfo = string.IsNullOrEmpty(tileInfo) ? prefix : $"{prefix}. {tileInfo}";
             }
 
-            TolkHelper.SpeakData(tileInfo);
-
+            return tileInfo;
         }
 
         /// <summary>Maps arrow keys to compass directions, using the scanner's own calculation.</summary>
@@ -601,30 +686,7 @@ namespace RimWorldAccess
             if (Find.WorldGrid == null)
                 return;
 
-            // The scanner's own north/east calculation, so arrow keys match what it reports.
-            UnityEngine.Vector3 currentPos = Find.WorldGrid.GetTileCenter(currentSelectedTile);
-            UnityEngine.Vector3 up = currentPos.normalized; // "Up" is away from planet center
-            UnityEngine.Vector3 north = UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3.up, up).normalized;
-            UnityEngine.Vector3 east = UnityEngine.Vector3.Cross(up, north).normalized;
-
-            UnityEngine.Vector3 desiredDirection = UnityEngine.Vector3.zero;
-
-            switch (key)
-            {
-                case UnityEngine.KeyCode.UpArrow:
-                    desiredDirection = north;
-                    break;
-                case UnityEngine.KeyCode.DownArrow:
-                    desiredDirection = -north; // South
-                    break;
-                case UnityEngine.KeyCode.RightArrow:
-                    desiredDirection = east;
-                    break;
-                case UnityEngine.KeyCode.LeftArrow:
-                    desiredDirection = -east; // West
-                    break;
-            }
-
+            UnityEngine.Vector3 desiredDirection = CompassDirection(currentSelectedTile, key);
             if (desiredDirection != UnityEngine.Vector3.zero)
             {
                 MoveInDirection(desiredDirection);
@@ -1014,7 +1076,6 @@ namespace RimWorldAccess
 
             ValidateAndCleanupSelection();
 
-            // Sync with game's selection system (but preserve multi-selection)
             if (Find.WorldSelector != null && multiSelectedCaravans.Count == 0)
             {
                 Find.WorldSelector.ClearSelection();

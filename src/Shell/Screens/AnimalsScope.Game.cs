@@ -673,6 +673,13 @@ namespace RimWorldAccess.Shell
 
         private void OpenAllowedAreaSubmenu(Pawn pawn)
         {
+            if (!PawnColumnMutationHelper.CanEditAllowedArea(pawn))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.SpeakData(PawnColumnMutationHelper.AllowedAreaNotice(pawn)
+                    ?? "RimWorldAccess.Animals.Submenu.AreaNotAllowed".Translate(pawn.LabelShort).ToString(), SpeechPriority.High);
+                return;
+            }
             List<Area> areas = AnimalsMenuHelper.GetAvailableAreas();
             submenuOptions.Clear();
             submenuOptions.Add(ManageAreasMarker);

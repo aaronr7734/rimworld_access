@@ -71,8 +71,8 @@ namespace RimWorldAccess
     }
 
     /// <summary>
-    /// Drives <see cref="WorldDragSelectSpeech"/> off the same GUI pass that draws the box.
-    /// Observation only: it reads the selector and consumes nothing.
+    /// Drives <see cref="WorldDragSelectSpeech"/> and <see cref="WorldHoverSpeech"/> off the pass that draws the box, in both UI roots.
+    /// Observation only: it consumes nothing.
     /// </summary>
     [HarmonyPatch(typeof(WorldInterface), "WorldInterfaceOnGUI")]
     internal static class WorldDragSelectSpeechPatch
@@ -81,6 +81,7 @@ namespace RimWorldAccess
         public static void Postfix()
         {
             WorldDragSelectSpeech.Evaluate();
+            WorldHoverSpeech.Evaluate();
         }
     }
 }

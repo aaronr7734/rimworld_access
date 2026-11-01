@@ -104,16 +104,6 @@
        returned to the text-input layer in an AcceptanceReport — they appear
        to the user as the rejection reason.
        {0} = the conflicting name. -->
-  <RimWorldAccess.Building.Rename.Cancelled>Yeniden adlandırma iptal edildi</RimWorldAccess.Building.Rename.Cancelled>
-  <RimWorldAccess.Building.Rename.StorageCancelled>İptal edildi</RimWorldAccess.Building.Rename.StorageCancelled>
-  <RimWorldAccess.Building.Rename.PenError>Ağıl işaretleyicisi yeniden adlandırılırken hata: {0}</RimWorldAccess.Building.Rename.PenError>
-  <RimWorldAccess.Building.Rename.ZoneError>Bölge yeniden adlandırılırken hata: {0}</RimWorldAccess.Building.Rename.ZoneError>
-  <RimWorldAccess.Building.Rename.PlanError>Plan yeniden adlandırılırken hata: {0}</RimWorldAccess.Building.Rename.PlanError>
-  <RimWorldAccess.Building.Rename.StorageError>Hata: {0}</RimWorldAccess.Building.Rename.StorageError>
-  <RimWorldAccess.Building.Rename.StorageMapMissing>Hata: Harita bulunamıyor.</RimWorldAccess.Building.Rename.StorageMapMissing>
-  <RimWorldAccess.Building.Rename.StorageGroupCreated>Depo grubu oluşturuldu: {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>{0} adı zaten bir bölge tarafından kullanılıyor</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>{0} adı zaten başka bir depo grubu tarafından kullanılıyor</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
   <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
        Replaces the vanilla FloatMenu shown when an area designator is

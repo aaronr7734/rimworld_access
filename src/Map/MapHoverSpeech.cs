@@ -182,7 +182,7 @@ namespace RimWorldAccess
         /// The chrome hover channel reads all of those, and a cell read on top of them buries
         /// the utterance it interrupts — so what the click would hit is what gets announced.
         /// </summary>
-        private static bool PointerOwnedByChrome()
+        internal static bool PointerOwnedByChrome()
         {
             Vector2 pos = UI.MousePositionOnUIInverted;
             if (MainButtonRectRegistry.TryHitTest(pos, out _, out _))

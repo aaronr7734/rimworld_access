@@ -271,6 +271,12 @@ namespace RimWorldAccess
             selectedIndex = index;
         }
 
+        internal static void AnnounceOpened()
+        {
+            if (isActive)
+                AnnounceCurrentSelection();
+        }
+
         private static void AnnounceCurrentSelection()
         {
             if (currentOptions == null || currentOptions.Count == 0)

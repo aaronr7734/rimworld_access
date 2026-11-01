@@ -349,6 +349,24 @@ namespace RimWorldAccess.Shell
             return WorldGenSessionLive() && !StartingPawnState.IsActive;
         }
 
+        internal static bool WorldSurfaceLive()
+        {
+            return SiteKeysLive();
+        }
+
+        internal static bool PointerOverBottomButtons()
+        {
+            Vector2 pos = UI.MousePositionOnUIInverted;
+            for (int i = 0; i < 4; i++)
+            {
+                if (BottomButtonRect(i).Contains(pos))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         private static bool SiteKeysNoSearchLive()
         {
             return SiteKeysLive() && !ScannerSearchState.IsActive;

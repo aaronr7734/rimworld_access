@@ -172,9 +172,14 @@ namespace RimWorldAccess
                 TickSettle();
         }
 
-        /// <summary>Alt+Shift+J: pull the keyboard cursor onto the hovered tile.</summary>
+        /// <summary>Alt+Shift+J: pull the keyboard cursor onto the hovered tile. The planet is tested first: Find.CurrentMap stays set while it renders.</summary>
         internal static void PullCursorToPointer()
         {
+            if (WorldNavigationState.IsActive)
+            {
+                PullWorldCursorToPointer();
+                return;
+            }
             Map map = Find.CurrentMap;
             if (!SystemPointer.HostFocused || map == null)
                 return;
@@ -202,6 +207,27 @@ namespace RimWorldAccess
             // Composed rather than announced through AnnouncePosition: a deliberate jump must
             // speak even when it lands on the last-announced tile.
             TolkHelper.SpeakData(MapArrowKeyHandler.ComposePositionAnnouncement(cell, map, null, allowStateWrites: true));
+        }
+
+        private static void PullWorldCursorToPointer()
+        {
+            if (!SystemPointer.HostFocused)
+                return;
+
+            if (!PointerSurface.PointerInside)
+            {
+                TolkHelper.Speak("RimWorldAccess.Input.Cursor.PointerOffWindow".Loc());
+                return;
+            }
+
+            PlanetTile tile = WorldHoverSpeech.TileUnderPointer();
+            if (!tile.Valid)
+            {
+                PointerRouting.RejectNoTarget();
+                return;
+            }
+
+            WorldNavigationState.PullCursorToTile(tile);
         }
 
         /// <summary>Alt+Shift+M: toggle reading what the mouse pointer moves over.</summary>

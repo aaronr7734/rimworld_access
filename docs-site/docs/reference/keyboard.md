@@ -221,7 +221,7 @@ On the world map (**F8**), several keys take on travel-specific meanings.
 | **4** | Time zone and global coordinates |
 | **5** | Regions and landmarks |
 
-Biome is announced when you arrow onto a tile, not via a number key.
+Biome is announced when you arrow onto a tile, not via a number key. Press **Ctrl+Arrow** to jump to the next biome boundary in that direction.
 
 ### Travel and caravans
 

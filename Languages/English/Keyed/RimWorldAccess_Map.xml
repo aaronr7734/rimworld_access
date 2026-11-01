@@ -620,11 +620,11 @@
        throne room or bedroom. {0} = noble's name, {1} = title label. -->
   <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Throne room for {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
   <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Bedroom for {0}, {1}</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
-  <RimWorldAccess.Map.Tile.Room.Req.AllMet>all requirements met</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>All requirements met</RimWorldAccess.Map.Tile.Room.Req.AllMet>
   <!-- {0} = met count, {1} = total count. -->
   <RimWorldAccess.Map.Tile.Room.Req.Summary>{0} of {1} requirements met</RimWorldAccess.Map.Tile.Room.Req.Summary>
   <!-- {0} = list of unmet requirement labels, each with the game's own progress text. -->
-  <RimWorldAccess.Map.Tile.Room.Req.Missing>missing: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>Missing: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->

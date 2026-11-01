@@ -49,19 +49,6 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Spec for an arbitrary IRenameable target. Mirrors <see cref="Dialog_Rename{T}"/>'s
-        /// length cap and non-empty requirement. That dialog keeps the field's text only
-        /// while "text.Length &lt; MaxNameLength", so its default 28 accepts 27 characters.
-        /// </summary>
-        public static TextFieldSpec ForIRenameable(IRenameable target, string labelKey = null)
-        {
-            return new TextFieldSpec(
-                labelKey: labelKey ?? "RimWorldAccess.TextInput.LabelDefault",
-                maxLength: 27,
-                minLength: 1);
-        }
-
-        /// <summary>
         /// Spec for a vanilla RimWorld dialog (Dialog_Rename, Dialog_GiveName, etc.).
         /// Pulls MaxNameLength / FirstCharLimit / IsValidName / NameIsValid by reflection.
         /// </summary>

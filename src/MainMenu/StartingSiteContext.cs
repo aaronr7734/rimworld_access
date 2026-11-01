@@ -21,8 +21,7 @@ namespace RimWorldAccess
 
     /// <summary>
     /// World-gen starting-site features: the Tile info region's categories, random tile selection,
-    /// the Ctrl+arrow biome jump's 3D vector math, change-only faction proximity warnings, and tile
-    /// validation for settlement placement. <see cref="TileInfoRowCount"/>,
+    /// change-only faction proximity warnings, and tile validation for settlement placement. <see cref="TileInfoRowCount"/>,
     /// <see cref="TileInfoRowName"/> and <see cref="TileInfoRowDetail"/> expose the categories as an
     /// ordinary read-only content region; <see cref="StartingSiteScreenScope"/> owns the row cursor
     /// and announcement grammar.
@@ -113,98 +112,6 @@ namespace RimWorldAccess
             }
 
             TolkHelper.Speak("RimWorldAccess.StartingSite.RandomSiteSelected".Loc(tileInfo));
-        }
-
-        // Biome jump (Ctrl+arrows).
-
-        /// <summary>Jumps to the next biome boundary in an arrow direction, using 3D geographic compass math.</summary>
-        public static void JumpToNextBiomeInDirection(KeyCode arrowKey)
-        {
-            PlanetTile currentTile = WorldNavigationState.CurrentSelectedTile;
-            if (!currentTile.Valid)
-            {
-                SelectRandomTile();
-                return;
-            }
-
-            BiomeDef currentBiome = currentTile.Tile?.PrimaryBiome;
-            if (currentBiome == null)
-            {
-                TolkHelper.Speak("RimWorldAccess.StartingSite.CannotDetermineBiome".Loc());
-                return;
-            }
-
-            Vector3 currentPos = Find.WorldGrid.GetTileCenter(currentTile);
-            Vector3 up = currentPos.normalized;
-            Vector3 north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
-            Vector3 east = Vector3.Cross(up, north).normalized;
-
-            Vector3 desiredDirection;
-            switch (arrowKey)
-            {
-                case KeyCode.UpArrow: desiredDirection = north; break;
-                case KeyCode.DownArrow: desiredDirection = -north; break;
-                case KeyCode.RightArrow: desiredDirection = east; break;
-                case KeyCode.LeftArrow: desiredDirection = -east; break;
-                default: return;
-            }
-
-            PlanetTile walker = currentTile;
-            int iterations = 0;
-            const int maxIterations = 1000;
-
-            while (iterations < maxIterations)
-            {
-                List<PlanetTile> neighbors = new List<PlanetTile>();
-                Find.WorldGrid.GetTileNeighbors(walker, neighbors);
-
-                if (neighbors.Count == 0)
-                    break;
-
-                PlanetTile bestNeighbor = PlanetTile.Invalid;
-                float bestDot = -2f;
-                Vector3 walkerPos = Find.WorldGrid.GetTileCenter(walker);
-
-                foreach (var neighbor in neighbors)
-                {
-                    Vector3 neighborPos = Find.WorldGrid.GetTileCenter(neighbor);
-                    Vector3 dir = (neighborPos - walkerPos).normalized;
-                    float dot = Vector3.Dot(dir, desiredDirection);
-                    if (dot > bestDot)
-                    {
-                        bestDot = dot;
-                        bestNeighbor = neighbor;
-                    }
-                }
-
-                if (!bestNeighbor.Valid)
-                    break;
-
-                if (bestNeighbor.Tile?.PrimaryBiome != currentBiome)
-                {
-                    WorldNavigationState.CurrentSelectedTile = bestNeighbor;
-                    // MUTATION-C: mirrors WorldSelector.SelectUnderMouse's ClearSelection()
-                    // + bare-selectedTile-write sequence (RimWorld.Planet/WorldSelector.cs:
-                    // 206,391) for the WorldSelector.SelectedTile write, and
-                    // Page_SelectStartingSite.DoWindowContents' per-frame sync
-                    // (Page_SelectStartingSite.cs:149-152) for the WorldInterface.
-                    // SelectedTile/GameInitData.startingTile writes -- routed through the
-                    // shared helper (WorldNavigationState.SyncSelectionWithGame) so a
-                    // previously-selected WorldObject (landmark/faction base) is cleared
-                    // before this tile-only jump, instead of leaking stale selection
-                    // alongside the new tile.
-                    WorldNavigationState.SyncSelectionWithGame();
-                    Find.WorldCameraDriver.JumpTo(Find.WorldGrid.GetTileCenter(bestNeighbor));
-
-                    WorldNavigationState.AnnounceTile();
-                    return;
-                }
-
-                walker = bestNeighbor;
-                iterations++;
-            }
-
-            TolkHelper.Speak("RimWorldAccess.StartingSite.NoDifferentBiomeFound".Loc(iterations));
         }
 
         // Faction proximity warnings.

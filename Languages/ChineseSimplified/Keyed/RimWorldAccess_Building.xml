@@ -104,15 +104,6 @@
        returned to the text-input layer in an AcceptanceReport — they appear
        to the user as the rejection reason.
        {0} = the conflicting name. -->
-  <RimWorldAccess.Building.Rename.Cancelled>重命名已取消</RimWorldAccess.Building.Rename.Cancelled>
-  <RimWorldAccess.Building.Rename.StorageCancelled>已取消</RimWorldAccess.Building.Rename.StorageCancelled>
-  <RimWorldAccess.Building.Rename.PenError>重命名畜栏标牌时出错: {0}</RimWorldAccess.Building.Rename.PenError>
-  <RimWorldAccess.Building.Rename.ZoneError>重命名区域时出错: {0}</RimWorldAccess.Building.Rename.ZoneError>
-  <RimWorldAccess.Building.Rename.StorageError>错误: {0}</RimWorldAccess.Building.Rename.StorageError>
-  <RimWorldAccess.Building.Rename.StorageMapMissing>错误: 找不到地图。</RimWorldAccess.Building.Rename.StorageMapMissing>
-  <RimWorldAccess.Building.Rename.StorageGroupCreated>已创建存储组 {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>名称 {0} 已被一个区域使用</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>名称 {0} 已被另一个存储组使用</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
   <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
        Replaces the vanilla FloatMenu shown when an area designator is
@@ -965,7 +956,6 @@
   <RimWorldAccess.Building.PlanColor.Blue>蓝色</RimWorldAccess.Building.PlanColor.Blue>
   <RimWorldAccess.Building.PlanColor.Purple>紫色</RimWorldAccess.Building.PlanColor.Purple>
   <RimWorldAccess.Building.PlanColor.Pink>粉色</RimWorldAccess.Building.PlanColor.Pink>
-  <RimWorldAccess.Building.Rename.PlanError>重命名计划时出错: {0}</RimWorldAccess.Building.Rename.PlanError>
   <RimWorldAccess.Building.Plan.Hidden>已隐藏计划</RimWorldAccess.Building.Plan.Hidden>
   <RimWorldAccess.Building.Plan.Deleted>已删除计划 {0}</RimWorldAccess.Building.Plan.Deleted>
   <RimWorldAccess.Building.Plan.Copied>已复制计划 {0}</RimWorldAccess.Building.Plan.Copied>

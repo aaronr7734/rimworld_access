@@ -94,7 +94,7 @@ namespace RimWorldAccess
             {
                 defaultLabel = "RimWorldAccess.Inspection.CategoryName.PlanRename".Translate(),
                 defaultDesc = "RimWorldAccess.Building.Plan.Desc.Rename".Translate(),
-                action = () => PlanRenameState.Open(plan)
+                action = () => Find.WindowStack.Add(new Dialog_RenameBuildingStorage(plan))
             });
             return gizmos;
         }

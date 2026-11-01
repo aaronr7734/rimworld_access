@@ -527,22 +527,18 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// The allowed-area column: value via AreaUtility.AreaAllowedLabel; Enter rides
-    /// <see cref="AreaUtility.MakeAllowedAreaListFloatMenu"/>, the generator vanilla's own call sites
-    /// use, rather than a hand-copied option list. Editability is gated on vanilla's compound
-    /// predicate (<see cref="PawnColumnMutationHelper.CanEditAllowedArea"/>), not just
-    /// SupportsAllowedAreas, so the cell is refused exactly where vanilla would draw nothing.
+    /// The allowed-area column, branched like vanilla's DoCell. Enter rides
+    /// <see cref="AreaUtility.MakeAllowedAreaListFloatMenu"/>, gated on <see cref="PawnColumnMutationHelper.CanEditAllowedArea"/>.
     /// </summary>
     internal sealed class AllowedAreaColumnHandler : PawnColumnHandler
     {
         public override string CellText(PawnColumnDef def, Pawn pawn)
         {
-            if (pawn.playerSettings == null)
+            if (PawnColumnMutationHelper.CanEditAllowedArea(pawn))
             {
-                return "";
+                return AreaUtility.AreaAllowedLabel(pawn)?.StripTags() ?? "";
             }
-            string label = AreaUtility.AreaAllowedLabel(pawn);
-            return label != null ? label.StripTags() : "";
+            return PawnColumnMutationHelper.AllowedAreaNotice(pawn) ?? "";
         }
 
         public override PawnColumnActivation ActivateCell(PawnColumnDef def, Pawn pawn, PawnTable table)
@@ -1051,18 +1047,46 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// Read-only: can THIS pawn have its allowed area set at all, per vanilla's compound gate
-        /// (RimWorld/PawnColumnWorker_AllowedArea.cs DoCell:32-34) — never just SupportsAllowedAreas
-        /// in isolation. The Faction test is the CURRENT faction, not HomeFaction: a quest-lent animal
-        /// under player control passes, one held by another faction does not.
+        /// Vanilla's compound allowed-area gate (PawnColumnWorker_AllowedArea.DoCell:32-34), never
+        /// SupportsAllowedAreas alone. The Faction test is the CURRENT faction, not HomeFaction.
         /// </summary>
         internal static bool CanEditAllowedArea(Pawn pawn)
+        {
+            return PassesAllowedAreaCellGate(pawn) && pawn.playerSettings.SupportsAllowedAreas;
+        }
+
+        /// <summary>
+        /// What DoCell:38-51 draws in place of the area selector: AnimalPenGUI.DoAllowedAreaMessage's
+        /// pen status, tooltip included, or the dryad notice. Null where it draws a selector or nothing.
+        /// </summary>
+        internal static string AllowedAreaNotice(Pawn pawn)
+        {
+            if (!PassesAllowedAreaCellGate(pawn) || pawn.playerSettings.SupportsAllowedAreas)
+            {
+                return null;
+            }
+            if (AnimalPenUtility.NeedsToBeManagedByRope(pawn))
+            {
+                CompAnimalPenMarker pen = AnimalPenUtility.GetCurrentPenOf(pawn, allowUnenclosedPens: false);
+                if (pen != null)
+                {
+                    return "InPen".Translate() + ": " + pen.label;
+                }
+                return "Unpenned".Translate().CapitalizeFirst() + ". " + "UnpennedTooltip".Translate();
+            }
+            if (pawn.RaceProps.Dryad)
+            {
+                return "CannotAssignAllowedAreaToDryad".Translate();
+            }
+            return null;
+        }
+
+        private static bool PassesAllowedAreaCellGate(Pawn pawn)
         {
             return pawn.Faction == Faction.OfPlayer
                 && (!pawn.IsMutant || pawn.mutant.Def.respectsAllowedArea)
                 && (!pawn.RaceProps.IsMechanoid || pawn.GetOverseer() != null)
-                && pawn.playerSettings != null
-                && pawn.playerSettings.SupportsAllowedAreas;
+                && pawn.playerSettings != null;
         }
 
         /// <summary>

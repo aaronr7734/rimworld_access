@@ -104,15 +104,6 @@
        returned to the text-input layer in an AcceptanceReport — they appear
        to the user as the rejection reason.
        {0} = the conflicting name. -->
-  <RimWorldAccess.Building.Rename.Cancelled>Переименование отменено</RimWorldAccess.Building.Rename.Cancelled>
-  <RimWorldAccess.Building.Rename.StorageCancelled>Отменено</RimWorldAccess.Building.Rename.StorageCancelled>
-  <RimWorldAccess.Building.Rename.PenError>Ошибка переименования маркера загона: {0}</RimWorldAccess.Building.Rename.PenError>
-  <RimWorldAccess.Building.Rename.ZoneError>Ошибка переименования области: {0}</RimWorldAccess.Building.Rename.ZoneError>
-  <RimWorldAccess.Building.Rename.StorageError>Ошибка: {0}</RimWorldAccess.Building.Rename.StorageError>
-  <RimWorldAccess.Building.Rename.StorageMapMissing>Ошибка: не удалось найти карту.</RimWorldAccess.Building.Rename.StorageMapMissing>
-  <RimWorldAccess.Building.Rename.StorageGroupCreated>Создана группа хранилищ {0}</RimWorldAccess.Building.Rename.StorageGroupCreated>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>имя {0} уже используется областью</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>имя {0} уже используется другой группой хранилищ</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
   <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
        Replaces the vanilla FloatMenu shown when an area designator is
@@ -968,7 +959,6 @@
   <RimWorldAccess.Building.PlanColor.Blue>синий</RimWorldAccess.Building.PlanColor.Blue>
   <RimWorldAccess.Building.PlanColor.Purple>фиолетовый</RimWorldAccess.Building.PlanColor.Purple>
   <RimWorldAccess.Building.PlanColor.Pink>розовый</RimWorldAccess.Building.PlanColor.Pink>
-  <RimWorldAccess.Building.Rename.PlanError>Ошибка переименования планировки: {0}</RimWorldAccess.Building.Rename.PlanError>
   <RimWorldAccess.Building.Plan.Hidden>Планировка скрыта</RimWorldAccess.Building.Plan.Hidden>
   <RimWorldAccess.Building.Plan.Deleted>Планировка удалена: {0}</RimWorldAccess.Building.Plan.Deleted>
   <RimWorldAccess.Building.Plan.Copied>Планировка скопирована: {0}</RimWorldAccess.Building.Plan.Copied>

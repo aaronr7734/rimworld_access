@@ -149,7 +149,6 @@
   <!-- {0} = randomized name. -->
   <RimWorldAccess.UI.Name.Randomized>Случайное: {0}</RimWorldAccess.UI.Name.Randomized>
   <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
-  <RimWorldAccess.UI.Name.Renamed>Переименовано: {0}</RimWorldAccess.UI.Name.Renamed>
 
   <!-- Dialog_GiveName field row labels, one per vanilla name-message key. -->
   <RimWorldAccess.UI.Name.FieldFaction>Название фракции</RimWorldAccess.UI.Name.FieldFaction>

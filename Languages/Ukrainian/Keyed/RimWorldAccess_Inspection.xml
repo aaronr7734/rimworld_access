@@ -528,6 +528,8 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>Немає доступних команд для {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>об'єкт світу</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Немає додаткових варіантів</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
+  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: правий клік виконано</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire
@@ -1351,6 +1353,7 @@
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
        label, {1} = item type count. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Без категорії</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0} (1 тип)</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} типів)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================
@@ -1394,9 +1397,7 @@
 
   <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
   <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Дальність: {0} клітинок від господаря</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
-  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>зброя</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.AttackFallback>атака</RimWorldAccess.Inspection.Gizmo.AttackFallback>
-  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Невідома зброя</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
   <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Невідома команда</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
 

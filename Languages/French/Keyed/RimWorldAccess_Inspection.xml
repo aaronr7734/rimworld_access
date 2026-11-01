@@ -515,6 +515,8 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>Aucune commande disponible pour {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>objet du monde</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Aucune option supplémentaire</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
+  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
+  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: clic droit effectué</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire
@@ -1360,6 +1362,7 @@
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
        label, {1} = item type count. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Sans catégorie</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0} (1 type)</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} types)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================
@@ -1403,9 +1406,7 @@
 
   <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
   <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Portée : {0} cases depuis le maître</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
-  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>arme</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.AttackFallback>attaque</RimWorldAccess.Inspection.Gizmo.AttackFallback>
-  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Arme inconnue</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0} - {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
   <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Commande inconnue</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
 

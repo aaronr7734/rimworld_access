@@ -3,10 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>champ</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>nom de faction</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>nom de colonie</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelZone>nom de zone</RimWorldAccess.TextInput.LabelZone>
-  <RimWorldAccess.TextInput.LabelPlan>nom de plan</RimWorldAccess.TextInput.LabelPlan>
-  <RimWorldAccess.TextInput.LabelStorage>nom de zone de stockage</RimWorldAccess.TextInput.LabelStorage>
-  <RimWorldAccess.TextInput.LabelPen>nom d'enclos</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>titre du scénario</RimWorldAccess.TextInput.LabelScenarioTitle>
   <RimWorldAccess.TextInput.LabelScenarioSummary>résumé du scénario</RimWorldAccess.TextInput.LabelScenarioSummary>
   <RimWorldAccess.TextInput.LabelScenarioDescription>description du scénario</RimWorldAccess.TextInput.LabelScenarioDescription>

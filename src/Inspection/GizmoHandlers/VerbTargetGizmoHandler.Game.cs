@@ -3,20 +3,18 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Verbatim port of the original ExecuteSelected ladder's branch 5
-    /// (Command_VerbTarget: weapon attacks — announce targeting mode) plus the
-    /// weapon-verb label special case from GetGizmoLabel ("weapon: verb" instead
-    /// of the command's own label, which vanilla leaves generic).
+    /// Command_VerbTarget: labels a pawn weapon's attack "weapon: verb", since vanilla leaves it generic.
     /// </summary>
     internal sealed class VerbTargetGizmoHandler : GizmoHandlerBase
     {
         public override bool TryGetLabel(Gizmo gizmo, out string label)
         {
             label = null;
-            if (!(gizmo is Command_VerbTarget verbTarget))
+            // A turret's command carries no owner weapon and its own vanilla label.
+            if (!(gizmo is Command_VerbTarget verbTarget) || verbTarget.ownerThing == null)
                 return false;
 
-            string weaponName = verbTarget.ownerThing?.LabelCap ?? "RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback".Translate().ToString();
+            string weaponName = verbTarget.ownerThing.LabelCap;
             string verbLabel = verbTarget.verb?.ReportLabel ?? "RimWorldAccess.Inspection.Gizmo.AttackFallback".Translate().ToString();
             label = "RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel".Translate(weaponName, verbLabel);
             return true;
@@ -31,16 +29,17 @@ namespace RimWorldAccess
 
             try
             {
-                // Propagate to grouped gizmos first — adds other pawns
-                // to targetingSourceAdditionalPawns for group targeting
                 GizmoNavigationState.PropagateToGroupedGizmos(gizmo, ctx.FakeEvent);
-                // Execute the command (starts targeting for this pawn)
                 gizmo.ProcessInput(ctx.FakeEvent);
                 GizmoNavigationState.ProcessGroupInput(gizmo, ctx.FakeEvent);
 
-                string weaponName = verbTarget.ownerThing?.LabelCap ?? "RimWorldAccess.Inspection.Gizmo.WeaponFallback".Translate().ToString();
-                string verbLabel = verbTarget.verb?.ReportLabel ?? "RimWorldAccess.Inspection.Gizmo.AttackFallback".Translate().ToString();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting".Loc(weaponName, verbLabel));
+                // GenericTargetingState already announced the session it started.
+                if (!GenericTargetingState.IsActive)
+                {
+                    string weaponName = verbTarget.ownerThing?.LabelCap ?? verbTarget.LabelCap;
+                    string verbLabel = verbTarget.verb?.ReportLabel ?? "RimWorldAccess.Inspection.Gizmo.AttackFallback".Translate().ToString();
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Gizmo.WeaponVerbTargeting".Loc(weaponName, verbLabel));
+                }
             }
             catch (System.Exception ex)
             {

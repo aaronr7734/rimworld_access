@@ -672,7 +672,11 @@ namespace RimWorldAccess
 
         public static string GetAllowedArea(Pawn pawn)
         {
-            if (pawn.playerSettings == null) return "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
+            if (!PawnColumnMutationHelper.CanEditAllowedArea(pawn))
+            {
+                return PawnColumnMutationHelper.AllowedAreaNotice(pawn)
+                    ?? "RimWorldAccess.Animals.Value.NotApplicable".Translate().ToString();
+            }
 
             Area area = pawn.playerSettings.AreaRestrictionInPawnCurrentMap;
             if (area == null)

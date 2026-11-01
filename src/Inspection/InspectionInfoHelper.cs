@@ -31,7 +31,7 @@ namespace RimWorldAccess
         /// Punctuates each line of an inspect string. GetInspectString returns newline-separated
         /// stats that may lack punctuation, and they run together once newlines become spaces.
         /// </summary>
-        private static string FormatInspectStringWithPunctuation(string inspectString)
+        internal static string FormatInspectStringWithPunctuation(string inspectString)
         {
             if (string.IsNullOrEmpty(inspectString))
                 return inspectString;
@@ -340,7 +340,7 @@ namespace RimWorldAccess
                         });
                     }
 
-                    if (building.TryGetComp<CompAnimalPenMarker>() != null && !categories.Any(c => c.OriginalCategoryName == "Rename"))
+                    if (building.Spawned && building.Faction == Faction.OfPlayer && building.TryGetComp<CompAnimalPenMarker>() != null && !categories.Any(c => c.OriginalCategoryName == "Rename"))
                     {
                         categories.Add(new TabCategoryInfo
                         {

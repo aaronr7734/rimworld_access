@@ -23,19 +23,24 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Returns the biome description if the tile's biome differs from the last announced biome.
-        /// Returns null if the biome is the same. Updates tracking on every call.
+        /// The biome description when the tile's biome differs from the last announced one, else null. Updates tracking.
         /// </summary>
         public static string GetBiomeDescriptionIfNew(PlanetTile tile)
+        {
+            return GetBiomeDescriptionIfNew(tile, ref lastAnnouncedBiome);
+        }
+
+        /// <summary>The same rule against a caller-owned memory, for a reader that must not disturb the keyboard cursor's.</summary>
+        public static string GetBiomeDescriptionIfNew(PlanetTile tile, ref BiomeDef lastBiome)
         {
             if (!tile.Valid) return null;
 
             BiomeDef currentBiome = tile.Tile?.PrimaryBiome;
             if (currentBiome == null) return null;
 
-            if (currentBiome == lastAnnouncedBiome) return null;
+            if (currentBiome == lastBiome) return null;
 
-            lastAnnouncedBiome = currentBiome;
+            lastBiome = currentBiome;
             return currentBiome.description;
         }
     }

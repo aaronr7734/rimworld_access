@@ -1,0 +1,1 @@
+The allowed area column in the animals menu now says which pen a penned animal is in, or that it is not in a pen, just like the game shows it. Enter on that cell no longer opens an area list it cannot use.

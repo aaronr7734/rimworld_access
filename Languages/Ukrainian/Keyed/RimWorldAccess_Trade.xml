@@ -110,15 +110,12 @@
 
   <!-- =================================================================
        Item announcement composition for the inventory tabs.
-       *.SoloAvailable: only one party has the item; {0} = count.
-       *.SoloPrice: bare price line, {0} = formatted price.
-       *.SoloPriceWithQuality: with price-quality suffix; {0} = price,
-                              {1} = quality phrase.
        *.NotTradeable: trader will not trade this item.
-       *.YoursAt / TheirsAt: shared item; {0} = count, {1} = price.
+       *.YoursAt / TheirsAt: one side's count and price, used whether
+                              one side or both hold the item; {0} = count, {1} = price.
        *.YoursAtWithQuality / TheirsAtWithQuality: same plus quality;
                               {0} = count, {1} = price, {2} = quality.
-       *.YoursOnly / TheirsOnly: shared but trader won't trade;
+       *.YoursOnly / TheirsOnly: trader won't trade, or currency;
                               {0} = count.
        ================================================================= -->
 
@@ -262,8 +259,6 @@
   <RimWorldAccess.Trade.Max.Gifting>Дарування всього: {0} {1}, {2}</RimWorldAccess.Trade.Max.Gifting>
   <RimWorldAccess.Trade.Reset.SingleItem>Скинуто {0}</RimWorldAccess.Trade.Reset.SingleItem>
   <RimWorldAccess.Trade.Reset.CannotResetBalance>Неможливо скинути запис балансу</RimWorldAccess.Trade.Reset.CannotResetBalance>
-  <RimWorldAccess.Trade.Item.SoloAvailable>{0} доступно</RimWorldAccess.Trade.Item.SoloAvailable>
-  <RimWorldAccess.Trade.Item.SoloPriceWithQuality>{0}, {1}</RimWorldAccess.Trade.Item.SoloPriceWithQuality>
   <RimWorldAccess.Trade.Item.NotTradeable>Не продається</RimWorldAccess.Trade.Item.NotTradeable>
   <RimWorldAccess.Trade.Item.YoursAt>Ваше: {0} по {1}</RimWorldAccess.Trade.Item.YoursAt>
   <RimWorldAccess.Trade.Item.TheirsAt>Їхнє: {0} по {1}</RimWorldAccess.Trade.Item.TheirsAt>

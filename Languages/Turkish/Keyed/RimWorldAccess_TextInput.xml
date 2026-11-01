@@ -3,10 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>alan</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>fraksiyon adı</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>yerleşim adı</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelZone>bölge adı</RimWorldAccess.TextInput.LabelZone>
-  <RimWorldAccess.TextInput.LabelPlan>plan adı</RimWorldAccess.TextInput.LabelPlan>
-  <RimWorldAccess.TextInput.LabelStorage>depo adı</RimWorldAccess.TextInput.LabelStorage>
-  <RimWorldAccess.TextInput.LabelPen>ağıl adı</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>senaryo başlığı</RimWorldAccess.TextInput.LabelScenarioTitle>
   <RimWorldAccess.TextInput.LabelScenarioSummary>senaryo özeti</RimWorldAccess.TextInput.LabelScenarioSummary>
   <RimWorldAccess.TextInput.LabelScenarioDescription>senaryo açıklaması</RimWorldAccess.TextInput.LabelScenarioDescription>
