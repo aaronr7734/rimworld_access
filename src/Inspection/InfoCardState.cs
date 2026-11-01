@@ -464,7 +464,12 @@ namespace RimWorldAccess
             if (link.HasGeneOwnerThing)
             {
                 if (ThingSelectionUtility.SelectableByMapClick(link.thing))
+                {
                     link.ActivateHyperlink();
+                    // The Genes tab opens beneath the card, which keeps the keyboard.
+                    if (GeneInspectionState.IsActive)
+                        Find.WindowStack.TryRemove(typeof(Dialog_InfoCard));
+                }
                 else
                     TolkHelper.SpeakData(InfoCardDataExtractor.GetHyperlinkLabel(link));
                 return;

@@ -34,33 +34,6 @@ namespace RimWorldAccess
 
         public static Caravan CurrentCaravan => currentCaravan;
 
-        /// <summary>
-        /// Builds caravan category nodes (Caravan Status, Pawns, Gear, Items) under a parent, so
-        /// <see cref="WorldObjectSelectionState"/> can embed the tree without opening this screen.
-        /// </summary>
-        public static void BuildCaravanCategoriesFor(InspectionTreeItem parent, Caravan caravan)
-        {
-            if (parent == null || caravan == null)
-                return;
-
-            // Temporarily set currentCaravan so the Add*Node methods work
-            Caravan previousCaravan = currentCaravan;
-            currentCaravan = caravan;
-
-            try
-            {
-                AddCaravanStatusNode(parent);
-                AddPawnsNode(parent);
-                AddGearNode(parent);
-                AddItemsNode(parent);
-            }
-            finally
-            {
-                // Restore previous caravan (important if CaravanInspectState is active)
-                currentCaravan = previousCaravan;
-            }
-        }
-
         /// <summary>Opens the caravan inspect screen for the specified caravan.</summary>
         public static void Open(Caravan caravan)
         {

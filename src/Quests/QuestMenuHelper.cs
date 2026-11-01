@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Text.RegularExpressions;
 using RimWorld;
 using Verse;
 
@@ -334,9 +336,9 @@ namespace RimWorldAccess
             {
                 foreach (string line in data.Split('\n'))
                 {
-                    string trimmed = line.Trim();
-                    if (!string.IsNullOrEmpty(trimmed))
-                        lines.Add(new DetailLine(trimmed));
+                    string spoken = SpeakableDumpLine(line.Trim());
+                    if (!string.IsNullOrEmpty(spoken))
+                        lines.Add(new DetailLine(spoken));
                 }
             }
 
@@ -354,6 +356,26 @@ namespace RimWorldAccess
                 lines.Add(new DetailLine("None"));
 
             return lines;
+        }
+
+        private static readonly Regex DumpValueElement = new Regex(@"^<([\w.]+)[^>]*>(.*)</\1>$");
+        private static readonly Regex DumpBareElement = new Regex(@"^<([\w.]+)[^>]*?/?>$");
+
+        /// <summary>A Scribe dump line with its field name kept from the tag stripper; null for closing tags.</summary>
+        private static string SpeakableDumpLine(string line)
+        {
+            if (line.Length == 0 || line.StartsWith("</"))
+                return null;
+
+            Match value = DumpValueElement.Match(line);
+            if (value.Success)
+                return value.Groups[1].Value + ": " + WebUtility.HtmlDecode(value.Groups[2].Value).StripTags();
+
+            Match bare = DumpBareElement.Match(line);
+            if (bare.Success)
+                return bare.Groups[1].Value;
+
+            return WebUtility.HtmlDecode(line).StripTags();
         }
     }
 }

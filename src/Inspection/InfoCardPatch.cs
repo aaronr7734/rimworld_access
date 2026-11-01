@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HarmonyLib;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -113,6 +114,84 @@ namespace RimWorldAccess
                     hasAnnounced = true;
                     InfoCardState.RebuildAndAnnounce();
                 }
+            }
+        }
+
+        /// <summary>
+        /// Vanilla's stat cache is shared and never sees two cards stacked; ours stack for
+        /// Escape-back. The current card owns the cache, any other card draws into its own.
+        /// </summary>
+        [HarmonyPatch(typeof(Dialog_InfoCard), "DoWindowContents")]
+        public static class DoWindowContents_CacheOwnershipPatch
+        {
+            // Swapped by reference: FinalizeCachedDrawEntries reassigns the list, and the values
+            // are read by row index.
+            private static readonly AccessTools.FieldRef<List<StatDrawEntry>> entriesRef =
+                AccessTools.StaticFieldRefAccess<List<StatDrawEntry>>(AccessTools.Field(typeof(StatsReportUtility), "cachedDrawEntries"));
+
+            private static readonly AccessTools.FieldRef<List<string>> valuesRef =
+                AccessTools.StaticFieldRefAccess<List<string>>(AccessTools.Field(typeof(StatsReportUtility), "cachedEntryValues"));
+
+            private static ref List<StatDrawEntry> Entries => ref entriesRef();
+
+            private static ref List<string> Values => ref valuesRef();
+
+            private sealed class StatCache
+            {
+                internal List<StatDrawEntry> entries = new List<StatDrawEntry>();
+                internal List<string> values = new List<string>();
+            }
+
+            private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Dialog_InfoCard, StatCache> parked =
+                new System.Runtime.CompilerServices.ConditionalWeakTable<Dialog_InfoCard, StatCache>();
+
+            private static readonly StatCache ownerCache = new StatCache();
+
+            [HarmonyPrefix]
+            [HarmonyPriority(Priority.First)]
+            public static void Prefix(Dialog_InfoCard __instance, out bool __state)
+            {
+                __state = false;
+                Dialog_InfoCard owner = InfoCardState.CurrentDialog;
+                StatCache own;
+                if (owner == null || owner == __instance)
+                {
+                    if (parked.TryGetValue(__instance, out own))
+                    {
+                        Entries = own.entries;
+                        Values = own.values;
+                        parked.Remove(__instance);
+                    }
+                    return;
+                }
+
+                ownerCache.entries = Entries;
+                ownerCache.values = Values;
+                if (!parked.TryGetValue(__instance, out own))
+                {
+                    own = new StatCache();
+                    parked.Add(__instance, own);
+                }
+                Entries = own.entries;
+                Values = own.values;
+                __state = true;
+            }
+
+            [HarmonyFinalizer]
+            public static void Finalizer(Dialog_InfoCard __instance, bool __state)
+            {
+                if (!__state)
+                    return;
+
+                if (parked.TryGetValue(__instance, out StatCache own))
+                {
+                    own.entries = Entries;
+                    own.values = Values;
+                }
+                Entries = ownerCache.entries;
+                Values = ownerCache.values;
+                ownerCache.entries = null;
+                ownerCache.values = null;
             }
         }
 

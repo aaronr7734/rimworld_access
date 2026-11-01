@@ -36,11 +36,6 @@ namespace RimWorldAccess.Shell
     /// tooltip, a real info card for a pawn/thing row, or the item's own action. Delete is
     /// load-bearing — it abandons the focused pawn or item.
     ///
-    /// <see cref="CaravanInspectState.BuildCaravanCategoriesFor"/> is embedded wholesale inside
-    /// <see cref="WorldObjectSelectionScope"/> too, which describes and activates the same nodes
-    /// by its own generic rules; the resulting asymmetries (a stat row re-speaks itself on Enter
-    /// here but rejects there; <c>OnDelete</c> is dead code there) are deliberate.
-    ///
     /// StatBreakdownState and GearEquipMenuState need no coexistence term in this mirror's gate:
     /// each has a live modal scope reconciled AFTER it, so their later Push re-floats them above.
     ///
@@ -411,8 +406,10 @@ namespace RimWorldAccess.Shell
 
         public static void Reconcile()
         {
+            // A per-frame push would re-float this scope above the abandon confirmation.
             if (CaravanInspectState.IsActive
-                && !WindowlessInspectionState.IsActive)
+                && !WindowlessInspectionState.IsActive
+                && !ShellGuards.ForeignDialogWindowAbove())
             {
                 FocusStack.Push(scope);
             }

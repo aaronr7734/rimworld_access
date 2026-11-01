@@ -6,22 +6,17 @@ namespace RimWorldAccess.Shell
 {
     /// <summary>
     /// The world-tile object selection tree, reached with Enter on a tile holding more than one
-    /// inspectable object: a flat one-level tree of caravans, settlements and sites, each expandable
-    /// into its own inspection details, a player caravan's branch embedding
-    /// <see cref="RimWorldAccess.CaravanInspectState.BuildCaravanCategoriesFor"/>'s category tree
-    /// wholesale. The mod owns no window here — the surface is the windowless
-    /// <see cref="RimWorldAccess.WorldObjectSelectionState"/> data facade — so the scope rides the
-    /// focus stack through <see cref="WorldObjectSelectionScopeMirror"/>, which keeps only the tree
-    /// DATA: eligibility filter, sort order, lazy child population, activation closures.
+    /// inspectable object: a flat one-level tree of caravans, settlements and sites. Settlements and
+    /// sites expand into their own inspection details; a player caravan's row instead opens
+    /// <see cref="CaravanInspectScope"/>, the screen it gets alone on a tile. The mod owns no window
+    /// here — the surface is the windowless <see cref="RimWorldAccess.WorldObjectSelectionState"/>
+    /// data facade — so the scope rides the focus stack through
+    /// <see cref="WorldObjectSelectionScopeMirror"/>, which keeps only the tree DATA: eligibility
+    /// filter, sort order, lazy child population, activation closures.
     ///
-    /// Every row, the embedded caravan sub-tree's included, is described and activated by the same
-    /// generic, type-agnostic rules — dispatch on <c>Type</c>, <c>IsExpandable</c> and
-    /// <c>OnActivate</c>, never on <c>item.Data</c>'s runtime type — NOT by the rules
-    /// <c>CaravanInspectState</c>'s own HandleActivate uses when opened directly. Two asymmetries
-    /// follow and are deliberate: a caravan stat row re-speaks itself on Enter through that state's
-    /// own path but Enter-rejects here, this tree's DetailText special case matching only nodes of
-    /// that Type; and a caravan row's <c>OnDelete</c> callback is unreachable here, this scope
-    /// claiming no Delete action at all.
+    /// Every row is described and activated by the same generic, type-agnostic rules — dispatch on
+    /// <c>Type</c>, <c>IsExpandable</c> and <c>OnActivate</c>, never on <c>item.Data</c>'s runtime
+    /// type.
     /// </summary>
     public sealed class WorldObjectSelectionScope : TreeRegionScope
     {

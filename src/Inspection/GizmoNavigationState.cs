@@ -348,10 +348,14 @@ namespace RimWorldAccess
 
             try
             {
+                // Under fog only vanilla's click gate decides, so unseen ground reveals nothing.
+                bool cursorFogged = cursorPosition.Fogged(map);
+
                 // Highest altitude layer first, matching TileInfoHelper's ordering.
                 var sortedThings = cursorPosition.GetThingList(map)
                     .Where(t => !(t is Mote) && t.def.category != ThingCategory.Mote)
                     .Where(t => !HiddenPawns.IsHidden(t))
+                    .Where(t => !cursorFogged || ThingSelectionUtility.SelectableByMapClick(t))
                     .OrderByDescending(t => (int)t.def.altitudeLayer)
                     .ToList();
 

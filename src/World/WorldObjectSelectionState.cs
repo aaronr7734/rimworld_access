@@ -142,6 +142,17 @@ namespace RimWorldAccess
                 Data = obj
             };
 
+            // A player caravan opens its own inspect screen, as it does alone on a tile.
+            if (obj is Caravan caravan && caravan.Faction == Faction.OfPlayer)
+            {
+                node.IsExpandable = false;
+                node.OnActivate = () =>
+                {
+                    Close();
+                    CaravanInspectState.Open(caravan);
+                };
+            }
+
             parent.Children.Add(node);
         }
 
@@ -153,11 +164,7 @@ namespace RimWorldAccess
             if (objectNode.Children.Count > 0)
                 return; // Already built
 
-            if (obj is Caravan caravan && caravan.Faction == Faction.OfPlayer)
-            {
-                CaravanInspectState.BuildCaravanCategoriesFor(objectNode, caravan);
-            }
-            else if (obj is Settlement settlement)
+            if (obj is Settlement settlement)
             {
                 BuildSettlementChildren(objectNode, settlement);
             }
