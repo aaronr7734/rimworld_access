@@ -448,6 +448,8 @@ namespace RimWorldAccess.Shell
                 new List<KeyChord> { KeyChord.Of(KeyCode.LeftBracket) }));
             c.Register(InputAction.ForScreen("pawnTable", "pawnTable.cyclePriorityUp",
                 new List<KeyChord> { KeyChord.Of(KeyCode.RightBracket) }));
+            c.Register(InputAction.ForScreen("pawnTable", "pawnTable.removeColumn",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Delete) }));
             c.Register(InputAction.ForScreen("cmrManager", "cmrManager.cyclePriorityDown",
                 new List<KeyChord> { KeyChord.Of(KeyCode.LeftBracket) }));
             c.Register(InputAction.ForScreen("cmrManager", "cmrManager.cyclePriorityUp",

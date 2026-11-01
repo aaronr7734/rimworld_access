@@ -269,7 +269,7 @@
   <RimWorldAccess.Map.Jump.Boundary>Limite do mapa</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>Bloqueado</RimWorldAccess.Map.Jump.Blocked>
   <RimWorldAccess.Map.Jump.NoTerrainChange>Nenhuma mudança de terreno nessa direção</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>Nenhuma mudança de estrutura nessa direção</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>Nenhuma estrutura nessa direção</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 célula</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} células</RimWorldAccess.Map.Jump.Moved.Many>
 

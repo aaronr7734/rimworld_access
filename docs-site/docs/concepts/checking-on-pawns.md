@@ -17,6 +17,32 @@ These keys give a quick spoken summary of the pawn under the cursor, or the curr
 
 These prioritize the thing under the cursor first, then fall back to the pawn you selected with comma/period or an Alt+number. Place the cursor on an enemy raider and press **Alt+H** to get the raider's health, not your selected colonist's. Move the cursor off anything specific and the keys report on the selected pawn instead.
 
+## Finding who has an item
+
+Press **Alt+Shift+G** to open the gear menu. It lists every weapon, piece of apparel and carried item held by anyone you can see on the map, split into Equipment, Apparel and Inventory like the gear tab. All three sections are always there, and each one tells you how many items it holds and how many pawns hold them, like "Equipment. 13 items, 9 holders", or just "None". Under each item are the pawns holding it, marked as colonist, prisoner, visitor, hostile and so on, along with the item's condition when it is damaged. Start typing an item's name to find it, even inside a closed section.
+
+Press **Enter** on a pawn to close the menu, jump to them and open their gear tab with the cursor on that item. If only one pawn holds the item, Enter on the item does the same. You can also open this menu from the F12 extras menu.
+
+Press **Tab** to reach the filters: Colonists, Colony animals, Colony mechanoids, Prisoners and slaves, Visitors, and Hostiles. They all start checked. Press **Enter** or **Space** on one to hide or show that group's gear, and the menu tells you how many holders are left. Pawns with no faction at all, like a wild man, count as visitors here. The menu remembers your filters, separately from the health overview.
+
+The menu updates itself while it is open, paused or not. If the pawn or item you are on moves, the cursor goes with it. If it disappears, the cursor moves to the next row in the same list, and if that list is now empty, back up to its heading.
+
+## The health overview (Alt+Shift+H)
+
+After a raid, or whenever you want to know who needs a doctor, press **Alt+Shift+H** for the health overview. It lists every downed, bleeding, or injured pawn you can see on the current map, so healthy pawns stay out of the way. It is also in the F12 extras menu.
+
+The overview always has the same four headings, in this order: Downed and bleeding, Downed, Bleeding, and Injured. Each pawn shows up under exactly one of them, the first that fits, so someone who is downed and bleeding is only listed under Downed and bleeding. A Deathless pawn who is bleeding still counts as bleeding. Injured is everyone who is hurt but neither downed nor bleeding.
+
+Every heading sums up what is under it, like "Bleeding. 3 pawns, soonest bleeds out in 2 hours", "Injured. 4 pawns, lowest 38% health", or "Downed. None". Inside a heading the most urgent pawn comes first: whoever will bleed out soonest, otherwise whoever has the lowest health. Each pawn reads their name and who they are (colonist, colony animal, prisoner, visitor, hostile and so on), then whether they are downed, how long until they bleed out, and their overall health.
+
+Use **Right** and **Left** to open and close a heading, or just start typing a name to find a pawn anywhere in the tree. Press **Enter** on a pawn to close the overview, jump to them, and open their health tab.
+
+Press **Tab** to reach the filters: Colonists, Colony animals, Colony mechanoids, Prisoners and slaves, Visitors, and Hostiles. They all start checked. Press **Enter** or **Space** on one to hide or show that group, and the overview tells you how many pawns are left. Wild animals are never listed, and other pawns with no faction, like a wild man, count as visitors. Your filters are remembered, separately from the gear menu.
+
+The overview keeps itself up to date while it is open, paused or not, without saying anything. If the pawn you are on moves to a different heading, the cursor follows them as long as that heading is open. If they leave the list, say because they were patched up, the cursor moves to the next pawn in the same list, and if the list is now empty, back up to its heading. It never throws you back to the top.
+
+<!-- source: GlobalHealthScope.Game.cs, MapOverviewScope.Game.cs, MapPawnGroup.Game.cs, PawnHealthSummary.Game.cs -->
+
 ## Finding conditions with type-ahead
 
 For a deeper read on a pawn's health state, open the pawn's inspect view (press **Enter** on the pawn under the cursor, or **Ctrl+Alt+Enter** on a pawn selected via the colonist bar). From the top section of the inspect screen, start typing to jump to a condition:

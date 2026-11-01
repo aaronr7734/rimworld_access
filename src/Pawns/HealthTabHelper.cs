@@ -423,28 +423,19 @@ namespace RimWorldAccess
         /// </summary>
         public static string GetBleedingLabel(Pawn pawn)
         {
-            if (pawn?.health?.hediffSet == null)
+            BleedOutKind bleeding = PawnHealthSummary.BleedOut(pawn, out int ticksUntilDeath);
+            if (bleeding == BleedOutKind.None)
                 return null;
 
             float bleedRate = pawn.health.hediffSet.BleedRateTotal;
-            if (bleedRate <= 0.01f)
-                return null;
-
             string label = $"{"BleedingRate".Translate()}: {bleedRate.ToStringPercent()}/{"LetterDay".Translate()}";
 
-            if (ModsConfig.BiotechActive && pawn.genes != null
-                && pawn.genes.HasActiveGene(GeneDefOf.Deathless))
-            {
+            if (bleeding == BleedOutKind.Deathless)
                 label += $" ({"Deathless".Translate()})";
-            }
+            else if (bleeding == BleedOutKind.NotSoon)
+                label += $" ({"WontBleedOutSoon".Translate()})";
             else
-            {
-                int ticksUntilDeath = HealthUtility.TicksUntilDeathDueToBloodLoss(pawn);
-                if (ticksUntilDeath >= 60000)
-                    label += $" ({"WontBleedOutSoon".Translate()})";
-                else
-                    label += $" ({"TimeToDeath".Translate(ticksUntilDeath.ToStringTicksToPeriod())})";
-            }
+                label += $" ({"TimeToDeath".Translate(ticksUntilDeath.ToStringTicksToPeriod())})";
 
             return label;
         }

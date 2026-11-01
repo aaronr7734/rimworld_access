@@ -1,0 +1,1 @@
+Added a gear menu on Alt+Shift+G that lists every weapon, piece of apparel and carried item held by anyone on the map, with who holds each one. Tab reaches checkboxes for which groups to show, and the menu keeps itself up to date while open. Press Enter on a holder to jump to them with their gear tab open on that item.

@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Циклічна навігація</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Показувати діяльність персонажа під час руху курсора по мапі</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Показувати дані про укриття для персонажів у бойовому режимі та ворогів</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Показувати здоров'я персонажів у сканері</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Озвучувати поверхню під час руху курсора</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Відстеження миші</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Озвучує те, над чим знаходиться миша, під час її переміщення.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -74,6 +75,8 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Показувати повідомлення «Що нового» після оновлення</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Якщо ввімкнено, повідомлення «Що нового» відкривається в головному меню після оновлення RimWorld Access. Якщо вимкнено, ви почуєте лише коротке повідомлення про оновлення мода і зможете відкрити «Що нового» з меню в будь-який час.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>Пояснення імовірності влучення для будь-якого пострілу можна отримати, вибравши стрільця, навівши курсор на ціль і натиснувши {0}.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 
   <!-- Table verbosity (docs/table-model.md). -->
 </LanguageData>

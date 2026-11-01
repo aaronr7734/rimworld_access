@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Navigation en boucle</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Afficher l'activité des personnages au déplacement du curseur sur la carte</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Afficher les informations de couverture pour les personnages mobilisés et hostiles</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Afficher la santé des personnages dans le scanner</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Annoncer le terrain au déplacement du curseur</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Suivi de la souris</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Annonce ce qui se trouve sous la souris pendant son déplacement.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -74,6 +75,8 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Afficher le message Quoi de neuf après une mise à jour</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Lorsque cette option est activée, le message Quoi de neuf s'ouvre dans le menu principal après une mise à jour de RimWorld Access. Lorsqu'elle est désactivée, vous entendez seulement un bref avis indiquant que le mod a été mis à jour, et vous pouvez ouvrir Quoi de neuf depuis le menu à tout moment.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>On peut entendre une explication de la chance de toucher pour n'importe quel tir en sélectionnant un tireur, en plaçant le curseur sur une cible et en appuyant sur {0}.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 
   <!-- Table verbosity (docs/table-model.md). The examples inside the labels
        should be adapted to match each language's actual table announcements. -->

@@ -476,6 +476,24 @@ public class AnnouncementComposerTests
     }
 
     [Fact]
+    public void Cell_CellTipContainingColumnTooltip_SpeaksItOnce()
+    {
+        var d = DataCell(CellAxis.Entry);
+        d.Extras = "Total mass carried. Includes rotten ones";
+        Assert.Equal(
+            "Muffalo. Mass. 60 kg. Total mass carried. Includes rotten ones. row 3 of 8. column 2 of 5",
+            Cell(d));
+    }
+
+    [Fact]
+    public void Cell_ColumnTooltipRepeatingColumnName_IsDropped()
+    {
+        var d = DataCell(CellAxis.Entry);
+        d.ColumnTooltip = "Mass";
+        Assert.Equal("Muffalo. Mass. 60 kg. row 3 of 8. column 2 of 5", Cell(d));
+    }
+
+    [Fact]
     public void Cell_ColumnMove_SkipsRowIdentity_SpeaksTooltipBeforePosition()
     {
         Assert.Equal(

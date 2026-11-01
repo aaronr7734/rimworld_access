@@ -40,6 +40,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Wrap navigation</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Show pawn activity on map cursor movement</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Show cover info for drafted and hostile pawns</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Show pawn health in the scanner</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Announce terrain on cursor movement</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Mouse tracking</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Announces what the mouse is over as you move it.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -73,4 +74,7 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Show What's New message after an update</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>When on, the What's New message opens on the main menu after RimWorld Access updates. When off, you hear only a brief notice that the mod updated, and can open What's New from the menu whenever you like.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>A hit chance explanation for any shot can be heard by selecting a shooter, moving the cursor onto a target and pressing {0}.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
+
 </LanguageData>

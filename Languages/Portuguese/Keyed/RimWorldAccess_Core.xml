@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Navegação cíclica</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Mostrar actividade das personagens ao mover o cursor no mapa</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Mostrar informações de cobertura para personagens alistadas e hostis</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Mostrar a saúde das personagens no localizador</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Anunciar o terreno ao mover o cursor</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Rastreio do rato</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Anuncia o que está sob o rato enquanto o move.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -74,6 +75,8 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Mostrar a mensagem de Novidades após uma actualização</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Quando activado, a mensagem de Novidades abre no menu principal após o RimWorld Access ser actualizado. Quando desactivado, ouves apenas um breve aviso de que o mod foi actualizado, e podes abrir Novidades no menu quando quiseres.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>A explicação da chance de acertar em qualquer tiro pode ser ouvida seleccionando um atirador, movendo o cursor para um alvo e pressionando {0}.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 
   <!-- Table verbosity (docs/table-model.md). The examples inside the labels
        should be adapted to match each language's actual table announcements. -->

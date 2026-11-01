@@ -564,6 +564,15 @@ namespace RimWorldAccess
                     }
                 }
 
+                if (RimWorldAccessMod_Settings.Settings?.ShowPawnHealthInScanner ?? true)
+                {
+                    string health = PawnHealthSummary.Of(pawn).Tag();
+                    if (!string.IsNullOrEmpty(health))
+                    {
+                        basicAnnouncement += "RimWorldAccess.Map.Scanner.Item.CommaSuffix".Translate(health);
+                    }
+                }
+
                 if (RimWorldAccessMod_Settings.Settings?.ShowPawnActivityOnMap ?? true)
                 {
                     string activity = PawnHelper.GetPawnActivity(pawn);

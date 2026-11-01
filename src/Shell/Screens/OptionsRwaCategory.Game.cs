@@ -94,6 +94,10 @@ namespace RimWorldAccess.Shell
             listing.CheckboxLabeled("RimWorldAccess.Core.Settings.ShowCoverInfo.Label".Translate(), ref showCoverInfo, null, 30f, 0.6f);
             settings.ShowCoverInfo = showCoverInfo;
 
+            bool showPawnHealth = settings.ShowPawnHealthInScanner;
+            listing.CheckboxLabeled("RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label".Translate(), ref showPawnHealth, null, 30f, 0.6f);
+            settings.ShowPawnHealthInScanner = showPawnHealth;
+
             bool announceTerrain = settings.AnnounceTerrain;
             listing.CheckboxLabeled("RimWorldAccess.Core.Settings.AnnounceTerrain.Label".Translate(), ref announceTerrain, null, 30f, 0.6f);
             settings.AnnounceTerrain = announceTerrain;

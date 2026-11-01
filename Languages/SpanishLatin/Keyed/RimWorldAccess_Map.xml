@@ -269,7 +269,7 @@
   <RimWorldAccess.Map.Jump.Boundary>Borde del mapa</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>Bloqueado</RimWorldAccess.Map.Jump.Blocked>
   <RimWorldAccess.Map.Jump.NoTerrainChange>No hay cambio de terreno en esa dirección</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>No hay cambio de estructura en esa dirección</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>No hay ninguna estructura en esa dirección</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 cuadro</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} cuadros</RimWorldAccess.Map.Jump.Moved.Many>
 

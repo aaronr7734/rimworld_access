@@ -265,7 +265,7 @@
   <RimWorldAccess.Map.Jump.Boundary>地图边界</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>被阻挡</RimWorldAccess.Map.Jump.Blocked>
   <RimWorldAccess.Map.Jump.NoTerrainChange>该方向没有地形变化</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>该方向没有建筑变化</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>该方向没有建筑</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 格</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} 格</RimWorldAccess.Map.Jump.Moved.Many>
 

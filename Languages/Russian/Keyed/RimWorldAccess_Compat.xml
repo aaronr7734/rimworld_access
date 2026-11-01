@@ -954,4 +954,13 @@
        - DaysUntilRot: {0} = days, one decimal; the mod's yellow row figure. -->
   <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>Лимит стопок</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
   <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>До порчи дней: {0}</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
+  <RimWorldAccess.Compat.Numbers.TargetLevel>цель {0}</RimWorldAccess.Compat.Numbers.TargetLevel>
+  <RimWorldAccess.Compat.Numbers.LevelWithTarget>{0}, цель {1}</RimWorldAccess.Compat.Numbers.LevelWithTarget>
+  <RimWorldAccess.Compat.Numbers.ValueOfMaximum>{0} / {1}</RimWorldAccess.Compat.Numbers.ValueOfMaximum>
+  <RimWorldAccess.Compat.Numbers.DiseaseImproving>{0}, иммунитет побеждает</RimWorldAccess.Compat.Numbers.DiseaseImproving>
+  <RimWorldAccess.Compat.Numbers.DiseaseWorsening>{0}, болезнь побеждает</RimWorldAccess.Compat.Numbers.DiseaseWorsening>
+  <RimWorldAccess.Compat.Numbers.NoTendingNeeded>Лечение не требуется</RimWorldAccess.Compat.Numbers.NoTendingNeeded>
+  <RimWorldAccess.Compat.Numbers.NoOperations>Операции недоступны</RimWorldAccess.Compat.Numbers.NoOperations>
+  <RimWorldAccess.Compat.Numbers.DropAllAvailable>доступно</RimWorldAccess.Compat.Numbers.DropAllAvailable>
+  <RimWorldAccess.Compat.Numbers.InventoryDropped>{0}: груз выброшен</RimWorldAccess.Compat.Numbers.InventoryDropped>
 </LanguageData>

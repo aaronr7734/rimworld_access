@@ -100,6 +100,9 @@
 
   <!-- Generic pawn-table tier (table-model T5, GenericPawnTableScope). -->
   <RimWorldAccess.Shell.Generic.CellNotReadable>значение недоступно</RimWorldAccess.Shell.Generic.CellNotReadable>
+  <RimWorldAccess.Shell.Generic.ColumnRemoved>Столбец удалён: {0}</RimWorldAccess.Shell.Generic.ColumnRemoved>
+  <RimWorldAccess.Shell.Generic.ColumnMoved>{0}: перемещён в столбец {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0}: последний столбец, его нельзя удалить</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>неспособен</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>обучено</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>с {0} до {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

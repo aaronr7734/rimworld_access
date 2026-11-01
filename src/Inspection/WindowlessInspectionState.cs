@@ -35,6 +35,8 @@ namespace RimWorldAccess
 
         private static Type pendingLandingTabType;
 
+        private static Thing pendingLandingThing;
+
         /// <summary>
         /// Hands a freshly built tree to the scope, which presents it and speaks the opening
         /// announcement. The pending fallback covers only the case of a tree built before the
@@ -75,6 +77,7 @@ namespace RimWorldAccess
             treeRoot = null;
             pendingOpening = null;
             pendingLandingTabType = null;
+            pendingLandingThing = null;
             InspectionScope live = InspectionScope.Live;
             if (live != null)
             {
@@ -204,6 +207,26 @@ namespace RimWorldAccess
             return type;
         }
 
+        internal static bool OpenTabLandingOn(Type tabType, Thing target)
+        {
+            pendingLandingThing = target;
+            try
+            {
+                return InspectPaneUtility.OpenTab(tabType) != null && IsActive;
+            }
+            finally
+            {
+                pendingLandingThing = null;
+            }
+        }
+
+        internal static Thing ConsumeLandingThing()
+        {
+            Thing thing = pendingLandingThing;
+            pendingLandingThing = null;
+            return thing;
+        }
+
         /// <summary>The Category row presenting the given inspect-tab type, at any depth.</summary>
         internal static InspectionTreeItem FindCategoryForTabType(InspectionTreeItem node, Type tabType)
         {
@@ -238,7 +261,7 @@ namespace RimWorldAccess
             {
                 return false;
             }
-            live.RefreshTreeRowsLandingOn(node);
+            live.RefreshTreeRowsLandingOn(live.FindRowPresenting(node, ConsumeLandingThing()) ?? node);
             live.AnnounceCurrentRow();
             return true;
         }

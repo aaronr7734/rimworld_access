@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global gear screen (src/Shell/Screens/GlobalGearScope.Game.cs). Holder rows use the shared PawnGroup strings in RimWorldAccess_GlobalHealth.xml. -->
+  <RimWorldAccess.GlobalGear.Title>Equipo en este mapa</RimWorldAccess.GlobalGear.Title>
+  <!-- Section summaries. {0} = the gear tab's section name, {1} = how many items it holds, {2} = how many pawns hold them. -->
+  <RimWorldAccess.GlobalGear.Summary.None>{0}. Ninguno</RimWorldAccess.GlobalGear.Summary.None>
+  <RimWorldAccess.GlobalGear.Summary.Items>{0}. {1} objetos, {2} portadores</RimWorldAccess.GlobalGear.Summary.Items>
+  <RimWorldAccess.GlobalGear.Summary.OneHolder>{0}. {1} objetos, 1 portador</RimWorldAccess.GlobalGear.Summary.OneHolder>
+  <RimWorldAccess.GlobalGear.Summary.OneItem>{0}. 1 objeto, 1 portador</RimWorldAccess.GlobalGear.Summary.OneItem>
+  <!-- {0} = the item's name, {1} = how many are held. -->
+  <RimWorldAccess.GlobalGear.Item>{0} x{1}</RimWorldAccess.GlobalGear.Item>
+  <!-- {0} = the stack count. -->
+  <RimWorldAccess.GlobalGear.StackCount>{0} en la pila</RimWorldAccess.GlobalGear.StackCount>
+  <!-- {0} = hit points as a percentage, already formatted ("43%"). -->
+  <RimWorldAccess.GlobalGear.Condition>{0} de condición</RimWorldAccess.GlobalGear.Condition>
+  <RimWorldAccess.GlobalGear.JumpUnavailable>No se puede ir a ese personaje.</RimWorldAccess.GlobalGear.JumpUnavailable>
+  <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns now hold listed gear. -->
+  <RimWorldAccess.GlobalGear.FilterChanged>{0}. {1} portadores en la lista.</RimWorldAccess.GlobalGear.FilterChanged>
+  <RimWorldAccess.GlobalGear.FilterChangedOne>{0}. 1 portador en la lista.</RimWorldAccess.GlobalGear.FilterChangedOne>
+</LanguageData>

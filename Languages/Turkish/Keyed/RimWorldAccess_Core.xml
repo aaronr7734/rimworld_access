@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Döngüsel gezinme</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Harita imleci hareket ettiğinde kişi etkinliğini göster</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Çatışma modundaki ve düşman kişiler için siper bilgisini göster</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Tarayıcıda kişi sağlığını göster</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Harita imleci hareket ettiğinde araziyi seslendir</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Fare takibi</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Fareyi hareket ettirdikçe üzerinde olduğu öğeyi seslendirir.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -77,4 +78,6 @@
 
   <!-- Table verbosity (docs/table-model.md). The examples inside the labels
        should be adapted to match each language's actual table announcements. -->
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>Herhangi bir atışın isabet ihtimali, nişancıyı seçip imleci hedefin üzerine getirdikten sonra {0} tuşuna basarak dinlenebilir.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 </LanguageData>

@@ -186,13 +186,24 @@ namespace RimWorldAccess.Shell
             if (words.Count > 0)
                 fragments.Add(string.Join(", ", words.ToArray()));
 
-            if (columnContext && !string.IsNullOrEmpty(d.ColumnTooltip))
+            if (columnContext && ColumnTooltipAddsSomething(d))
                 fragments.Add(d.ColumnTooltip);
             if (!string.IsNullOrEmpty(d.Extras))
                 fragments.Add(d.Extras);
             AppendCellPositions(d, v, options, fragments, rowContext, columnContext);
             AppendHint(d, options, fragments);
             return Join(fragments);
+        }
+
+        /// <summary>A column tooltip that only repeats the column's name or the cell's own tooltip is dropped.</summary>
+        private static bool ColumnTooltipAddsSomething(ElementDescription d)
+        {
+            string tip = d.ColumnTooltip?.Trim();
+            if (string.IsNullOrEmpty(tip))
+                return false;
+            if (string.Equals(tip, d.ColumnName?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                return false;
+            return d.Extras == null || d.Extras.IndexOf(tip, System.StringComparison.Ordinal) < 0;
         }
 
         /// <summary>Header cell: "{column}. column header, sorted descending. {tip}. column 2 of 8".</summary>
@@ -216,7 +227,7 @@ namespace RimWorldAccess.Shell
             fragments.Add(string.Join(", ", words.ToArray()));
 
             bool columnContext = d.Axis != CellAxis.Row;
-            if (columnContext && !string.IsNullOrEmpty(d.ColumnTooltip))
+            if (columnContext && ColumnTooltipAddsSomething(d))
                 fragments.Add(d.ColumnTooltip);
             if (!string.IsNullOrEmpty(d.Extras))
                 fragments.Add(d.Extras);

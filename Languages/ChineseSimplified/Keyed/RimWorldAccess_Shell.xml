@@ -110,6 +110,9 @@
 
   <!-- Generic pawn-table tier (table-model T5, GenericPawnTableScope). -->
   <RimWorldAccess.Shell.Generic.CellNotReadable>值不可用</RimWorldAccess.Shell.Generic.CellNotReadable>
+  <RimWorldAccess.Shell.Generic.ColumnRemoved>已移除 {0} 列</RimWorldAccess.Shell.Generic.ColumnRemoved>
+  <RimWorldAccess.Shell.Generic.ColumnMoved>{0} 已移至第 {1} 列</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} 是最后一列，无法移除</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>无能力</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>已训练</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0}时至{1}时：{2}</RimWorldAccess.Shell.Generic.HourRange>

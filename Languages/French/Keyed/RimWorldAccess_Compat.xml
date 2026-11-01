@@ -1186,4 +1186,21 @@
        - DaysUntilRot: {0} = days, one decimal; the mod's yellow row figure. -->
   <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>Limite de piles</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
   <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>Pourrit dans {0} jours</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
+
+  <!-- Numbers (Mehni.Numbers) pawn-table cells.
+       - TargetLevel: {0} = percent; the instant-level marker on a need bar.
+       - LevelWithTarget: {0} = current psyfocus percent, {1} = target percent.
+       - ValueOfMaximum: {0} = used or current amount, {1} = total or maximum.
+       - DiseaseImproving / DiseaseWorsening: {0} = immunity minus severity as a percent;
+         the trend is the arrow Numbers draws in the cell corner.
+       - InventoryDropped: {0} = pawn short name. -->
+  <RimWorldAccess.Compat.Numbers.TargetLevel>cible {0}</RimWorldAccess.Compat.Numbers.TargetLevel>
+  <RimWorldAccess.Compat.Numbers.LevelWithTarget>{0}, cible {1}</RimWorldAccess.Compat.Numbers.LevelWithTarget>
+  <RimWorldAccess.Compat.Numbers.ValueOfMaximum>{0} / {1}</RimWorldAccess.Compat.Numbers.ValueOfMaximum>
+  <RimWorldAccess.Compat.Numbers.DiseaseImproving>{0}, l'immunité l'emporte</RimWorldAccess.Compat.Numbers.DiseaseImproving>
+  <RimWorldAccess.Compat.Numbers.DiseaseWorsening>{0}, la maladie l'emporte</RimWorldAccess.Compat.Numbers.DiseaseWorsening>
+  <RimWorldAccess.Compat.Numbers.NoTendingNeeded>Aucun soin nécessaire</RimWorldAccess.Compat.Numbers.NoTendingNeeded>
+  <RimWorldAccess.Compat.Numbers.NoOperations>Aucune opération disponible</RimWorldAccess.Compat.Numbers.NoOperations>
+  <RimWorldAccess.Compat.Numbers.DropAllAvailable>disponible</RimWorldAccess.Compat.Numbers.DropAllAvailable>
+  <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} a lâché son inventaire</RimWorldAccess.Compat.Numbers.InventoryDropped>
 </LanguageData>

@@ -23,6 +23,9 @@ namespace RimWorldAccess
         /// <summary>Speak cover info for drafted and hostile pawns ("behind sandbag (good cover)").</summary>
         public bool ShowCoverInfo = true;
 
+        /// <summary>Speak a short health tag for hurt pawns in the scanner ("downed, 45% health").</summary>
+        public bool ShowPawnHealthInScanner = true;
+
         /// <summary>Include treeview heading level changes ("level 2").</summary>
         public bool AnnounceLevels = true;
 
@@ -155,6 +158,9 @@ namespace RimWorldAccess
         public bool GlobalLogCombatNewestFirst = true;
         public bool GlobalLogShowAll = false;
 
+        public MapPawnGroupFilter GlobalHealthGroups = MapPawnGroupFilter.All;
+        public MapPawnGroupFilter GlobalGearGroups = MapPawnGroupFilter.All;
+
         /// <summary>Master switch for the combat autopilot: gizmos, think-tree brain, autocast menu entries.
         /// The hunting rules live on per-pawn hunting policies, not here.</summary>
         public bool EnableCombatAutopilot = true;
@@ -183,6 +189,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref AnnouncePosition, "AnnouncePosition", true);
             Scribe_Values.Look(ref ShowPawnActivityOnMap, "ShowPawnActivityOnMap", true);
             Scribe_Values.Look(ref ShowCoverInfo, "ShowCoverInfo", true);
+            Scribe_Values.Look(ref ShowPawnHealthInScanner, "ShowPawnHealthInScanner", true);
             Scribe_Values.Look(ref AnnounceLevels, "AnnounceLevels", true);
             Scribe_Values.Look(ref SubmenuTreeNavigation, "SubmenuTreeNavigation", false);
             Scribe_Values.Look(ref AnnounceTerrain, "AnnounceTerrain", true);
@@ -232,6 +239,8 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref GlobalLogCombatOwners, "GlobalLogCombatOwners", GlobalLogOwners.Colonists | GlobalLogOwners.ColonyAnimals);
             Scribe_Values.Look(ref GlobalLogCombatNewestFirst, "GlobalLogCombatNewestFirst", true);
             Scribe_Values.Look(ref GlobalLogShowAll, "GlobalLogShowAll", false);
+            Scribe_Values.Look(ref GlobalHealthGroups, "GlobalHealthGroups", MapPawnGroupFilter.All);
+            Scribe_Values.Look(ref GlobalGearGroups, "GlobalGearGroups", MapPawnGroupFilter.All);
             Scribe_Values.Look(ref EnableCombatAutopilot, "EnableCombatAutopilot", true);
             Scribe_Values.Look(ref UndraftClearsStandingOrders, "UndraftClearsStandingOrders", true);
             Scribe_Values.Look(ref AnnounceSelectedPawnActivity, "AnnounceSelectedPawnActivity", false);

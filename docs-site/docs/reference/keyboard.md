@@ -92,8 +92,12 @@ These prioritize whatever is under the cursor, then fall back to the pawn select
 | **Alt+K** | Top 3 skills |
 | **Alt+P** | Skills table for all colonists |
 | **Alt+B** | Read the selected pawn's combat log (10 most recent battle entries) |
+| **Alt+Shift+G** | Open the gear menu: everything held by anyone on the map, grouped by item, with who holds it |
+| **Alt+Shift+H** | Open the health overview: every downed, bleeding, or injured pawn on the map |
 
 Alt+H, Alt+M, Alt+N, and Alt+G work on your pawns, enemy pawns, and animals. Alt+P opens a sortable table covering every colonist.
+
+Alt+Shift+H opens the health overview, which sorts everyone hurt on the current map under four headings: Downed and bleeding, Downed, Bleeding, and Injured, most urgent first. Press Enter on a pawn to jump to them and open their health tab. In both the health overview and the gear menu, Tab reaches checkboxes that show or hide colonists, colony animals, colony mechanoids, prisoners and slaves, visitors, and hostiles.
 
 For checking on pawns in depth, see [Checking on pawns](../concepts/checking-on-pawns.md).
 

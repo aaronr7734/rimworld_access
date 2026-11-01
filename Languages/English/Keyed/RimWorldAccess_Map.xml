@@ -269,7 +269,7 @@
   <RimWorldAccess.Map.Jump.Boundary>Map boundary</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>Blocked</RimWorldAccess.Map.Jump.Blocked>
   <RimWorldAccess.Map.Jump.NoTerrainChange>No terrain change that way</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>No structure change that way</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>No structure that way</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 tile</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} tiles</RimWorldAccess.Map.Jump.Moved.Many>
 
@@ -346,7 +346,7 @@
          Here:          {0} = label.
        Optional suffixes are appended in this order:
          LocationSuffix:  " {0}" — pawn location context (in jail, etc.).
-         CommaSuffix:     ", {0}" — cover info OR activity.
+         CommaSuffix:     ", {0}" — cover info, health tag, OR activity.
          BulkSuffix:      ", {0} of {1}" — bulk index inside group.
        Each suffix is its own key so a translator can change the
        separator (space vs comma) without editing C#. -->

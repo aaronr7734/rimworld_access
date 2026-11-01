@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Циклическая навигация</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Показывать действия персонажа при перемещении курсора по карте</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Показывать данные об укрытии для мобилизованных и враждебных персонажей</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Показывать здоровье персонажей в сканере</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Озвучивать поверхность при перемещении курсора</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Отслеживание мыши</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Озвучивает то, над чем находится мышь, при её перемещении.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -73,6 +74,7 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Показывать сообщение «Что нового» после обновления</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Если включено, сообщение «Что нового» открывается в главном меню после обновления RimWorld Access. Если выключено, вы услышите только краткое уведомление об обновлении мода и сможете открыть «Что нового» из меню в любое время.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>Более подробную информацию о шансе попасть при каждом конкретном выстреле можно узнать, выделив стрелка, переместив курсор на цель и нажав {0}.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 
   <!-- Table verbosity (docs/table-model.md). -->
 </LanguageData>

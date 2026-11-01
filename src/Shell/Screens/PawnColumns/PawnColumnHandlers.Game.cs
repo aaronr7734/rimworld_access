@@ -333,6 +333,11 @@ namespace RimWorldAccess.Shell
     /// </summary>
     internal sealed class WorkPriorityColumnHandler : PawnColumnHandler
     {
+        public override string HeaderLabel(PawnColumnDef def)
+        {
+            return def.workType != null ? def.workType.labelShort.CapitalizeFirst() : null;
+        }
+
         public override string CellText(PawnColumnDef def, Pawn pawn)
         {
             return PriorityCellText(def.workType, pawn);

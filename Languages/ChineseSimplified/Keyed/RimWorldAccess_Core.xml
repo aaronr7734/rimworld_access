@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>循环导航</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>移动地图光标时显示角色活动</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>为征召和敌对角色显示掩体信息</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>在扫描器中显示角色健康状况</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>移动光标时播报地形</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>鼠标跟踪</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>移动鼠标时朗读鼠标所指的内容。</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -73,6 +74,8 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>更新后显示更新说明</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>开启时，RimWorld Access 更新后会在主菜单打开更新说明。关闭时，只会听到模组已更新的简短提示，可随时从菜单打开更新说明。</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>选中一个射手并将光标移动到目标上，按下 {0} 可以听到关于命中率的详细信息。</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 
   <!-- Table verbosity (docs/table-model.md). -->
 </LanguageData>

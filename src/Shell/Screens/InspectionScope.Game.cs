@@ -302,6 +302,11 @@ namespace RimWorldAccess.Shell
             // The categories exist only now, so a requested landing resolves here.
             InspectionTreeItem landing =
                 WindowlessInspectionState.FindCategoryForTabType(single, landingTab);
+            Thing landingThing = WindowlessInspectionState.ConsumeLandingThing();
+            if (landing != null)
+            {
+                landing = FindRowPresenting(landing, landingThing) ?? landing;
+            }
             if (landing == null || !TryRevealAndSelect(landing))
             {
                 int firstChild = Tree.IndexOf(single.Children[0]);
@@ -311,6 +316,40 @@ namespace RimWorldAccess.Shell
             SyncRegionFromCurrentTree();
             AnnounceCurrentRow();
             return true;
+        }
+
+        internal InspectionTreeItem FindRowPresenting(InspectionTreeItem category, Thing thing)
+        {
+            if (category == null || thing == null)
+            {
+                return null;
+            }
+            OnBeforeExpandNode(category);
+            foreach (InspectionTreeItem child in category.Children)
+            {
+                if (Presents(child, thing))
+                {
+                    return child;
+                }
+                if (!child.IsExpandable)
+                {
+                    continue;
+                }
+                OnBeforeExpandNode(child);
+                foreach (InspectionTreeItem grandchild in child.Children)
+                {
+                    if (Presents(grandchild, thing))
+                    {
+                        return grandchild;
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static bool Presents(InspectionTreeItem item, Thing thing)
+        {
+            return item.Data is InteractiveGearHelper.GearItem gear && ReferenceEquals(gear.Thing, thing);
         }
 
         protected override ElementDescription DescribeTreeNode(InspectionTreeItem item)

@@ -43,6 +43,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Navegación cíclica</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Mostrar la actividad del personaje al mover el cursor por el mapa</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Mostrar información de cobertura para personajes reclutados y hostiles</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Mostrar la salud de los personajes en el escáner</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Anunciar el terreno al mover el cursor</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Seguimiento del mouse</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Anuncia lo que hay bajo el mouse mientras lo mueves.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -73,6 +74,8 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Mostrar el mensaje de Novedades después de una actualización</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Cuando está activado, el mensaje de Novedades se abre en el menú principal después de que RimWorld Access se actualiza. Cuando está desactivado, solo escuchas un aviso breve de que el mod se actualizó, y puedes abrir Novedades desde el menú cuando quieras.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <!-- Spoken in place of vanilla's "mousing over a target" sentence in the shooting accuracy description. {0} = the map key that reads items and pawns at the cursor. -->
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>Los detalles de la probabilidad de impacto de cualquier disparo se pueden escuchar seleccionando un tirador, moviendo el cursor sobre un objetivo y presionando {0}.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 
   <!-- Table verbosity (docs/table-model.md). -->
 </LanguageData>

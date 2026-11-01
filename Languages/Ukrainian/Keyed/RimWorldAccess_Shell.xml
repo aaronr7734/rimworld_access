@@ -112,6 +112,9 @@
 
   <!-- Generic pawn-table tier (table-model T5, GenericPawnTableScope). -->
   <RimWorldAccess.Shell.Generic.CellNotReadable>значення недоступне</RimWorldAccess.Shell.Generic.CellNotReadable>
+  <RimWorldAccess.Shell.Generic.ColumnRemoved>Стовпець «{0}» вилучено</RimWorldAccess.Shell.Generic.ColumnRemoved>
+  <RimWorldAccess.Shell.Generic.ColumnMoved>{0}: переміщено до стовпця {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0}: це останній стовпець, його не можна вилучити</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>нездатний</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>навчено</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>з {0} до {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

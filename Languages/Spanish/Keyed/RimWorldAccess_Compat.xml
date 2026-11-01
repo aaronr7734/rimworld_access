@@ -1186,4 +1186,13 @@
        - DaysUntilRot: {0} = days, one decimal; the mod's yellow row figure. -->
   <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>Límite de pila</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
   <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>{0} días hasta que se pudra</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
+  <RimWorldAccess.Compat.Numbers.TargetLevel>objetivo {0}</RimWorldAccess.Compat.Numbers.TargetLevel>
+  <RimWorldAccess.Compat.Numbers.LevelWithTarget>{0}, objetivo {1}</RimWorldAccess.Compat.Numbers.LevelWithTarget>
+  <RimWorldAccess.Compat.Numbers.ValueOfMaximum>{0} / {1}</RimWorldAccess.Compat.Numbers.ValueOfMaximum>
+  <RimWorldAccess.Compat.Numbers.DiseaseImproving>{0}, la inmunidad gana</RimWorldAccess.Compat.Numbers.DiseaseImproving>
+  <RimWorldAccess.Compat.Numbers.DiseaseWorsening>{0}, la enfermedad gana</RimWorldAccess.Compat.Numbers.DiseaseWorsening>
+  <RimWorldAccess.Compat.Numbers.NoTendingNeeded>No necesita tratamiento</RimWorldAccess.Compat.Numbers.NoTendingNeeded>
+  <RimWorldAccess.Compat.Numbers.NoOperations>No hay operaciones disponibles</RimWorldAccess.Compat.Numbers.NoOperations>
+  <RimWorldAccess.Compat.Numbers.DropAllAvailable>disponible</RimWorldAccess.Compat.Numbers.DropAllAvailable>
+  <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} ha soltado su inventario</RimWorldAccess.Compat.Numbers.InventoryDropped>
 </LanguageData>

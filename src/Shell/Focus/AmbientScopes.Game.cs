@@ -458,6 +458,20 @@ namespace RimWorldAccess.Shell
                 Action = GlobalLogWindow.Open
             });
 
+            options.Add(new ExtraMenuOption
+            {
+                Label = "RimWorldAccess.GlobalGear.Title".Translate().ToString(),
+                Hotkey = GlobalGearWindow.OpenerHotkey(),
+                Action = GlobalGearWindow.Open
+            });
+
+            options.Add(new ExtraMenuOption
+            {
+                Label = "RimWorldAccess.GlobalHealth.Title".Translate().ToString(),
+                Hotkey = GlobalHealthWindow.OpenerHotkey(),
+                Action = GlobalHealthWindow.Open
+            });
+
             // The Dialogue Log, present whenever either mod that feeds it is active: Bubbles-only
             // installs still get vanilla interaction-bubble lines, and RimTalk hard-depends on
             // Bubbles anyway.

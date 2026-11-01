@@ -110,6 +110,9 @@
 
   <!-- Generic pawn-table tier (table-model T5, GenericPawnTableScope). -->
   <RimWorldAccess.Shell.Generic.CellNotReadable>valor no disponible</RimWorldAccess.Shell.Generic.CellNotReadable>
+  <RimWorldAccess.Shell.Generic.ColumnRemoved>Columna {0} eliminada</RimWorldAccess.Shell.Generic.ColumnRemoved>
+  <RimWorldAccess.Shell.Generic.ColumnMoved>{0} movida a la columna {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} es la última columna y no se puede eliminar</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>incapaz</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>entrenado</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0} a {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

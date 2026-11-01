@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Health overview screen (src/Shell/Screens/GlobalHealthScope.Game.cs). -->
+  <RimWorldAccess.GlobalHealth.Title>健康概况</RimWorldAccess.GlobalHealth.Title>
+  <RimWorldAccess.GlobalHealth.RegionName>角色</RimWorldAccess.GlobalHealth.RegionName>
+  <RimWorldAccess.GlobalHealth.Node.DownedBleeding>倒地并流血</RimWorldAccess.GlobalHealth.Node.DownedBleeding>
+  <RimWorldAccess.GlobalHealth.Node.Downed>倒地</RimWorldAccess.GlobalHealth.Node.Downed>
+  <RimWorldAccess.GlobalHealth.Node.Bleeding>流血</RimWorldAccess.GlobalHealth.Node.Bleeding>
+  <RimWorldAccess.GlobalHealth.Node.Injured>受伤</RimWorldAccess.GlobalHealth.Node.Injured>
+  <!-- Node summaries. {0} = the node's name (one of the Node strings above), {1} = how many pawns it holds, then {2} (or {1} in the One forms) = the soonest time left before bleeding out ("2 hours") or the lowest overall health ("38%"). NotSoon is used when no one in the node bleeds out within a day. -->
+  <RimWorldAccess.GlobalHealth.Summary.None>{0}. 无</RimWorldAccess.GlobalHealth.Summary.None>
+  <RimWorldAccess.GlobalHealth.Summary.BleedOut>{0}. {1} 名角色, 最快 {2} 后失血而死</RimWorldAccess.GlobalHealth.Summary.BleedOut>
+  <RimWorldAccess.GlobalHealth.Summary.BleedOutOne>{0}. 1 名角色, {1} 后失血而死</RimWorldAccess.GlobalHealth.Summary.BleedOutOne>
+  <RimWorldAccess.GlobalHealth.Summary.NotSoon>{0}. {1} 名角色, 均无生命危险</RimWorldAccess.GlobalHealth.Summary.NotSoon>
+  <RimWorldAccess.GlobalHealth.Summary.NotSoonOne>{0}. 1 名角色, 无生命危险</RimWorldAccess.GlobalHealth.Summary.NotSoonOne>
+  <RimWorldAccess.GlobalHealth.Summary.LowestHealth>{0}. {1} 名角色, 最低健康 {2}</RimWorldAccess.GlobalHealth.Summary.LowestHealth>
+  <RimWorldAccess.GlobalHealth.Summary.HealthOne>{0}. 1 名角色, 健康 {1}</RimWorldAccess.GlobalHealth.Summary.HealthOne>
+  <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->
+  <RimWorldAccess.GlobalHealth.PawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.PawnRow>
+  <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns are now listed. -->
+  <RimWorldAccess.GlobalHealth.FilterChanged>{0}. 已列出 {1} 名角色</RimWorldAccess.GlobalHealth.FilterChanged>
+  <RimWorldAccess.GlobalHealth.FilterChangedOne>{0}. 已列出 1 名角色</RimWorldAccess.GlobalHealth.FilterChangedOne>
+  <RimWorldAccess.GlobalHealth.JumpUnavailable>无法找到该角色。</RimWorldAccess.GlobalHealth.JumpUnavailable>
+  <!-- Pawn health tags, spoken on health overview rows and after scanner pawns. {0} = overall health ("45%"), {1} = time left before bleeding out ("2 hours"). The bleeding words mirror the vanilla health tab: "no immediate danger" past a day, "deathless" for the Biotech gene. -->
+  <RimWorldAccess.PawnHealth.Tag.Health>健康 {0}</RimWorldAccess.PawnHealth.Tag.Health>
+  <RimWorldAccess.PawnHealth.Tag.Downed>倒地, 健康 {0}</RimWorldAccess.PawnHealth.Tag.Downed>
+  <RimWorldAccess.PawnHealth.Tag.Bleeding>{1}后失血而死, 健康 {0}</RimWorldAccess.PawnHealth.Tag.Bleeding>
+  <RimWorldAccess.PawnHealth.Tag.DownedBleeding>倒地, {1}后失血而死, 健康 {0}</RimWorldAccess.PawnHealth.Tag.DownedBleeding>
+  <RimWorldAccess.PawnHealth.Tag.BleedingNotSoon>流血, 无生命危险, 健康 {0}</RimWorldAccess.PawnHealth.Tag.BleedingNotSoon>
+  <RimWorldAccess.PawnHealth.Tag.DownedBleedingNotSoon>倒地, 流血, 无生命危险, 健康 {0}</RimWorldAccess.PawnHealth.Tag.DownedBleedingNotSoon>
+  <RimWorldAccess.PawnHealth.Tag.BleedingDeathless>流血, 不死, 健康 {0}</RimWorldAccess.PawnHealth.Tag.BleedingDeathless>
+  <RimWorldAccess.PawnHealth.Tag.DownedBleedingDeathless>倒地, 流血, 不死, 健康 {0}</RimWorldAccess.PawnHealth.Tag.DownedBleedingDeathless>
+  <!-- Pawn group tags, shared by the health overview and the gear menu. {0} = the pawn's short name. Wild is a pawn with no faction, like a wild man. -->
+  <RimWorldAccess.PawnGroup.Colonist>{0}, 殖民者</RimWorldAccess.PawnGroup.Colonist>
+  <RimWorldAccess.PawnGroup.ColonyMech>{0}, 殖民地机械族</RimWorldAccess.PawnGroup.ColonyMech>
+  <RimWorldAccess.PawnGroup.ColonyAnimal>{0}, 殖民地动物</RimWorldAccess.PawnGroup.ColonyAnimal>
+  <RimWorldAccess.PawnGroup.Slave>{0}, 奴隶</RimWorldAccess.PawnGroup.Slave>
+  <RimWorldAccess.PawnGroup.Prisoner>{0}, 囚犯</RimWorldAccess.PawnGroup.Prisoner>
+  <RimWorldAccess.PawnGroup.Visitor>{0}, 访客</RimWorldAccess.PawnGroup.Visitor>
+  <RimWorldAccess.PawnGroup.Wild>{0}, 野人</RimWorldAccess.PawnGroup.Wild>
+  <RimWorldAccess.PawnGroup.Hostile>{0}, 敌对</RimWorldAccess.PawnGroup.Hostile>
+  <!-- The group filter checkboxes in the health overview and the gear menu. Visitors also covers pawns with no faction. -->
+  <RimWorldAccess.PawnGroup.FiltersRegion>筛选</RimWorldAccess.PawnGroup.FiltersRegion>
+  <RimWorldAccess.PawnGroup.Filter.Colonists>殖民者</RimWorldAccess.PawnGroup.Filter.Colonists>
+  <RimWorldAccess.PawnGroup.Filter.ColonyAnimals>殖民地动物</RimWorldAccess.PawnGroup.Filter.ColonyAnimals>
+  <RimWorldAccess.PawnGroup.Filter.ColonyMechs>殖民地机械族</RimWorldAccess.PawnGroup.Filter.ColonyMechs>
+  <RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves>囚犯和奴隶</RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves>
+  <RimWorldAccess.PawnGroup.Filter.Visitors>访客</RimWorldAccess.PawnGroup.Filter.Visitors>
+  <RimWorldAccess.PawnGroup.Filter.Hostiles>敌对</RimWorldAccess.PawnGroup.Filter.Hostiles>
+</LanguageData>

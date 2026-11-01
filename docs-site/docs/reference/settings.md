@@ -26,6 +26,12 @@ When on, arrowing over a non-colonist pawn (an animal, visitor, raider, or other
 
 When on, cover information is included in the cursor announcement for drafted pawns and hostile pawns. For example: "Bob, behind sandbag (good cover), melee attacking." Applies during combat.
 
+## Show pawn health in the scanner
+
+**Default: on.**
+
+When on, pawns in the scanner are followed by a short health note if anything is wrong with them, for example: "Bob, downed, bleeding out in 2 hours, 45% health." Healthy pawns get no note.
+
 ## Announce terrain on cursor movement
 
 **Default: on.**

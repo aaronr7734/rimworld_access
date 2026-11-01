@@ -127,6 +127,9 @@
        param is the assignment label. PawnTableRegion names a pawn table
        whose main button carries no label. -->
   <RimWorldAccess.Shell.Generic.CellNotReadable>değer mevcut değil</RimWorldAccess.Shell.Generic.CellNotReadable>
+  <RimWorldAccess.Shell.Generic.ColumnRemoved>{0} sütunu kaldırıldı</RimWorldAccess.Shell.Generic.ColumnRemoved>
+  <RimWorldAccess.Shell.Generic.ColumnMoved>{0} sütunu {1}. sıraya taşındı</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} son sütun, kaldırılamaz</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
   <RimWorldAccess.Shell.Generic.Incapable>yapamaz</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>eğitimli</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>{0}-{1} arası: {2}</RimWorldAccess.Shell.Generic.HourRange>

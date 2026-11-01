@@ -269,7 +269,7 @@
   <RimWorldAccess.Map.Jump.Boundary>Край карты</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>Заблокировано</RimWorldAccess.Map.Jump.Blocked>
   <RimWorldAccess.Map.Jump.NoTerrainChange>В этом направлении местность не меняется</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>В этом направлении постройки не меняются</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>В этом направлении нет построек</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 клетка</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} {0_numCase ? клетка : клетки : клеток}</RimWorldAccess.Map.Jump.Moved.Many>
 
