@@ -531,13 +531,15 @@ namespace RimWorldAccess.Shell
     public static class NodeTreeDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_NodeTree __instance)
+        public static void Prefix(Dialog_NodeTree __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 NodeTreeScope scope = FocusStack.Top as NodeTreeScope;
                 if (scope != null && scope.Owns(__instance))
                 {
+                    __state = true;
                     DiaOptionRowCapture.BeginPass();
                     TooltipCapture.BeginPass();
                 }
@@ -548,18 +550,20 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Dialog_NodeTree __instance, Rect rect)
+        [HarmonyFinalizer]
+        public static void Finalizer(Dialog_NodeTree __instance, Rect rect, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                NodeTreeScope scope = FocusStack.Top as NodeTreeScope;
+                DiaOptionRowCapture.EndPass();
+                TooltipCapture.EndPass();
+                NodeTreeScope scope = __exception == null ? FocusStack.Top as NodeTreeScope : null;
                 if (scope != null && scope.Owns(__instance))
                 {
-                    // Disarm both capture engines FIRST, so a throw in scope logic can never skip
-                    // it; EndPass itself cannot throw.
-                    DiaOptionRowCapture.EndPass();
-                    TooltipCapture.EndPass();
                     scope.OnGuiPass(rect);
                 }
             }

@@ -19,14 +19,15 @@ namespace RimWorldAccess.Shell
     internal static class ScreenScopeDrawPatch
     {
         private static readonly List<ScreenScope> active = new List<ScreenScope>();
-        // Pairs the widget-capture bracket's Prefix/Postfix explicitly (the
-        // same capture-pass-leak fix GenericWindowDrawPatch uses): a keypress
+        // Pairs the widget- and button-capture brackets' Prefix/Postfix explicitly
+        // (the same capture-pass-leak fix GenericWindowDrawPatch uses): a keypress
         // can close the owning window mid-pass (Enter on a captured extras
         // Button through the live activation channel), popping the scope
         // before Postfix runs, so For(__instance) alone can no longer tell
         // Postfix it owes this pass a close. Tracked by WINDOW identity, not
         // by scope, so a scope that popped mid-pass is still detected.
         private static Window widgetCaptureOpenWindow;
+        private static Window buttonCaptureOpenWindow;
         // Paired the same way, and deliberately on the pass the other brackets
         // skip: the tooltip harvest runs on LAYOUT, where IMGUI paints nothing,
         // so a certified Mouse.IsOver branch forced open builds its tooltip
@@ -127,9 +128,7 @@ namespace RimWorldAccess.Shell
         /// Layout outright (PawnTable.PawnTableOnGUI returns immediately), so
         /// a Layout capture is a starved remnant of the surface that clamps
         /// any count-driven cursor. The event type holds for the whole
-        /// InnerWindowOnGUI call, so Prefix and Postfix skip in lockstep —
-        /// necessary here because the button bracket pairs by scope lookup,
-        /// not by an open-window field.
+        /// InnerWindowOnGUI call, so Prefix and Postfix skip in lockstep.
         /// </summary>
         private static bool IsLayoutPass()
         {
@@ -155,6 +154,7 @@ namespace RimWorldAccess.Shell
                 if (scope != null && scope.WantsButtonCapture)
                 {
                     ButtonTextCapture.BeginPass(scope.FocusedCaptureIndex(), scope);
+                    buttonCaptureOpenWindow = __instance;
                 }
                 // Defensive guard (see WidgetCapture.IsPassOpen's remarks):
                 // bespoke registration already stands the generic scope down
@@ -212,9 +212,13 @@ namespace RimWorldAccess.Shell
                     return;
                 }
                 ScreenScope scope = For(__instance);
-                if (scope != null && scope.WantsButtonCapture)
+                if (ReferenceEquals(buttonCaptureOpenWindow, __instance))
                 {
-                    scope.OnButtonPassCompleted();
+                    buttonCaptureOpenWindow = null;
+                    if (scope != null && scope.WantsButtonCapture)
+                    {
+                        scope.OnButtonPassCompleted();
+                    }
                     ButtonTextCapture.EndPass();
                 }
                 if (ReferenceEquals(widgetCaptureOpenWindow, __instance))

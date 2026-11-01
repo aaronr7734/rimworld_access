@@ -46,7 +46,7 @@ namespace RimWorldAccess.Shell
                 }
                 RimWorldAccessMod.HarmonyInstance.Patch(target,
                     prefix: new HarmonyMethod(typeof(VfRenameDialogCompat), nameof(DrawPrefix)),
-                    postfix: new HarmonyMethod(typeof(VfRenameDialogCompat), nameof(DrawPostfix)));
+                    finalizer: new HarmonyMethod(typeof(VfRenameDialogCompat), nameof(DrawFinalizer)));
             }
             catch (Exception ex)
             {
@@ -54,8 +54,9 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance)
+        public static void DrawPrefix(object __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 // Resolved from anywhere on the stack, never off its top: a live edit
@@ -64,6 +65,7 @@ namespace RimWorldAccess.Shell
                 VfRenameDialogScope scope = VfRenameDialogScope.OwningScope(__instance as Window);
                 if (scope != null)
                 {
+                    __state = true;
                     scope.BeginDrawPass();
                 }
             }
@@ -73,14 +75,22 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPostfix(object __instance)
+        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                VfRenameDialogScope scope = VfRenameDialogScope.OwningScope(__instance as Window);
+                VfRenameDialogScope scope = __exception == null ? VfRenameDialogScope.OwningScope(__instance as Window) : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    TextDialogCapture.EndPass();
                 }
             }
             catch (Exception ex)

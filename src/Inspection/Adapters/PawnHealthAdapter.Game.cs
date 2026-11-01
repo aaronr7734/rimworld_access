@@ -231,37 +231,23 @@ namespace RimWorldAccess
                 }
             }
 
-            var groups = hediffs.GroupBy(h => h.UIGroupKey).ToList();
+            var groups = hediffs.GroupBy(h => h.UIGroupKey).Select(g => g.ToList()).ToList();
 
             // Single hediff group: skip intermediate node, attach details directly to body part
             if (groups.Count == 1)
             {
-                var representative = groups[0].First();
-                int count = groups[0].Count();
-
-                // Build hediff name as first child so it leads the collapsed summary
-                string hediffName = representative.LabelCap.StripTags();
-                if (count > 1)
-                    hediffName += $" x{count}";
-
                 InspectNodeFactory.Attach(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = hediffName,
+                    Label = HediffGroupRowLabel(groups[0], pawn),
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 });
 
-                // Build detail children (TipStringExtra lines + description)
                 int childrenBefore = parentItem.Children.Count;
-                BuildHediffDetailChildren(parentItem, representative, pawn);
-                bool hasDetailChildren = parentItem.Children.Count > childrenBefore;
-
-                if (!hasDetailChildren)
-                {
-                    // No detail content beyond hediff name — not expandable
+                BuildHediffDetailChildren(parentItem, groups[0], pawn);
+                if (parentItem.Children.Count == childrenBefore)
                     parentItem.IsExpandable = false;
-                }
 
                 // Children only — the caller folds the collapsed summary into the body part
                 // label (see the AddChild site in BuildHealthChildren), matching the capacities
@@ -269,39 +255,25 @@ namespace RimWorldAccess
                 return;
             }
 
-            // Multiple hediff groups: create a child node for each
             foreach (var hediffGroup in groups)
             {
-                var representative = hediffGroup.First();
-                int count = hediffGroup.Count();
-
-                string hediffName = representative.LabelCap.StripTags();
-                if (count > 1)
-                    hediffName += $" x{count}";
-
-                bool hasExpandableContent = !string.IsNullOrWhiteSpace(representative.TipStringExtra)
-                                         || !string.IsNullOrWhiteSpace(representative.Description)
-                                         || HealthTabHelper.GetHediffDeveloperInfo(representative) != null;
-
+                string rowLabel = HediffGroupRowLabel(hediffGroup, pawn);
                 var hediffItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = hediffName,
-                    ExpandedLabel = hediffName,
-                    Data = representative,
+                    Label = rowLabel,
+                    ExpandedLabel = rowLabel,
+                    Data = hediffGroup[0],
                     IndentLevel = parentItem.IndentLevel + 1,
-                    IsExpandable = hasExpandableContent,
                     IsExpanded = false
                 };
 
-                if (hasExpandableContent)
-                {
-                    // Build children eagerly for collapsed summary
-                    BuildHediffDetailChildren(hediffItem, representative, pawn);
-                    var hediffChildLabels = hediffItem.Children.Select(c => c.Label).ToList();
-                    if (hediffChildLabels.Count > 0)
-                        hediffItem.Label += $": {string.Join(". ", hediffChildLabels)}";
-                }
+                // Build children eagerly for collapsed summary
+                BuildHediffDetailChildren(hediffItem, hediffGroup, pawn);
+                hediffItem.IsExpandable = hediffItem.Children.Count > 0;
+                var hediffChildLabels = hediffItem.Children.Select(c => c.Label).ToList();
+                if (hediffChildLabels.Count > 0)
+                    hediffItem.Label += $": {string.Join(". ", hediffChildLabels)}";
                 InspectNodeFactory.Attach(parentItem, hediffItem);
             }
 
@@ -311,61 +283,53 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Builds detail children for a specific hediff showing vanilla tooltip content and description.
+        /// Vanilla's row text ("Label xN") for a group; a lone hediff takes its tooltip header
+        /// instead, which carries the severity.
         /// </summary>
-        private static void BuildHediffDetailChildren(InspectionTreeItem hediffItem, Hediff hediff, Pawn pawn)
+        private static string HediffGroupRowLabel(List<Hediff> group, Pawn pawn)
         {
-            // Show comprehensive effects (vanilla's TipStringExtra content)
-            string effectsText = HealthTabHelper.GetComprehensiveHediffEffects(hediff, pawn);
+            string name = group[0].LabelCap.StripTags();
+            if (group.Count > 1)
+                return $"{name} x{group.Count}";
+            HealthTabHelper.GetHediffTooltipLines(group[0], pawn, out string header);
+            return string.IsNullOrEmpty(header) ? name : header;
+        }
 
-            if (!string.IsNullOrEmpty(effectsText))
+        /// <summary>
+        /// Detail children from vanilla's hover tooltip, which stacks one block per grouped
+        /// hediff. Lines repeated across the stack are spoken once.
+        /// </summary>
+        private static void BuildHediffDetailChildren(InspectionTreeItem hediffItem, List<Hediff> group, Pawn pawn)
+        {
+            var seen = new HashSet<string>();
+            foreach (Hediff hediff in group)
             {
-                string[] effectLines = effectsText.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                foreach (string line in effectLines)
+                List<string> lines = HealthTabHelper.GetHediffTooltipLines(hediff, pawn, out string header);
+                if (group.Count > 1 && !string.IsNullOrEmpty(header) && header != hediff.LabelCap.StripTags())
+                    AttachDetail(hediffItem, header);
+                foreach (string line in lines)
                 {
-                    string trimmedLine = line.Trim();
-                    if (!string.IsNullOrEmpty(trimmedLine))
-                    {
-                        InspectNodeFactory.Attach(hediffItem, new InspectionTreeItem
-                        {
-                            Type = InspectionTreeItem.ItemType.DetailText,
-                            Label = trimmedLine,
-                            IndentLevel = hediffItem.IndentLevel + 1,
-                            IsExpandable = false
-                        });
-                    }
+                    if (seen.Add(line))
+                        AttachDetail(hediffItem, line);
                 }
-            }
-
-            // Description at the end
-            string description = hediff.Description;
-            if (!string.IsNullOrEmpty(description))
-            {
-                description = description.StripTags().Trim();
-                description = System.Text.RegularExpressions.Regex.Replace(description, @"\s+", " ");
-
-                InspectNodeFactory.Attach(hediffItem, new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = description,
-                    IndentLevel = hediffItem.IndentLevel + 1,
-                    IsExpandable = false
-                });
             }
 
             // Developer info (dev mode + playing only) — mirrors vanilla's
             // showHediffsDebugInfo tooltip block appended after the description.
-            string devInfo = HealthTabHelper.GetHediffDeveloperInfo(hediff);
+            string devInfo = HealthTabHelper.GetHediffDeveloperInfo(group[0]);
             if (!string.IsNullOrEmpty(devInfo))
+                AttachDetail(hediffItem, devInfo);
+        }
+
+        private static void AttachDetail(InspectionTreeItem parent, string label)
+        {
+            InspectNodeFactory.Attach(parent, new InspectionTreeItem
             {
-                InspectNodeFactory.Attach(hediffItem, new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = devInfo,
-                    IndentLevel = hediffItem.IndentLevel + 1,
-                    IsExpandable = false
-                });
-            }
+                Type = InspectionTreeItem.ItemType.DetailText,
+                Label = label,
+                IndentLevel = parent.IndentLevel + 1,
+                IsExpandable = false
+            });
         }
 
         /// <summary>

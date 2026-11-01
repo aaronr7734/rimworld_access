@@ -218,14 +218,12 @@ namespace RimWorldAccess.Shell
         internal void BeginDrawPass()
         {
             // The ring index is read from the pass just finished, before BeginPass clears it.
-            ButtonTextCapture.BeginPass(FocusedButtonCaptureIndex());
-            TextFieldCapture.BeginPass();
+            TextDialogCapture.BeginPass(FocusedButtonCaptureIndex());
         }
 
         internal void OnGuiPass()
         {
-            ButtonTextCapture.EndPass();
-            TextFieldCapture.EndPass();
+            TextDialogCapture.EndPass();
 
             // Keep the shell the sole owner of Unity keyboard focus so the arrow keys reach the
             // dispatcher, and keep vanilla's TextField rendering the live buffer while editing.
@@ -372,8 +370,8 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Window __instance, bool __state)
+        [HarmonyFinalizer]
+        public static void Finalizer(Window __instance, Exception __exception, bool __state)
         {
             if (!__state)
             {
@@ -382,10 +380,14 @@ namespace RimWorldAccess.Shell
             try
             {
                 TextFieldRawPollGuard.RestoreAcceptPoll();
-                RenameScope scope = RenameScope.OwningScope(__instance);
+                RenameScope scope = __exception == null ? RenameScope.OwningScope(__instance) : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    TextDialogCapture.EndPass();
                 }
             }
             catch (Exception ex)

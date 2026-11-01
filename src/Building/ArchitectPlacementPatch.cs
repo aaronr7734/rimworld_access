@@ -843,6 +843,10 @@ namespace RimWorldAccess
                         {
                             TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain".Loc());
                         }
+                        else if (result.ProtectedCount > 0)
+                        {
+                            ShapePlacementState.AnnounceResult(result);
+                        }
                         else
                         {
                             TolkHelper.Speak("RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain".Loc());

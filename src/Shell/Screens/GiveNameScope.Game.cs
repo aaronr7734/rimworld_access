@@ -251,14 +251,12 @@ namespace RimWorldAccess.Shell
         internal void BeginDrawPass()
         {
             // The ring index is read from the pass just finished, before BeginPass clears it.
-            ButtonTextCapture.BeginPass(FocusedButtonCaptureIndex());
-            TextFieldCapture.BeginPass();
+            TextDialogCapture.BeginPass(FocusedButtonCaptureIndex());
         }
 
         internal void OnGuiPass()
         {
-            ButtonTextCapture.EndPass();
-            TextFieldCapture.EndPass();
+            TextDialogCapture.EndPass();
 
             // Keep the live buffer mirrored into the field vanilla draws and its raw Enter poll
             // reads on submit. No-op in browse mode.
@@ -527,17 +525,17 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// Brackets ButtonTextCapture/TextFieldCapture to the dialog's own draw and drives the
-    /// scope's per-pass mirror, focus ring, and randomize resync, all inside the window's own GUI
-    /// pass. Patches the exact base type: every concrete Dialog_GiveName subclass inherits
-    /// DoWindowContents without overriding it, so one patch covers the family.
+    /// Brackets TextDialogCapture to the dialog's own draw and drives the scope's per-pass mirror,
+    /// focus ring, and randomize resync. Patches the exact base type: every Dialog_GiveName
+    /// subclass inherits DoWindowContents without overriding it, so one patch covers the family.
     /// </summary>
     [HarmonyPatch(typeof(Dialog_GiveName), "DoWindowContents")]
     public static class GiveNameDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_GiveName __instance)
+        public static void Prefix(Dialog_GiveName __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 GiveNameScope scope = GiveNameScope.OwningScope(__instance);
@@ -546,6 +544,7 @@ namespace RimWorldAccess.Shell
                     // Vanilla's raw Return poll is masked for the whole body: this scope claims
                     // Enter on every row, and OK submits through the button's own click.
                     TextFieldRawPollGuard.MaskAcceptPoll(scope.ShouldMaskAcceptPoll);
+                    __state = true;
                     scope.BeginDrawPass();
                 }
             }
@@ -555,16 +554,25 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Dialog_GiveName __instance)
+        // OK closes the dialog inside its own body, popping the scope, so the passes close regardless.
+        [HarmonyFinalizer]
+        public static void Finalizer(Dialog_GiveName __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
                 TextFieldRawPollGuard.RestoreAcceptPoll();
-                GiveNameScope scope = GiveNameScope.OwningScope(__instance);
+                GiveNameScope scope = __exception == null ? GiveNameScope.OwningScope(__instance) : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    TextDialogCapture.EndPass();
                 }
             }
             catch (Exception ex)

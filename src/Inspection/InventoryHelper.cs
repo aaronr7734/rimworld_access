@@ -114,24 +114,26 @@ namespace RimWorldAccess
             public ThingCategoryDef CategoryDef { get; set; }
             public List<InventoryItem> Items { get; set; }
             public List<CategoryNode> SubCategories { get; set; }
-            public int TotalItemCount { get; set; }
+            public HashSet<ThingDef> DistinctDefs { get; } = new HashSet<ThingDef>();
+            public int TotalItemCount => DistinctDefs.Count;
 
             public CategoryNode(ThingCategoryDef categoryDef)
             {
                 CategoryDef = categoryDef;
                 Items = new List<InventoryItem>();
                 SubCategories = new List<CategoryNode>();
-                TotalItemCount = 0;
             }
 
             public string GetDisplayLabel()
             {
                 if (CategoryDef == null)
                     return "RimWorldAccess.Inspection.Inventory.UncategorizedFallback".Translate();
-                if (Items.Count > 0)
+                if (TotalItemCount > 0)
                 {
-                    return "RimWorldAccess.Inspection.Inventory.CategoryWithCount".Translate(
-                        CategoryDef.LabelCap, Items.Count);
+                    string key = TotalItemCount == 1
+                        ? "RimWorldAccess.Inspection.Inventory.CategoryWithCountOne"
+                        : "RimWorldAccess.Inspection.Inventory.CategoryWithCount";
+                    return key.Translate(CategoryDef.LabelCap, TotalItemCount);
                 }
                 return CategoryDef.LabelCap;
             }
@@ -450,7 +452,7 @@ namespace RimWorldAccess
                     }
 
                     categoryNodes[category].Items.Add(item);
-                    categoryNodes[category].TotalItemCount++;
+                    categoryNodes[category].DistinctDefs.Add(thingDef);
 
                     ThingCategoryDef parentCategory = category.parent;
                     while (parentCategory != null)
@@ -459,7 +461,7 @@ namespace RimWorldAccess
                         {
                             categoryNodes[parentCategory] = new CategoryNode(parentCategory);
                         }
-                        categoryNodes[parentCategory].TotalItemCount++;
+                        categoryNodes[parentCategory].DistinctDefs.Add(thingDef);
                         parentCategory = parentCategory.parent;
                     }
                 }
@@ -530,8 +532,8 @@ namespace RimWorldAccess
                 foreach (var item in uncategorizedItems)
                 {
                     uncategorizedNode.Items.Add(item);
+                    uncategorizedNode.DistinctDefs.Add(item.Def);
                 }
-                uncategorizedNode.TotalItemCount = uncategorizedItems.Count;
                 uncategorizedNode.Items.Sort((a, b) => b.TotalQuantity.CompareTo(a.TotalQuantity));
                 rootCategories.Add(uncategorizedNode);
             }

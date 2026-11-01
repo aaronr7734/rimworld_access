@@ -188,7 +188,7 @@ namespace RimWorldAccess.Shell
                 }
                 RimWorldAccessMod.HarmonyInstance.Patch(doWindowContents,
                     prefix: new HarmonyMethod(typeof(RimTalkPersonaDialogCompat), nameof(DrawPrefix)),
-                    postfix: new HarmonyMethod(typeof(RimTalkPersonaDialogCompat), nameof(DrawPostfix)));
+                    finalizer: new HarmonyMethod(typeof(RimTalkPersonaDialogCompat), nameof(DrawFinalizer)));
             }
             catch (Exception ex)
             {
@@ -196,14 +196,16 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance, Rect inRect)
+        public static void DrawPrefix(object __instance, Rect inRect, out bool __state)
         {
+            __state = false;
             try
             {
                 Window window = __instance as Window;
                 RimTalkPersonaScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkPersonaScope>(window);
                 if (scope != null)
                 {
+                    __state = true;
                     scope.BeginDrawPass(inRect);
                 }
             }
@@ -213,15 +215,24 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPostfix(object __instance)
+        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                Window window = __instance as Window;
-                RimTalkPersonaScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkPersonaScope>(window);
+                RimTalkPersonaScope scope = __exception == null
+                    ? RimTalkTextDialogScopeBase.OwningScope<RimTalkPersonaScope>(__instance as Window)
+                    : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    WidgetCapture.EndPass();
                 }
             }
             catch (Exception ex)
@@ -229,6 +240,5 @@ namespace RimWorldAccess.Shell
                 ModLogger.LimitedError("RimTalk persona editor guard", ex);
             }
         }
-
     }
 }

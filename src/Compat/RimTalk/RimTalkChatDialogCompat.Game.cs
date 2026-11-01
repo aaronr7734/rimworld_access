@@ -108,7 +108,7 @@ namespace RimWorldAccess.Shell
                 {
                     RimWorldAccessMod.HarmonyInstance.Patch(doWindowContents,
                         prefix: new HarmonyMethod(typeof(RimTalkChatDialogCompat), nameof(DrawPrefix)),
-                        postfix: new HarmonyMethod(typeof(RimTalkChatDialogCompat), nameof(DrawPostfix)));
+                        finalizer: new HarmonyMethod(typeof(RimTalkChatDialogCompat), nameof(DrawFinalizer)));
                 }
 
                 MethodInfo onAcceptKeyPressed = AccessTools.Method(dialogType, "OnAcceptKeyPressed");
@@ -128,8 +128,9 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance)
+        public static void DrawPrefix(object __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 Window window = __instance as Window;
@@ -141,6 +142,7 @@ namespace RimWorldAccess.Shell
                     // focus sitting on "CustomTalkTextField", which ShellTextFocus.ReleaseNativeFocus
                     // fights every pass -- must never independently fire either.
                     TextFieldRawPollGuard.MaskAcceptPoll(true);
+                    __state = true;
                     scope.BeginDrawPass();
                 }
             }
@@ -150,16 +152,25 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPostfix(object __instance)
+        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
                 TextFieldRawPollGuard.RestoreAcceptPoll();
-                Window window = __instance as Window;
-                RimTalkChatScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkChatScope>(window);
+                RimTalkChatScope scope = __exception == null
+                    ? RimTalkTextDialogScopeBase.OwningScope<RimTalkChatScope>(__instance as Window)
+                    : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    TextDialogCapture.EndPass();
                 }
             }
             catch (Exception ex)

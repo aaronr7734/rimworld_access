@@ -1358,8 +1358,10 @@
   <!-- InventoryHelper category labels (CategoryNode.GetDisplayLabel).
        UncategorizedFallback is spoken when a thing has no
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
-       label, {1} = item type count. -->
+       label, {1} = distinct item types anywhere under the category,
+       subcategories included; CategoryWithCountOne is the singular. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Uncategorized</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0} (1 type)</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} types)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================

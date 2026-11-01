@@ -372,13 +372,15 @@ namespace RimWorldAccess.Shell
     public static class FloatMenuDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(FloatMenu __instance)
+        public static void Prefix(FloatMenu __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 FloatMenuScope scope = FocusStack.Top as FloatMenuScope;
                 if (scope != null && scope.Owns(__instance))
                 {
+                    __state = true;
                     FloatMenuOptionCapture.BeginPass();
                     TooltipCapture.BeginPass();
                 }
@@ -389,16 +391,20 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(FloatMenu __instance, Rect rect)
+        [HarmonyFinalizer]
+        public static void Finalizer(FloatMenu __instance, Rect rect, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                FloatMenuScope scope = FocusStack.Top as FloatMenuScope;
+                FloatMenuOptionCapture.EndPass();
+                TooltipCapture.EndPass();
+                FloatMenuScope scope = __exception == null ? FocusStack.Top as FloatMenuScope : null;
                 if (scope != null && scope.Owns(__instance))
                 {
-                    FloatMenuOptionCapture.EndPass();
-                    TooltipCapture.EndPass();
                     scope.OnGuiPass(rect);
                 }
             }

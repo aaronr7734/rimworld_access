@@ -13,13 +13,11 @@ namespace RimWorldAccess.Shell
     /// buttons (message boxes now; the save/load and options dialogs when they land) read the pass
     /// result instead of re-deriving vanilla's layout math.
     ///
-    /// Recording is BRACKETED to the armed surface's draw
-    /// (<see cref="BeginPass"/> from the surface's DoWindowContents prefix,
-    /// <see cref="EndPass"/> from its postfix) for the same reasons as
-    /// TooltipCapture: buttons drawn by other UI in the same frame must not
-    /// collide with the surface's own, and the bracket pins the coordinate
-    /// space to the surface's group. Outside a pass the prefix is one static
-    /// bool check.
+    /// Recording is BRACKETED to the armed surface's draw (<see cref="BeginPass"/> from its prefix,
+    /// <see cref="EndPass"/> from its postfix or finalizer) for the same reasons as TooltipCapture:
+    /// buttons drawn by other UI in the same frame must not collide with the surface's own, and the
+    /// bracket pins the coordinate space to the surface's group. Outside a pass the prefix is one
+    /// static bool check.
     /// </summary>
     public static class ButtonTextCapture
     {
@@ -43,6 +41,7 @@ namespace RimWorldAccess.Shell
         private static readonly Color FocusRingColor = new Color(0.45f, 0.78f, 1f);
 
         private static bool passOpen;
+        private static int passOpenFrame;
         private static readonly List<CapturedButton> items = new List<CapturedButton>();
         private static int? pendingClickIndex;
 
@@ -74,6 +73,19 @@ namespace RimWorldAccess.Shell
             ButtonTextCapture.focusedIndex = focusedIndex;
             passOwner = owner;
             passOpen = true;
+            passOpenFrame = Time.frameCount;
+        }
+
+        /// <summary>Closes a pass still open on a later frame; same contract as <see cref="WidgetCapture.EndLeakedLivePass"/>.</summary>
+        internal static void EndLeakedPass()
+        {
+            if (!passOpen || Time.frameCount == passOpenFrame)
+            {
+                return;
+            }
+            EndPass();
+            items.Clear();
+            items.TrimExcess();
         }
 
         /// <summary>Stop recording. Call from the armed surface's draw postfix.</summary>

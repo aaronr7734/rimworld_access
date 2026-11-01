@@ -121,19 +121,14 @@
 
   <!-- =================================================================
        Item announcement composition for the inventory tabs.
-       *.SoloAvailable: only one party has the item; {0} = count.
-       *.SoloPrice: bare price line, {0} = formatted price.
-       *.SoloPriceWithQuality: with price-quality suffix; {0} = price,
-                              {1} = quality phrase.
        *.NotTradeable: trader will not trade this item.
-       *.YoursAt / TheirsAt: shared item; {0} = count, {1} = price.
+       *.YoursAt / TheirsAt: one side's count and price, used whether
+                              one side or both hold the item; {0} = count, {1} = price.
        *.YoursAtWithQuality / TheirsAtWithQuality: same plus quality;
                               {0} = count, {1} = price, {2} = quality.
-       *.YoursOnly / TheirsOnly: shared but trader won't trade;
+       *.YoursOnly / TheirsOnly: trader won't trade, or currency;
                               {0} = count.
        ================================================================= -->
-  <RimWorldAccess.Trade.Item.SoloAvailable>{0} available</RimWorldAccess.Trade.Item.SoloAvailable>
-  <RimWorldAccess.Trade.Item.SoloPriceWithQuality>{0}, {1}</RimWorldAccess.Trade.Item.SoloPriceWithQuality>
   <RimWorldAccess.Trade.Item.NotTradeable>Not tradeable</RimWorldAccess.Trade.Item.NotTradeable>
   <RimWorldAccess.Trade.Item.YoursAt>Yours: {0} at {1}</RimWorldAccess.Trade.Item.YoursAt>
   <RimWorldAccess.Trade.Item.TheirsAt>Theirs: {0} at {1}</RimWorldAccess.Trade.Item.TheirsAt>

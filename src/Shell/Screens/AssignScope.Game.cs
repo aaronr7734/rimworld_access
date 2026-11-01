@@ -289,12 +289,17 @@ namespace RimWorldAccess.Shell
             ButtonTextCapture.BeginPass();
         }
 
-        /// <summary>Runs from the DoWindowContents postfix, after vanilla's own scroll view has already closed.</summary>
-        internal void OnGuiPass()
+        internal static void EndCapturePasses()
         {
             ButtonTextCapture.EndPass();
             AssignRowCapture.EndPass();
             QuickSearchCapture.EndPass();
+        }
+
+        /// <summary>Runs from the DoWindowContents finalizer, after vanilla's own scroll view has already closed.</summary>
+        internal void OnGuiPass()
+        {
+            EndCapturePasses();
             capturedSearch = QuickSearchCapture.Items.Count > 0 ? QuickSearchCapture.Items[0].Widget : null;
             session.MirrorLive();
 
@@ -509,13 +514,15 @@ namespace RimWorldAccess.Shell
     public static class AssignScopeDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_AssignBuildingOwner __instance, Rect inRect)
+        public static void Prefix(Dialog_AssignBuildingOwner __instance, Rect inRect, out bool __state)
         {
+            __state = false;
             try
             {
                 AssignScope scope = AssignScope.OwningScope(__instance);
                 if (scope != null)
                 {
+                    __state = true;
                     scope.BeginDrawPass(inRect);
                 }
             }
@@ -525,18 +532,25 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        // A third party's own postfix on this DoWindowContents may be where it draws its search
-        // widget, so ours has to close the capture bracket after theirs.
-        [HarmonyPostfix]
-        [HarmonyPriority(Priority.Last)]
-        public static void Postfix(Dialog_AssignBuildingOwner __instance)
+        // A finalizer runs after every postfix, including a third party's that draws its own
+        // search widget, and still closes the passes when the body throws.
+        [HarmonyFinalizer]
+        public static void Finalizer(Dialog_AssignBuildingOwner __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                AssignScope scope = AssignScope.OwningScope(__instance);
+                AssignScope scope = __exception == null ? AssignScope.OwningScope(__instance) : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    AssignScope.EndCapturePasses();
                 }
             }
             catch (Exception ex)

@@ -130,7 +130,7 @@ namespace RimWorldAccess.Shell
                 }
                 RimWorldAccessMod.HarmonyInstance.Patch(doWindowContents,
                     prefix: new HarmonyMethod(typeof(RimTalkTtsVoiceSelectionCompat), nameof(DrawPrefix)),
-                    postfix: new HarmonyMethod(typeof(RimTalkTtsVoiceSelectionCompat), nameof(DrawPostfix)));
+                    finalizer: new HarmonyMethod(typeof(RimTalkTtsVoiceSelectionCompat), nameof(DrawFinalizer)));
             }
             catch (Exception ex)
             {
@@ -138,14 +138,16 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance)
+        public static void DrawPrefix(object __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 Window window = __instance as Window;
                 RimTalkTtsVoiceSelectionScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkTtsVoiceSelectionScope>(window);
                 if (scope != null)
                 {
+                    __state = true;
                     scope.BeginDrawPass();
                 }
             }
@@ -155,15 +157,24 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPostfix(object __instance)
+        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                Window window = __instance as Window;
-                RimTalkTtsVoiceSelectionScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkTtsVoiceSelectionScope>(window);
+                RimTalkTtsVoiceSelectionScope scope = __exception == null
+                    ? RimTalkTextDialogScopeBase.OwningScope<RimTalkTtsVoiceSelectionScope>(__instance as Window)
+                    : null;
                 if (scope != null)
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    WidgetCapture.EndPass();
                 }
             }
             catch (Exception ex)
@@ -171,6 +182,5 @@ namespace RimWorldAccess.Shell
                 ModLogger.LimitedError("RimTalk TTS voice selection guard", ex);
             }
         }
-
     }
 }

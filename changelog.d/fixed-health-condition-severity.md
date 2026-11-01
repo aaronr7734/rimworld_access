@@ -1,0 +1,1 @@
+Fixed the health tab not reading how severe each condition is. Every condition now reads its severity next to its name, followed by everything the game shows when you hover over it, such as the cause of an injury.

@@ -757,18 +757,19 @@ namespace RimWorldAccess.Shell
             else
             {
                 bool colonyHolds = colonyCount > 0;
-                parts.Add("RimWorldAccess.Trade.Item.SoloAvailable".Translate(colonyHolds ? colonyCount : traderCount).ToString());
                 if (t.TraderWillTrade)
                 {
-                    TradeAction action = colonyHolds ? TradeAction.PlayerSells : TradeAction.PlayerBuys;
-                    string price = TradeNavigationState.FormatPrice(t.GetPriceFor(action));
-                    string quality = TradeNavigationState.GetPriceQuality(t, action);
-                    parts.Add(string.IsNullOrEmpty(quality)
-                        ? price
-                        : "RimWorldAccess.Trade.Item.SoloPriceWithQuality".Translate(price, quality).ToString());
+                    parts.Add(colonyHolds
+                        ? SidePhrase("RimWorldAccess.Trade.Item.YoursAt", "RimWorldAccess.Trade.Item.YoursAtWithQuality",
+                            t, TradeAction.PlayerSells, colonyCount)
+                        : SidePhrase("RimWorldAccess.Trade.Item.TheirsAt", "RimWorldAccess.Trade.Item.TheirsAtWithQuality",
+                            t, TradeAction.PlayerBuys, traderCount));
                 }
                 else
                 {
+                    parts.Add(colonyHolds
+                        ? "RimWorldAccess.Trade.Item.YoursOnly".Translate(colonyCount).ToString()
+                        : "RimWorldAccess.Trade.Item.TheirsOnly".Translate(traderCount).ToString());
                     parts.Add("RimWorldAccess.Trade.Item.NotTradeable".Translate().ToString());
                 }
             }

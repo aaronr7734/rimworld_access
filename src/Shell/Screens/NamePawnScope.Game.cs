@@ -191,14 +191,12 @@ namespace RimWorldAccess.Shell
         internal void BeginDrawPass()
         {
             // The ring index is read from the pass just finished, before BeginPass clears it.
-            ButtonTextCapture.BeginPass(FocusedButtonCaptureIndex());
-            TextFieldCapture.BeginPass();
+            TextDialogCapture.BeginPass(FocusedButtonCaptureIndex());
         }
 
         internal void OnGuiPass()
         {
-            ButtonTextCapture.EndPass();
-            TextFieldCapture.EndPass();
+            TextDialogCapture.EndPass();
 
             RefreshModel();
 
@@ -716,13 +714,15 @@ namespace RimWorldAccess.Shell
     public static class NamePawnDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_NamePawn __instance)
+        public static void Prefix(Dialog_NamePawn __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 NamePawnScope scope = FocusStack.Top as NamePawnScope;
                 if (scope != null && scope.Owns(__instance))
                 {
+                    __state = true;
                     scope.BeginDrawPass();
                 }
             }
@@ -732,15 +732,23 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Dialog_NamePawn __instance)
+        [HarmonyFinalizer]
+        public static void Finalizer(Dialog_NamePawn __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                NamePawnScope scope = FocusStack.Top as NamePawnScope;
+                NamePawnScope scope = __exception == null ? FocusStack.Top as NamePawnScope : null;
                 if (scope != null && scope.Owns(__instance))
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    TextDialogCapture.EndPass();
                 }
             }
             catch (Exception ex)

@@ -241,7 +241,7 @@ namespace RimWorldAccess.Shell
                 {
                     RimWorldAccessMod.HarmonyInstance.Patch(doWindowContents,
                         prefix: new HarmonyMethod(typeof(PromptEnhanceCompat), nameof(TaskEditorDrawPrefix)),
-                        postfix: new HarmonyMethod(typeof(PromptEnhanceCompat), nameof(TaskEditorDrawPostfix)));
+                        finalizer: new HarmonyMethod(typeof(PromptEnhanceCompat), nameof(TaskEditorDrawFinalizer)));
                 }
                 else
                 {
@@ -257,21 +257,20 @@ namespace RimWorldAccess.Shell
         /// dialog has no <c>OnAcceptKeyPressed</c> override, so no twin patch is needed, and its real
         /// Save button stays reachable as a captured row for the explicit commit.
         /// </summary>
-        public static void TaskEditorDrawPrefix(object __instance)
+        public static void TaskEditorDrawPrefix(object __instance, out bool __state)
         {
             Window window = __instance as Window;
             GenericWindowScope scope = FocusStack.Top as GenericWindowScope;
-            if (window != null && scope != null && scope.Owns(window))
+            __state = window != null && scope != null && scope.Owns(window);
+            if (__state)
             {
                 TextFieldRawPollGuard.MaskAcceptPoll(true);
             }
         }
 
-        public static void TaskEditorDrawPostfix(object __instance)
+        public static void TaskEditorDrawFinalizer(bool __state)
         {
-            Window window = __instance as Window;
-            GenericWindowScope scope = FocusStack.Top as GenericWindowScope;
-            if (window != null && scope != null && scope.Owns(window))
+            if (__state)
             {
                 TextFieldRawPollGuard.RestoreAcceptPoll();
             }

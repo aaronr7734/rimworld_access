@@ -15,10 +15,9 @@ namespace RimWorldAccess.Shell
     /// use the pass result to place focus rings on field rows without
     /// re-deriving vanilla's layout math.
     ///
-    /// Recording is BRACKETED to the armed surface's draw exactly like
-    /// <see cref="ButtonTextCapture"/> — BeginPass from the surface's draw
-    /// prefix, EndPass from its postfix. Outside a pass the tap is one static
-    /// bool check.
+    /// Recording is BRACKETED to the armed surface's draw exactly like <see cref="ButtonTextCapture"/>:
+    /// BeginPass from the surface's draw prefix, EndPass from its postfix or finalizer. Outside a
+    /// pass the tap is one static bool check.
     /// </summary>
     public static class TextFieldCapture
     {
@@ -31,6 +30,7 @@ namespace RimWorldAccess.Shell
         }
 
         private static bool passOpen;
+        private static int passOpenFrame;
         private static readonly List<CapturedField> items = new List<CapturedField>();
 
         /// <summary>Fields recorded by the current/most recent pass, in draw order.</summary>
@@ -44,6 +44,18 @@ namespace RimWorldAccess.Shell
         {
             items.Clear();
             passOpen = true;
+            passOpenFrame = Time.frameCount;
+        }
+
+        internal static void EndLeakedPass()
+        {
+            if (!passOpen || Time.frameCount == passOpenFrame)
+            {
+                return;
+            }
+            EndPass();
+            items.Clear();
+            items.TrimExcess();
         }
 
         /// <summary>Stop recording. Call from the armed surface's draw postfix.</summary>
@@ -63,6 +75,22 @@ namespace RimWorldAccess.Shell
             field.ScreenRect = GuiSpace.ToScreen(rect);
             field.Text = text ?? "";
             items.Add(field);
+        }
+    }
+
+    /// <summary>The button-and-field pass pair every text-entry dialog scope brackets its draw with.</summary>
+    internal static class TextDialogCapture
+    {
+        internal static void BeginPass(int focusedButtonIndex = -1)
+        {
+            ButtonTextCapture.BeginPass(focusedButtonIndex);
+            TextFieldCapture.BeginPass();
+        }
+
+        internal static void EndPass()
+        {
+            ButtonTextCapture.EndPass();
+            TextFieldCapture.EndPass();
         }
     }
 

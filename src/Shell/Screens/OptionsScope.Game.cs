@@ -795,13 +795,15 @@ namespace RimWorldAccess.Shell
     public static class OptionsDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_Options __instance)
+        public static void Prefix(Dialog_Options __instance, out bool __state)
         {
+            __state = false;
             try
             {
                 OptionsScope scope = FocusStack.Top as OptionsScope;
                 if (scope != null && scope.Owns(__instance))
                 {
+                    __state = true;
                     scope.BeginDrawPass();
                 }
             }
@@ -811,15 +813,23 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Dialog_Options __instance)
+        [HarmonyFinalizer]
+        public static void Finalizer(Dialog_Options __instance, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                OptionsScope scope = FocusStack.Top as OptionsScope;
+                OptionsScope scope = __exception == null ? FocusStack.Top as OptionsScope : null;
                 if (scope != null && scope.Owns(__instance))
                 {
                     scope.OnGuiPass();
+                }
+                else
+                {
+                    ListingRowCapture.EndPass();
                 }
             }
             catch (Exception ex)

@@ -337,32 +337,28 @@ namespace RimWorldAccess
         #region Hediff Information
 
         /// <summary>
-        /// A hediff's functional effects, from vanilla's own TipStringExtra so it matches
-        /// the tooltip a sighted player reads.
+        /// Vanilla's health-card hover tooltip for one hediff, split into lines. The header is
+        /// always its first line ("Label: severity"); the returned lines are everything after it.
         /// </summary>
-        public static string GetComprehensiveHediffEffects(Hediff hediff, Pawn pawn)
+        public static List<string> GetHediffTooltipLines(Hediff hediff, Pawn pawn, out string header)
         {
+            header = null;
+            var lines = new List<string>();
             if (hediff == null)
-                return string.Empty;
-
-            var sb = new StringBuilder();
+                return lines;
 
             if (hediff.IsCurrentlyLifeThreatening)
-            {
-                sb.AppendLine("PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper());
-            }
+                lines.Add("PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper());
 
-            string tipExtra = hediff.TipStringExtra;
-            if (!string.IsNullOrEmpty(tipExtra))
+            string[] tipLines = hediff.GetTooltip(pawn, false).Replace("\r", "").Split('\n');
+            header = tipLines[0].StripTags().Trim();
+            for (int i = 1; i < tipLines.Length; i++)
             {
-                string cleaned = tipExtra.StripTags().Trim();
-                if (!string.IsNullOrEmpty(cleaned))
-                {
-                    sb.AppendLine(cleaned);
-                }
+                string line = tipLines[i].StripTags().Trim();
+                if (line.Length > 0)
+                    lines.Add(line);
             }
-
-            return sb.ToString().Trim();
+            return lines;
         }
 
         /// <summary>

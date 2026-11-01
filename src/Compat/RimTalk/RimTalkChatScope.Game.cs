@@ -134,14 +134,12 @@ namespace RimWorldAccess.Shell
 
         internal void BeginDrawPass()
         {
-            ButtonTextCapture.BeginPass();
-            TextFieldCapture.BeginPass();
+            TextDialogCapture.BeginPass();
         }
 
         internal void OnGuiPass()
         {
-            ButtonTextCapture.EndPass();
-            TextFieldCapture.EndPass();
+            TextDialogCapture.EndPass();
             RefreshModel();
 
             ShellTextFocus.ReleaseNativeFocus();

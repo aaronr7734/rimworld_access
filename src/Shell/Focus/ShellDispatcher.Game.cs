@@ -104,6 +104,8 @@ namespace RimWorldAccess.Shell
                 // ran (the window closed mid-pass) and would grow unbounded. Must run every
                 // OnGUI pass, as must the two pumps below.
                 WidgetCapture.EndLeakedLivePass();
+                ButtonTextCapture.EndLeakedPass();
+                TextFieldCapture.EndLeakedPass();
 
                 BulkSoundQueue.Update();
 

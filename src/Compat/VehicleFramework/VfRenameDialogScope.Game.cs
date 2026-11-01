@@ -215,14 +215,12 @@ namespace RimWorldAccess.Shell
         internal void BeginDrawPass()
         {
             // The ring index is read from the pass just finished, before BeginPass clears it.
-            ButtonTextCapture.BeginPass(FocusedButtonCaptureIndex());
-            TextFieldCapture.BeginPass();
+            TextDialogCapture.BeginPass(FocusedButtonCaptureIndex());
         }
 
         internal void OnGuiPass()
         {
-            ButtonTextCapture.EndPass();
-            TextFieldCapture.EndPass();
+            TextDialogCapture.EndPass();
 
             ShellTextFocus.ReleaseNativeFocus();
             session.MirrorLive();

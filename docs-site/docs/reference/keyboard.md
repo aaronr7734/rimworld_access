@@ -184,6 +184,7 @@ These apply across the mod's menus, tree views, and tables.
 | **Up / Down** | Move between items or rows |
 | **Left / Right** | Move between columns or categories; in a tree, collapse or expand |
 | **Home / End** | Jump to the first or last item |
+| **Ctrl+Up / Ctrl+Down** | Move the current item up or down, in lists you can reorder such as bills, queued operations, starting colonists, and the mod list |
 | **Type any text** | Type-ahead: jump to the matching entry. Works in every menu and list |
 | **Enter / Space** | Select, deselect, or toggle a checkbox |
 | **Alt+S** | In a table: sort by the selected column. In a dialog or filter: save, confirm, or advance |

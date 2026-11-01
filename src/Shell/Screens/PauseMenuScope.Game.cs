@@ -365,12 +365,14 @@ namespace RimWorldAccess.Shell
     public static class PauseMenuDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix()
+        public static void Prefix(out bool __state)
         {
+            __state = false;
             try
             {
                 if (FocusStack.Top is PauseMenuScope)
                 {
+                    __state = true;
                     TooltipCapture.BeginPass();
                 }
             }
@@ -380,17 +382,21 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Rect rect)
+        [HarmonyFinalizer]
+        public static void Finalizer(Rect rect, Exception __exception, bool __state)
         {
+            if (!__state)
+            {
+                return;
+            }
             try
             {
-                PauseMenuScope scope = FocusStack.Top as PauseMenuScope;
+                // Closed before the describe path reads the index: EndPass stops recording but
+                // leaves it readable.
+                TooltipCapture.EndPass();
+                PauseMenuScope scope = __exception == null ? FocusStack.Top as PauseMenuScope : null;
                 if (scope != null)
                 {
-                    // Closed before the describe path reads the index: EndPass stops recording but
-                    // leaves it readable.
-                    TooltipCapture.EndPass();
                     scope.OnMenuGuiPass(rect);
                 }
             }
