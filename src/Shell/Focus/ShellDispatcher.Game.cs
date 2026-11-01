@@ -343,6 +343,23 @@ namespace RimWorldAccess.Shell
         /// Returns true when a stage consumed the event, with <paramref name="stage"/> naming
         /// it; the stage's own side effect runs here, but <c>e.Use()</c> stays the caller's.
         /// </summary>
+        private static bool optionChordPending;
+
+        private static bool IsModifierKeyCode(KeyCode key)
+        {
+            return key == KeyCode.LeftAlt || key == KeyCode.RightAlt || key == KeyCode.AltGr
+                || key == KeyCode.LeftShift || key == KeyCode.RightShift
+                || key == KeyCode.LeftControl || key == KeyCode.RightControl
+                || key == KeyCode.LeftCommand || key == KeyCode.RightCommand;
+        }
+
+        private static bool IsSpacingDiacritic(char ch)
+        {
+            System.Globalization.UnicodeCategory category = char.GetUnicodeCategory(ch);
+            return category == System.Globalization.UnicodeCategory.ModifierSymbol
+                || category == System.Globalization.UnicodeCategory.ModifierLetter;
+        }
+
         internal static bool RouteCharacterEvent(Event e, out string stage)
         {
             if (ImeFunnel.TryRouteKeyDown(e))
@@ -370,13 +387,23 @@ namespace RimWorldAccess.Shell
                 return true;
             }
 
-            // Typed characters reach live char sinks (text/typeahead) before any chord
-            // matching, in stack order, minus four twin-event gaps: a held action modifier
-            // means the char is a shortcut's twin (AZERTY-class layouts deliver Alt+letter
-            // twins US layouts don't, and ApplyGlobalRemap rewrites keyCode but not
-            // Event.current.character), the ']' keypress's follow-up character, an
-            // opener keystroke's twin, and the QA marker chord's '~'. A skipped char falls
-            // through to Dispatch and then the modal swallow.
+            // macOS Option+letter is a dead key: the chord fires on its own keypress and the
+            // stranded accent arrives as a bare character with the next key, Option released.
+            if (e.keyCode != KeyCode.None && !IsModifierKeyCode(e.keyCode))
+            {
+                optionChordPending = NativeLibraryLoader.IsMacOS && KeyboardHelper.IsAltHeld;
+            }
+            else if (optionChordPending && e.keyCode == KeyCode.None && IsSpacingDiacritic(e.character))
+            {
+                optionChordPending = false;
+                stage = "dead-key-twin";
+                return true;
+            }
+
+            // Typed characters reach live char sinks before chord matching, minus four twin
+            // gaps: a held action modifier (AZERTY Alt+letter twins; ApplyGlobalRemap leaves
+            // Event.current.character alone), the ']' follow-up, an opener's twin, and the QA
+            // marker's '~'. A skipped char falls through to Dispatch and the modal swallow.
             char ch = e.character;
             if (ch != '\0' && !char.IsControl(ch)
                 && !KeyboardHelper.IsAltHeld && !KeyboardHelper.IsCtrlHeld
