@@ -33,7 +33,7 @@ Press **Ctrl+G** to open the coordinate-jump dialog. Type an X coordinate, press
 Tile-by-tile movement is fine for close work, but crossing the map one step at a time is slow. Jump modes let a single keypress leap to the next thing in a given direction. Four jump modes are available:
 
 - **Preset distance:** jumps a fixed number of tiles in the direction you choose.
-- **Impassable:** jumps to the last tile a colonist could walk to that way, stopping before a wall, a rock face, deep water, or anything else that would block a pawn.
+- **Impassable:** jumps to the last tile a colonist could walk to that way, stopping before a wall, a rock face, deep water, or anything else that would block a pawn. It also stops on a closed door, so you know you have reached one.
 - **Terrain:** jumps to the next tile whose ground is different, so a stretch of sand or a paved floor crosses in one press.
 - **Structure:** never lands on open ground. Standing on a building, it jumps to the last tile of that run, so a stretch of marble wall crosses in one press and stops on its far end. If a different building comes right after, it stops there instead. Press again from the end and it skips the open ground to the next building, which is also where it goes when you start on open ground.
 

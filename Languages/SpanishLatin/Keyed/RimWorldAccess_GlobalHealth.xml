@@ -52,17 +52,17 @@
   <RimWorldAccess.GlobalHealth.Node.Sick>Enfermos</RimWorldAccess.GlobalHealth.Node.Sick>
   <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} personajes, el más urgente {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
   <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} personajes, en peligro de muerte {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, peligro de muerte, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} personajes, emergencia médica: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, emergencia médica, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
-  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, peligro de muerte</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, emergencia médica</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <RimWorldAccess.GlobalHealth.Care.NeedRescue>{0} necesitan rescate</RimWorldAccess.GlobalHealth.Care.NeedRescue>
   <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 necesita rescate</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
   <RimWorldAccess.GlobalHealth.Care.NeedTend>{0} necesitan atención</RimWorldAccess.GlobalHealth.Care.NeedTend>
   <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 necesita atención</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
   <RimWorldAccess.GlobalHealth.Care.Untended>{0} enfermedades sin tratar</RimWorldAccess.GlobalHealth.Care.Untended>
   <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 enfermedad sin tratar</RimWorldAccess.GlobalHealth.Care.UntendedOne>
-  <RimWorldAccess.GlobalHealth.Care.Threats>{0} en peligro de muerte</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Threats>emergencias médicas: {0}</RimWorldAccess.GlobalHealth.Care.Threats>
   <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>necesita rescate y atención</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>necesita rescate</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>necesita atención</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>

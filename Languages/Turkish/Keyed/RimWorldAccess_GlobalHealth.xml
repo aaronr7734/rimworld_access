@@ -52,17 +52,17 @@
   <RimWorldAccess.GlobalHealth.Node.Sick>Hasta</RimWorldAccess.GlobalHealth.Node.Sick>
   <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} kişi, en acil {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
   <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} kişi, hayati tehlike: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, hayati tehlike, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} kişi, acil tedavi gerekiyor: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, acil tedavi gerekiyor, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
-  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, hayati tehlike</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, acil tedavi gerekiyor</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <RimWorldAccess.GlobalHealth.Care.NeedRescue>{0} kişi kurtarılmayı bekliyor</RimWorldAccess.GlobalHealth.Care.NeedRescue>
   <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 kişi kurtarılmayı bekliyor</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
   <RimWorldAccess.GlobalHealth.Care.NeedTend>{0} kişi tedavi bekliyor</RimWorldAccess.GlobalHealth.Care.NeedTend>
   <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 kişi tedavi bekliyor</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
   <RimWorldAccess.GlobalHealth.Care.Untended>{0} hastalık tedavi edilmedi</RimWorldAccess.GlobalHealth.Care.Untended>
   <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 hastalık tedavi edilmedi</RimWorldAccess.GlobalHealth.Care.UntendedOne>
-  <RimWorldAccess.GlobalHealth.Care.Threats>{0} hayati tehlikeli</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Threats>{0} acil tedavi gereken hastalık</RimWorldAccess.GlobalHealth.Care.Threats>
   <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>kurtarılmayı ve tedavi bekliyor</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>kurtarılmayı bekliyor</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>tedavi bekliyor</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>

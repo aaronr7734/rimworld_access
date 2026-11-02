@@ -52,17 +52,17 @@
   <RimWorldAccess.GlobalHealth.Node.Sick>Malades</RimWorldAccess.GlobalHealth.Node.Sick>
   <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} personnages, en priorité {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
   <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} personnages, danger de mort pour {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, danger de mort, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} personnages, maladie grave: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, maladie grave, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
-  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, danger de mort</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, maladie grave</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <RimWorldAccess.GlobalHealth.Care.NeedRescue>{0} à secourir</RimWorldAccess.GlobalHealth.Care.NeedRescue>
   <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 à secourir</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
   <RimWorldAccess.GlobalHealth.Care.NeedTend>{0} à soigner</RimWorldAccess.GlobalHealth.Care.NeedTend>
   <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 à soigner</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
   <RimWorldAccess.GlobalHealth.Care.Untended>{0} maladies non soignées</RimWorldAccess.GlobalHealth.Care.Untended>
   <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 maladie non soignée</RimWorldAccess.GlobalHealth.Care.UntendedOne>
-  <RimWorldAccess.GlobalHealth.Care.Threats>{0} en danger de mort</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Threats>maladies graves: {0}</RimWorldAccess.GlobalHealth.Care.Threats>
   <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>à secourir et à soigner</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>à secourir</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>à soigner</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>

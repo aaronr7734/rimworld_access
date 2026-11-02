@@ -114,6 +114,12 @@ namespace RimWorldAccess.Shell
                 coverage.NotePatched(eligible);
                 return eligible;
             }
+            catch (Exception ex) when (ex is TypeLoadException || ex.InnerException is TypeLoadException)
+            {
+                ModLogger.Warning("Tooltip gate skipped for " + TooltipGateTranspiler.Describe(method)
+                    + ": its mod references a missing type. " + ex.Message);
+                return 0;
+            }
             catch (Exception ex)
             {
                 ModLogger.LimitedError("Tooltip gate install (" + TooltipGateTranspiler.Describe(method) + ")", ex);

@@ -1505,4 +1505,5 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Kullanılabilir ({0} puan)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>Kilitli ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>Kilitli</RimWorldAccess.Inspection.Permit.Locked>
+  <RimWorldAccess.Inspection.Need.HeadingToward>{0} değerine doğru</RimWorldAccess.Inspection.Need.HeadingToward>
 </LanguageData>

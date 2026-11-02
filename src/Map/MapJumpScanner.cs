@@ -60,6 +60,12 @@ namespace RimWorldAccess
                 }
 
                 destination = next;
+
+                if (!next.Fogged(map) && next.GetDoor(map) is Building_Door door && !door.Open)
+                {
+                    failure = JumpScanFailure.NoOpenTile;
+                    break;
+                }
             }
 
             return destination != start;

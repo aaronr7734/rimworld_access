@@ -52,17 +52,17 @@
   <RimWorldAccess.GlobalHealth.Node.Sick>Хворі</RimWorldAccess.GlobalHealth.Node.Sick>
   <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} персонажів, найтерміновіше {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
   <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} персонажів, загроза життю: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, загроза життю, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} персонажів, смертельна хвороба: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, смертельна хвороба, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
-  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, загроза життю</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, смертельна хвороба</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <RimWorldAccess.GlobalHealth.Care.NeedRescue>порятунку чекають: {0}</RimWorldAccess.GlobalHealth.Care.NeedRescue>
   <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 чекає на порятунок</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
   <RimWorldAccess.GlobalHealth.Care.NeedTend>лікування чекають: {0}</RimWorldAccess.GlobalHealth.Care.NeedTend>
   <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 чекає на лікування</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
   <RimWorldAccess.GlobalHealth.Care.Untended>хвороб без лікування: {0}</RimWorldAccess.GlobalHealth.Care.Untended>
   <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 хвороба без лікування</RimWorldAccess.GlobalHealth.Care.UntendedOne>
-  <RimWorldAccess.GlobalHealth.Care.Threats>загроза життю: {0}</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Threats>смертельні хвороби: {0}</RimWorldAccess.GlobalHealth.Care.Threats>
   <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>чекає на порятунок і лікування</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>чекає на порятунок</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>чекає на лікування</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>

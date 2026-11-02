@@ -1506,4 +1506,6 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Available ({0} points)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>Locked ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>Locked</RimWorldAccess.Inspection.Permit.Locked>
+  <!-- Need bars: {0} = the level the instant-level marker shows the need moving toward. -->
+  <RimWorldAccess.Inspection.Need.HeadingToward>heading toward {0}</RimWorldAccess.Inspection.Need.HeadingToward>
 </LanguageData>

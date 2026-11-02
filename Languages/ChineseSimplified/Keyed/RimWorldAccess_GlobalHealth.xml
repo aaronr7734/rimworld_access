@@ -52,17 +52,17 @@
   <RimWorldAccess.GlobalHealth.Node.Sick>患病</RimWorldAccess.GlobalHealth.Node.Sick>
   <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} 名角色, 最紧急 {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
   <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} 名角色, 危及生命: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, 危及生命, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} 名角色, 急救: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, 急救, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
-  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, 危及生命</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, 急救</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <RimWorldAccess.GlobalHealth.Care.NeedRescue>{0} 名需要救援</RimWorldAccess.GlobalHealth.Care.NeedRescue>
   <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 名需要救援</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
   <RimWorldAccess.GlobalHealth.Care.NeedTend>{0} 名需要治疗</RimWorldAccess.GlobalHealth.Care.NeedTend>
   <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 名需要治疗</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
   <RimWorldAccess.GlobalHealth.Care.Untended>{0} 种疾病未治疗</RimWorldAccess.GlobalHealth.Care.Untended>
   <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 种疾病未治疗</RimWorldAccess.GlobalHealth.Care.UntendedOne>
-  <RimWorldAccess.GlobalHealth.Care.Threats>{0} 种危及生命</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Threats>{0} 种需急救</RimWorldAccess.GlobalHealth.Care.Threats>
   <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>需要救援和治疗</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>需要救援</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
   <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>需要治疗</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>

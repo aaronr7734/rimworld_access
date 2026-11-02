@@ -1505,4 +1505,5 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Disponível ({0} pontos)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>Bloqueado ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>Bloqueado</RimWorldAccess.Inspection.Permit.Locked>
+  <RimWorldAccess.Inspection.Need.HeadingToward>tendendo a {0}</RimWorldAccess.Inspection.Need.HeadingToward>
 </LanguageData>

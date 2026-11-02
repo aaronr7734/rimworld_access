@@ -1191,13 +1191,11 @@
   <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>Limite de pilhas</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
   <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>{0} dias até apodrecer</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
   <!-- Numbers (Mehni.Numbers) pawn-table cells.
-       - TargetLevel: {0} = percent; the instant-level marker on a need bar.
        - LevelWithTarget: {0} = current psyfocus percent, {1} = target percent.
        - ValueOfMaximum: {0} = used or current amount, {1} = total or maximum.
        - DiseaseImproving / DiseaseWorsening: {0} = immunity minus severity as a percent;
          the trend is the arrow Numbers draws in the cell corner.
        - InventoryDropped: {0} = pawn short name. -->
-  <RimWorldAccess.Compat.Numbers.TargetLevel>meta {0}</RimWorldAccess.Compat.Numbers.TargetLevel>
   <RimWorldAccess.Compat.Numbers.LevelWithTarget>{0}, meta {1}</RimWorldAccess.Compat.Numbers.LevelWithTarget>
   <RimWorldAccess.Compat.Numbers.ValueOfMaximum>{0} / {1}</RimWorldAccess.Compat.Numbers.ValueOfMaximum>
   <RimWorldAccess.Compat.Numbers.DiseaseImproving>{0}, a imunidade está a vencer</RimWorldAccess.Compat.Numbers.DiseaseImproving>

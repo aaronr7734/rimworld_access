@@ -50,22 +50,7 @@ namespace RimWorldAccess
             {
                 return "";
             }
-            var parts = new List<string> { need.CurLevelPercentage.ToStringPercent() };
-            int arrow = need.GUIChangeArrow;
-            if (arrow > 0)
-            {
-                parts.Add("RimWorldAccess.UI.GenericWindow.BarRising".Loc().ToString());
-            }
-            else if (arrow < 0)
-            {
-                parts.Add("RimWorldAccess.UI.GenericWindow.BarFalling".Loc().ToString());
-            }
-            float instant = need.CurInstantLevelPercentage;
-            if (instant >= 0f)
-            {
-                parts.Add("RimWorldAccess.Compat.Numbers.TargetLevel".Loc(instant.ToStringPercent()).ToString());
-            }
-            return string.Join(", ", parts);
+            return NeedBarText.Describe(need);
         }
     }
 }

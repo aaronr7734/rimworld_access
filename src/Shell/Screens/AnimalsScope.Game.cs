@@ -189,6 +189,13 @@ namespace RimWorldAccess.Shell
             return AnimalsMenuHelper.GetColumnValue(animalsList[row], column);
         }
 
+        protected override string ContentCellHint(int region, int row, int column)
+        {
+            if (IsInSubmenu || row < 0 || row >= animalsList.Count || AnimalsMenuHelper.GetColumnType(column) != AnimalsMenuHelper.ColumnType.Name)
+                return null;
+            return PawnColumnCellReader.CellHint(AnimalsMenuHelper.GetDef(column), animalsList[row]);
+        }
+
         /// <summary>Registry cell tips for Unknown-classified (typically modded) columns only; the curated columns speak through their own value phrasing.</summary>
         protected override string ContentCellTip(int region, int row, int column)
         {

@@ -33,16 +33,16 @@
   <!-- Sick group: diseases, not pawns. -->
   <RimWorldAccess.GlobalHealth.Care.Untended>{0} diseases untended</RimWorldAccess.GlobalHealth.Care.Untended>
   <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 disease untended</RimWorldAccess.GlobalHealth.Care.UntendedOne>
-  <RimWorldAccess.GlobalHealth.Care.Threats>{0} life-threatening</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Threats>{0} medical emergencies</RimWorldAccess.GlobalHealth.Care.Threats>
   <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} pawns, most urgent {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
   <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} pawns, life-threatening for {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
-  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, life-threatening, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} pawns, medical emergency for {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, medical emergency, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->
   <RimWorldAccess.GlobalHealth.PawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.PawnRow>
   <!-- A pawn under Sick. {0} = the pawn's name with its group, {1} = its diseases, one sentence each: the health tab header ("Flu (major): 52%"), DiseaseThreat around a life-threatening one, then vanilla's immunity line when shown. -->
   <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
-  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, life-threatening</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, medical emergency</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns are now listed. -->
   <RimWorldAccess.GlobalHealth.FilterChanged>{0}. {1} pawns listed.</RimWorldAccess.GlobalHealth.FilterChanged>
   <RimWorldAccess.GlobalHealth.FilterChangedOne>{0}. 1 pawn listed.</RimWorldAccess.GlobalHealth.FilterChangedOne>

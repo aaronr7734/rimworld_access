@@ -1505,4 +1505,5 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Disponible ({0} points)</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>Verrouillé ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>Verrouillé</RimWorldAccess.Inspection.Permit.Locked>
+  <RimWorldAccess.Inspection.Need.HeadingToward>tend vers {0}</RimWorldAccess.Inspection.Need.HeadingToward>
 </LanguageData>

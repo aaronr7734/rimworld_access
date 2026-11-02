@@ -80,13 +80,12 @@ namespace RimWorldAccess
 
             foreach (var need in sortedNeeds)
             {
-                float percentage = need.CurLevelPercentage * 100f;
                 string needName = need.LabelCap;
 
                 var needItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = $"{needName}: {percentage:F0}%",
+                    Label = $"{needName}: {NeedBarText.Describe(need)}",
                     ExpandedLabel = needName,
                     Data = need,
                     IndentLevel = indent,

@@ -958,7 +958,6 @@
        - DaysUntilRot: {0} = days, one decimal; the mod's yellow row figure. -->
   <RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>Лимит стопок</RimWorldAccess.Compat.AdaptiveStorage.SlotLimit>
   <RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>До порчи дней: {0}</RimWorldAccess.Compat.AdaptiveStorage.DaysUntilRot>
-  <RimWorldAccess.Compat.Numbers.TargetLevel>цель {0}</RimWorldAccess.Compat.Numbers.TargetLevel>
   <RimWorldAccess.Compat.Numbers.LevelWithTarget>{0}, цель {1}</RimWorldAccess.Compat.Numbers.LevelWithTarget>
   <RimWorldAccess.Compat.Numbers.ValueOfMaximum>{0} / {1}</RimWorldAccess.Compat.Numbers.ValueOfMaximum>
   <RimWorldAccess.Compat.Numbers.DiseaseImproving>{0}, иммунитет побеждает</RimWorldAccess.Compat.Numbers.DiseaseImproving>

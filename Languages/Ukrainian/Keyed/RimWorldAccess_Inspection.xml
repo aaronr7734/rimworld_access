@@ -1492,4 +1492,5 @@
   <RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>Улюблений колір</RimWorldAccess.Inspection.Appearance.FavoriteColorLabel>
   <RimWorldAccess.Inspection.Summary.Plan>{0}, {1}</RimWorldAccess.Inspection.Summary.Plan>
   <RimWorldAccess.Inspection.CategoryName.PlanRename>Перейменувати</RimWorldAccess.Inspection.CategoryName.PlanRename>
+  <RimWorldAccess.Inspection.Need.HeadingToward>прямує до {0}</RimWorldAccess.Inspection.Need.HeadingToward>
 </LanguageData>
