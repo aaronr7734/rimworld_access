@@ -1,0 +1,1 @@
+Added support for Drafted Auto-Combat: ability buttons say when an ability is on auto-cast, their Right bracket menu has an auto-cast checkbox, and right-clicking the Auto-Combat button says how many abilities are now on auto-cast.

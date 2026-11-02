@@ -528,8 +528,6 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>Немає доступних команд для {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>об'єкт світу</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Немає додаткових варіантів</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
-  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
-  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: правий клік виконано</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire

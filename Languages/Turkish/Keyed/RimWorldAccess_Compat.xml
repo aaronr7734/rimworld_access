@@ -1206,4 +1206,9 @@
   <RimWorldAccess.Compat.Numbers.NoOperations>Uygun ameliyat yok</RimWorldAccess.Compat.Numbers.NoOperations>
   <RimWorldAccess.Compat.Numbers.DropAllAvailable>uygun</RimWorldAccess.Compat.Numbers.DropAllAvailable>
   <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} envanterini bıraktı</RimWorldAccess.Compat.Numbers.InventoryDropped>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOn>Otomatik kullanım açık</RimWorldAccess.Compat.AutoCombat.AutoCastOn>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOption>Otomatik kullanım</RimWorldAccess.Compat.AutoCombat.AutoCastOption>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>1 yetenek için otomatik kullanım açık</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>{0} yetenek için otomatik kullanım açık</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
+  <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Tüm yetenekler için otomatik kullanım kapalı</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
 </LanguageData>

@@ -22,7 +22,9 @@ namespace RimWorldAccess
     public static class GizmoHandlerRegistry
     {
         private static readonly TypeChainResolver<IGizmoHandler> byType = new TypeChainResolver<IGizmoHandler>();
-        private static readonly Dictionary<string, IGizmoHandler> byTypeName = new Dictionary<string, IGizmoHandler>();
+        // A list per name: several mods may each add a facet to the same vanilla type.
+        private static readonly Dictionary<string, List<IGizmoHandler>> byTypeName = new Dictionary<string, List<IGizmoHandler>>();
+        private static readonly List<IGizmoHandler> noHandlers = new List<IGizmoHandler>();
         private static IGizmoHandler fallback;
         private static bool initialized;
 
@@ -77,10 +79,20 @@ namespace RimWorldAccess
             byType.Register(gizmoType, handler);
         }
 
-        /// <summary>Registers (or replaces) the handler for a gizmo matched by GetType().Name.</summary>
+        /// <summary>Adds a handler for gizmos matched by GetType().Name, after any already registered for that name.</summary>
         public static void RegisterByTypeName(string typeName, IGizmoHandler handler)
         {
-            byTypeName[typeName] = handler;
+            if (!byTypeName.TryGetValue(typeName, out List<IGizmoHandler> handlers))
+            {
+                handlers = new List<IGizmoHandler>();
+                byTypeName[typeName] = handlers;
+            }
+            handlers.Add(handler);
+        }
+
+        private static List<IGizmoHandler> NameHandlers(Type runtimeType)
+        {
+            return byTypeName.TryGetValue(runtimeType.Name, out List<IGizmoHandler> handlers) ? handlers : noHandlers;
         }
 
         /// <summary>Executes through the handler chain (type, name, fallback), skipping declining candidates;
@@ -97,10 +109,10 @@ namespace RimWorldAccess
                 return runEpilogueTyped;
             }
 
-            if (byTypeName.TryGetValue(runtimeType.Name, out IGizmoHandler nameHandler)
-                && nameHandler.TryExecute(gizmo, ctx, out bool runEpilogueNamed))
+            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
             {
-                return runEpilogueNamed;
+                if (nameHandler.TryExecute(gizmo, ctx, out bool runEpilogueNamed))
+                    return runEpilogueNamed;
             }
 
             fallback.TryExecute(gizmo, ctx, out bool runEpilogueFallback);
@@ -119,8 +131,11 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (byTypeName.TryGetValue(runtimeType.Name, out IGizmoHandler nameHandler))
-                nameHandler.TryDescribe(gizmo, fragments);
+            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
+            {
+                if (nameHandler.TryDescribe(gizmo, fragments))
+                    return;
+            }
         }
 
         /// <summary>Resolves the gizmo's spoken title through the handler tiers; false when no registered handler owns the type's label.</summary>
@@ -156,10 +171,10 @@ namespace RimWorldAccess
                     return true;
             }
 
-            if (byTypeName.TryGetValue(runtimeType.Name, out IGizmoHandler nameHandler)
-                && nameHandler.TryGetSliderAdapter(gizmo, out adapter))
+            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
             {
-                return true;
+                if (nameHandler.TryGetSliderAdapter(gizmo, out adapter))
+                    return true;
             }
 
             adapter = null;
@@ -205,8 +220,12 @@ namespace RimWorldAccess
                     return true;
             }
 
-            return byTypeName.TryGetValue(runtimeType.Name, out IGizmoHandler nameHandler)
-                && ImplementsExecution(nameHandler);
+            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
+            {
+                if (ImplementsExecution(nameHandler))
+                    return true;
+            }
+            return false;
         }
 
         private static readonly Dictionary<Type, bool> executionOverrides = new Dictionary<Type, bool>();
@@ -273,12 +292,12 @@ namespace RimWorldAccess
             EnsureInitialized();
             foreach (IGizmoHandler _ in byType.ResolveChain(gizmoType))
                 return true;
-            return byTypeName.ContainsKey(gizmoType.Name);
+            return NameHandlers(gizmoType).Count > 0;
         }
 
         /// <summary>
         /// Accumulates keyboard-accessible extra options from EVERY handler along the type chain
-        /// (unlike <see cref="ResolveFacet"/>'s first-non-null-wins walk) plus the byTypeName handler:
+        /// (unlike <see cref="ResolveFacet"/>'s first-non-null-wins walk) plus every byTypeName handler:
         /// a base handler and a derived one may each contribute independent options.
         /// </summary>
         public static bool CollectExtraOptions(Gizmo gizmo, List<FloatMenuOption> options)
@@ -293,10 +312,10 @@ namespace RimWorldAccess
                     any = true;
             }
 
-            if (byTypeName.TryGetValue(runtimeType.Name, out IGizmoHandler nameHandler)
-                && nameHandler.TryGetExtraOptions(gizmo, options))
+            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
             {
-                any = true;
+                if (nameHandler.TryGetExtraOptions(gizmo, options))
+                    any = true;
             }
 
             return any;
@@ -316,7 +335,7 @@ namespace RimWorldAccess
                     return value;
             }
 
-            if (byTypeName.TryGetValue(runtimeType.Name, out IGizmoHandler nameHandler))
+            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
             {
                 string value = facet(nameHandler, gizmo);
                 if (value != null)

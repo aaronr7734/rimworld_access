@@ -1206,4 +1206,9 @@
   <RimWorldAccess.Compat.Numbers.NoOperations>Nenhuma operação disponível</RimWorldAccess.Compat.Numbers.NoOperations>
   <RimWorldAccess.Compat.Numbers.DropAllAvailable>disponível</RimWorldAccess.Compat.Numbers.DropAllAvailable>
   <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} largou o inventário</RimWorldAccess.Compat.Numbers.InventoryDropped>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOn>Uso automático ligado</RimWorldAccess.Compat.AutoCombat.AutoCastOn>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOption>Uso automático</RimWorldAccess.Compat.AutoCombat.AutoCastOption>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Uso automático ligado para 1 habilidade</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Uso automático ligado para {0} habilidades</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
+  <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Uso automático desligado para todas as habilidades</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
 </LanguageData>

@@ -1201,4 +1201,9 @@
   <RimWorldAccess.Compat.Numbers.NoOperations>Операції недоступні</RimWorldAccess.Compat.Numbers.NoOperations>
   <RimWorldAccess.Compat.Numbers.DropAllAvailable>доступно</RimWorldAccess.Compat.Numbers.DropAllAvailable>
   <RimWorldAccess.Compat.Numbers.InventoryDropped>{0}: інвентар скинуто</RimWorldAccess.Compat.Numbers.InventoryDropped>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOn>Автозастосування увімкнено</RimWorldAccess.Compat.AutoCombat.AutoCastOn>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOption>Автозастосування</RimWorldAccess.Compat.AutoCombat.AutoCastOption>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Автозастосування увімкнено для 1 здібності</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Автозастосування увімкнено, здібностей: {0}</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
+  <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Автозастосування вимкнено для всіх здібностей</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
 </LanguageData>

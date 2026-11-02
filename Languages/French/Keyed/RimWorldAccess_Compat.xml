@@ -1207,4 +1207,9 @@
   <RimWorldAccess.Compat.Numbers.NoOperations>Aucune opération disponible</RimWorldAccess.Compat.Numbers.NoOperations>
   <RimWorldAccess.Compat.Numbers.DropAllAvailable>disponible</RimWorldAccess.Compat.Numbers.DropAllAvailable>
   <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} a lâché son inventaire</RimWorldAccess.Compat.Numbers.InventoryDropped>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOn>Lancement automatique activé</RimWorldAccess.Compat.AutoCombat.AutoCastOn>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOption>Lancement automatique</RimWorldAccess.Compat.AutoCombat.AutoCastOption>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Lancement automatique activé pour 1 capacité</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Lancement automatique activé pour {0} capacités</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
+  <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Lancement automatique désactivé pour toutes les capacités</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
 </LanguageData>

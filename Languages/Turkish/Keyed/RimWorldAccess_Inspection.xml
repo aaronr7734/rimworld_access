@@ -515,8 +515,6 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>{0} için kullanılabilir komut yok</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>dünya nesnesi</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Ek seçenek yok</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
-  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
-  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: sağ tıklama yapıldı</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire

@@ -515,8 +515,6 @@
   <RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>Aucune commande disponible pour {0}</RimWorldAccess.Inspection.Gizmo.NoCommandsForObject>
   <RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>objet du monde</RimWorldAccess.Inspection.Gizmo.WorldObjectFallbackName>
   <RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>Aucune option supplémentaire</RimWorldAccess.Inspection.Gizmo.NoAdditionalOptions>
-  <!-- A mod's own right-click handling ran but changed nothing the menu can read back; {0} = gizmo label. -->
-  <RimWorldAccess.Inspection.Gizmo.RightClickDone>{0}: clic droit effectué</RimWorldAccess.Inspection.Gizmo.RightClickDone>
 
   <!-- Disabled status. {0} = the disabledReason from the game (already
        translated by RimWorld). The DisabledNotAvailable* fallbacks fire

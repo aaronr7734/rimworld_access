@@ -1199,4 +1199,9 @@
   <RimWorldAccess.Compat.Numbers.NoOperations>No hay operaciones disponibles</RimWorldAccess.Compat.Numbers.NoOperations>
   <RimWorldAccess.Compat.Numbers.DropAllAvailable>disponible</RimWorldAccess.Compat.Numbers.DropAllAvailable>
   <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} ha soltado su inventario</RimWorldAccess.Compat.Numbers.InventoryDropped>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOn>Lanzamiento automático activado</RimWorldAccess.Compat.AutoCombat.AutoCastOn>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOption>Lanzamiento automático</RimWorldAccess.Compat.AutoCombat.AutoCastOption>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Lanzamiento automático activado para 1 habilidad</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Lanzamiento automático activado para {0} habilidades</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
+  <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Lanzamiento automático desactivado para todas las habilidades</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
 </LanguageData>

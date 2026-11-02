@@ -115,6 +115,8 @@ NAME_TIER_RE = re.compile(r'RegisterByTypeName\s*\(\s*"([^"]+)"')
 # add one just to make the build pass.
 NAME_TIER_ALLOWLIST = {
     ("src/Compat/VEF/VefGizmoCompat.Game.cs", "Command_Ability"),
+    # Drafted Auto-Combat's auto-cast facet: same additive shape, gated on exact type + IsDraftedPlayerPawn.
+    ("src/Compat/AutoCombat/AutoCombatModule.Game.cs", "Command_Ability"),
 }
 TYPE_NAME_DISPATCH_RE = re.compile(
     r'GetType\(\)\s*\.\s*Name\s*==|\btypeName\s*==\s*"|switch\s*\(\s*typeName\s*\)')

@@ -1212,4 +1212,12 @@
   <RimWorldAccess.Compat.Numbers.NoOperations>No operations available</RimWorldAccess.Compat.Numbers.NoOperations>
   <RimWorldAccess.Compat.Numbers.DropAllAvailable>available</RimWorldAccess.Compat.Numbers.DropAllAvailable>
   <RimWorldAccess.Compat.Numbers.InventoryDropped>{0} dropped their inventory</RimWorldAccess.Compat.Numbers.InventoryDropped>
+
+  <!-- Drafted Auto-Combat: per-ability auto-cast marks, and the Auto-Combat gizmo's right-click. -->
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOn>Auto-cast on</RimWorldAccess.Compat.AutoCombat.AutoCastOn>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOption>Auto-cast</RimWorldAccess.Compat.AutoCombat.AutoCastOption>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Auto-cast on for 1 ability</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
+  <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Auto-cast on for {0} abilities</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
+  <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Auto-cast off for all abilities</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+
 </LanguageData>
