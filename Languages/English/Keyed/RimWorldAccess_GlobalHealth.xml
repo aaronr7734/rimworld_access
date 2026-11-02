@@ -7,18 +7,42 @@
   <RimWorldAccess.GlobalHealth.Node.Downed>Downed</RimWorldAccess.GlobalHealth.Node.Downed>
   <RimWorldAccess.GlobalHealth.Node.Bleeding>Bleeding</RimWorldAccess.GlobalHealth.Node.Bleeding>
   <RimWorldAccess.GlobalHealth.Node.Injured>Injured</RimWorldAccess.GlobalHealth.Node.Injured>
-  <!-- Node summaries. {0} = the node's name (one of the Node strings above), {1} = how many pawns it holds, then {2} (or {1} in the One forms) = the soonest time left before bleeding out ("2 hours") or the lowest overall health ("38%"). NotSoon is used when no one in the node bleeds out within a day, Deathless when everyone bleeding in it has the deathless gene. -->
+  <RimWorldAccess.GlobalHealth.Node.Sick>Sick</RimWorldAccess.GlobalHealth.Node.Sick>
+  <!-- Node summaries. {0} = the node's name (one of the Node strings above), {1} = how many pawns it holds (the Pawn forms take the lone pawn's name instead), then {2} = the soonest time left before bleeding out ("2 hours") or the lowest overall health ("38%"). NotSoon is used when no one in the node bleeds out within a day, Deathless when everyone bleeding in it has the deathless gene. -->
   <RimWorldAccess.GlobalHealth.Summary.None>{0}. None</RimWorldAccess.GlobalHealth.Summary.None>
   <RimWorldAccess.GlobalHealth.Summary.BleedOut>{0}. {1} pawns, soonest bleeds out in {2}</RimWorldAccess.GlobalHealth.Summary.BleedOut>
-  <RimWorldAccess.GlobalHealth.Summary.BleedOutOne>{0}. 1 pawn, bleeds out in {1}</RimWorldAccess.GlobalHealth.Summary.BleedOutOne>
+  <RimWorldAccess.GlobalHealth.Summary.BleedOutPawn>{0}. {1}, bleeds out in {2}</RimWorldAccess.GlobalHealth.Summary.BleedOutPawn>
   <RimWorldAccess.GlobalHealth.Summary.NotSoon>{0}. {1} pawns, none in immediate danger</RimWorldAccess.GlobalHealth.Summary.NotSoon>
-  <RimWorldAccess.GlobalHealth.Summary.NotSoonOne>{0}. 1 pawn, no immediate danger</RimWorldAccess.GlobalHealth.Summary.NotSoonOne>
+  <RimWorldAccess.GlobalHealth.Summary.NotSoonPawn>{0}. {1}, no immediate danger</RimWorldAccess.GlobalHealth.Summary.NotSoonPawn>
   <RimWorldAccess.GlobalHealth.Summary.Deathless>{0}. {1} pawns, all deathless</RimWorldAccess.GlobalHealth.Summary.Deathless>
-  <RimWorldAccess.GlobalHealth.Summary.DeathlessOne>{0}. 1 pawn, deathless</RimWorldAccess.GlobalHealth.Summary.DeathlessOne>
+  <RimWorldAccess.GlobalHealth.Summary.DeathlessPawn>{0}. {1}, deathless</RimWorldAccess.GlobalHealth.Summary.DeathlessPawn>
   <RimWorldAccess.GlobalHealth.Summary.LowestHealth>{0}. {1} pawns, lowest {2} health</RimWorldAccess.GlobalHealth.Summary.LowestHealth>
-  <RimWorldAccess.GlobalHealth.Summary.HealthOne>{0}. 1 pawn, {1} health</RimWorldAccess.GlobalHealth.Summary.HealthOne>
+  <RimWorldAccess.GlobalHealth.Summary.HealthPawn>{0}. {1}, {2} health</RimWorldAccess.GlobalHealth.Summary.HealthPawn>
+  <!-- Sick node summaries. {0} = the node's name, {1} = how many pawns it holds, then {2} = the most urgent pawn's name and the next placeholder = that pawn's most urgent disease as the health tab heads it ("Flu (major): 52%"). The Threat forms are used when that disease is life-threatening. -->
+  <!-- Care sentence after a group summary, built from vanilla's alert tests; parts join with a comma. -->
+  <!-- One pawn in the group: folded into the summary sentence after a comma. -->
+  <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>needs rescue and tending</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>needs rescue</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>needs tending</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>
+  <RimWorldAccess.GlobalHealth.Care.AllNeedRescue>all need rescue</RimWorldAccess.GlobalHealth.Care.AllNeedRescue>
+  <RimWorldAccess.GlobalHealth.Care.AllNeedTend>all need tending</RimWorldAccess.GlobalHealth.Care.AllNeedTend>
+  <RimWorldAccess.GlobalHealth.Care.NeedRescue>{0} need rescue</RimWorldAccess.GlobalHealth.Care.NeedRescue>
+  <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 needs rescue</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
+  <RimWorldAccess.GlobalHealth.Care.NeedTend>{0} need tending</RimWorldAccess.GlobalHealth.Care.NeedTend>
+  <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 needs tending</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
+  <!-- Sick group: diseases, not pawns. -->
+  <RimWorldAccess.GlobalHealth.Care.Untended>{0} diseases untended</RimWorldAccess.GlobalHealth.Care.Untended>
+  <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 disease untended</RimWorldAccess.GlobalHealth.Care.UntendedOne>
+  <RimWorldAccess.GlobalHealth.Care.Threats>{0} life-threatening</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} pawns, most urgent {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
+  <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} pawns, life-threatening for {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, life-threatening, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
   <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->
   <RimWorldAccess.GlobalHealth.PawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.PawnRow>
+  <!-- A pawn under Sick. {0} = the pawn's name with its group, {1} = its diseases, one sentence each: the health tab header ("Flu (major): 52%"), DiseaseThreat around a life-threatening one, then vanilla's immunity line when shown. -->
+  <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, life-threatening</RimWorldAccess.GlobalHealth.DiseaseThreat>
   <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns are now listed. -->
   <RimWorldAccess.GlobalHealth.FilterChanged>{0}. {1} pawns listed.</RimWorldAccess.GlobalHealth.FilterChanged>
   <RimWorldAccess.GlobalHealth.FilterChangedOne>{0}. 1 pawn listed.</RimWorldAccess.GlobalHealth.FilterChangedOne>

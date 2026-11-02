@@ -145,6 +145,10 @@ namespace RimWorldAccess.Shell
 
         private static void OnOpenPauseMenu(KeyEventSnapshot e)
         {
+            if (ScreenReturn.ReturnOnCancel(ScreenReturn.Take(ScreenReturn.Binding.Map)))
+            {
+                return;
+            }
             PauseMenuScope.OpenRealMenu();
         }
     }

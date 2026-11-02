@@ -240,6 +240,7 @@ namespace RimWorldAccess
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
                     Label = HediffGroupRowLabel(groups[0], pawn),
+                    Data = groups[0][0],
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 });

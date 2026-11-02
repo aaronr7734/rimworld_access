@@ -5,6 +5,7 @@ using System.Reflection;
 using Verse;
 using RimWorld;
 using RimWorld.Planet;
+using RimWorldAccess.Shell;
 
 namespace RimWorldAccess
 {
@@ -213,7 +214,7 @@ namespace RimWorldAccess
                             ButtonInfo buttonInfo = new ButtonInfo
                             {
                                 Label = label,
-                                Action = CreateAccessibleAction(option, letter, label),
+                                Action = CreateAccessibleAction(option, letter, label, item),
                                 IsDisabled = option.disabled,
                                 DisabledReason = option.disabledReason
                             };
@@ -274,7 +275,7 @@ namespace RimWorldAccess
                     buttons.Add(new ButtonInfo
                     {
                         Label = "RimWorldAccess.Notifications.Button.JumpTo".Translate(GetTargetDescription(target)),
-                        Action = CreateJumpToTargetAction(target),
+                        Action = CreateJumpToTargetAction(target, item),
                         IsDisabled = false,
                         IsJumpAction = true
                     });
@@ -290,7 +291,7 @@ namespace RimWorldAccess
                         {
                             Label = "RimWorldAccess.Notifications.Button.JumpToWithIndex".Translate(
                                 GetTargetDescription(target), index, targets.Count),
-                            Action = CreateJumpToTargetAction(target),
+                            Action = CreateJumpToTargetAction(target, item),
                             IsDisabled = false,
                             IsJumpAction = true
                         });
@@ -331,7 +332,7 @@ namespace RimWorldAccess
         }
 
         /// <summary>An action that jumps to a target and moves the map or world cursor onto it.</summary>
-        private static Action CreateJumpToTargetAction(GlobalTargetInfo target)
+        private static Action CreateJumpToTargetAction(GlobalTargetInfo target, NotificationItem item)
         {
             return () => {
                 if (target.IsValid)
@@ -375,14 +376,21 @@ namespace RimWorldAccess
                             MapNavigationState.CurrentCursorPosition = target.Cell;
                     }
 
+                    ArmReturn(item);
                     Close();
                     MapNavigationState.SpeakJumpedTo(GetTargetDescription(target));
                 }
             };
         }
 
+        private static void ArmReturn(NotificationItem item)
+        {
+            ScreenReturn.Arm(ScreenReturn.Binding.Map, NotificationScope.ScreenName,
+                new ListReturnCursor(item, notifications != null ? notifications.IndexOf(item) : -1), Open);
+        }
+
         /// <summary>The accessible action for a letter button: jump to location, view quest, research hyperlink, or the option's own action.</summary>
-        private static Action CreateAccessibleAction(DiaOption option, Letter letter, string label)
+        private static Action CreateAccessibleAction(DiaOption option, Letter letter, string label, NotificationItem item)
         {
             if (IsJumpAction(label))
             {
@@ -432,6 +440,7 @@ namespace RimWorldAccess
                                 MapNavigationState.CurrentCursorPosition = target.Cell;
                         }
 
+                        ArmReturn(item);
                         Close();
                         MapNavigationState.SpeakJumpedTo(GetTargetDescription(target));
                     }
@@ -656,6 +665,11 @@ namespace RimWorldAccess
                 Timestamp = Find.TickManager?.TicksGame ?? 0; // Alerts are ongoing, so they sort as "now".
                 sourceObject = alert;
                 ProcessExplanation();
+            }
+
+            internal bool SameSource(NotificationItem other)
+            {
+                return other != null && ReferenceEquals(other.sourceObject, sourceObject);
             }
 
             /// <summary>The source Letter, or null when this is not a letter.</summary>

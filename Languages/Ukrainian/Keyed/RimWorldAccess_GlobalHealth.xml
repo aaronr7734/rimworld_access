@@ -10,13 +10,13 @@
   <!-- Node summaries. {0} = the node's name (one of the Node strings above), {1} = how many pawns it holds, then {2} (or {1} in the One forms) = the soonest time left before bleeding out ("2 hours") or the lowest overall health ("38%"). NotSoon is used when no one in the node bleeds out within a day. -->
   <RimWorldAccess.GlobalHealth.Summary.None>{0}. Немає</RimWorldAccess.GlobalHealth.Summary.None>
   <RimWorldAccess.GlobalHealth.Summary.BleedOut>{0}. {1} персонажів, найшвидше смерть від втрати крові через {2}</RimWorldAccess.GlobalHealth.Summary.BleedOut>
-  <RimWorldAccess.GlobalHealth.Summary.BleedOutOne>{0}. 1 персонаж, смерть від втрати крові через {1}</RimWorldAccess.GlobalHealth.Summary.BleedOutOne>
+  <RimWorldAccess.GlobalHealth.Summary.BleedOutPawn>{0}. {1}, смерть від втрати крові через {2}</RimWorldAccess.GlobalHealth.Summary.BleedOutPawn>
   <RimWorldAccess.GlobalHealth.Summary.NotSoon>{0}. {1} персонажів, безпосередньої небезпеки немає</RimWorldAccess.GlobalHealth.Summary.NotSoon>
-  <RimWorldAccess.GlobalHealth.Summary.NotSoonOne>{0}. 1 персонаж, безпосередньої небезпеки немає</RimWorldAccess.GlobalHealth.Summary.NotSoonOne>
+  <RimWorldAccess.GlobalHealth.Summary.NotSoonPawn>{0}. {1}, безпосередньої небезпеки немає</RimWorldAccess.GlobalHealth.Summary.NotSoonPawn>
   <RimWorldAccess.GlobalHealth.Summary.Deathless>{0}. {1} персонажів, усі безсмертні</RimWorldAccess.GlobalHealth.Summary.Deathless>
-  <RimWorldAccess.GlobalHealth.Summary.DeathlessOne>{0}. 1 персонаж, безсмертний</RimWorldAccess.GlobalHealth.Summary.DeathlessOne>
+  <RimWorldAccess.GlobalHealth.Summary.DeathlessPawn>{0}. {1}, безсмертний</RimWorldAccess.GlobalHealth.Summary.DeathlessPawn>
   <RimWorldAccess.GlobalHealth.Summary.LowestHealth>{0}. {1} персонажів, найнижче здоров'я: {2}</RimWorldAccess.GlobalHealth.Summary.LowestHealth>
-  <RimWorldAccess.GlobalHealth.Summary.HealthOne>{0}. 1 персонаж, здоров'я: {1}</RimWorldAccess.GlobalHealth.Summary.HealthOne>
+  <RimWorldAccess.GlobalHealth.Summary.HealthPawn>{0}. {1}, здоров'я: {2}</RimWorldAccess.GlobalHealth.Summary.HealthPawn>
   <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->
   <RimWorldAccess.GlobalHealth.PawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.PawnRow>
   <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns are now listed. -->
@@ -49,4 +49,23 @@
   <RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves>В'язні та раби</RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves>
   <RimWorldAccess.PawnGroup.Filter.Visitors>Гості</RimWorldAccess.PawnGroup.Filter.Visitors>
   <RimWorldAccess.PawnGroup.Filter.Hostiles>Вороги</RimWorldAccess.PawnGroup.Filter.Hostiles>
+  <RimWorldAccess.GlobalHealth.Node.Sick>Хворі</RimWorldAccess.GlobalHealth.Node.Sick>
+  <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} персонажів, найтерміновіше {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
+  <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} персонажів, загроза життю: {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, загроза життю, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, загроза життю</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.Care.NeedRescue>порятунку чекають: {0}</RimWorldAccess.GlobalHealth.Care.NeedRescue>
+  <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 чекає на порятунок</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
+  <RimWorldAccess.GlobalHealth.Care.NeedTend>лікування чекають: {0}</RimWorldAccess.GlobalHealth.Care.NeedTend>
+  <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 чекає на лікування</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
+  <RimWorldAccess.GlobalHealth.Care.Untended>хвороб без лікування: {0}</RimWorldAccess.GlobalHealth.Care.Untended>
+  <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 хвороба без лікування</RimWorldAccess.GlobalHealth.Care.UntendedOne>
+  <RimWorldAccess.GlobalHealth.Care.Threats>загроза життю: {0}</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>чекає на порятунок і лікування</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>чекає на порятунок</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>чекає на лікування</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>
+  <RimWorldAccess.GlobalHealth.Care.AllNeedRescue>усі чекають на порятунок</RimWorldAccess.GlobalHealth.Care.AllNeedRescue>
+  <RimWorldAccess.GlobalHealth.Care.AllNeedTend>усі чекають на лікування</RimWorldAccess.GlobalHealth.Care.AllNeedTend>
 </LanguageData>

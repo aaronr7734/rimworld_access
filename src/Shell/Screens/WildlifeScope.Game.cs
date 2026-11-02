@@ -246,6 +246,8 @@ namespace RimWorldAccess.Shell
                 TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NoWildlife".Loc());
                 return;
             }
+            if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
+                saved.LandOn(Model.CurrentTable, wildlifeList);
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             string announcement = "RimWorldAccess.Animals.Wildlife.Menu.OpeningTitle".Translate(wildlifeList.Count).ToString();
             TolkHelper.SpeakData(announcement);
@@ -281,6 +283,7 @@ namespace RimWorldAccess.Shell
                 return;
             }
             IntVec3 position = pawn.Position;
+            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Wildlife, pawn, Model.CurrentTable);
             Close();
             MapNavigationState.CurrentCursorPosition = position;
             Find.CameraDriver?.JumpToCurrentMapLoc(position);

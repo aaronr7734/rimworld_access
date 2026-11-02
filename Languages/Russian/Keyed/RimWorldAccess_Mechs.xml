@@ -132,4 +132,5 @@
 
   <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
   <RimWorldAccess.Mechs.PercentRange>от {0} до {1}</RimWorldAccess.Mechs.PercentRange>
+  <RimWorldAccess.Mechs.Menu.OverseerUnavailable>Не удаётся найти оператора.</RimWorldAccess.Mechs.Menu.OverseerUnavailable>
 </LanguageData>

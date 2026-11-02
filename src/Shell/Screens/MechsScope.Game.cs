@@ -178,7 +178,7 @@ namespace RimWorldAccess.Shell
 
         /// <summary>
         /// Row default: in submenu mode Enter applies the highlighted option; in table mode this
-        /// only runs for the non-interactive columns (Energy, Overseer), which say they are read only.
+        /// only runs for the non-interactive columns (Energy, a mech with no overseer), which say they are read only.
         /// </summary>
         protected override void ActivateContentItem(int region, int index)
         {
@@ -227,7 +227,17 @@ namespace RimWorldAccess.Shell
             return MechsMenuHelper.GetUnknownCellTip(mechsList[row], column);
         }
 
-        /// <summary>Enter on an interactive column: Name jumps to the mech, Draft/AutoRepair toggle, Control Group/Work Mode/Allowed Area open a submenu.</summary>
+        protected override string ContentCellHint(int region, int row, int column)
+        {
+            if (IsInSubmenu || row < 0 || row >= mechsList.Count)
+                return null;
+            MechsMenuHelper.ColumnType type = MechsMenuHelper.GetColumnType(column);
+            return type == MechsMenuHelper.ColumnType.Name || type == MechsMenuHelper.ColumnType.Overseer
+                ? PawnColumnCellReader.CellHint(MechsMenuHelper.GetDef(column), mechsList[row])
+                : null;
+        }
+
+        /// <summary>Enter on an interactive column: Name jumps to the mech, Overseer to its overseer, Draft/AutoRepair toggle, Control Group/Work Mode/Allowed Area open a submenu.</summary>
         protected override bool ActivateContentCell(int region, int row, int column)
         {
             if (row < 0 || row >= mechsList.Count)
@@ -248,6 +258,7 @@ namespace RimWorldAccess.Shell
             switch (MechsMenuHelper.GetColumnType(column))
             {
                 case MechsMenuHelper.ColumnType.Name: JumpToMechOnMap(pawn); return true;
+                case MechsMenuHelper.ColumnType.Overseer: return JumpToOverseer(pawn, column);
                 case MechsMenuHelper.ColumnType.Draft: ToggleDraft(pawn); return true;
                 case MechsMenuHelper.ColumnType.AutoRepair: ToggleAutoRepair(pawn); return true;
                 case MechsMenuHelper.ColumnType.ControlGroup: OpenControlGroupSubmenu(pawn); return true;
@@ -313,6 +324,8 @@ namespace RimWorldAccess.Shell
             announcedOpen = true;
             if (mechsList.Count == 0)
                 return; // MechsMenuState.Open() already refused to open/announce for an empty roster.
+            if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
+                saved.LandOn(Model.CurrentTable, mechsList);
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             TolkHelper.SpeakData("RimWorldAccess.Mechs.Menu.OpeningTitle".Translate(mechsList.Count).ToString());
@@ -423,11 +436,29 @@ namespace RimWorldAccess.Shell
                 return;
             }
             IntVec3 position = pawn.Position;
+            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Mechs, pawn, Model.CurrentTable);
             Close();
             MapNavigationState.CurrentCursorPosition = position;
             Find.CameraDriver?.JumpToCurrentMapLoc(position);
             string mechName = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
             MapNavigationState.SpeakJumpedTo(mechName);
+        }
+
+        private bool JumpToOverseer(Pawn mech, int column)
+        {
+            Pawn overseer = mech.GetOverseer();
+            if (overseer == null)
+                return false;
+            if (!CameraJumper.CanJump(overseer))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.OverseerUnavailable".Loc(), SpeechPriority.High);
+                return true;
+            }
+            Close();
+            PawnColumnCellReader.ActivateCellTableless(MechsMenuHelper.GetDef(column), mech);
+            MapNavigationState.SpeakJumpedTo(overseer.LabelShort);
+            return true;
         }
 
         private void ToggleDraft(Pawn pawn)

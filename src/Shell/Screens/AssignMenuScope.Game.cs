@@ -308,6 +308,8 @@ namespace RimWorldAccess.Shell
                     if (idx >= 0)
                         initialTable.Rows.MoveTo(idx + 1);
                 }
+                if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
+                    saved.LandOn(initialTable, pawnsList);
             }
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
@@ -351,6 +353,7 @@ namespace RimWorldAccess.Shell
                 return;
             }
             IntVec3 position = pawn.Position;
+            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Assign, pawn, Model.CurrentTable);
             Close();
             MapNavigationState.CurrentCursorPosition = position;
             Find.CameraDriver?.JumpToCurrentMapLoc(position);

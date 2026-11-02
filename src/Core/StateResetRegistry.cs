@@ -41,6 +41,7 @@ namespace RimWorldAccess
             new Entry("LineFormationState.Reset", () => LineFormationState.Reset()),
             new Entry("GizmoNavigationState.Reset", () => GizmoNavigationState.Reset()),
             new Entry("WindowlessInspectionState.Reset", () => WindowlessInspectionState.Reset()),
+            new Entry("Shell.ScreenReturn.Reset", () => RimWorldAccess.Shell.ScreenReturn.Reset()),
             new Entry("DocsTeacher.ResetSession", () => DocsTeacher.ResetSession()),
 
             // Pending interests close over per-save state a new/loaded save invalidates; Clear()
@@ -260,6 +261,13 @@ namespace RimWorldAccess
                 if (Current.ProgramState == ProgramState.Entry && WindowlessInspectionState.IsActive)
                 {
                     WindowlessInspectionState.Reset();
+                }
+            }),
+            new Entry("Shell.ScreenReturn.Reset", () =>
+            {
+                if (Current.ProgramState == ProgramState.Entry)
+                {
+                    RimWorldAccess.Shell.ScreenReturn.Reset();
                 }
             }),
 

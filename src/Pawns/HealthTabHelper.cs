@@ -348,7 +348,7 @@ namespace RimWorldAccess
                 return lines;
 
             if (hediff.IsCurrentlyLifeThreatening)
-                lines.Add("PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper());
+                lines.Add(LifeThreateningFlag());
 
             string[] tipLines = hediff.GetTooltip(pawn, false).Replace("\r", "").Split('\n');
             header = tipLines[0].StripTags().Trim();
@@ -359,6 +359,40 @@ namespace RimWorldAccess
                     lines.Add(line);
             }
             return lines;
+        }
+
+        private static string LifeThreateningFlag()
+        {
+            return "PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper();
+        }
+
+        /// <summary>Tooltip header, life-threatening flag, then the immunity and tending comps' tooltip lines.</summary>
+        public static List<string> GetHediffSummaryLines(Hediff hediff, Pawn pawn)
+        {
+            var lines = new List<string>();
+            if (hediff == null)
+                return lines;
+
+            GetHediffTooltipLines(hediff, pawn, out string header);
+            lines.Add(string.IsNullOrEmpty(header) ? hediff.LabelCap.StripTags() : header);
+            if (hediff.IsCurrentlyLifeThreatening)
+                lines.Add(LifeThreateningFlag());
+            AddCompTipLines(lines, hediff.TryGetComp<HediffComp_Immunizable>());
+            AddCompTipLines(lines, hediff.TryGetComp<HediffComp_TendDuration>());
+            return lines;
+        }
+
+        private static void AddCompTipLines(List<string> lines, HediffComp comp)
+        {
+            string tip = comp?.CompTipStringExtra;
+            if (string.IsNullOrEmpty(tip))
+                return;
+            foreach (string raw in tip.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            {
+                string line = raw.StripTags().Trim();
+                if (line.Length > 0)
+                    lines.Add(line);
+            }
         }
 
         /// <summary>
@@ -376,7 +410,6 @@ namespace RimWorldAccess
             if (string.IsNullOrWhiteSpace(debug))
                 return null;
 
-            // DebugString is newline-separated and indented.
             string flattened = string.Join(". ", debug
                 .Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
                 .Select(line => line.Trim())

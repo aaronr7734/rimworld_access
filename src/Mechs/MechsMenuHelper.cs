@@ -224,9 +224,9 @@ namespace RimWorldAccess
                 case ColumnType.ControlGroup: // Submenu
                 case ColumnType.WorkMode:    // Submenu
                 case ColumnType.AllowedArea: // Submenu
+                case ColumnType.Overseer:    // Jump to overseer
                     return true;
                 case ColumnType.Energy:      // Display only
-                case ColumnType.Overseer:    // Display only
                 default:
                     return false;
             }

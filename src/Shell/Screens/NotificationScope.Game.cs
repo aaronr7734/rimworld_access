@@ -87,9 +87,11 @@ namespace RimWorldAccess.Shell
             Claim("notifications.delete", delegate { DeleteSelected(); });
         }
 
+        internal const string ScreenName = "notifications";
+
         public override string Name
         {
-            get { return "notifications"; }
+            get { return ScreenName; }
         }
 
         /// <summary>No owning <c>Window</c> exists for this windowless overlay — self-claim Escape.</summary>
@@ -190,6 +192,13 @@ namespace RimWorldAccess.Shell
 
             RefreshModel();
             Model.CurrentRegion?.MoveFirst();
+            if (ScreenReturn.TryTakeCursor(Name, out ListReturnCursor saved))
+            {
+                int row = items.FindIndex(i => i.SameSource(saved.Item as NotificationMenuState.NotificationItem));
+                row = row >= 0 ? row : Math.Min(saved.Index, items.Count - 1);
+                if (row >= 0)
+                    Model.CurrentRegion?.MoveTo(row);
+            }
             detailHelper.RefreshButtons();
             AnnounceCurrentSelection();
         }

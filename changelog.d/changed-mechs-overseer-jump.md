@@ -1,0 +1,1 @@
+In the mechs table, pressing Enter on the Overseer cell now jumps to and selects that mech's overseer, the same as clicking it. With interaction hints on, the Name and Overseer cells remind you that Enter jumps.

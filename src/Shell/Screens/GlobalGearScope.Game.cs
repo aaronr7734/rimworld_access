@@ -397,10 +397,12 @@ namespace RimWorldAccess.Shell
             }
             window.Close();
             CameraJumper.TryJumpAndSelect(pawn);
-            if (!WindowlessInspectionState.OpenTabLandingOn(typeof(ITab_Pawn_Gear), holder.Thing))
+            bool landed = WindowlessInspectionState.OpenTabLandingOn(typeof(ITab_Pawn_Gear), holder.Thing);
+            if (!landed)
             {
                 MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
             }
+            ArmReturn(landed, GlobalGearWindow.Open);
         }
 
         /// <summary>Alt+I: the held thing's own card on a holder row, so condition and quality are its own.</summary>

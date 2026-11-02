@@ -10,13 +10,13 @@
   <!-- Node summaries. {0} = the node's name (one of the Node strings above), {1} = how many pawns it holds, then {2} (or {1} in the One forms) = the soonest time left before bleeding out ("2 hours") or the lowest overall health ("38%"). NotSoon is used when no one in the node bleeds out within a day. -->
   <RimWorldAccess.GlobalHealth.Summary.None>{0}. Aucun</RimWorldAccess.GlobalHealth.Summary.None>
   <RimWorldAccess.GlobalHealth.Summary.BleedOut>{0}. {1} personnages, le plus pressé se vide de son sang dans {2}</RimWorldAccess.GlobalHealth.Summary.BleedOut>
-  <RimWorldAccess.GlobalHealth.Summary.BleedOutOne>{0}. 1 personnage, se vide de son sang dans {1}</RimWorldAccess.GlobalHealth.Summary.BleedOutOne>
+  <RimWorldAccess.GlobalHealth.Summary.BleedOutPawn>{0}. {1}, se vide de son sang dans {2}</RimWorldAccess.GlobalHealth.Summary.BleedOutPawn>
   <RimWorldAccess.GlobalHealth.Summary.NotSoon>{0}. {1} personnages, aucun en danger immédiat</RimWorldAccess.GlobalHealth.Summary.NotSoon>
-  <RimWorldAccess.GlobalHealth.Summary.NotSoonOne>{0}. 1 personnage, pas de danger immédiat</RimWorldAccess.GlobalHealth.Summary.NotSoonOne>
+  <RimWorldAccess.GlobalHealth.Summary.NotSoonPawn>{0}. {1}, pas de danger immédiat</RimWorldAccess.GlobalHealth.Summary.NotSoonPawn>
   <RimWorldAccess.GlobalHealth.Summary.Deathless>{0}. {1} personnages, tous immortels</RimWorldAccess.GlobalHealth.Summary.Deathless>
-  <RimWorldAccess.GlobalHealth.Summary.DeathlessOne>{0}. 1 personnage, immortel</RimWorldAccess.GlobalHealth.Summary.DeathlessOne>
+  <RimWorldAccess.GlobalHealth.Summary.DeathlessPawn>{0}. {1}, immortel</RimWorldAccess.GlobalHealth.Summary.DeathlessPawn>
   <RimWorldAccess.GlobalHealth.Summary.LowestHealth>{0}. {1} personnages, santé minimale {2}</RimWorldAccess.GlobalHealth.Summary.LowestHealth>
-  <RimWorldAccess.GlobalHealth.Summary.HealthOne>{0}. 1 personnage, santé {1}</RimWorldAccess.GlobalHealth.Summary.HealthOne>
+  <RimWorldAccess.GlobalHealth.Summary.HealthPawn>{0}. {1}, santé {2}</RimWorldAccess.GlobalHealth.Summary.HealthPawn>
   <!-- {0} = the pawn's name with its group (one of the PawnGroup strings below), {1} = its health tag (one of the PawnHealth.Tag strings below). -->
   <RimWorldAccess.GlobalHealth.PawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.PawnRow>
   <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns are now listed. -->
@@ -49,4 +49,23 @@
   <RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves>Prisonniers et esclaves</RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves>
   <RimWorldAccess.PawnGroup.Filter.Visitors>Visiteurs</RimWorldAccess.PawnGroup.Filter.Visitors>
   <RimWorldAccess.PawnGroup.Filter.Hostiles>Hostiles</RimWorldAccess.PawnGroup.Filter.Hostiles>
+  <RimWorldAccess.GlobalHealth.Node.Sick>Malades</RimWorldAccess.GlobalHealth.Node.Sick>
+  <RimWorldAccess.GlobalHealth.Summary.Sick>{0}. {1} personnages, en priorité {2}, {3}</RimWorldAccess.GlobalHealth.Summary.Sick>
+  <RimWorldAccess.GlobalHealth.Summary.SickPawn>{0}. {1}, {2}</RimWorldAccess.GlobalHealth.Summary.SickPawn>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreat>{0}. {1} personnages, danger de mort pour {2}, {3}</RimWorldAccess.GlobalHealth.Summary.SickThreat>
+  <RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>{0}. {1}, danger de mort, {2}</RimWorldAccess.GlobalHealth.Summary.SickThreatPawn>
+  <RimWorldAccess.GlobalHealth.SickPawnRow>{0}. {1}</RimWorldAccess.GlobalHealth.SickPawnRow>
+  <RimWorldAccess.GlobalHealth.DiseaseThreat>{0}, danger de mort</RimWorldAccess.GlobalHealth.DiseaseThreat>
+  <RimWorldAccess.GlobalHealth.Care.NeedRescue>{0} à secourir</RimWorldAccess.GlobalHealth.Care.NeedRescue>
+  <RimWorldAccess.GlobalHealth.Care.NeedRescueOne>1 à secourir</RimWorldAccess.GlobalHealth.Care.NeedRescueOne>
+  <RimWorldAccess.GlobalHealth.Care.NeedTend>{0} à soigner</RimWorldAccess.GlobalHealth.Care.NeedTend>
+  <RimWorldAccess.GlobalHealth.Care.NeedTendOne>1 à soigner</RimWorldAccess.GlobalHealth.Care.NeedTendOne>
+  <RimWorldAccess.GlobalHealth.Care.Untended>{0} maladies non soignées</RimWorldAccess.GlobalHealth.Care.Untended>
+  <RimWorldAccess.GlobalHealth.Care.UntendedOne>1 maladie non soignée</RimWorldAccess.GlobalHealth.Care.UntendedOne>
+  <RimWorldAccess.GlobalHealth.Care.Threats>{0} en danger de mort</RimWorldAccess.GlobalHealth.Care.Threats>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>à secourir et à soigner</RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>à secourir</RimWorldAccess.GlobalHealth.Care.Pawn.Rescue>
+  <RimWorldAccess.GlobalHealth.Care.Pawn.Tend>à soigner</RimWorldAccess.GlobalHealth.Care.Pawn.Tend>
+  <RimWorldAccess.GlobalHealth.Care.AllNeedRescue>tous à secourir</RimWorldAccess.GlobalHealth.Care.AllNeedRescue>
+  <RimWorldAccess.GlobalHealth.Care.AllNeedTend>tous à soigner</RimWorldAccess.GlobalHealth.Care.AllNeedTend>
 </LanguageData>

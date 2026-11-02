@@ -302,10 +302,10 @@ namespace RimWorldAccess.Shell
             // The categories exist only now, so a requested landing resolves here.
             InspectionTreeItem landing =
                 WindowlessInspectionState.FindCategoryForTabType(single, landingTab);
-            Thing landingThing = WindowlessInspectionState.ConsumeLandingThing();
+            object landingTarget = WindowlessInspectionState.ConsumeLandingTarget();
             if (landing != null)
             {
-                landing = FindRowPresenting(landing, landingThing) ?? landing;
+                landing = FindRowPresenting(landing, landingTarget) ?? landing;
             }
             if (landing == null || !TryRevealAndSelect(landing))
             {
@@ -318,16 +318,16 @@ namespace RimWorldAccess.Shell
             return true;
         }
 
-        internal InspectionTreeItem FindRowPresenting(InspectionTreeItem category, Thing thing)
+        internal InspectionTreeItem FindRowPresenting(InspectionTreeItem category, object target)
         {
-            if (category == null || thing == null)
+            if (category == null || target == null)
             {
                 return null;
             }
             OnBeforeExpandNode(category);
             foreach (InspectionTreeItem child in category.Children)
             {
-                if (Presents(child, thing))
+                if (Presents(child, target))
                 {
                     return child;
                 }
@@ -338,7 +338,7 @@ namespace RimWorldAccess.Shell
                 OnBeforeExpandNode(child);
                 foreach (InspectionTreeItem grandchild in child.Children)
                 {
-                    if (Presents(grandchild, thing))
+                    if (Presents(grandchild, target))
                     {
                         return grandchild;
                     }
@@ -347,9 +347,14 @@ namespace RimWorldAccess.Shell
             return null;
         }
 
-        private static bool Presents(InspectionTreeItem item, Thing thing)
+        private static bool Presents(InspectionTreeItem item, object target)
         {
-            return item.Data is InteractiveGearHelper.GearItem gear && ReferenceEquals(gear.Thing, thing);
+            if (item.Data is InteractiveGearHelper.GearItem gear)
+            {
+                return ReferenceEquals(gear.Thing, target);
+            }
+            return item.Data is Hediff row && target is Hediff hediff
+                && (ReferenceEquals(row, hediff) || (row.Part == hediff.Part && row.UIGroupKey == hediff.UIGroupKey));
         }
 
         protected override ElementDescription DescribeTreeNode(InspectionTreeItem item)

@@ -131,4 +131,5 @@
 
   <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
   <RimWorldAccess.Mechs.PercentRange>{0} 至 {1}</RimWorldAccess.Mechs.PercentRange>
+  <RimWorldAccess.Mechs.Menu.OverseerUnavailable>无法找到监管者。</RimWorldAccess.Mechs.Menu.OverseerUnavailable>
 </LanguageData>

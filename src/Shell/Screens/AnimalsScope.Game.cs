@@ -289,6 +289,8 @@ namespace RimWorldAccess.Shell
             announcedOpen = true;
             if (animalsList.Count == 0)
                 return; // AnimalsMenuState.Open() already refused to open/announce for an empty roster.
+            if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
+                saved.LandOn(Model.CurrentTable, animalsList);
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             string tabCount = TabCountFragment();
@@ -406,6 +408,7 @@ namespace RimWorldAccess.Shell
                 return;
             }
             IntVec3 position = pawn.Position;
+            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Animals, pawn, Model.CurrentTable);
             Close();
             MapNavigationState.CurrentCursorPosition = position;
             Find.CameraDriver?.JumpToCurrentMapLoc(position);

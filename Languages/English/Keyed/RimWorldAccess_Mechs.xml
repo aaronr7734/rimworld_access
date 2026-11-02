@@ -49,6 +49,7 @@
   <RimWorldAccess.Mechs.Menu.Closed>Mechs menu closed</RimWorldAccess.Mechs.Menu.Closed>
   <RimWorldAccess.Mechs.Menu.NoMechs>No mechs</RimWorldAccess.Mechs.Menu.NoMechs>
   <RimWorldAccess.Mechs.Menu.NotOnMap>Mech not on map</RimWorldAccess.Mechs.Menu.NotOnMap>
+  <RimWorldAccess.Mechs.Menu.OverseerUnavailable>The overseer cannot be located.</RimWorldAccess.Mechs.Menu.OverseerUnavailable>
 
   <!-- =================================================================
        Draft column interaction (Enter on Draft cell). CannotDraft is the

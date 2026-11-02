@@ -862,7 +862,7 @@ namespace RimWorldAccess.Shell
         /// <summary>
         /// The log tab's own row click (<see cref="CameraJumper.TryJumpAndSelect"/>), gated by
         /// <see cref="CameraJumper.CanJump"/>. The window closes so the player lands on the pawn;
-        /// reopening returns to this entry.
+        /// Escape there, or any reopening, returns to this entry.
         /// </summary>
         private void JumpTo(Pawn pawn)
         {
@@ -874,6 +874,7 @@ namespace RimWorldAccess.Shell
             window.Close();
             CameraJumper.TryJumpAndSelect(pawn);
             MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
+            ScreenReturn.Arm(ScreenReturn.Binding.Map, Name, null, GlobalLogWindow.Open);
         }
     }
 }

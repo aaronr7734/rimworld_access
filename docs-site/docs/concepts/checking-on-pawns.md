@@ -31,13 +31,17 @@ The menu updates itself while it is open, paused or not. If the pawn or item you
 
 ## The health overview (Alt+Shift+H)
 
-After a raid, or whenever you want to know who needs a doctor, press **Alt+Shift+H** for the health overview. It lists every downed, bleeding, or injured pawn you can see on the current map, so healthy pawns stay out of the way. It is also in the F12 extras menu.
+After a raid, or whenever you want to know who needs a doctor, press **Alt+Shift+H** for the health overview. It lists every downed, bleeding, injured, or sick pawn you can see on the current map, so healthy pawns stay out of the way. It is also in the F12 extras menu.
 
-The overview always has the same four headings, in this order: Downed and bleeding, Downed, Bleeding, and Injured. Each pawn shows up under exactly one of them, the first that fits, so someone who is downed and bleeding is only listed under Downed and bleeding. A Deathless pawn who is bleeding still counts as bleeding. Injured is everyone who is hurt but neither downed nor bleeding.
+The overview always has five headings: Downed and bleeding, Downed, Bleeding, Injured, and Sick. A hurt pawn shows up under exactly one of the first four, the first that fits, so someone who is downed and bleeding is only listed under Downed and bleeding. A Deathless pawn who is bleeding still counts as bleeding. Injured is everyone who is hurt but neither downed nor bleeding.
 
-Every heading sums up what is under it, like "Bleeding. 3 pawns, soonest bleeds out in 2 hours", "Injured. 4 pawns, lowest 38% health", or "Downed. None". Inside a heading the most urgent pawn comes first: whoever will bleed out soonest, otherwise whoever has the lowest health. Each pawn reads their name and who they are (colonist, colony animal, prisoner, visitor, hostile and so on), then whether they are downed, how long until they bleed out, and their overall health.
+Sick is separate: anyone with a disease the game would give them the "sick" mood for, like the flu, plague, malaria, sleeping sickness, gut worms, muscle parasites, or an infection, is listed there too, even if they also appear under an injury heading. Sick normally comes last, but it moves to the top while one of its diseases is life-threatening.
 
-Use **Right** and **Left** to open and close a heading, or just start typing a name to find a pawn anywhere in the tree. Press **Enter** on a pawn to close the overview, jump to them, and open their health tab.
+Every heading sums up what is under it, like "Bleeding. 3 pawns, soonest bleeds out in 2 hours", "Injured. 4 pawns, lowest 38% health", "Sick. 2 pawns, most urgent Ana, Flu (major): 52%", or "Downed. None". Inside a heading the most urgent pawn comes first: whoever will bleed out soonest, otherwise whoever has the lowest health. Each pawn reads their name and who they are (colonist, colony animal, prisoner, visitor, hostile and so on), then whether they are downed, how long until they bleed out, and their overall health.
+
+Under Sick, the most urgent pawn is whoever has a life-threatening disease, then whoever is closest to losing the race between their immunity and the disease. Each sick pawn reads their name and who they are, then every disease with its severity. Open a pawn with **Right** to get one row per disease, with its severity, a medical emergency warning when it is life-threatening, their immunity, and whether it is tended or needs tending, all read from the game's own tooltip.
+
+Use **Right** and **Left** to open and close a heading, or just start typing a name to find a pawn anywhere in the tree. Press **Enter** on a pawn to close the overview, jump to them, and open their health tab. Press **Enter** on a disease to do the same with the cursor already on that disease. **Alt+I** opens the pawn's info card, or the disease's on a disease row.
 
 Press **Tab** to reach the filters: Colonists, Colony animals, Colony mechanoids, Prisoners and slaves, Visitors, and Hostiles. They all start checked. Press **Enter** or **Space** on one to hide or show that group, and the overview tells you how many pawns are left. Wild animals are never listed, and other pawns with no faction, like a wild man, count as visitors. Your filters are remembered, separately from the gear menu.
 

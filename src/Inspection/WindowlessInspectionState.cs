@@ -35,7 +35,7 @@ namespace RimWorldAccess
 
         private static Type pendingLandingTabType;
 
-        private static Thing pendingLandingThing;
+        private static object pendingLandingTarget;
 
         /// <summary>
         /// Hands a freshly built tree to the scope, which presents it and speaks the opening
@@ -77,7 +77,7 @@ namespace RimWorldAccess
             treeRoot = null;
             pendingOpening = null;
             pendingLandingTabType = null;
-            pendingLandingThing = null;
+            pendingLandingTarget = null;
             InspectionScope live = InspectionScope.Live;
             if (live != null)
             {
@@ -207,24 +207,24 @@ namespace RimWorldAccess
             return type;
         }
 
-        internal static bool OpenTabLandingOn(Type tabType, Thing target)
+        internal static bool OpenTabLandingOn(Type tabType, object target)
         {
-            pendingLandingThing = target;
+            pendingLandingTarget = target;
             try
             {
                 return InspectPaneUtility.OpenTab(tabType) != null && IsActive;
             }
             finally
             {
-                pendingLandingThing = null;
+                pendingLandingTarget = null;
             }
         }
 
-        internal static Thing ConsumeLandingThing()
+        internal static object ConsumeLandingTarget()
         {
-            Thing thing = pendingLandingThing;
-            pendingLandingThing = null;
-            return thing;
+            object target = pendingLandingTarget;
+            pendingLandingTarget = null;
+            return target;
         }
 
         /// <summary>The Category row presenting the given inspect-tab type, at any depth.</summary>
@@ -261,7 +261,7 @@ namespace RimWorldAccess
             {
                 return false;
             }
-            live.RefreshTreeRowsLandingOn(live.FindRowPresenting(node, ConsumeLandingThing()) ?? node);
+            live.RefreshTreeRowsLandingOn(live.FindRowPresenting(node, ConsumeLandingTarget()) ?? node);
             live.AnnounceCurrentRow();
             return true;
         }
@@ -313,6 +313,7 @@ namespace RimWorldAccess
         {
             IsActive = false;
             parentObject = null;
+            ScreenReturn.Discard(ScreenReturn.Binding.Inspection);
             ClearTree();
 
             if (previousSelection.Count > 0)
@@ -359,6 +360,7 @@ namespace RimWorldAccess
         {
             IsActive = false;
             parentObject = null;
+            ScreenReturn.Discard(ScreenReturn.Binding.Inspection);
             previousSelection.Clear();
             ClearTree();
         }
@@ -446,6 +448,7 @@ namespace RimWorldAccess
             if (!IsActive)
                 return;
 
+            ScreenReturn.Point returnPoint = ScreenReturn.Take(ScreenReturn.Binding.Inspection);
             if (parentObject != null)
             {
                 var parent = parentObject;
@@ -453,12 +456,16 @@ namespace RimWorldAccess
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 // No parent of its own: the walk-back never goes deeper than two levels.
                 OpenForObject(parent);
+                ScreenReturn.Restore(returnPoint);
             }
             else
             {
                 Close();
                 SoundDefOf.Click.PlayOneShotOnCamera();
-                TolkHelper.Speak("RimWorldAccess.Inspection.Panel.PanelClosed".Loc());
+                if (!ScreenReturn.ReturnOnCancel(returnPoint))
+                {
+                    TolkHelper.Speak("RimWorldAccess.Inspection.Panel.PanelClosed".Loc());
+                }
             }
         }
     }

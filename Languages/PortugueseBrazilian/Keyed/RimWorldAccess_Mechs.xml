@@ -140,4 +140,5 @@
 
   <!-- Percentage range readout: {0} = min percent, {1} = max percent. -->
   <RimWorldAccess.Mechs.PercentRange>{0} a {1}</RimWorldAccess.Mechs.PercentRange>
+  <RimWorldAccess.Mechs.Menu.OverseerUnavailable>Não foi possível localizar o supervisor.</RimWorldAccess.Mechs.Menu.OverseerUnavailable>
 </LanguageData>

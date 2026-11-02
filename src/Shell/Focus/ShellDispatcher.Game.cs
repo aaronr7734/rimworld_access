@@ -176,6 +176,10 @@ namespace RimWorldAccess.Shell
                 FlightRecorder.RecordPointerFrame();
                 FlightRecorder.RecordMouseDown(e);
                 FlightRecorder.RecordMouseDrag(e);
+                if (e.type == EventType.MouseDown)
+                {
+                    ScreenReturn.Discard(ScreenReturn.Binding.Map);
+                }
 
                 // The KeyUp half of the modal swallow: vanilla sees a used event identically
                 // wherever it was consumed, so swallowing KeyUp this early is safe.
@@ -275,8 +279,11 @@ namespace RimWorldAccess.Shell
                     altHeld,
                     e.character);
 
+                ScreenReturn.Point mapReturn = e.keyCode != KeyCode.None ? ScreenReturn.BeforeKey() : null;
                 string consumedActionId;
-                if (FocusStack.Dispatch(snapshot, out consumedActionId))
+                bool consumed = FocusStack.Dispatch(snapshot, out consumedActionId);
+                ScreenReturn.AfterKey(mapReturn);
+                if (consumed)
                 {
                     if (trace != null)
                     {

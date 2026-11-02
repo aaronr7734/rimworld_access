@@ -250,12 +250,30 @@ namespace RimWorldAccess.Shell
             // A re-push keeps the live tree, and with it the cursor and expansion.
             if (Tree.Root == null)
             {
-                MapPawnGroupFilter shown = ShownGroups;
-                builtSignature = ContentSignature(shown);
-                lastRebuildTime = Time.realtimeSinceStartup;
-                SetTreeRoot(BuildRoot(shown));
+                if (ScreenReturn.TryTakeCursor(Name, out TreeReturnCursor saved))
+                {
+                    SetTreeRoot(saved.Root);
+                    Rebuild(saved.Index);
+                }
+                else
+                {
+                    MapPawnGroupFilter shown = ShownGroups;
+                    builtSignature = ContentSignature(shown);
+                    lastRebuildTime = Time.realtimeSinceStartup;
+                    SetTreeRoot(BuildRoot(shown));
+                }
             }
             base.OnPush();
+        }
+
+        /// <summary>
+        /// Records this screen as the return point of a hand-off that just closed it: Escape on the
+        /// pawn's tab, or on the map when no tab opened, runs <paramref name="reopen"/> and lands on this row.
+        /// </summary>
+        protected void ArmReturn(bool landedOnTab, Action reopen)
+        {
+            ScreenReturn.Arm(landedOnTab ? ScreenReturn.Binding.Inspection : ScreenReturn.Binding.Map,
+                Name, new TreeReturnCursor(Tree.Root, CurrentRowIndex), reopen);
         }
 
         protected override bool ShouldAutoExpandForSearch(InspectionTreeItem item)
@@ -289,17 +307,16 @@ namespace RimWorldAccess.Shell
             lastRebuildTime = Time.realtimeSinceStartup;
             if (ContentSignature(ShownGroups) != builtSignature)
             {
-                Rebuild();
+                Rebuild(CurrentRowIndex);
             }
         }
 
-        private void Rebuild()
+        private void Rebuild(int oldIndex)
         {
             MapPawnGroupFilter shown = ShownGroups;
             builtSignature = ContentSignature(shown);
             lastRebuildTime = Time.realtimeSinceStartup;
 
-            int oldIndex = CurrentRowIndex;
             int index = SetTreeRootPreservingState(BuildRoot(shown), oldIndex, TreeStatePreserve.CursorRule.FollowData);
             if (index < 0)
             {
@@ -465,7 +482,7 @@ namespace RimWorldAccess.Shell
             bool next = !FilterValue(index);
             ShownGroups = next ? ShownGroups | Filters[index] : ShownGroups & ~Filters[index];
             LoadedModManager.GetMod<RimWorldAccessMod_Settings>()?.WriteSettings();
-            Rebuild();
+            Rebuild(CurrentRowIndex);
             string state = AnnouncementComposer.ComposeStateChange(
                 new ElementDescription { Check = next ? CheckState.Checked : CheckState.Unchecked },
                 TranslatedShellVocabulary.Instance);

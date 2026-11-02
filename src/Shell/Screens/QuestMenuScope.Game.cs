@@ -680,10 +680,16 @@ namespace RimWorldAccess.Shell
                     string buttonLabel = string.IsNullOrEmpty(targetLabel)
                         ? (string)"RimWorldAccess.Quests.Button.JumpToLocation".Translate()
                         : (string)"RimWorldAccess.Quests.Button.JumpToTarget".Translate(targetLabel);
+                    Quest returnQuest = quest;
                     actions.Add(new ScreenAction(buttonLabel, delegate
                     {
                         CameraJumper.TryJumpAndSelect(localTarget);
                         QuestMenuState.Close();
+                        ScreenReturn.Arm(ScreenReturn.Binding.Map, Name, null, delegate
+                        {
+                            QuestMenuState.PendingSelectQuest = returnQuest;
+                            MainTabWindowLink.EnsureTabOpen(MainTabWindowLink.Quests);
+                        });
                     }));
                 }
 
