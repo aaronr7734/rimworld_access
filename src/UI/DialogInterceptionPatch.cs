@@ -52,7 +52,7 @@ namespace RimWorldAccess
             }
 
             // Special handling for FloatMenu when:
-            // 1. Executing a gizmo (e.g., long-range scanner mineral selection)
+            // 1. A windowless-menu batch, i.e. executing a gizmo (e.g., long-range scanner mineral selection)
             // 2. Confirming a transport pod destination (arrival options)
             // 3. Running a windowless menu option that opens its own vanilla FloatMenu
             //    (e.g. Vehicle Framework's turret reload ammo picker)
@@ -70,7 +70,7 @@ namespace RimWorldAccess
             // 8. A compat scope reflectively invoking a mod delegate that may open its
             //    own FloatMenu (e.g. RimTalk-family Discuss buttons) — see ScopeDelegateGuard.
             if (window is FloatMenu floatMenu &&
-                (GizmoNavigationState.IsExecutingGizmo || TransportPodLaunchState.IsConfirmingDestination
+                (WindowlessFloatMenuState.IsBatching || TransportPodLaunchState.IsConfirmingDestination
                     || WindowlessFloatMenuState.IsExecutingOption || ExternalWorldTargeting.IsConfirming
                     || InspectTabCaptureService.ActivationInFlight || MenuNavigationState.IsExecutingOption
                     || CharEditorCompat.DelegateInFlight || RimWorldAccess.Shell.ScopeDelegateGuard.InFlight))
@@ -86,12 +86,7 @@ namespace RimWorldAccess
                         TransportPodLaunchState.ClearConfirmingFlag();
                         ExternalWorldTargeting.IsConfirming = false;
 
-                        // Grouped members may open one menu each: the last wins, announced once after.
-                        bool deferAnnouncement = GizmoNavigationState.IsExecutingGizmo;
-                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders, playOpenSound: false,
-                            announceFirst: !deferAnnouncement);
-                        if (deferAnnouncement)
-                            GizmoNavigationState.NoteMenuInterceptedDuringExecution();
+                        WindowlessFloatMenuState.Open(options, floatMenu.givesColonistOrders, playOpenSound: false);
                         return false; // Prevent FloatMenu from being added
                     }
                 }

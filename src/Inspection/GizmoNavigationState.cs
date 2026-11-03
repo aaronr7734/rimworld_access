@@ -31,7 +31,7 @@ namespace RimWorldAccess
         private static bool pawnJustSelected = false;
         private static TypeaheadSearchHelper typeahead = new TypeaheadSearchHelper();
         private static bool isExecutingGizmo = false;
-        private static bool menuInterceptedDuringExecution = false;
+        private static bool lastExecutionOpenedMenu = false;
 
         /// <summary>Which opener built the current list, so a toggle can rebuild it in place.</summary>
         private enum MenuSource { None, Selection, CursorTile, World }
@@ -44,15 +44,10 @@ namespace RimWorldAccess
 
         public static bool IsActive => isActive;
 
-        /// <summary>True while a gizmo's own handler runs — DialogInterceptionPatch intercepts FloatMenus only then.</summary>
+        /// <summary>True while a gizmo's own handler runs.</summary>
         public static bool IsExecutingGizmo => isExecutingGizmo;
 
-        internal static void NoteMenuInterceptedDuringExecution()
-        {
-            menuInterceptedDuringExecution = true;
-        }
-
-        internal static bool LastExecutionOpenedMenu => menuInterceptedDuringExecution;
+        internal static bool LastExecutionOpenedMenu => lastExecutionOpenedMenu;
 
         /// <summary>Whether a pawn was just selected via the , or . keys; cleared when the map cursor moves.</summary>
         public static bool PawnJustSelected
@@ -843,7 +838,7 @@ namespace RimWorldAccess
         /// <param name="mouseButton">1 replays vanilla's right-click on a gizmo with no float menu options.</param>
         private static void ExecuteSelected(int mouseButton)
         {
-            menuInterceptedDuringExecution = false;
+            lastExecutionOpenedMenu = false;
             if (!isActive || availableGizmos.Count == 0)
                 return;
 
@@ -884,8 +879,9 @@ namespace RimWorldAccess
             fakeEvent.type = EventType.Used;
             fakeEvent.button = mouseButton;
 
-            // Lets DialogInterceptionPatch intercept any FloatMenu the gizmo opens.
+            // The batch lets DialogInterceptionPatch intercept any FloatMenu the gizmo opens.
             isExecutingGizmo = true;
+            WindowlessFloatMenuState.BeginBatch();
 
             try
             {
@@ -969,8 +965,7 @@ namespace RimWorldAccess
             finally
             {
                 isExecutingGizmo = false;
-                if (menuInterceptedDuringExecution)
-                    WindowlessFloatMenuState.AnnounceOpened();
+                lastExecutionOpenedMenu = WindowlessFloatMenuState.EndBatch();
             }
         }
     }

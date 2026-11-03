@@ -256,8 +256,6 @@ namespace RimWorldAccess.Shell
 
         internal void OnGuiPass()
         {
-            TextDialogCapture.EndPass();
-
             // Keep the live buffer mirrored into the field vanilla draws and its raw Enter poll
             // reads on submit. No-op in browse mode.
             session.MirrorLive();
@@ -533,9 +531,9 @@ namespace RimWorldAccess.Shell
     public static class GiveNameDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_GiveName __instance, out bool __state)
+        public static void Prefix(Dialog_GiveName __instance, out GiveNameScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 GiveNameScope scope = GiveNameScope.OwningScope(__instance);
@@ -544,7 +542,7 @@ namespace RimWorldAccess.Shell
                     // Vanilla's raw Return poll is masked for the whole body: this scope claims
                     // Enter on every row, and OK submits through the button's own click.
                     TextFieldRawPollGuard.MaskAcceptPoll(scope.ShouldMaskAcceptPoll);
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass();
                 }
             }
@@ -554,30 +552,13 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        // OK closes the dialog inside its own body, popping the scope, so the passes close regardless.
         [HarmonyFinalizer]
-        public static void Finalizer(Dialog_GiveName __instance, Exception __exception, bool __state)
+        public static void Finalizer(Exception __exception, GiveNameScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                TextFieldRawPollGuard.RestoreAcceptPoll();
-                GiveNameScope scope = __exception == null ? GiveNameScope.OwningScope(__instance) : null;
-                if (scope != null)
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    TextDialogCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("GiveName dialog draw pass error", ex);
+                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
+                    () => TextDialogCapture.EndMaskedPass(), s => s.OnGuiPass(), "GiveName dialog draw pass error");
             }
         }
     }

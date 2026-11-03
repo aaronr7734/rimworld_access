@@ -1,4 +1,5 @@
 using RimWorld;
+using RimWorldAccess.Shell;
 using Verse;
 
 namespace RimWorldAccess
@@ -39,11 +40,7 @@ namespace RimWorldAccess
         public static string Describe(CompAnimalPenMarker marker)
         {
             string inspect = marker.CompInspectStringExtra();
-            if (string.IsNullOrEmpty(inspect))
-            {
-                return null;
-            }
-            return InspectionInfoHelper.FormatInspectStringWithPunctuation(inspect.StripTags()).Replace('\n', ' ');
+            return string.IsNullOrEmpty(inspect) ? null : SpeechFlatten.ToSentences(inspect.StripTags());
         }
     }
 }

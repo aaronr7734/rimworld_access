@@ -1058,46 +1058,17 @@ namespace RimWorldAccess
 
             Vector3 currentPos = Find.WorldGrid.GetTileCenter(fromTile);
             Vector3 targetPos = Find.WorldGrid.GetTileCenter(toTile);
-            Vector3 up = currentPos.normalized;
-            Vector3 north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
-            Vector3 east = Vector3.Cross(up, north).normalized;
-
-            List<PlanetTile> neighbors = new List<PlanetTile>();
-            Find.WorldGrid.GetTileNeighbors(fromTile, neighbors);
+            ScannerDirectionHelper.TangentBasis(currentPos, out Vector3 north, out Vector3 east);
 
             // Only the four cardinals the arrow keys support.
-            var cardinalDirections = new (string name, Vector3 dir)[]
-            {
-                ("north", north),
-                ("east", east),
-                ("south", -north),
-                ("west", -east)
-            };
-
-            foreach (var (name, desiredDir) in cardinalDirections)
-            {
-                // The neighbor MoveInDirection would select for this direction.
-                PlanetTile bestNeighbor = PlanetTile.Invalid;
-                float bestDot = -2f;
-
-                foreach (PlanetTile neighbor in neighbors)
-                {
-                    Vector3 neighborPos = Find.WorldGrid.GetTileCenter(neighbor);
-                    Vector3 dirToNeighbor = (neighborPos - currentPos).normalized;
-                    float dot = Vector3.Dot(dirToNeighbor, desiredDir);
-
-                    if (dot > bestDot)
-                    {
-                        bestDot = dot;
-                        bestNeighbor = neighbor;
-                    }
-                }
-
-                if (bestNeighbor.Valid && bestNeighbor.tileId == toTile.tileId)
-                {
-                    return name;
-                }
-            }
+            if (WorldNavigationState.BestNeighborToward(fromTile, north).tileId == toTile.tileId)
+                return "north";
+            if (WorldNavigationState.BestNeighborToward(fromTile, east).tileId == toTile.tileId)
+                return "east";
+            if (WorldNavigationState.BestNeighborToward(fromTile, -north).tileId == toTile.tileId)
+                return "south";
+            if (WorldNavigationState.BestNeighborToward(fromTile, -east).tileId == toTile.tileId)
+                return "west";
 
             // Not reachable in one press: the 8-way name tells the player two are needed.
             return GetCompassDirection(currentPos, targetPos, north, east);

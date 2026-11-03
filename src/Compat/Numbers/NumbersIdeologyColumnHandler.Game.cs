@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -15,12 +14,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            var surface = new ReflectionSurface("NumbersIdeologyColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_Ideology");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersIdeologyColumnHandler());
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Ideology", new NumbersIdeologyColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)

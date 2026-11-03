@@ -531,15 +531,15 @@ namespace RimWorldAccess.Shell
     public static class NodeTreeDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_NodeTree __instance, out bool __state)
+        public static void Prefix(Dialog_NodeTree __instance, out NodeTreeScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 NodeTreeScope scope = FocusStack.Top as NodeTreeScope;
                 if (scope != null && scope.Owns(__instance))
                 {
-                    __state = true;
+                    __state = scope;
                     DiaOptionRowCapture.BeginPass();
                     TooltipCapture.BeginPass();
                 }
@@ -551,25 +551,12 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyFinalizer]
-        public static void Finalizer(Dialog_NodeTree __instance, Rect rect, Exception __exception, bool __state)
+        public static void Finalizer(Rect rect, Exception __exception, NodeTreeScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                DiaOptionRowCapture.EndPass();
-                TooltipCapture.EndPass();
-                NodeTreeScope scope = __exception == null ? FocusStack.Top as NodeTreeScope : null;
-                if (scope != null && scope.Owns(__instance))
-                {
-                    scope.OnGuiPass(rect);
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("Node tree draw pass error", ex);
+                CapturePasses.Finish(__state, rect, ReferenceEquals(FocusStack.Top, __state), __exception,
+                    () => { DiaOptionRowCapture.EndPass(); TooltipCapture.EndPass(); }, (s, r) => s.OnGuiPass(r), "Node tree draw pass error");
             }
         }
     }

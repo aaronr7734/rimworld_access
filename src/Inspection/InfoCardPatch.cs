@@ -145,13 +145,11 @@ namespace RimWorldAccess
             private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<Dialog_InfoCard, StatCache> parked =
                 new System.Runtime.CompilerServices.ConditionalWeakTable<Dialog_InfoCard, StatCache>();
 
-            private static readonly StatCache ownerCache = new StatCache();
-
             [HarmonyPrefix]
             [HarmonyPriority(Priority.First)]
-            public static void Prefix(Dialog_InfoCard __instance, out bool __state)
+            public static void Prefix(Dialog_InfoCard __instance, out (List<StatDrawEntry> entries, List<string> values) __state)
             {
-                __state = false;
+                __state = default;
                 Dialog_InfoCard owner = InfoCardState.CurrentDialog;
                 StatCache own;
                 if (owner == null || owner == __instance)
@@ -165,8 +163,7 @@ namespace RimWorldAccess
                     return;
                 }
 
-                ownerCache.entries = Entries;
-                ownerCache.values = Values;
+                __state = (Entries, Values);
                 if (!parked.TryGetValue(__instance, out own))
                 {
                     own = new StatCache();
@@ -174,13 +171,12 @@ namespace RimWorldAccess
                 }
                 Entries = own.entries;
                 Values = own.values;
-                __state = true;
             }
 
             [HarmonyFinalizer]
-            public static void Finalizer(Dialog_InfoCard __instance, bool __state)
+            public static void Finalizer(Dialog_InfoCard __instance, (List<StatDrawEntry> entries, List<string> values) __state)
             {
-                if (!__state)
+                if (__state.entries == null)
                     return;
 
                 if (parked.TryGetValue(__instance, out StatCache own))
@@ -188,10 +184,8 @@ namespace RimWorldAccess
                     own.entries = Entries;
                     own.values = Values;
                 }
-                Entries = ownerCache.entries;
-                Values = ownerCache.values;
-                ownerCache.entries = null;
-                ownerCache.values = null;
+                Entries = __state.entries;
+                Values = __state.values;
             }
         }
 

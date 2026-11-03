@@ -223,8 +223,6 @@ namespace RimWorldAccess.Shell
 
         internal void OnGuiPass()
         {
-            TextDialogCapture.EndPass();
-
             // Keep the shell the sole owner of Unity keyboard focus so the arrow keys reach the
             // dispatcher, and keep vanilla's TextField rendering the live buffer while editing.
             // MirrorLive no-ops in browse mode, leaving curName as the committed value.
@@ -349,15 +347,15 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyPrefix]
-        public static void Prefix(Window __instance, out bool __state)
+        public static void Prefix(Window __instance, out RenameScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 RenameScope scope = RenameScope.OwningScope(__instance);
                 if (scope != null)
                 {
-                    __state = true;
+                    __state = scope;
                     // Mask vanilla's raw Return poll: every row's Enter is this scope's, so the
                     // poll can never submit the rename from under one.
                     TextFieldRawPollGuard.MaskAcceptPoll(scope.ShouldMaskAcceptPoll);
@@ -371,28 +369,12 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyFinalizer]
-        public static void Finalizer(Window __instance, Exception __exception, bool __state)
+        public static void Finalizer(Exception __exception, RenameScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                TextFieldRawPollGuard.RestoreAcceptPoll();
-                RenameScope scope = __exception == null ? RenameScope.OwningScope(__instance) : null;
-                if (scope != null)
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    TextDialogCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("Rename dialog draw pass error", ex);
+                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
+                    () => TextDialogCapture.EndMaskedPass(), s => s.OnGuiPass(), "Rename dialog draw pass error");
             }
         }
     }

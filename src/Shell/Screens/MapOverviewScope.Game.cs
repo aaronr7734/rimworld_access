@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace RimWorldAccess.Shell
 {
@@ -14,11 +15,18 @@ namespace RimWorldAccess.Shell
     public abstract class MapOverviewWindow : Window
     {
         private const float FilterColumnWidth = 220f;
-        private const float FilterRowHeight = 28f;
         private const float RowHeight = TreeRowPainter.RowHeight;
+        private const float MaxButtonWidth = 200f;
 
         private Vector2 scrollPosition;
         private int scrolledTo = -1;
+        private readonly Dictionary<string, string> truncateCache = new Dictionary<string, string>();
+        private float truncatedForWidth = -1f;
+        private int truncatedForVersion = -1;
+        private string title;
+        private LoadedLanguage titleLanguage;
+
+        internal MapOverviewScope Scope;
 
         protected MapOverviewWindow()
         {
@@ -28,14 +36,19 @@ namespace RimWorldAccess.Shell
             resizeable = true;
         }
 
-        protected abstract MapOverviewScope Scope { get; }
+        protected abstract string TitleKey { get; }
 
-        protected abstract string Title { get; }
-
-        /// <summary>The thing whose icon leads a row, or null for none.</summary>
-        protected virtual Thing RowIcon(InspectionTreeItem item)
+        internal string Title
         {
-            return null;
+            get
+            {
+                if (title == null || titleLanguage != LanguageDatabase.activeLanguage)
+                {
+                    titleLanguage = LanguageDatabase.activeLanguage;
+                    title = TitleKey.Translate();
+                }
+                return title;
+            }
         }
 
         public override Vector2 InitialSize
@@ -59,40 +72,27 @@ namespace RimWorldAccess.Shell
             float bodyHeight = buttonRowY - 10f - y;
             if (scope != null)
             {
-                DrawFilters(new Rect(inRect.x, y, FilterColumnWidth, bodyHeight), scope);
+                ScreenControlPainter.DrawCheckboxColumn(new Rect(inRect.x, y, FilterColumnWidth, bodyHeight), scope.FilterRects,
+                    MapOverviewScope.FilterCount, MapOverviewScope.FilterLabel, scope.FilterValue, null, scope.ClickFilter,
+                    scope.FocusedFilterIndex);
                 DrawList(new Rect(inRect.x + FilterColumnWidth + 10f, y, inRect.width - FilterColumnWidth - 10f, bodyHeight), scope);
-                DrawButtons(new Rect(inRect.x, buttonRowY, inRect.width, buttonHeight), scope);
-            }
-        }
-
-        private static void DrawFilters(Rect rect, MapOverviewScope scope)
-        {
-            int focused = scope.FocusedFilterIndex;
-            float y = rect.y;
-            for (int i = 0; i < MapOverviewScope.FilterCount; i++)
-            {
-                Rect row = new Rect(rect.x, y, rect.width, FilterRowHeight);
-                scope.FilterRects[i] = GuiSpace.VisibleScreenRect(row);
-                bool value = scope.FilterValue(i);
-                bool before = value;
-                Widgets.CheckboxLabeled(row, MapOverviewScope.FilterLabel(i), ref value);
-                if (value != before)
-                {
-                    scope.ClickFilter(i);
-                }
-                if (i == focused)
-                {
-                    FocusRing.Draw(row);
-                }
-                y += FilterRowHeight + 2f;
+                ScreenControlPainter.DrawActionRow(new Rect(inRect.x, buttonRowY, inRect.width, buttonHeight),
+                    scope.CurrentActions(), scope.CurrentActionIndex, MaxButtonWidth);
             }
         }
 
         private void DrawList(Rect outer, MapOverviewScope scope)
         {
             scope.FocusedRowRect = default(Rect);
-            IReadOnlyList<InspectionTreeItem> rows = scope.VisibleRows;
-            Rect viewRect = new Rect(0f, 0f, outer.width - 16f, rows.Count * RowHeight);
+            ITreeTwinMount rows = scope.RowCache;
+            int rowCount = rows.RowCount;
+            Rect viewRect = new Rect(0f, 0f, outer.width - 16f, rowCount * RowHeight);
+            if (viewRect.width != truncatedForWidth || scope.TwinRowVersion != truncatedForVersion)
+            {
+                truncateCache.Clear();
+                truncatedForWidth = viewRect.width;
+                truncatedForVersion = scope.TwinRowVersion;
+            }
 
             int focused = scope.CurrentRowIndex;
             if (focused >= 0 && focused != scrolledTo)
@@ -105,23 +105,14 @@ namespace RimWorldAccess.Shell
             Widgets.BeginScrollView(outer, ref scrollPosition, viewRect);
             Text.Anchor = TextAnchor.MiddleLeft;
             int clickedIndex = -1;
-            for (int i = 0; i < rows.Count; i++)
+            for (int i = 0; i < rowCount; i++)
             {
                 Rect rowRect = new Rect(0f, i * RowHeight, viewRect.width, RowHeight);
                 if (rowRect.yMax < scrollPosition.y || rowRect.y > scrollPosition.y + outer.height)
                 {
                     continue;
                 }
-                InspectionTreeItem item = rows[i];
-                var row = new TreeTwinRow
-                {
-                    Label = item.SearchText,
-                    Level = Mathf.Max(0, item.IndentLevel),
-                    IsExpandable = item.IsExpandable,
-                    IsExpanded = item.IsExpanded,
-                    IconThing = RowIcon(item),
-                };
-                TreeRowPainter.DrawRow(row, rowRect, i, i == focused, ringed && i == focused, mouseover: true);
+                TreeRowPainter.DrawRow(rows.RowAt(i), rowRect, i, i == focused, ringed && i == focused, mouseover: true, truncateCache);
                 if (i == focused)
                 {
                     scope.FocusedRowRect = GuiSpace.VisibleScreenRect(rowRect);
@@ -140,29 +131,6 @@ namespace RimWorldAccess.Shell
                 scope.ClickRow(clickedIndex);
             }
         }
-
-        private static void DrawButtons(Rect rect, MapOverviewScope scope)
-        {
-            IReadOnlyList<ScreenAction> actions = scope.CurrentActions();
-            const float spacing = 10f;
-            float width = Mathf.Min(200f, (rect.width - spacing * (actions.Count - 1)) / actions.Count);
-            float x = rect.x;
-            int focusedIndex = scope.CurrentActionIndex;
-            for (int i = 0; i < actions.Count; i++)
-            {
-                ScreenAction action = actions[i];
-                Rect r = new Rect(x, rect.y, width, rect.height);
-                if (Widgets.ButtonText(r, action.Label))
-                {
-                    action.Activate();
-                }
-                if (i == focusedIndex)
-                {
-                    FocusRing.Draw(r);
-                }
-                x += width + spacing;
-            }
-        }
     }
 
     /// <summary>
@@ -179,39 +147,38 @@ namespace RimWorldAccess.Shell
         private const int FiltersRegion = 1;
         private const float LiveRebuildSeconds = 0.25f;
 
-        private static readonly MapPawnGroupFilter[] Filters =
+        private static readonly (MapPawnGroupFilter Flag, string LabelKey)[] Filters =
         {
-            MapPawnGroupFilter.Colonists,
-            MapPawnGroupFilter.ColonyAnimals,
-            MapPawnGroupFilter.ColonyMechs,
-            MapPawnGroupFilter.PrisonersAndSlaves,
-            MapPawnGroupFilter.Visitors,
-            MapPawnGroupFilter.Hostiles,
+            (MapPawnGroupFilter.Colonists, "RimWorldAccess.PawnGroup.Filter.Colonists"),
+            (MapPawnGroupFilter.ColonyAnimals, "RimWorldAccess.PawnGroup.Filter.ColonyAnimals"),
+            (MapPawnGroupFilter.ColonyMechs, "RimWorldAccess.PawnGroup.Filter.ColonyMechs"),
+            (MapPawnGroupFilter.PrisonersAndSlaves, "RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves"),
+            (MapPawnGroupFilter.Visitors, "RimWorldAccess.PawnGroup.Filter.Visitors"),
+            (MapPawnGroupFilter.Hostiles, "RimWorldAccess.PawnGroup.Filter.Hostiles"),
         };
 
-        private static readonly string[] FilterLabelKeys =
-        {
-            "RimWorldAccess.PawnGroup.Filter.Colonists",
-            "RimWorldAccess.PawnGroup.Filter.ColonyAnimals",
-            "RimWorldAccess.PawnGroup.Filter.ColonyMechs",
-            "RimWorldAccess.PawnGroup.Filter.PrisonersAndSlaves",
-            "RimWorldAccess.PawnGroup.Filter.Visitors",
-            "RimWorldAccess.PawnGroup.Filter.Hostiles",
-        };
+        private static readonly string[] filterLabels = new string[Filters.Length];
+        private static LoadedLanguage filterLabelsLanguage;
 
         internal static int FilterCount => Filters.Length;
 
-        private readonly Window window;
-        private readonly List<ScreenAction> actionsBuffer = new List<ScreenAction>();
+        private readonly MapOverviewWindow window;
+        private readonly ScreenAction[] actions;
         private int builtSignature;
         private float lastRebuildTime = -1f;
+        private int listedCount;
 
         internal readonly Rect[] FilterRects = new Rect[Filters.Length];
         internal Rect FocusedRowRect;
 
-        protected MapOverviewScope(Window window)
+        internal readonly ITreeTwinMount RowCache;
+
+        protected MapOverviewScope(MapOverviewWindow window)
         {
             this.window = window;
+            actions = new[] { new ScreenAction((string)"CloseButton".Translate(), delegate { window.Close(); }, SharedMenuGrammar.Cancel) };
+            RowCache = new RowMount(this);
+            Claim(SharedMenuGrammar.Info, e => PerformInfoCard());
         }
 
         protected internal override Window OwnedWindow
@@ -230,11 +197,13 @@ namespace RimWorldAccess.Shell
         /// <summary>A cheap hash of everything the tree would speak for <paramref name="shown"/>; equal means no rebuild.</summary>
         protected abstract int ContentSignature(MapPawnGroupFilter shown);
 
-        /// <summary>A fresh tree; every node's Data is unique among its siblings and stable across rebuilds.</summary>
-        protected abstract InspectionTreeItem BuildRoot(MapPawnGroupFilter shown);
+        /// <summary>A fresh tree, every node's Data unique among its siblings and stable across rebuilds, plus the pawn count the
+        /// filter confirmation speaks. Always called right after <see cref="ContentSignature"/> for the same filter, so it may reuse that scan.</summary>
+        protected abstract InspectionTreeItem BuildRoot(MapPawnGroupFilter shown, out int listed);
 
-        /// <summary>The confirmation after a filter toggle; <paramref name="state"/> is the spoken checkbox state.</summary>
-        protected abstract string FilterChangedAnnouncement(string state);
+        protected abstract string FilterChangedOneKey { get; }
+
+        protected abstract string FilterChangedKey { get; }
 
         /// <summary>Whether a leaf row does something on Enter; the rest read as read-only.</summary>
         protected abstract bool IsActionRow(InspectionTreeItem item);
@@ -245,8 +214,15 @@ namespace RimWorldAccess.Shell
             get { return ElementRole.None; }
         }
 
+        /// <summary>The thing whose icon leads a row, or null for none.</summary>
+        protected virtual Thing RowIcon(InspectionTreeItem item)
+        {
+            return null;
+        }
+
         public override void OnPush()
         {
+            window.Scope = this;
             // A re-push keeps the live tree, and with it the cursor and expansion.
             if (Tree.Root == null)
             {
@@ -258,22 +234,66 @@ namespace RimWorldAccess.Shell
                 else
                 {
                     MapPawnGroupFilter shown = ShownGroups;
-                    builtSignature = ContentSignature(shown);
-                    lastRebuildTime = Time.realtimeSinceStartup;
-                    SetTreeRoot(BuildRoot(shown));
+                    SetTreeRoot(BuildFresh(shown, ContentSignature(shown)));
                 }
             }
             base.OnPush();
         }
 
-        /// <summary>
-        /// Records this screen as the return point of a hand-off that just closed it: Escape on the
-        /// pawn's tab, or on the map when no tab opened, runs <paramref name="reopen"/> and lands on this row.
-        /// </summary>
-        protected void ArmReturn(bool landedOnTab, Action reopen)
+        public override void OnPop()
         {
-            ScreenReturn.Arm(landedOnTab ? ScreenReturn.Binding.Inspection : ScreenReturn.Binding.Map,
+            if (ReferenceEquals(window.Scope, this))
+            {
+                window.Scope = null;
+            }
+            base.OnPop();
+        }
+
+        protected override string ComposeOpenAnnouncement()
+        {
+            return window.Title;
+        }
+
+        /// <summary>
+        /// Closes the window, jumps to the pawn and opens <paramref name="tab"/> on <paramref name="landing"/>. The
+        /// window closes first: the inspect-tab bridge stands down under a foreign dialog. The tab's own tree then
+        /// speaks, so success says nothing here. Escape on the tab, or on the map when no tab opened, runs
+        /// <paramref name="reopen"/> and lands back on this row.
+        /// </summary>
+        protected void HandOffToTab(Pawn pawn, Type tab, object landing, string unavailableKey, Action reopen)
+        {
+            if (pawn.Destroyed || !pawn.Spawned || !CameraJumper.CanJump(pawn))
+            {
+                SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                TolkHelper.SpeakData(unavailableKey.Translate());
+                return;
+            }
+            window.Close();
+            CameraJumper.TryJumpAndSelect(pawn);
+            bool landed = WindowlessInspectionState.OpenTabLandingOn(tab, landing);
+            if (!landed)
+            {
+                MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
+            }
+            ScreenReturn.Arm(landed ? ScreenReturn.Binding.Inspection : ScreenReturn.Binding.Map,
                 Name, new TreeReturnCursor(Tree.Root, CurrentRowIndex), reopen);
+        }
+
+        private void PerformInfoCard()
+        {
+            InspectionTreeItem item = CurrentTreeItem();
+            if (item?.OnInfo != null)
+            {
+                item.OnInfo();
+            }
+            else if (item?.LinkedDef != null)
+            {
+                InfoCardState.OpenInfoCardForDef(item.LinkedDef);
+            }
+            else
+            {
+                InfoCardState.SpeakNoInfoCardAvailable();
+            }
         }
 
         protected override bool ShouldAutoExpandForSearch(InspectionTreeItem item)
@@ -292,9 +312,21 @@ namespace RimWorldAccess.Shell
 
         // Rows.
 
-        internal IReadOnlyList<InspectionTreeItem> VisibleRows
+        private sealed class RowMount : TreeRegionTwinMount
         {
-            get { return Tree.Visible; }
+            private readonly MapOverviewScope owner;
+
+            internal RowMount(MapOverviewScope owner)
+                : base(owner, () => owner.window.Title)
+            {
+                this.owner = owner;
+            }
+
+            protected override void Decorate(InspectionTreeItem item, ref TreeTwinRow row)
+            {
+                row.Label = item.SearchText;
+                row.IconThing = owner.RowIcon(item);
+            }
         }
 
         internal void SyncRows()
@@ -305,24 +337,35 @@ namespace RimWorldAccess.Shell
                 return;
             }
             lastRebuildTime = Time.realtimeSinceStartup;
-            if (ContentSignature(ShownGroups) != builtSignature)
+            MapPawnGroupFilter shown = ShownGroups;
+            int signature = ContentSignature(shown);
+            if (signature != builtSignature)
             {
-                Rebuild(CurrentRowIndex);
+                Rebuild(CurrentRowIndex, shown, signature);
             }
+        }
+
+        private InspectionTreeItem BuildFresh(MapPawnGroupFilter shown, int signature)
+        {
+            builtSignature = signature;
+            lastRebuildTime = Time.realtimeSinceStartup;
+            return BuildRoot(shown, out listedCount);
         }
 
         private void Rebuild(int oldIndex)
         {
             MapPawnGroupFilter shown = ShownGroups;
-            builtSignature = ContentSignature(shown);
-            lastRebuildTime = Time.realtimeSinceStartup;
+            Rebuild(oldIndex, shown, ContentSignature(shown));
+        }
 
-            int index = SetTreeRootPreservingState(BuildRoot(shown), oldIndex, TreeStatePreserve.CursorRule.FollowData);
+        private void Rebuild(int oldIndex, MapPawnGroupFilter shown, int signature)
+        {
+            int index = SetTreeRootPreservingState(BuildFresh(shown, signature), oldIndex, TreeStatePreserve.CursorRule.FollowData);
             if (index < 0)
             {
                 index = Math.Min(Math.Max(oldIndex, 0), Tree.Count - 1);
+                Tree.SetSelectedIndex(index);
             }
-            Tree.SetSelectedIndex(index);
             RefreshModel();
             Model.Region(TreeRegionIndex)?.MoveTo(index);
             if (CurrentPanel.LastAnnouncedParent == null && index >= 0 && index < Tree.Count)
@@ -458,12 +501,20 @@ namespace RimWorldAccess.Shell
 
         internal static string FilterLabel(int index)
         {
-            return FilterLabelKeys[index].Translate();
+            if (filterLabelsLanguage != LanguageDatabase.activeLanguage || filterLabels[index] == null)
+            {
+                filterLabelsLanguage = LanguageDatabase.activeLanguage;
+                for (int i = 0; i < Filters.Length; i++)
+                {
+                    filterLabels[i] = Filters[i].LabelKey.Translate();
+                }
+            }
+            return filterLabels[index];
         }
 
         internal bool FilterValue(int index)
         {
-            return (ShownGroups & Filters[index]) != 0;
+            return (ShownGroups & Filters[index].Flag) != 0;
         }
 
         /// <summary>A mouse click on a filter: moves the cursor there and toggles it, exactly as Enter would.</summary>
@@ -480,13 +531,16 @@ namespace RimWorldAccess.Shell
                 return;
             }
             bool next = !FilterValue(index);
-            ShownGroups = next ? ShownGroups | Filters[index] : ShownGroups & ~Filters[index];
+            MapPawnGroupFilter flag = Filters[index].Flag;
+            ShownGroups = next ? ShownGroups | flag : ShownGroups & ~flag;
             LoadedModManager.GetMod<RimWorldAccessMod_Settings>()?.WriteSettings();
             Rebuild(CurrentRowIndex);
             string state = AnnouncementComposer.ComposeStateChange(
                 new ElementDescription { Check = next ? CheckState.Checked : CheckState.Unchecked },
                 TranslatedShellVocabulary.Instance);
-            TolkHelper.SpeakData(FilterChangedAnnouncement(state));
+            TolkHelper.SpeakData(listedCount == 1
+                ? (string)FilterChangedOneKey.Translate(state)
+                : (string)FilterChangedKey.Translate(state, listedCount));
         }
 
         // Buttons.
@@ -512,13 +566,7 @@ namespace RimWorldAccess.Shell
 
         protected override IReadOnlyList<ScreenAction> DeclaredActions
         {
-            get
-            {
-                actionsBuffer.Clear();
-                actionsBuffer.Add(new ScreenAction(
-                    (string)"CloseButton".Translate(), delegate { window.Close(); }, SharedMenuGrammar.Cancel));
-                return actionsBuffer;
-            }
+            get { return actions; }
         }
     }
 }

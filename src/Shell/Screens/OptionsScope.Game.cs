@@ -454,7 +454,6 @@ namespace RimWorldAccess.Shell
         /// </summary>
         internal void OnGuiPass()
         {
-            ListingRowCapture.EndPass();
             // Before the injected row's own click handling, so this pass's rows stay labelled with
             // the category vanilla actually drew them for.
             CapturePaneRows();
@@ -795,15 +794,15 @@ namespace RimWorldAccess.Shell
     public static class OptionsDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_Options __instance, out bool __state)
+        public static void Prefix(Dialog_Options __instance, out OptionsScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 OptionsScope scope = FocusStack.Top as OptionsScope;
                 if (scope != null && scope.Owns(__instance))
                 {
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass();
                 }
             }
@@ -814,27 +813,12 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyFinalizer]
-        public static void Finalizer(Dialog_Options __instance, Exception __exception, bool __state)
+        public static void Finalizer(Exception __exception, OptionsScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                OptionsScope scope = __exception == null ? FocusStack.Top as OptionsScope : null;
-                if (scope != null && scope.Owns(__instance))
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    ListingRowCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("Options draw pass error", ex);
+                CapturePasses.Finish(__state, ReferenceEquals(FocusStack.Top, __state), __exception,
+                    () => ListingRowCapture.EndPass(), s => s.OnGuiPass(), "Options draw pass error");
             }
         }
     }

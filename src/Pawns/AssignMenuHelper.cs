@@ -271,6 +271,8 @@ namespace RimWorldAccess
             if (def == null)
                 return false;
 
+            if (PawnColumnHandlerRegistry.Resolve(def) is IPawnColumnValueCopier copier)
+                return copier.TryCopyValue(def, sourcePawn, targetPawn);
             if (def.Worker is PawnColumnWorker_Outfit)
             {
                 return ApplyGeneratedPayload(def, sourcePawn.outfits?.CurrentApparelPolicy, targetPawn);

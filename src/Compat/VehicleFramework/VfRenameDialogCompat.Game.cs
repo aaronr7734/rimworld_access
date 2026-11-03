@@ -54,9 +54,9 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance, out bool __state)
+        public static void DrawPrefix(object __instance, out VfRenameDialogScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 // Resolved from anywhere on the stack, never off its top: a live edit
@@ -65,7 +65,7 @@ namespace RimWorldAccess.Shell
                 VfRenameDialogScope scope = VfRenameDialogScope.OwningScope(__instance as Window);
                 if (scope != null)
                 {
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass();
                 }
             }
@@ -75,27 +75,12 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
+        public static void DrawFinalizer(Exception __exception, VfRenameDialogScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                VfRenameDialogScope scope = __exception == null ? VfRenameDialogScope.OwningScope(__instance as Window) : null;
-                if (scope != null)
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    TextDialogCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("VF rename dialog draw pass", ex);
+                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
+                    () => TextDialogCapture.EndPass(), s => s.OnGuiPass(), "VF rename dialog draw pass");
             }
         }
     }

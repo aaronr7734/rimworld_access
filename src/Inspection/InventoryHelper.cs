@@ -81,16 +81,7 @@ namespace RimWorldAccess
                     itemName = char.ToUpper(itemName[0]) + itemName.Substring(1);
                 }
 
-                var extras = new List<string>();
-                if (Quality.HasValue)
-                    extras.Add(Quality.Value.GetLabel());
-                string condition = ItemLabelHelper.ConditionPercent(conditionSource);
-                if (condition != null)
-                    extras.Add(condition);
-                if (extras.Count > 0)
-                    itemName += " (" + string.Join(", ", extras) + ")";
-
-                return itemName;
+                return ItemLabelHelper.WithExtras(itemName, Quality, conditionSource);
             }
 
             public string GetDisplayLabel()

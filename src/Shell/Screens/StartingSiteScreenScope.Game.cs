@@ -354,7 +354,7 @@ namespace RimWorldAccess.Shell
             return SiteKeysLive();
         }
 
-        internal static bool PointerOverBottomButtons()
+        internal static bool PointerOverChrome()
         {
             Vector2 pos = UI.MousePositionOnUIInverted;
             for (int i = 0; i < 4; i++)

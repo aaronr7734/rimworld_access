@@ -114,7 +114,7 @@ namespace RimWorldAccess.Shell
                 coverage.NotePatched(eligible);
                 return eligible;
             }
-            catch (Exception ex) when (ex is TypeLoadException || ex.InnerException is TypeLoadException)
+            catch (Exception ex) when (ModLogger.IsForeignAssemblyFault(ex))
             {
                 ModLogger.Warning("Tooltip gate skipped for " + TooltipGateTranspiler.Describe(method)
                     + ": its mod references a missing type. " + ex.Message);

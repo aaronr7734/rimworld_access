@@ -19,19 +19,19 @@ namespace RimWorldAccess.Shell
     internal static class ScreenScopeDrawPatch
     {
         private static readonly List<ScreenScope> active = new List<ScreenScope>();
-        // Pairs the widget- and button-capture brackets' Prefix/Postfix explicitly
+        // Pairs the widget- and button-capture brackets' Prefix/Finalizer explicitly
         // (the same capture-pass-leak fix GenericWindowDrawPatch uses): a keypress
         // can close the owning window mid-pass (Enter on a captured extras
         // Button through the live activation channel), popping the scope
-        // before Postfix runs, so For(__instance) alone can no longer tell
-        // Postfix it owes this pass a close. Tracked by WINDOW identity, not
+        // before Finalizer runs, so For(__instance) alone can no longer tell
+        // Finalizer it owes this pass a close. Tracked by WINDOW identity, not
         // by scope, so a scope that popped mid-pass is still detected.
         private static Window widgetCaptureOpenWindow;
         private static Window buttonCaptureOpenWindow;
         // Paired the same way, and deliberately on the pass the other brackets
         // skip: the tooltip harvest runs on LAYOUT, where IMGUI paints nothing,
         // so a certified Mouse.IsOver branch forced open builds its tooltip
-        // string without putting a pixel on the screen. Prefix→Postfix wraps the
+        // string without putting a pixel on the screen. Prefix→Finalizer wraps the
         // window's OWN Layout draw, so only registrations made inside that draw
         // (where HarvestWantsHover forces the certified Mouse.IsOver sites open)
         // can enter the harvest index; GUI drawn outside any window — the dev
@@ -128,7 +128,7 @@ namespace RimWorldAccess.Shell
         /// Layout outright (PawnTable.PawnTableOnGUI returns immediately), so
         /// a Layout capture is a starved remnant of the surface that clamps
         /// any count-driven cursor. The event type holds for the whole
-        /// InnerWindowOnGUI call, so Prefix and Postfix skip in lockstep.
+        /// InnerWindowOnGUI call, so Prefix and Finalizer skip in lockstep.
         /// </summary>
         private static bool IsLayoutPass()
         {
@@ -176,7 +176,7 @@ namespace RimWorldAccess.Shell
                     // the CALLER wraps in its own Mouse.IsOver stays invisible to
                     // either channel — see TooltipCapture's remarks). Armed by the
                     // SAME guard that owns the widget pass, and closed by the same
-                    // Postfix pairing, so the two brackets can never come apart.
+                    // Finalizer pairing, so the two brackets can never come apart.
                     TooltipCapture.BeginDetachedPass();
                     if (HoverSpeech.Enabled)
                     {
@@ -197,21 +197,20 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        [HarmonyPostfix]
-        public static void Postfix(Window __instance)
+        // A throw outside DoWindowContents' own catch still closes every pass, skipping the per-pass
+        // work. Completion hooks run BEFORE WidgetCapture.EndPass resolves the pending tip texture.
+        [HarmonyFinalizer]
+        public static void Finalizer(Window __instance, Exception __exception)
         {
             try
             {
-                if (IsLayoutPass())
+                bool completed = __exception == null;
+                if (ReferenceEquals(harvestOpenWindow, __instance))
                 {
-                    if (ReferenceEquals(harvestOpenWindow, __instance))
-                    {
-                        harvestOpenWindow = null;
-                        TooltipCapture.EndHarvestPass();
-                    }
-                    return;
+                    harvestOpenWindow = null;
+                    TooltipCapture.EndHarvestPass();
                 }
-                ScreenScope scope = For(__instance);
+                ScreenScope scope = completed ? For(__instance) : null;
                 if (ReferenceEquals(buttonCaptureOpenWindow, __instance))
                 {
                     buttonCaptureOpenWindow = null;
@@ -233,13 +232,20 @@ namespace RimWorldAccess.Shell
                     {
                         scope.OnWidgetPassCompleted();
                     }
-                    HoverSpeech.EvaluateWidgetPass(detachedTips: true);
+                    if (completed)
+                    {
+                        HoverSpeech.EvaluateWidgetPass(detachedTips: true);
+                    }
                     WidgetCapture.EndPass();
                 }
                 if (ReferenceEquals(listingRingOpenWindow, __instance))
                 {
                     listingRingOpenWindow = null;
                     ListingRowCapture.EndPass();
+                }
+                if (!completed || IsLayoutPass())
+                {
+                    return;
                 }
                 ScreenScope ringScope = ForContentRing(__instance);
                 if (ringScope != null)

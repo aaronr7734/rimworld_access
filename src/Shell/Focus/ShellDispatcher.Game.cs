@@ -100,12 +100,8 @@ namespace RimWorldAccess.Shell
         {
             try
             {
-                // A live capture pass still open on a later frame proves its own EndPass never
-                // ran (the window closed mid-pass) and would grow unbounded. Must run every
-                // OnGUI pass, as must the two pumps below.
-                WidgetCapture.EndLeakedLivePass();
-                ButtonTextCapture.EndLeakedPass();
-                TextFieldCapture.EndLeakedPass();
+                // Must run every OnGUI pass, as must the two pumps below.
+                CapturePasses.EndLeaked();
 
                 BulkSoundQueue.Update();
 
@@ -350,23 +346,6 @@ namespace RimWorldAccess.Shell
         /// Returns true when a stage consumed the event, with <paramref name="stage"/> naming
         /// it; the stage's own side effect runs here, but <c>e.Use()</c> stays the caller's.
         /// </summary>
-        private static bool optionChordPending;
-
-        private static bool IsModifierKeyCode(KeyCode key)
-        {
-            return key == KeyCode.LeftAlt || key == KeyCode.RightAlt || key == KeyCode.AltGr
-                || key == KeyCode.LeftShift || key == KeyCode.RightShift
-                || key == KeyCode.LeftControl || key == KeyCode.RightControl
-                || key == KeyCode.LeftCommand || key == KeyCode.RightCommand;
-        }
-
-        private static bool IsSpacingDiacritic(char ch)
-        {
-            System.Globalization.UnicodeCategory category = char.GetUnicodeCategory(ch);
-            return category == System.Globalization.UnicodeCategory.ModifierSymbol
-                || category == System.Globalization.UnicodeCategory.ModifierLetter;
-        }
-
         internal static bool RouteCharacterEvent(Event e, out string stage)
         {
             if (ImeFunnel.TryRouteKeyDown(e))
@@ -394,27 +373,19 @@ namespace RimWorldAccess.Shell
                 return true;
             }
 
-            // macOS Option+letter is a dead key: the chord fires on its own keypress and the
-            // stranded accent arrives as a bare character with the next key, Option released.
-            if (e.keyCode != KeyCode.None && !IsModifierKeyCode(e.keyCode))
+            KeyboardHelper.CharTwin twin = KeyboardHelper.ClassifyCharTwin(e);
+            if (twin == KeyboardHelper.CharTwin.StrandedAccent)
             {
-                optionChordPending = NativeLibraryLoader.IsMacOS && KeyboardHelper.IsAltHeld;
-            }
-            else if (optionChordPending && e.keyCode == KeyCode.None && IsSpacingDiacritic(e.character))
-            {
-                optionChordPending = false;
                 stage = "dead-key-twin";
                 return true;
             }
 
-            // Typed characters reach live char sinks before chord matching, minus four twin
-            // gaps: a held action modifier (AZERTY Alt+letter twins; ApplyGlobalRemap leaves
-            // Event.current.character alone), the ']' follow-up, an opener's twin, and the QA
-            // marker's '~'. A skipped char falls through to Dispatch and the modal swallow.
+            // Typed characters reach live char sinks before chord matching, minus three twin
+            // gaps: a chord's twin (see ClassifyCharTwin), an opener's twin, and the QA marker's
+            // '~'. A skipped char falls through to Dispatch and the modal swallow.
             char ch = e.character;
             if (ch != '\0' && !char.IsControl(ch)
-                && !KeyboardHelper.IsAltHeld && !KeyboardHelper.IsCtrlHeld
-                && !KeyboardHelper.WasRightBracketThisFrame
+                && twin == KeyboardHelper.CharTwin.None
                 && !SuppressCharOfferThisFrame()
                 && !(ch == '~' && IsQaMarkerTwin(e))
                 && FocusStack.OfferChar(ch))

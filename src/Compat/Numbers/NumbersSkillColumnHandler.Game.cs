@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Reflection;
-using HarmonyLib;
 using RimWorld;
 using RimWorldAccess.Shell;
 using Verse;
@@ -14,8 +10,6 @@ namespace RimWorldAccess
     /// </summary>
     internal sealed class NumbersSkillColumnHandler : PawnColumnHandler
     {
-        private static readonly MethodInfo getSkillDescription = AccessTools.Method(typeof(SkillUI), "GetSkillDescription");
-
         private readonly NumbersColumnExtension extension;
 
         private NumbersSkillColumnHandler(NumbersColumnExtension extension)
@@ -25,12 +19,7 @@ namespace RimWorldAccess
 
         public static void Register(NumbersColumnExtension extension)
         {
-            var surface = new ReflectionSurface("NumbersSkillColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_Skill");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersSkillColumnHandler(extension));
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Skill", new NumbersSkillColumnHandler(extension));
         }
 
         private SkillRecord SkillFor(PawnColumnDef def, Pawn pawn)
@@ -49,31 +38,21 @@ namespace RimWorldAccess
             {
                 return "";
             }
-            var parts = new List<string>
-            {
-                skill.TotallyDisabled
-                    ? "DisabledLower".Translate().ToString()
-                    : skill.Level.ToStringCached(),
-            };
-            if (skill.passion == Passion.Major)
-            {
-                parts.Add("PassionMajor".Translate().ToString());
-            }
-            else if (skill.passion == Passion.Minor)
-            {
-                parts.Add("PassionMinor".Translate().ToString());
-            }
-            return string.Join(", ", parts);
+            string level = skill.TotallyDisabled
+                ? "DisabledLower".Translate().ToString()
+                : skill.GetLevelForUI().ToStringCached();
+            string passion = PawnSkillsTableHelper.PassionLabel(skill.passion);
+            return string.IsNullOrEmpty(passion) ? level : level + ", " + passion;
         }
 
         public override string CellTip(PawnColumnDef def, Pawn pawn)
         {
             SkillRecord skill = SkillFor(def, pawn);
-            if (skill == null || getSkillDescription == null)
+            if (skill == null || PawnColumnWorker_AccessSkill.SkillDescription == null)
             {
                 return null;
             }
-            string tip = getSkillDescription.Invoke(null, new object[] { skill }) as string;
+            string tip = PawnColumnWorker_AccessSkill.SkillDescription(skill);
             return string.IsNullOrEmpty(tip) ? null : SpeechFlatten.ToSentences(tip.StripTags());
         }
     }

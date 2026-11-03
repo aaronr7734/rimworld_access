@@ -1,6 +1,3 @@
-using System;
-using System.Reflection;
-using HarmonyLib;
 using RimWorld;
 using RimWorldAccess.Shell;
 using Verse;
@@ -14,16 +11,9 @@ namespace RimWorldAccess
     /// </summary>
     internal sealed class NumbersNeedsTreatmentColumnHandler : PawnColumnHandler
     {
-        private static readonly MethodInfo getIconTip = AccessTools.Method(typeof(PawnColumnWorker_Icon), "GetIconTip");
-
         public static void Register()
         {
-            var surface = new ReflectionSurface("NumbersNeedsTreatmentColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_NeedsTreatment");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersNeedsTreatmentColumnHandler());
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_NeedsTreatment", new NumbersNeedsTreatmentColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
@@ -43,7 +33,7 @@ namespace RimWorldAccess
             {
                 return null;
             }
-            string tip = getIconTip.Invoke(def.Worker, new object[] { pawn }) as string;
+            string tip = IconColumnHandler.GetIconTip(def, pawn);
             return string.IsNullOrEmpty(tip) ? null : tip.StripTags();
         }
     }

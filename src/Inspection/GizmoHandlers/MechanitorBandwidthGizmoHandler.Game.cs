@@ -60,39 +60,8 @@ namespace RimWorldAccess
                 // Differences are speech-only: the Colorize() on the "Bandwidth"
                 // heading is dropped (purely visual), and the finished text is
                 // stripped of tags and flattened (newlines never reach speech).
-                int totalBandwidth = tracker.TotalBandwidth;
-                int usedBandwidth = tracker.UsedBandwidth;
-                string text = usedBandwidth.ToString("F0") + " / " + totalBandwidth.ToString("F0");
-                TaggedString taggedString =
-                    "Bandwidth".Translate() + ": " + text + "\n\n" + "BandwidthGizmoTip".Translate();
-
-                List<Pawn> overseenPawns = tracker.OverseenPawns;
-                int usedBandwidthFromSubjects = tracker.UsedBandwidthFromSubjects;
-                if (usedBandwidthFromSubjects > 0 && overseenPawns != null)
-                {
-                    taggedString += string.Concat("\n\n" + ("BandwidthUsage".Translate() + ": "),
-                        usedBandwidthFromSubjects.ToString());
-                    IEnumerable<string> entries = from p in overseenPawns
-                        where p != null && !p.IsGestating()
-                        group p by p.kindDef into p
-                        select string.Concat(p.Key.LabelCap + " x", p.Count().ToString(), " (+",
-                            p.Sum((Pawn mech) => mech.GetStatValue(StatDefOf.BandwidthCost)).ToString(), ")");
-                    taggedString += "\n\n" + entries.ToLineList(" - ");
-                }
-
-                int usedBandwidthFromGestation = tracker.UsedBandwidthFromGestation;
-                if (usedBandwidthFromGestation > 0 && overseenPawns != null)
-                {
-                    taggedString += string.Concat("\n\n" + "MechGestationBandwidthUsed".Translate() + ": ",
-                        usedBandwidthFromGestation.ToString());
-                    IEnumerable<string> entries2 = from p in overseenPawns
-                        where p != null && p.IsGestating()
-                        group p by p.kindDef into p
-                        select string.Concat(p.Key.LabelCap + " x", p.Count().ToString(), " (+",
-                            p.Sum((Pawn mech) => mech.GetStatValue(StatDefOf.BandwidthCost)).ToString(), ")");
-                    taggedString += "\n\n" + entries2.ToLineList(" - ");
-                }
-
+                string text = tracker.UsedBandwidth.ToString("F0") + " / " + tracker.TotalBandwidth.ToString("F0");
+                TaggedString taggedString = "Bandwidth".Translate() + ": " + text + "\n\n" + TooltipBody(tracker);
                 description = GizmoTextUtility.FlattenNewlines(taggedString.Resolve().StripTags());
                 return !string.IsNullOrEmpty(description);
             }
@@ -101,6 +70,37 @@ namespace RimWorldAccess
                 ModLogger.Error($"Exception building mechanitor bandwidth description: {ex.Message}");
                 return false;
             }
+        }
+
+        internal static TaggedString TooltipBody(Pawn_MechanitorTracker tracker)
+        {
+            TaggedString taggedString = "BandwidthGizmoTip".Translate();
+            List<Pawn> overseenPawns = tracker.OverseenPawns;
+            int usedBandwidthFromSubjects = tracker.UsedBandwidthFromSubjects;
+            if (usedBandwidthFromSubjects > 0 && overseenPawns != null)
+            {
+                taggedString += string.Concat("\n\n" + ("BandwidthUsage".Translate() + ": "),
+                    usedBandwidthFromSubjects.ToString());
+                taggedString += "\n\n" + MechGroups(overseenPawns, gestating: false).ToLineList(" - ");
+            }
+
+            int usedBandwidthFromGestation = tracker.UsedBandwidthFromGestation;
+            if (usedBandwidthFromGestation > 0 && overseenPawns != null)
+            {
+                taggedString += string.Concat("\n\n" + "MechGestationBandwidthUsed".Translate() + ": ",
+                    usedBandwidthFromGestation.ToString());
+                taggedString += "\n\n" + MechGroups(overseenPawns, gestating: true).ToLineList(" - ");
+            }
+            return taggedString;
+        }
+
+        private static IEnumerable<string> MechGroups(List<Pawn> overseenPawns, bool gestating)
+        {
+            return from p in overseenPawns
+                where p != null && p.IsGestating() == gestating
+                group p by p.kindDef into p
+                select string.Concat(p.Key.LabelCap + " x", p.Count().ToString(), " (+",
+                    p.Sum((Pawn mech) => mech.GetStatValue(StatDefOf.BandwidthCost)).ToString(), ")");
         }
 
         /// <summary>

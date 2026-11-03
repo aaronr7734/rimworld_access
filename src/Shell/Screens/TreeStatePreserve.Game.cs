@@ -434,7 +434,7 @@ namespace RimWorldAccess.Shell
         /// descendant when the node itself is invisible — the normal case in submenu mode, where an
         /// expanded node's children take its place.
         /// </summary>
-        internal static int VisibleIndexFor(TreeModel<InspectionTreeItem> tree, InspectionTreeItem node)
+        private static int VisibleIndexFor(TreeModel<InspectionTreeItem> tree, InspectionTreeItem node)
         {
             InspectionTreeItem landing = node;
             int index = tree.IndexOf(landing);

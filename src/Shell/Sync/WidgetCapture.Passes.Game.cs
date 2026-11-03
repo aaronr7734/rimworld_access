@@ -145,23 +145,15 @@ namespace RimWorldAccess.Shell
             gapLinePending = false;
         }
 
-        /// <summary>
-        /// Self-heals a live pass that leaked open past its own frame. A live pass opens and
-        /// closes within the same InnerWindowOnGUI call, so passOpen surviving into a later frame
-        /// proves EndPass never ran (Enter closing the owning window mid-pass, say). Frame
-        /// inequality is the only signal: a same-frame heuristic would misfire on a pass still
-        /// legitimately mid-flight. A leaked pass can grow the items list to millions of rows, so
-        /// this TrimExcess()es rather than leaving the capacity for the next BeginPass to inherit.
-        /// </summary>
+        /// <summary>Closes a live pass leaked past its own frame; see <see cref="CapturePasses"/>.</summary>
         internal static void EndLeakedLivePass()
         {
-            if (!passOpen || detachedPass || Time.frameCount == passOpenFrame)
+            if (detachedPass || !CapturePasses.Leaked(passOpen, passOpenFrame))
             {
                 return;
             }
             EndPass();
-            items.Clear();
-            items.TrimExcess();
+            CapturePasses.Release(items);
         }
 
         /// <summary>

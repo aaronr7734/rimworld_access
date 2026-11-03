@@ -4,7 +4,6 @@ using System.Linq;
 using RimWorld;
 using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace RimWorldAccess.Shell
 {
@@ -21,19 +20,12 @@ namespace RimWorldAccess.Shell
 
         internal static string OpenerHotkey()
         {
-            return ActionRegistry.Catalog.TryGet("map.openGlobalHealth", out InputAction action) && action.Bindings.Count > 0
-                ? action.Bindings[0].DisplayLabel
-                : null;
+            return ActionChords.Display("map.openGlobalHealth");
         }
 
-        protected override MapOverviewScope Scope
+        protected override string TitleKey
         {
-            get { return GlobalHealthScope.Current; }
-        }
-
-        protected override string Title
-        {
-            get { return "RimWorldAccess.GlobalHealth.Title".Translate(); }
+            get { return "RimWorldAccess.GlobalHealth.Title"; }
         }
     }
 
@@ -82,16 +74,30 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        internal static GlobalHealthScope Current { get; private set; }
+        private readonly struct Scanned
+        {
+            public readonly Pawn Pawn;
+            public readonly MapPawnGroup Group;
+            public readonly PawnHealthSummary Health;
+            public readonly int DiseaseStart;
+            public readonly int DiseaseCount;
 
-        private readonly GlobalHealthWindow window;
+            public Scanned(Pawn pawn, MapPawnGroup group, PawnHealthSummary health, int diseaseStart, int diseaseCount)
+            {
+                Pawn = pawn;
+                Group = group;
+                Health = health;
+                DiseaseStart = diseaseStart;
+                DiseaseCount = diseaseCount;
+            }
+        }
+
         private readonly List<Entry>[] buckets = { new List<Entry>(), new List<Entry>(), new List<Entry>(), new List<Entry>(), new List<Entry>() };
-        private int listedCount;
+        private readonly List<Scanned> scanned = new List<Scanned>();
+        private readonly List<(Hediff Hediff, int Order)> scannedDiseases = new List<(Hediff, int)>();
 
         public GlobalHealthScope(GlobalHealthWindow window) : base(window)
         {
-            this.window = window;
-            Claim(SharedMenuGrammar.Info, e => PerformInfoCard());
         }
 
         public override string Name
@@ -121,31 +127,14 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public override void OnPush()
+        protected override string FilterChangedOneKey
         {
-            base.OnPush();
-            Current = this;
+            get { return "RimWorldAccess.GlobalHealth.FilterChangedOne"; }
         }
 
-        public override void OnPop()
+        protected override string FilterChangedKey
         {
-            if (ReferenceEquals(Current, this))
-            {
-                Current = null;
-            }
-            base.OnPop();
-        }
-
-        protected override string ComposeOpenAnnouncement()
-        {
-            return "RimWorldAccess.GlobalHealth.Title".Translate();
-        }
-
-        protected override string FilterChangedAnnouncement(string state)
-        {
-            return listedCount == 1
-                ? (string)"RimWorldAccess.GlobalHealth.FilterChangedOne".Translate(state)
-                : (string)"RimWorldAccess.GlobalHealth.FilterChanged".Translate(state, listedCount);
+            get { return "RimWorldAccess.GlobalHealth.FilterChanged"; }
         }
 
         protected override bool IsActionRow(InspectionTreeItem item)
@@ -173,42 +162,10 @@ namespace RimWorldAccess.Shell
             AnnounceCurrentItem();
         }
 
-        /// <summary>The window closes first: the inspect-tab bridge stands down under a foreign dialog. The
-        /// tab's own tree then speaks, so success says nothing here.</summary>
         private void OpenHealthTab(Pawn pawn, Hediff landing)
         {
-            if (pawn.Destroyed || !pawn.Spawned || !CameraJumper.CanJump(pawn))
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.SpeakData("RimWorldAccess.GlobalHealth.JumpUnavailable".Translate());
-                return;
-            }
-            window.Close();
-            CameraJumper.TryJumpAndSelect(pawn);
-            bool landed = WindowlessInspectionState.OpenTabLandingOn(typeof(ITab_Pawn_Health), landing);
-            if (!landed)
-            {
-                MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
-            }
-            ArmReturn(landed, GlobalHealthWindow.Open);
+            HandOffToTab(pawn, typeof(ITab_Pawn_Health), landing, "RimWorldAccess.GlobalHealth.JumpUnavailable", GlobalHealthWindow.Open);
         }
-
-        private void PerformInfoCard()
-        {
-            object data = CurrentTreeItem()?.Data;
-            if (data is Pawn pawn)
-            {
-                Find.WindowStack.Add(new Dialog_InfoCard(pawn));
-                return;
-            }
-            if (data is Hediff hediff)
-            {
-                Find.WindowStack.Add(new Dialog_InfoCard(hediff));
-                return;
-            }
-            InfoCardState.SpeakNoInfoCardAvailable();
-        }
-
 
         /// <summary>Wild animals that are not hostile are left out.</summary>
         private static bool TryEligible(Pawn pawn, MapPawnGroupFilter shown, out MapPawnGroup group)
@@ -245,35 +202,47 @@ namespace RimWorldAccess.Shell
             return immunizable.NaturalImmunity - hediff.Severity / Mathf.Abs(hediff.def.lethalSeverity);
         }
 
-        private static List<Disease> DiseasesOf(Pawn pawn)
+        private void Scan(MapPawnGroupFilter shown)
         {
-            List<Disease> diseases = null;
-            List<Hediff> hediffs = pawn.health.hediffSet.hediffs;
-            for (int i = 0; i < hediffs.Count; i++)
+            scanned.Clear();
+            scannedDiseases.Clear();
+            Map map = Find.CurrentMap;
+            if (map == null)
             {
-                if (IsDisease(hediffs[i]))
-                {
-                    diseases = diseases ?? new List<Disease>();
-                    diseases.Add(new Disease(hediffs[i], i));
-                }
+                return;
             }
-            diseases?.Sort(ByUrgency);
-            return diseases;
-        }
-
-        private static int DiseaseHash(Pawn pawn, out bool sick)
-        {
-            sick = false;
-            int hash = 0;
-            List<Hediff> hediffs = pawn.health.hediffSet.hediffs;
-            for (int i = 0; i < hediffs.Count; i++)
+            IReadOnlyList<Pawn> pawns = map.mapPawns.AllPawnsSpawned;
+            for (int i = 0; i < pawns.Count; i++)
             {
-                Hediff hediff = hediffs[i];
-                if (!IsDisease(hediff))
+                Pawn pawn = pawns[i];
+                if (!TryEligible(pawn, shown, out MapPawnGroup group))
                 {
                     continue;
                 }
-                sick = true;
+                int start = scannedDiseases.Count;
+                List<Hediff> hediffs = pawn.health.hediffSet.hediffs;
+                for (int h = 0; h < hediffs.Count; h++)
+                {
+                    if (IsDisease(hediffs[h]))
+                    {
+                        scannedDiseases.Add((hediffs[h], h));
+                    }
+                }
+                PawnHealthSummary health = PawnHealthSummary.Of(pawn);
+                int count = scannedDiseases.Count - start;
+                if (!health.IsHealthy || count > 0)
+                {
+                    scanned.Add(new Scanned(pawn, group, health, start, count));
+                }
+            }
+        }
+
+        private int DiseaseHash(Scanned record)
+        {
+            int hash = 0;
+            for (int i = record.DiseaseStart; i < record.DiseaseStart + record.DiseaseCount; i++)
+            {
+                Hediff hediff = scannedDiseases[i].Hediff;
                 unchecked
                 {
                     hash = hash * 31 + hediff.loadID;
@@ -287,34 +256,35 @@ namespace RimWorldAccess.Shell
             return hash;
         }
 
+        private List<Disease> DiseasesOf(Scanned record)
+        {
+            if (record.DiseaseCount == 0)
+            {
+                return null;
+            }
+            var diseases = new List<Disease>(record.DiseaseCount);
+            for (int i = record.DiseaseStart; i < record.DiseaseStart + record.DiseaseCount; i++)
+            {
+                diseases.Add(new Disease(scannedDiseases[i].Hediff, scannedDiseases[i].Order));
+            }
+            diseases.Sort(ByUrgency);
+            return diseases;
+        }
+
         protected override int ContentSignature(MapPawnGroupFilter shown)
         {
+            Scan(shown);
             int hash = (int)shown;
-            Map map = Find.CurrentMap;
-            if (map == null)
+            for (int i = 0; i < scanned.Count; i++)
             {
-                return hash;
-            }
-            IReadOnlyList<Pawn> pawns = map.mapPawns.AllPawnsSpawned;
-            for (int i = 0; i < pawns.Count; i++)
-            {
-                Pawn pawn = pawns[i];
-                if (!TryEligible(pawn, shown, out MapPawnGroup group))
-                {
-                    continue;
-                }
-                PawnHealthSummary health = PawnHealthSummary.Of(pawn);
-                int diseases = DiseaseHash(pawn, out bool sick);
-                if (health.IsHealthy && !sick)
-                {
-                    continue;
-                }
+                Scanned record = scanned[i];
+                Pawn pawn = record.Pawn;
                 unchecked
                 {
                     hash = hash * 31 + pawn.thingIDNumber;
-                    hash = hash * 31 + (int)group;
-                    hash = hash * 31 + (health.IsHealthy ? 0 : health.SpokenHash());
-                    hash = hash * 31 + diseases;
+                    hash = hash * 31 + (int)record.Group;
+                    hash = hash * 31 + (record.Health.IsHealthy ? 0 : record.Health.SpokenHash());
+                    hash = hash * 31 + DiseaseHash(record);
                     hash = hash * 31 + (NeedsTend(pawn) ? 1 : 0) + (NeedsRescue(pawn) ? 2 : 0);
                     hash = hash * 31 + pawn.LabelShort.GetHashCode();
                 }
@@ -322,44 +292,29 @@ namespace RimWorldAccess.Shell
             return hash;
         }
 
-        protected override InspectionTreeItem BuildRoot(MapPawnGroupFilter shown)
+        protected override InspectionTreeItem BuildRoot(MapPawnGroupFilter shown, out int listed)
         {
             for (int i = 0; i < buckets.Length; i++)
             {
                 buckets[i].Clear();
             }
-            listedCount = 0;
-            Map map = Find.CurrentMap;
-            if (map != null)
+            listed = scanned.Count;
+            foreach (Scanned record in scanned)
             {
-                IReadOnlyList<Pawn> pawns = map.mapPawns.AllPawnsSpawned;
-                for (int i = 0; i < pawns.Count; i++)
+                if (!record.Health.IsHealthy)
                 {
-                    Pawn pawn = pawns[i];
-                    if (!TryEligible(pawn, shown, out MapPawnGroup group))
-                    {
-                        continue;
-                    }
-                    PawnHealthSummary health = PawnHealthSummary.Of(pawn);
-                    List<Disease> diseases = DiseasesOf(pawn);
-                    if (!health.IsHealthy)
-                    {
-                        buckets[(int)NodeOf(health)].Add(new Entry(pawn, group, health));
-                    }
-                    if (diseases != null)
-                    {
-                        buckets[(int)Node.Sick].Add(new Entry(pawn, group, health, diseases));
-                    }
-                    if (!health.IsHealthy || diseases != null)
-                    {
-                        listedCount++;
-                    }
+                    buckets[(int)NodeOf(record.Health)].Add(new Entry(record.Pawn, record.Group, record.Health));
+                }
+                List<Disease> diseases = DiseasesOf(record);
+                if (diseases != null)
+                {
+                    buckets[(int)Node.Sick].Add(new Entry(record.Pawn, record.Group, record.Health, diseases));
                 }
             }
 
             List<Entry> sick = buckets[(int)Node.Sick];
-            sick.Sort(BySickness);
-            bool sickLeads = sick.Count > 0 && sick[0].Diseases[0].Threat;
+            sick.Sort(ColonyFirst(BySickness));
+            bool sickLeads = sick.Count > 0 && Worst(sick, BySickness).Diseases[0].Threat;
             var root = new InspectionTreeItem { Label = "Root", IndentLevel = -1, IsExpanded = true };
             if (sickLeads)
             {
@@ -369,27 +324,30 @@ namespace RimWorldAccess.Shell
             {
                 List<Entry> entries = buckets[(int)node];
                 bool bleeding = node == Node.DownedBleeding || node == Node.Bleeding;
-                entries.Sort(bleeding ? (Comparison<Entry>)ByBleedOut : ByHealth);
+                Comparison<Entry> urgency = bleeding ? (Comparison<Entry>)ByBleedOut : ByHealth;
+                entries.Sort(ColonyFirst(urgency));
                 string name = NodeName(node);
                 var nodeItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Category,
-                    Label = WithCare(Summary(name, entries, bleeding), entries, node == Node.DownedBleeding || node == Node.Downed),
+                    Label = WithCare(Summary(name, entries, urgency, bleeding), entries, node == Node.DownedBleeding || node == Node.Downed),
                     ExpandedLabel = name,
                     IndentLevel = 0,
                     IsExpandable = entries.Count > 0,
                     Data = node,
                 };
                 InspectNodeFactory.Attach(root, nodeItem);
-                foreach (Entry entry in ColonyFirst(entries))
+                foreach (Entry entry in entries)
                 {
+                    Pawn pawn = entry.Pawn;
                     InspectNodeFactory.Attach(nodeItem, new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = "RimWorldAccess.GlobalHealth.PawnRow".Translate(
                             MapPawnGroups.NameWithGroup(entry.Label, entry.Group), entry.Health.Tag()),
                         IndentLevel = 1,
-                        Data = entry.Pawn,
+                        Data = pawn,
+                        OnInfo = delegate { Find.WindowStack.Add(new Dialog_InfoCard(pawn)); },
                     });
                 }
             }
@@ -412,9 +370,9 @@ namespace RimWorldAccess.Shell
                 Data = Node.Sick,
             };
             InspectNodeFactory.Attach(root, nodeItem);
-            string worstHeader = null;
-            foreach (Entry entry in ColonyFirst(entries))
+            foreach (Entry entry in entries)
             {
+                Pawn pawn = entry.Pawn;
                 string pawnName = MapPawnGroups.NameWithGroup(entry.Label, entry.Group);
                 var headers = new List<string>(entry.Diseases.Count);
                 var pawnItem = new InspectionTreeItem
@@ -423,37 +381,58 @@ namespace RimWorldAccess.Shell
                     ExpandedLabel = pawnName,
                     IndentLevel = 1,
                     IsExpandable = true,
-                    Data = entry.Pawn,
+                    Data = pawn,
+                    OnInfo = delegate { Find.WindowStack.Add(new Dialog_InfoCard(pawn)); },
                 };
                 foreach (Disease disease in entry.Diseases)
                 {
-                    List<string> lines = HealthTabHelper.GetHediffSummaryLines(disease.Hediff, entry.Pawn);
-                    if (entry.Pawn == entries[0].Pawn && worstHeader == null)
-                    {
-                        worstHeader = lines[0];
-                    }
+                    Hediff hediff = disease.Hediff;
+                    List<string> lines = HealthTabHelper.GetHediffSummaryLines(hediff, pawn, out string immunity);
                     string header = disease.Threat
                         ? (string)"RimWorldAccess.GlobalHealth.DiseaseThreat".Translate(lines[0])
                         : lines[0];
-                    string immunity = disease.Hediff.TryGetComp<HediffComp_Immunizable>()?.CompTipStringExtra;
                     headers.Add(immunity == null ? header : new AnnouncementBuilder().Add(header).Add(immunity, Separator.Comma).Build());
                     InspectNodeFactory.Attach(pawnItem, new InspectionTreeItem
                     {
                         Type = InspectionTreeItem.ItemType.Item,
                         Label = string.Join(". ", lines),
                         IndentLevel = 2,
-                        Data = disease.Hediff,
+                        Data = hediff,
+                        OnInfo = delegate { Find.WindowStack.Add(new Dialog_InfoCard(hediff)); },
                     });
                 }
                 pawnItem.Label = "RimWorldAccess.GlobalHealth.SickPawnRow".Translate(pawnName, string.Join(". ", headers));
                 InspectNodeFactory.Attach(nodeItem, pawnItem);
             }
-            nodeItem.Label = WithSickCare(SickSummary(name, entries, worstHeader), entries);
+            nodeItem.Label = WithSickCare(SickSummary(name, entries), entries);
         }
 
-        private static List<Entry> ColonyFirst(List<Entry> entries)
+        private static Comparison<Entry> ColonyFirst(Comparison<Entry> urgency)
         {
-            return entries.OrderBy(e => e.Group <= MapPawnGroup.Slave ? 0 : (int)e.Group).ToList();
+            return (a, b) =>
+            {
+                int c = ColonyRank(a).CompareTo(ColonyRank(b));
+                return c != 0 ? c : urgency(a, b);
+            };
+        }
+
+        private static int ColonyRank(Entry entry)
+        {
+            return entry.Group <= MapPawnGroup.Slave ? 0 : (int)entry.Group;
+        }
+
+        /// <summary>The most urgent entry regardless of group, which a node's summary describes.</summary>
+        private static Entry Worst(List<Entry> entries, Comparison<Entry> urgency)
+        {
+            Entry worst = entries[0];
+            for (int i = 1; i < entries.Count; i++)
+            {
+                if (urgency(entries[i], worst) < 0)
+                {
+                    worst = entries[i];
+                }
+            }
+            return worst;
         }
 
         private static Node NodeOf(PawnHealthSummary health)
@@ -482,37 +461,38 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        /// <summary>The count, then the soonest bleed-out or the lowest health: the first entry, as sorted.</summary>
-        private static string Summary(string name, List<Entry> entries, bool bleeding)
+        /// <summary>The count, then the soonest bleed-out or the lowest health: the most urgent entry.</summary>
+        private static string Summary(string name, List<Entry> entries, Comparison<Entry> urgency, bool bleeding)
         {
             if (entries.Count == 0)
             {
                 return "RimWorldAccess.GlobalHealth.Summary.None".Translate(name);
             }
-            PawnHealthSummary first = entries[0].Health;
+            Entry worst = Worst(entries, urgency);
+            PawnHealthSummary first = worst.Health;
             bool one = entries.Count == 1;
             if (!bleeding)
             {
                 string health = first.HealthFraction.ToStringPercent();
                 return one
-                    ? "RimWorldAccess.GlobalHealth.Summary.HealthPawn".Translate(name, entries[0].Label, health)
+                    ? "RimWorldAccess.GlobalHealth.Summary.HealthPawn".Translate(name, worst.Label, health)
                     : "RimWorldAccess.GlobalHealth.Summary.LowestHealth".Translate(name, entries.Count, health);
             }
             if (first.Bleeding == BleedOutKind.Timed)
             {
                 string period = first.TicksToBleedOut.ToStringTicksToPeriod();
                 return one
-                    ? "RimWorldAccess.GlobalHealth.Summary.BleedOutPawn".Translate(name, entries[0].Label, period)
+                    ? "RimWorldAccess.GlobalHealth.Summary.BleedOutPawn".Translate(name, worst.Label, period)
                     : "RimWorldAccess.GlobalHealth.Summary.BleedOut".Translate(name, entries.Count, period);
             }
             if (first.Bleeding == BleedOutKind.Deathless)
             {
                 return one
-                    ? "RimWorldAccess.GlobalHealth.Summary.DeathlessPawn".Translate(name, entries[0].Label)
+                    ? "RimWorldAccess.GlobalHealth.Summary.DeathlessPawn".Translate(name, worst.Label)
                     : "RimWorldAccess.GlobalHealth.Summary.Deathless".Translate(name, entries.Count);
             }
             return one
-                ? "RimWorldAccess.GlobalHealth.Summary.NotSoonPawn".Translate(name, entries[0].Label)
+                ? "RimWorldAccess.GlobalHealth.Summary.NotSoonPawn".Translate(name, worst.Label)
                 : "RimWorldAccess.GlobalHealth.Summary.NotSoon".Translate(name, entries.Count);
         }
 
@@ -532,40 +512,37 @@ namespace RimWorldAccess.Shell
         {
             int rescue = downed ? entries.Count(e => NeedsRescue(e.Pawn)) : 0;
             int tend = entries.Count(e => NeedsTend(e.Pawn));
+            var care = new List<string>();
             if (entries.Count == 1)
             {
-                string single = rescue > 0 && tend > 0 ? "RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend".Translate().ToString()
-                    : rescue > 0 ? "RimWorldAccess.GlobalHealth.Care.Pawn.Rescue".Translate().ToString()
-                    : tend > 0 ? "RimWorldAccess.GlobalHealth.Care.Pawn.Tend".Translate().ToString()
-                    : null;
-                return single == null ? summary : new AnnouncementBuilder().Add(summary).Add(single, Separator.Comma).Build();
+                if (rescue > 0 || tend > 0)
+                {
+                    care.Add(rescue > 0 && tend > 0 ? "RimWorldAccess.GlobalHealth.Care.Pawn.RescueAndTend".Translate().ToString()
+                        : rescue > 0 ? "RimWorldAccess.GlobalHealth.Care.Pawn.Rescue".Translate().ToString()
+                        : "RimWorldAccess.GlobalHealth.Care.Pawn.Tend".Translate().ToString());
+                }
+                return AppendCare(summary, care, onePawn: true);
             }
-            var care = new List<string>();
             if (rescue > 0)
             {
-                care.Add(CareCount(rescue, entries.Count, true));
+                care.Add(CareCount(rescue, entries.Count, "RimWorldAccess.GlobalHealth.Care.AllNeedRescue",
+                    "RimWorldAccess.GlobalHealth.Care.NeedRescueOne", "RimWorldAccess.GlobalHealth.Care.NeedRescue"));
             }
             if (tend > 0)
             {
-                care.Add(CareCount(tend, entries.Count, false));
+                care.Add(CareCount(tend, entries.Count, "RimWorldAccess.GlobalHealth.Care.AllNeedTend",
+                    "RimWorldAccess.GlobalHealth.Care.NeedTendOne", "RimWorldAccess.GlobalHealth.Care.NeedTend"));
             }
-            return AppendCare(summary, care);
+            return AppendCare(summary, care, onePawn: false);
         }
 
-        private static string CareCount(int count, int total, bool rescue)
+        private static string CareCount(int count, int total, string allKey, string oneKey, string countKey)
         {
             if (count == total)
             {
-                return rescue ? "RimWorldAccess.GlobalHealth.Care.AllNeedRescue".Translate().ToString()
-                    : "RimWorldAccess.GlobalHealth.Care.AllNeedTend".Translate().ToString();
+                return allKey.Translate().ToString();
             }
-            if (count == 1)
-            {
-                return rescue ? "RimWorldAccess.GlobalHealth.Care.NeedRescueOne".Translate().ToString()
-                    : "RimWorldAccess.GlobalHealth.Care.NeedTendOne".Translate().ToString();
-            }
-            return rescue ? "RimWorldAccess.GlobalHealth.Care.NeedRescue".Translate(count).ToString()
-                : "RimWorldAccess.GlobalHealth.Care.NeedTend".Translate(count).ToString();
+            return count == 1 ? oneKey.Translate().ToString() : countKey.Translate(count).ToString();
         }
 
         private static string WithSickCare(string summary, List<Entry> entries)
@@ -584,40 +561,40 @@ namespace RimWorldAccess.Shell
             {
                 care.Add("RimWorldAccess.GlobalHealth.Care.Threats".Translate(threats).ToString());
             }
-            if (entries.Count == 1 && care.Count > 0)
-            {
-                var builder = new AnnouncementBuilder().Add(summary);
-                foreach (string part in care)
-                {
-                    builder.Add(part, Separator.Comma);
-                }
-                return builder.Build();
-            }
-            return AppendCare(summary, care);
+            return AppendCare(summary, care, entries.Count == 1);
         }
 
-        private static string AppendCare(string summary, List<string> care)
+        /// <summary>A lone pawn's care reads as part of its summary; a group's starts a sentence of its own.</summary>
+        private static string AppendCare(string summary, List<string> care, bool onePawn)
         {
             if (care.Count == 0)
             {
                 return summary;
             }
-            var builder = new AnnouncementBuilder().Add(summary).Add(care[0]);
-            for (int i = 1; i < care.Count; i++)
+            var builder = new AnnouncementBuilder().Add(summary);
+            for (int i = 0; i < care.Count; i++)
             {
-                builder.Add(care[i], Separator.Comma);
+                if (i == 0 && !onePawn)
+                {
+                    builder.Add(care[i]);
+                }
+                else
+                {
+                    builder.Add(care[i], Separator.Comma);
+                }
             }
             return builder.Build();
         }
 
-        private static string SickSummary(string name, List<Entry> entries, string header)
+        private static string SickSummary(string name, List<Entry> entries)
         {
             if (entries.Count == 0)
             {
                 return "RimWorldAccess.GlobalHealth.Summary.None".Translate(name);
             }
-            Entry first = entries[0];
+            Entry first = Worst(entries, BySickness);
             Disease worst = first.Diseases[0];
+            string header = HealthTabHelper.GetHediffHeader(worst.Hediff, first.Pawn);
             bool one = entries.Count == 1;
             if (worst.Threat)
             {
@@ -630,26 +607,22 @@ namespace RimWorldAccess.Shell
                 : "RimWorldAccess.GlobalHealth.Summary.Sick".Translate(name, entries.Count, first.Label, header);
         }
 
-        /// <summary>Life-threatening first, then the narrowest immunity race, then the health tab's order.</summary>
-        private static int ByUrgency(Disease a, Disease b)
+        /// <summary>Life-threatening first, then the narrowest immunity race.</summary>
+        private static int CompareDanger(Disease a, Disease b)
         {
             int c = b.Threat.CompareTo(a.Threat);
-            if (c == 0)
-            {
-                c = a.Margin.CompareTo(b.Margin);
-            }
+            return c != 0 ? c : a.Margin.CompareTo(b.Margin);
+        }
+
+        private static int ByUrgency(Disease a, Disease b)
+        {
+            int c = CompareDanger(a, b);
             return c != 0 ? c : a.Order.CompareTo(b.Order);
         }
 
         private static int BySickness(Entry a, Entry b)
         {
-            Disease x = a.Diseases[0];
-            Disease y = b.Diseases[0];
-            int c = y.Threat.CompareTo(x.Threat);
-            if (c == 0)
-            {
-                c = x.Margin.CompareTo(y.Margin);
-            }
+            int c = CompareDanger(a.Diseases[0], b.Diseases[0]);
             return c != 0 ? c : ByHealth(a, b);
         }
 

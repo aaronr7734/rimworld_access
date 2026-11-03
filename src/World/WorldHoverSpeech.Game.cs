@@ -20,10 +20,12 @@ namespace RimWorldAccess
     internal static class WorldHoverSpeech
     {
         private static PlanetTile spokenTile = PlanetTile.Invalid;
-        private static bool spokenOffSurface;
 
         /// <summary>The hover reader's own change-only biome memory.</summary>
         private static BiomeDef spokenBiome;
+
+        private static readonly PointerHoverGate Gate =
+            new PointerHoverGate(SurfaceLive, PointerOverChrome, DragInFlight, Reset);
 
         /// <summary>Called once per world interface OnGUI pass, in both the entry and the play root.</summary>
         internal static void Evaluate()
@@ -31,60 +33,13 @@ namespace RimWorldAccess
             try
             {
                 RimWorldAccessSettings settings = RimWorldAccessMod_Settings.Settings;
-                if (settings == null || !settings.HoverSpeech || !WorldNavigationState.IsInitialized)
+                bool enabled = settings != null && settings.HoverSpeech && WorldNavigationState.IsInitialized;
+                if (!enabled)
                 {
-                    Reset();
                     spokenBiome = null;
-                    return;
                 }
-                if (Event.current == null || Event.current.type != EventType.Repaint)
+                if (!Gate.ShouldResolve(enabled))
                 {
-                    return;
-                }
-                // Re-armed here for the reason MapHoverSpeech gives.
-                if (PointerSurface.PointerInside)
-                {
-                    spokenOffSurface = false;
-                }
-                bool worldGen = WorldNavigationState.Context == WorldNavContext.WorldGen;
-                bool surfaceLive = worldGen
-                    ? StartingSiteScreenScope.WorldSurfaceLive() && !ShellGuards.MenuOwnsInput()
-                    : WorldScope.WorldSurfaceLive();
-                if (!surfaceLive)
-                {
-                    Reset();
-                    return;
-                }
-                // The play-root chrome test casts to UIRoot_Play, so world generation tests its own:
-                // vanilla's site buttons draw outside any window, and their click never reaches the planet.
-                bool chrome = worldGen
-                    ? StartingSiteScreenScope.PointerOverBottomButtons()
-                    : MapHoverSpeech.PointerOwnedByChrome();
-                if (ShellGuards.NonImmediateWindowUnderPointer() || chrome)
-                {
-                    Reset();
-                    return;
-                }
-                // The drag box owns the speech channel while it grows; see WorldDragSelectSpeech.
-                WorldSelector selector = Find.WorldSelector;
-                if (selector != null && selector.dragBox.IsValidAndActive)
-                {
-                    return;
-                }
-
-                if (!PointerMotion.MovedThisFrame())
-                {
-                    return;
-                }
-                if (!PointerSurface.PointerInside)
-                {
-                    if (!spokenOffSurface)
-                    {
-                        spokenOffSurface = true;
-                        TolkHelper.SpeakData("RimWorldAccess.Input.Cursor.PointerOffWindow".Loc().ToString(),
-                            SpeechPriority.High);
-                    }
-                    Reset();
                     return;
                 }
 
@@ -112,6 +67,28 @@ namespace RimWorldAccess
             {
                 ModLogger.LimitedError("World hover speech error", ex);
             }
+        }
+
+        private static bool WorldGen => WorldNavigationState.Context == WorldNavContext.WorldGen;
+
+        private static bool SurfaceLive()
+        {
+            return WorldGen
+                ? StartingSiteScreenScope.WorldSurfaceLive() && !ShellGuards.MenuOwnsInput()
+                : WorldScope.WorldSurfaceLive();
+        }
+
+        /// <summary>The play-root test casts to UIRoot_Play; the site page draws its buttons outside any window, and their click never reaches the planet.</summary>
+        private static bool PointerOverChrome()
+        {
+            return WorldGen ? StartingSiteScreenScope.PointerOverChrome() : MapHoverSpeech.PointerOwnedByChrome();
+        }
+
+        /// <summary>The drag box owns the speech channel while it grows; see WorldDragSelectSpeech.</summary>
+        private static bool DragInFlight()
+        {
+            WorldSelector selector = Find.WorldSelector;
+            return selector != null && selector.dragBox.IsValidAndActive;
         }
 
         /// <summary>

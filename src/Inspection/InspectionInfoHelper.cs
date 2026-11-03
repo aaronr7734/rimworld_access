@@ -31,7 +31,7 @@ namespace RimWorldAccess
         /// Punctuates each line of an inspect string. GetInspectString returns newline-separated
         /// stats that may lack punctuation, and they run together once newlines become spaces.
         /// </summary>
-        internal static string FormatInspectStringWithPunctuation(string inspectString)
+        private static string FormatInspectStringWithPunctuation(string inspectString)
         {
             if (string.IsNullOrEmpty(inspectString))
                 return inspectString;

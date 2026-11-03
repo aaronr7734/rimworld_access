@@ -343,7 +343,8 @@ namespace RimWorldAccess.Shell
         private const float ColumnGap = 4f;
         private const float RightColumnWidth = 90f;
 
-        internal static void DrawRow(TreeTwinRow row, Rect rowRect, int index, bool selected, bool ringed, bool mouseover)
+        internal static void DrawRow(TreeTwinRow row, Rect rowRect, int index, bool selected, bool ringed, bool mouseover,
+            Dictionary<string, string> truncateCache = null)
         {
             if (index % 2 == 1)
             {
@@ -392,7 +393,7 @@ namespace RimWorldAccess.Shell
             }
             if (labelWidth > 0f && row.Label != null)
             {
-                Widgets.Label(new Rect(x, rowRect.y, labelWidth, RowHeight), row.Label.Truncate(labelWidth));
+                Widgets.Label(new Rect(x, rowRect.y, labelWidth, RowHeight), row.Label.Truncate(labelWidth, truncateCache));
             }
 
             if (ringed)

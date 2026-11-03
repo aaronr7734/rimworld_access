@@ -4,13 +4,7 @@ using Verse;
 
 namespace RimWorldAccess
 {
-    /// <summary>
-    /// Centralized compass-direction math for the scanner. Consolidates the angle-to-compass
-    /// formula that was previously duplicated between ScannerItem.GetDirectionFrom and
-    /// ScannerState.GetDirectionFromCursor, and (via the spherical-angle/bucket-index overloads
-    /// below) the world scanner's flat-map-equivalent angle math that used to be reimplemented
-    /// inline in WorldScannerState.cs.
-    /// </summary>
+    /// <summary>Compass-direction math shared by the map and world scanners and the world cursor.</summary>
     public static class ScannerDirectionHelper
     {
         // Ordered clockwise from North, one entry per 45-degree bucket. Bucket index 0 = North.
@@ -83,15 +77,21 @@ namespace RimWorldAccess
         /// </summary>
         public static double GetSphericalAngleDegrees(Vector3 fromPos, Vector3 direction)
         {
-            Vector3 up = fromPos.normalized;
-            Vector3 north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
-            Vector3 east = Vector3.Cross(up, north).normalized;
-            Vector3 flatDir = Vector3.ProjectOnPlane(direction, up).normalized;
+            TangentBasis(fromPos, out Vector3 north, out Vector3 east);
+            Vector3 flatDir = Vector3.ProjectOnPlane(direction, fromPos.normalized).normalized;
 
             float dotNorth = Vector3.Dot(flatDir, north);
             float dotEast = Vector3.Dot(flatDir, east);
             double angle = Math.Atan2(dotEast, dotNorth) * (180.0 / Math.PI);
             return NormalizeAngleDegrees(angle);
+        }
+
+        /// <summary>Local north and east on the world sphere's tangent plane at <paramref name="surfacePos"/>.</summary>
+        public static void TangentBasis(Vector3 surfacePos, out Vector3 north, out Vector3 east)
+        {
+            Vector3 up = surfacePos.normalized;
+            north = Vector3.ProjectOnPlane(Vector3.up, up).normalized;
+            east = Vector3.Cross(up, north).normalized;
         }
 
         private static double NormalizeAngleDegrees(double angleDegrees)

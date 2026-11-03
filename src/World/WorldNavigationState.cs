@@ -30,10 +30,6 @@ namespace RimWorldAccess
         private static bool lastWasInPoleTerritory = false;
         private static WorldNavContext context = WorldNavContext.None;
 
-        /// <summary>
-        /// Start tile set by another system before the world view opens, for when the map that would
-        /// otherwise supply it is removed before <see cref="Open"/> runs.
-        /// </summary>
         private static PlanetTile pendingStartTile = PlanetTile.Invalid;
 
         /// <summary>Latitude beyond which compass directions become unreliable, in degrees.</summary>
@@ -44,10 +40,8 @@ namespace RimWorldAccess
         /// <summary>Whether world navigation is active; other systems suppress their input while it is.</summary>
         public static bool IsActive => isActive;
 
-        /// <summary>Gets the current navigation context (InGame, WorldGen, or None).</summary>
         public static WorldNavContext Context => context;
 
-        /// <summary>Gets whether the navigation state has been initialized.</summary>
         public static bool IsInitialized => isInitialized;
 
         /// <summary>Gets or sets the current selected tile on the world map.</summary>
@@ -348,8 +342,7 @@ namespace RimWorldAccess
             if (!bestNeighbor.Valid)
                 return false;
 
-            currentSelectedTile = bestNeighbor;
-            FinishCursorMove();
+            FinishCursorMove(bestNeighbor, endScannerSession: false);
             return true;
         }
 
@@ -389,8 +382,7 @@ namespace RimWorldAccess
 
                 if (bestNeighbor.Tile?.PrimaryBiome != currentBiome)
                 {
-                    CurrentSelectedTile = bestNeighbor;
-                    FinishCursorMove();
+                    FinishCursorMove(bestNeighbor, endScannerSession: true);
                     return;
                 }
 
@@ -407,12 +399,26 @@ namespace RimWorldAccess
             if (!isInitialized || !tile.Valid)
                 return;
 
-            CurrentSelectedTile = tile;
-            FinishCursorMove(moveCamera: false);
+            FinishCursorMove(tile, endScannerSession: true, moveCamera: false);
         }
 
-        private static void FinishCursorMove(bool moveCamera = true)
+        private static void FinishCursorMove(PlanetTile tile, bool endScannerSession, bool moveCamera = true)
         {
+            currentSelectedTile = tile;
+            if (endScannerSession)
+            {
+                WorldScannerState.NotifyOriginWritten();
+            }
+            // MUTATION-C: mirrors WorldSelector.SelectUnderMouse's ClearSelection()
+            // + bare-selectedTile-write sequence (RimWorld.Planet/WorldSelector.cs:
+            // 206,391) for the WorldSelector.SelectedTile write, and
+            // Page_SelectStartingSite.DoWindowContents' per-frame sync
+            // (Page_SelectStartingSite.cs:149-152) for the WorldInterface.
+            // SelectedTile/GameInitData.startingTile writes -- routed through the
+            // shared helper (WorldNavigationState.SyncSelectionWithGame) so a
+            // previously-selected WorldObject (landmark/faction base) is cleared
+            // before this tile-only jump, instead of leaking stale selection
+            // alongside the new tile.
             SyncSelectionWithGame();
 
             if (moveCamera && Find.WorldCameraDriver != null)
@@ -433,9 +439,8 @@ namespace RimWorldAccess
         /// <summary>The scanner's own north/east calculation, so arrow keys match what it reports.</summary>
         private static UnityEngine.Vector3 CompassDirection(PlanetTile tile, UnityEngine.KeyCode key)
         {
-            UnityEngine.Vector3 up = Find.WorldGrid.GetTileCenter(tile).normalized;
-            UnityEngine.Vector3 north = UnityEngine.Vector3.ProjectOnPlane(UnityEngine.Vector3.up, up).normalized;
-            UnityEngine.Vector3 east = UnityEngine.Vector3.Cross(up, north).normalized;
+            ScannerDirectionHelper.TangentBasis(Find.WorldGrid.GetTileCenter(tile),
+                out UnityEngine.Vector3 north, out UnityEngine.Vector3 east);
 
             switch (key)
             {
@@ -452,7 +457,8 @@ namespace RimWorldAccess
             }
         }
 
-        private static PlanetTile BestNeighborToward(PlanetTile tile, UnityEngine.Vector3 direction)
+        /// <summary>The neighbor an arrow step toward <paramref name="direction"/> lands on.</summary>
+        internal static PlanetTile BestNeighborToward(PlanetTile tile, UnityEngine.Vector3 direction)
         {
             neighborBuffer.Clear();
             Find.WorldGrid.GetTileNeighbors(tile, neighborBuffer);
@@ -987,10 +993,7 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>
-        /// Cycles to the next player caravan (for order-giving). In-game only.
-        /// Does not move the map cursor.
-        /// </summary>
+        /// <summary>Cycles to the next player caravan for order-giving, without moving the cursor. In-game only.</summary>
         public static void CycleToNextCaravan()
         {
             if (context != WorldNavContext.InGame) return;
@@ -1036,10 +1039,7 @@ namespace RimWorldAccess
             TolkHelper.SpeakData(announcement);
         }
 
-        /// <summary>
-        /// Cycles to the previous player caravan (for order-giving). In-game only.
-        /// Does not move the map cursor.
-        /// </summary>
+        /// <summary>Cycles to the previous player caravan for order-giving, without moving the cursor. In-game only.</summary>
         public static void CycleToPreviousCaravan()
         {
             if (context != WorldNavContext.InGame) return;
@@ -1090,10 +1090,7 @@ namespace RimWorldAccess
             TolkHelper.SpeakData(announcement);
         }
 
-        /// <summary>
-        /// Gets the currently selected caravan (if any).
-        /// Validates that the caravan still exists (handles merge cleanup).
-        /// </summary>
+        /// <summary>The selected caravan, dropped once destroyed (merges), else a caravan on the cursor tile.</summary>
         public static Caravan GetSelectedCaravan()
         {
             if (!isInitialized)

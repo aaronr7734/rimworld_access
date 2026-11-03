@@ -128,9 +128,9 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance, out bool __state)
+        public static void DrawPrefix(object __instance, out RimTalkChatScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 Window window = __instance as Window;
@@ -142,7 +142,7 @@ namespace RimWorldAccess.Shell
                     // focus sitting on "CustomTalkTextField", which ShellTextFocus.ReleaseNativeFocus
                     // fights every pass -- must never independently fire either.
                     TextFieldRawPollGuard.MaskAcceptPoll(true);
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass();
                 }
             }
@@ -152,30 +152,12 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
+        public static void DrawFinalizer(Exception __exception, RimTalkChatScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                TextFieldRawPollGuard.RestoreAcceptPoll();
-                RimTalkChatScope scope = __exception == null
-                    ? RimTalkTextDialogScopeBase.OwningScope<RimTalkChatScope>(__instance as Window)
-                    : null;
-                if (scope != null)
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    TextDialogCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("RimTalk chat dialog guard", ex);
+                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
+                    () => TextDialogCapture.EndMaskedPass(), s => s.OnGuiPass(), "RimTalk chat dialog guard");
             }
         }
 

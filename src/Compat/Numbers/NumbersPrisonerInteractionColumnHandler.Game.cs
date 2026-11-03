@@ -15,12 +15,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            var surface = new ReflectionSurface("NumbersPrisonerInteractionColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_PrisonerInteraction");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersPrisonerInteractionColumnHandler());
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_PrisonerInteraction", new NumbersPrisonerInteractionColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
@@ -45,28 +40,13 @@ namespace RimWorldAccess
             {
                 PrisonerInteractionModeDef chosen = mode;
                 // SetExclusiveInteraction refuses non-exclusive modes, so the strip's radio for one does nothing.
-                Action apply = mode.isNonExclusiveInteraction ? (Action)null : () => Apply(pawn, chosen);
+                Action apply = mode.isNonExclusiveInteraction ? (Action)null : () => PrisonerTabState.SetExclusiveMode(pawn, chosen);
                 options.Add(new FloatMenuOption(mode.LabelCap, apply));
             }
             int current = modes.IndexOf(pawn.guest.ExclusiveInteractionMode);
             WindowlessFloatMenuState.Open(options, colonistOrders: false, startIndex: Math.Max(0, current),
                 titleText: def.LabelCap.ToString());
             return PawnColumnActivation.OpenedUI;
-        }
-
-        private static void Apply(Pawn pawn, PrisonerInteractionModeDef mode)
-        {
-            if (pawn.guest == null)
-            {
-                return;
-            }
-            pawn.guest.SetExclusiveInteraction(mode);
-            if (ModsConfig.IdeologyActive && pawn.guest.ExclusiveInteractionMode == PrisonerInteractionModeDefOf.Convert
-                && pawn.guest.ideoForConversion == null)
-            {
-                // MUTATION-C: mirrors Numbers PawnColumnWorker_PrisonerInteraction.DrawInteractionRadioButton; the write sits inline in a mouse-polled IMGUI branch with no callable method.
-                pawn.guest.ideoForConversion = Faction.OfPlayer.ideos.PrimaryIdeo;
-            }
         }
 
         public override bool ActivatesCellWithoutTable(PawnColumnDef def)

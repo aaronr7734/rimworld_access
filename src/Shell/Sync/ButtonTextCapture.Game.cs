@@ -76,16 +76,15 @@ namespace RimWorldAccess.Shell
             passOpenFrame = Time.frameCount;
         }
 
-        /// <summary>Closes a pass still open on a later frame; same contract as <see cref="WidgetCapture.EndLeakedLivePass"/>.</summary>
+        /// <summary>Closes a pass leaked past its own frame; see <see cref="CapturePasses"/>.</summary>
         internal static void EndLeakedPass()
         {
-            if (!passOpen || Time.frameCount == passOpenFrame)
+            if (!CapturePasses.Leaked(passOpen, passOpenFrame))
             {
                 return;
             }
             EndPass();
-            items.Clear();
-            items.TrimExcess();
+            CapturePasses.Release(items);
         }
 
         /// <summary>Stop recording. Call from the armed surface's draw postfix.</summary>

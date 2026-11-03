@@ -142,6 +142,7 @@ namespace RimWorldAccess.Shell
         /// </summary>
         public static void Register(Type workerType, IPawnColumnHandler handler)
         {
+            EnsureInitialized(); // built-ins first, so a compat registration wins
             resolver.Register(workerType, handler);
         }
 

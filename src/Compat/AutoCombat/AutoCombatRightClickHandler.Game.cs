@@ -6,9 +6,9 @@ namespace RimWorldAccess
     /// The Auto-Combat gizmo's right-click runs DraftedActionData.ToggleAutoForAll, whose result
     /// shows only as icons on the ability gizmos; this speaks how many abilities it left on auto-cast.
     /// </summary>
-    internal sealed class AutoCombatRightClickDescriber : IRightClickOutcomeDescriber
+    internal sealed class AutoCombatRightClickHandler : GizmoHandlerBase
     {
-        public bool TryCapture(Gizmo gizmo, ISelectable owner, out object snapshot)
+        public override bool TryCaptureRightClickState(Gizmo gizmo, ISelectable owner, out object snapshot)
         {
             snapshot = null;
             if (!AutoCombatReflection.ToggleWithRClickType.IsInstanceOfType(gizmo) || !(owner is Pawn pawn))
@@ -20,7 +20,7 @@ namespace RimWorldAccess
             return true;
         }
 
-        public string DescribeChange(Gizmo gizmo, ISelectable owner, object snapshot)
+        public override string DescribeRightClickChange(Gizmo gizmo, ISelectable owner, object snapshot)
         {
             object data = AutoCombatReflection.GetData((Pawn)owner);
             int count = data == null ? 0 : AutoCombatReflection.AutoCastCount(data);

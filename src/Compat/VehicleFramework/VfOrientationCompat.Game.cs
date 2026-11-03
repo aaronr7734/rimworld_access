@@ -32,7 +32,6 @@ namespace RimWorldAccess
 
         private static object armedInstance;
         private static object armedRotation;
-        private static bool menuOpened;
         private static List<FloatMenuOption> menuOptions;
 
         public static void Register(Harmony harmony)
@@ -71,7 +70,7 @@ namespace RimWorldAccess
             }
             catch (Exception ex)
             {
-                Log.Error($"[RimWorld Access] VF orientation compat registration failed: {ex.Message}");
+                ModLogger.Error($"VF orientation compat registration failed: {ex.Message}");
                 ready = false;
             }
         }
@@ -91,7 +90,6 @@ namespace RimWorldAccess
                 armedInstance = PendingTargetingContext.ConsumeLabel() != null ? __instance : null;
                 // Init just seeded Rotation with the lead vehicle's facing; TargeterUpdate overwrites it every frame.
                 armedRotation = armedInstance != null ? rotationProperty.GetValue(__instance) : null;
-                menuOpened = false;
                 menuOptions = null;
             }
             catch (Exception ex)
@@ -118,7 +116,7 @@ namespace RimWorldAccess
                     return true;
                 }
 
-                if (!menuOpened)
+                if (menuOptions == null)
                 {
                     OpenMenu(__instance);
                     return false;
@@ -126,8 +124,7 @@ namespace RimWorldAccess
 
                 // Replaced or closed by something other than a choice or Escape: VF's own session
                 // must not then auto-confirm a facing nobody chose.
-                if (!WindowlessFloatMenuState.IsActive
-                    || !ReferenceEquals(WindowlessFloatMenuState.CurrentOptions, menuOptions))
+                if (!MenuStillOurs())
                 {
                     Disarm();
                     stopTargetingMethod.Invoke(__instance, null);
@@ -148,26 +145,28 @@ namespace RimWorldAccess
             if (!ready || !ReferenceEquals(__instance, armedInstance))
                 return;
 
-            bool menuStillOurs = menuOptions != null
-                && WindowlessFloatMenuState.IsActive
-                && ReferenceEquals(WindowlessFloatMenuState.CurrentOptions, menuOptions);
+            bool menuStillOurs = MenuStillOurs();
             Disarm();
             if (menuStillOurs)
                 WindowlessFloatMenuState.Close();
+        }
+
+        private static bool MenuStillOurs()
+        {
+            return menuOptions != null
+                && WindowlessFloatMenuState.IsActive
+                && ReferenceEquals(WindowlessFloatMenuState.CurrentOptions, menuOptions);
         }
 
         private static void Disarm()
         {
             armedInstance = null;
             armedRotation = null;
-            menuOpened = false;
             menuOptions = null;
         }
 
         private static void OpenMenu(object controller)
         {
-            menuOpened = true;
-
             var options = new List<FloatMenuOption>(8);
             object facing = armedRotation;
             for (int i = 0; i < 8; i++)

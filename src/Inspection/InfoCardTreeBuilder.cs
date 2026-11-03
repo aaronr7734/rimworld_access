@@ -266,7 +266,7 @@ namespace RimWorldAccess
                     {
                         try
                         {
-                            string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            string explanation = HarvestExplanation(entry)?.Trim();
                             // Skip lines that just repeat the entry label (e.g., "Required apparel:" header)
                             value = InspectTextUtility.SplitLines(explanation, entry.LabelCap.ToString()).FirstOrDefault();
                         }
@@ -282,7 +282,7 @@ namespace RimWorldAccess
                         value = null;
                         try
                         {
-                            string explanation = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            string explanation = HarvestExplanation(entry)?.Trim();
                             value = InspectTextUtility.SplitLines(explanation, entryLabel).FirstOrDefault();
                         }
                         catch { }
@@ -342,7 +342,7 @@ namespace RimWorldAccess
                     {
                         try
                         {
-                            explanationText = entry.GetExplanationText(StatRequest.ForEmpty())?.Trim();
+                            explanationText = HarvestExplanation(entry)?.Trim();
                             hasExplanation = !string.IsNullOrEmpty(explanationText);
                         }
                         catch { }
@@ -421,6 +421,11 @@ namespace RimWorldAccess
             }
         }
 
+        private static string HarvestExplanation(StatDrawEntry entry)
+        {
+            return SpokenHintRewrites.Apply(entry.GetExplanationText(StatRequest.ForEmpty()));
+        }
+
         private static void BuildStatDetailChildren(InspectionTreeItem statNode, StatDrawEntry entry)
         {
             if (statNode.Children.Count > 0)
@@ -428,7 +433,7 @@ namespace RimWorldAccess
 
             try
             {
-                string explanation = entry.GetExplanationText(StatRequest.ForEmpty());
+                string explanation = HarvestExplanation(entry);
                 if (!string.IsNullOrEmpty(explanation))
                 {
                     // Skip lines redundant with the entry label (header lines).

@@ -262,22 +262,14 @@ namespace RimWorldAccess.Shell
         /// <see cref="SyncRegionFromCurrentTree"/>, then announce once. Under FollowData the boundary
         /// tracking keeps the old cursor's parent, so submenu mode names a group the row moved into.
         /// </summary>
-        protected int SetTreeRootPreservingState(InspectionTreeItem newRoot, int regionCursorIndex)
-        {
-            return SetTreeRootPreservingState(defaultPanel, newRoot, regionCursorIndex);
-        }
-
-        protected int SetTreeRootPreservingState(InspectionTreeItem newRoot, int regionCursorIndex, TreeStatePreserve.CursorRule rule)
+        protected int SetTreeRootPreservingState(InspectionTreeItem newRoot, int regionCursorIndex,
+            TreeStatePreserve.CursorRule rule = TreeStatePreserve.CursorRule.NearestAncestor)
         {
             return SetTreeRootPreservingState(defaultPanel, newRoot, regionCursorIndex, rule);
         }
 
-        protected int SetTreeRootPreservingState(TreePanel panel, InspectionTreeItem newRoot, int regionCursorIndex)
-        {
-            return SetTreeRootPreservingState(panel, newRoot, regionCursorIndex, TreeStatePreserve.CursorRule.NearestAncestor);
-        }
-
-        protected int SetTreeRootPreservingState(TreePanel panel, InspectionTreeItem newRoot, int regionCursorIndex, TreeStatePreserve.CursorRule rule)
+        protected int SetTreeRootPreservingState(TreePanel panel, InspectionTreeItem newRoot, int regionCursorIndex,
+            TreeStatePreserve.CursorRule rule = TreeStatePreserve.CursorRule.NearestAncestor)
         {
             int prefixRows = PrefixRowCountFor(RegionOf(panel));
             int treeCursor = regionCursorIndex - prefixRows;

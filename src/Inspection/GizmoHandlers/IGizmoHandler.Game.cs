@@ -25,11 +25,7 @@ namespace RimWorldAccess
         /// </summary>
         bool TryExecute(Gizmo gizmo, GizmoHandlerContext ctx, out bool runEpilogue);
 
-        /// <summary>
-        /// Attempts to contribute type-specific announcement fragments. Returns
-        /// false (and leaves <paramref name="fragments"/> untouched) for handlers
-        /// whose branch never had an announcement-side counterpart.
-        /// </summary>
+        /// <summary>Attempts to contribute type-specific announcement fragments; false leaves <paramref name="fragments"/> untouched.</summary>
         bool TryDescribe(Gizmo gizmo, GizmoDescriptionFragments fragments);
 
         /// <summary>
@@ -48,11 +44,7 @@ namespace RimWorldAccess
         /// </summary>
         bool TryGetStatus(Gizmo gizmo, out string status);
 
-        /// <summary>
-        /// Attempts to produce the gizmo's long description (the analog of the
-        /// hover tooltip). Returns false to fall back to the generic description
-        /// resolution (Command.Desc and friends).
-        /// </summary>
+        /// <summary>The gizmo's long description (the hover tooltip's analog); false falls back to Command.Desc and friends.</summary>
         bool TryGetDescription(Gizmo gizmo, out string description);
 
         /// <summary>
@@ -73,5 +65,11 @@ namespace RimWorldAccess
         /// this to EVERY handler along the type chain and accumulates.
         /// </summary>
         bool TryGetExtraOptions(Gizmo gizmo, List<FloatMenuOption> options);
+
+        /// <summary>Snapshots state a replayed right-click may change unseen (overlay icons only); false when the gizmo is not this handler's. Offered along the whole chain.</summary>
+        bool TryCaptureRightClickState(Gizmo gizmo, ISelectable owner, out object snapshot);
+
+        /// <summary>The spoken outcome of the right-click, or null when nothing changed since <paramref name="snapshot"/>.</summary>
+        string DescribeRightClickChange(Gizmo gizmo, ISelectable owner, object snapshot);
     }
 }

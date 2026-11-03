@@ -22,24 +22,12 @@ namespace RimWorldAccess.Shell
 
         internal static string OpenerHotkey()
         {
-            return ActionRegistry.Catalog.TryGet("map.openGlobalGear", out InputAction action) && action.Bindings.Count > 0
-                ? action.Bindings[0].DisplayLabel
-                : null;
+            return ActionChords.Display("map.openGlobalGear");
         }
 
-        protected override MapOverviewScope Scope
+        protected override string TitleKey
         {
-            get { return GlobalGearScope.Current; }
-        }
-
-        protected override string Title
-        {
-            get { return "RimWorldAccess.GlobalGear.Title".Translate(); }
-        }
-
-        protected override Thing RowIcon(InspectionTreeItem item)
-        {
-            return item.Data is GlobalGearScope.Holder holder ? holder.Thing : null;
+            get { return "RimWorldAccess.GlobalGear.Title"; }
         }
     }
 
@@ -74,17 +62,11 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        internal static GlobalGearScope Current { get; private set; }
-
-        private readonly GlobalGearWindow window;
-        private readonly List<Pawn> pawnsBuffer = new List<Pawn>();
-        private int listedCount;
+        private readonly List<(Pawn Pawn, MapPawnGroup Group)> pawnsBuffer = new List<(Pawn, MapPawnGroup)>();
 
         public GlobalGearScope(GlobalGearWindow window) : base(window)
         {
-            this.window = window;
             Tree.TrackLastChild = true;
-            Claim(SharedMenuGrammar.Info, e => PerformInfoCard());
         }
 
         public override string Name
@@ -114,31 +96,19 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public override void OnPush()
+        protected override string FilterChangedOneKey
         {
-            Current = this;
-            base.OnPush();
+            get { return "RimWorldAccess.GlobalGear.FilterChangedOne"; }
         }
 
-        public override void OnPop()
+        protected override string FilterChangedKey
         {
-            if (ReferenceEquals(Current, this))
-            {
-                Current = null;
-            }
-            base.OnPop();
+            get { return "RimWorldAccess.GlobalGear.FilterChanged"; }
         }
 
-        protected override string ComposeOpenAnnouncement()
+        protected override Thing RowIcon(InspectionTreeItem item)
         {
-            return "RimWorldAccess.GlobalGear.Title".Translate();
-        }
-
-        protected override string FilterChangedAnnouncement(string state)
-        {
-            return listedCount == 1
-                ? (string)"RimWorldAccess.GlobalGear.FilterChangedOne".Translate(state)
-                : (string)"RimWorldAccess.GlobalGear.FilterChanged".Translate(state, listedCount);
+            return item.Data is Holder holder ? holder.Thing : null;
         }
 
         // Rows.
@@ -147,7 +117,7 @@ namespace RimWorldAccess.Shell
         /// Pawns whose gear tab a sighted player could open, in a shown group: spawned, selectable by
         /// a map click (neither fogged nor hidden), and not excluded by ITab_Pawn_Gear.IsVisible.
         /// </summary>
-        private List<Pawn> ListedPawns(MapPawnGroupFilter shown)
+        private List<(Pawn Pawn, MapPawnGroup Group)> ListedPawns(MapPawnGroupFilter shown)
         {
             pawnsBuffer.Clear();
             Map map = Find.CurrentMap;
@@ -162,31 +132,34 @@ namespace RimWorldAccess.Shell
                 if (!ThingSelectionUtility.SelectableByMapClick(pawn)
                     || pawn.ageTracker.CurLifeStage == LifeStageDefOf.HumanlikeBaby
                     || (ModsConfig.AnomalyActive && pawn.RaceProps.IsAnomalyEntity)
-                    || (ModsConfig.OdysseyActive && pawn.RaceProps.IsDrone)
-                    || !MapPawnGroups.Shown(MapPawnGroups.Of(pawn), shown))
+                    || (ModsConfig.OdysseyActive && pawn.RaceProps.IsDrone))
                 {
                     continue;
                 }
-                pawnsBuffer.Add(pawn);
+                MapPawnGroup group = MapPawnGroups.Of(pawn);
+                if (MapPawnGroups.Shown(group, shown))
+                {
+                    pawnsBuffer.Add((pawn, group));
+                }
             }
             return pawnsBuffer;
         }
 
         /// <summary>What the pawn wields and wears, in the gear tab's Equipment then Apparel order.</summary>
-        private static IEnumerable<Thing> GearThings(Pawn pawn)
+        private static IEnumerable<InteractiveGearHelper.GearItem> GearItems(Pawn pawn)
         {
             foreach (InteractiveGearHelper.GearItem item in InteractiveGearHelper.GetEquipmentItems(pawn))
             {
                 if (item.Thing != null)
                 {
-                    yield return item.Thing;
+                    yield return item;
                 }
             }
             foreach (InteractiveGearHelper.GearItem item in InteractiveGearHelper.GetApparelItems(pawn))
             {
                 if (item.Thing != null)
                 {
-                    yield return item.Thing;
+                    yield return item;
                 }
             }
         }
@@ -195,35 +168,18 @@ namespace RimWorldAccess.Shell
         protected override int ContentSignature(MapPawnGroupFilter shown)
         {
             int hash = (int)shown;
-            List<Pawn> pawns = ListedPawns(shown);
-            for (int i = 0; i < pawns.Count; i++)
+            foreach ((Pawn pawn, MapPawnGroup group) in ListedPawns(shown))
             {
-                Pawn pawn = pawns[i];
                 unchecked
                 {
                     hash = hash * 31 + pawn.thingIDNumber;
-                    hash = hash * 31 + (int)MapPawnGroups.Of(pawn);
+                    hash = hash * 31 + (int)group;
                     hash = hash * 31 + pawn.LabelShort.GetHashCode();
-                }
-                hash = AddGear(hash, pawn.equipment?.AllEquipmentListForReading);
-                hash = AddGear(hash, pawn.apparel?.WornApparel);
-            }
-            return hash;
-        }
-
-        private static int AddGear<T>(int hash, IList<T> things) where T : Thing
-        {
-            if (things == null)
-            {
-                return hash;
-            }
-            unchecked
-            {
-                for (int i = 0; i < things.Count; i++)
-                {
-                    T thing = things[i];
-                    hash = hash * 31 + thing.thingIDNumber;
-                    hash = hash * 31 + thing.HitPoints;
+                    foreach (InteractiveGearHelper.GearItem item in GearItems(pawn))
+                    {
+                        hash = hash * 31 + item.Thing.thingIDNumber;
+                        hash = hash * 31 + (ItemLabelHelper.ConditionPercent(item.Thing)?.GetHashCode() ?? 0);
+                    }
                 }
             }
             return hash;
@@ -231,6 +187,7 @@ namespace RimWorldAccess.Shell
 
         private sealed class ItemGroup
         {
+            public object Key;
             public string Name;
             public int Rank;
             public int ListOrder;
@@ -241,7 +198,7 @@ namespace RimWorldAccess.Shell
         /// One row per kind of item, grouped by def, stuff, quality and vanilla's label without hit
         /// points, so a tainted piece stays apart from a clean one. Holders sit under it.
         /// </summary>
-        protected override InspectionTreeItem BuildRoot(MapPawnGroupFilter shown)
+        protected override InspectionTreeItem BuildRoot(MapPawnGroupFilter shown, out int listed)
         {
             var root = new InspectionTreeItem
             {
@@ -252,29 +209,34 @@ namespace RimWorldAccess.Shell
             };
             var groups = new Dictionary<(ThingDef, ThingDef, QualityCategory?, string), ItemGroup>();
             var holderPawns = new HashSet<Pawn>();
-            foreach (Pawn pawn in ListedPawns(shown))
+            foreach ((Pawn pawn, MapPawnGroup group) in ListedPawns(shown))
             {
-                MapPawnGroup group = MapPawnGroups.Of(pawn);
-                foreach (Thing thing in GearThings(pawn))
+                foreach (InteractiveGearHelper.GearItem item in GearItems(pawn))
                 {
+                    Thing thing = item.Thing;
                     QualityCategory? quality = thing.TryGetQuality(out QualityCategory q) ? q : (QualityCategory?)null;
                     string name = thing.GetCustomLabelNoCount(includeHp: false).CapitalizeFirst(thing.def).StripTags();
                     var key = (thing.def, thing.Stuff, quality, name);
                     if (!groups.TryGetValue(key, out ItemGroup itemGroup))
                     {
-                        itemGroup = new ItemGroup { Name = name, Rank = SortRank(thing), ListOrder = ApparelListOrder(thing) };
+                        itemGroup = new ItemGroup
+                        {
+                            Key = key,
+                            Name = name,
+                            Rank = item.Category == "Apparel" ? 1 : 0,
+                            ListOrder = InteractiveGearHelper.ApparelListOrder(thing),
+                        };
                         groups[key] = itemGroup;
                     }
                     itemGroup.Holders.Add(new Holder(pawn, thing, group));
                     holderPawns.Add(pawn);
                 }
             }
-            listedCount = holderPawns.Count;
+            listed = holderPawns.Count;
 
-            var ordered = new List<KeyValuePair<(ThingDef, ThingDef, QualityCategory?, string), ItemGroup>>(groups);
-            ordered.Sort((a, b) =>
+            var ordered = new List<ItemGroup>(groups.Values);
+            ordered.Sort((x, y) =>
             {
-                ItemGroup x = a.Value, y = b.Value;
                 if (x.Rank != y.Rank)
                 {
                     return x.Rank.CompareTo(y.Rank);
@@ -285,14 +247,14 @@ namespace RimWorldAccess.Shell
                 }
                 return string.Compare(x.Name, y.Name, StringComparison.CurrentCultureIgnoreCase);
             });
-            foreach (KeyValuePair<(ThingDef, ThingDef, QualityCategory?, string), ItemGroup> entry in ordered)
+            foreach (ItemGroup itemGroup in ordered)
             {
-                InspectNodeFactory.Attach(root, ItemNode(entry.Key, entry.Value));
+                InspectNodeFactory.Attach(root, ItemNode(itemGroup));
             }
             return root;
         }
 
-        private static InspectionTreeItem ItemNode(object key, ItemGroup itemGroup)
+        private static InspectionTreeItem ItemNode(ItemGroup itemGroup)
         {
             List<Holder> holders = itemGroup.Holders;
             holders.Sort((a, b) => a.Group != b.Group
@@ -310,36 +272,25 @@ namespace RimWorldAccess.Shell
                 Type = InspectionTreeItem.ItemType.Item,
                 Label = (first is Apparel ? "RimWorldAccess.GlobalGear.WornBy" : "RimWorldAccess.GlobalGear.EquippedBy")
                     .Translate(name, names.ToCommaList()),
-                Data = key,
+                Data = itemGroup.Key,
                 LinkedDef = first.def,
                 IndentLevel = 0,
                 IsExpandable = true,
             };
             foreach (Holder holder in holders)
             {
+                Thing held = holder.Thing;
                 InspectNodeFactory.Attach(itemNode, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
                     Label = MapPawnGroups.NameWithGroup(holder.Pawn.LabelShort, holder.Group),
-                    Detail = HolderDetail(holder.Thing),
+                    Detail = HolderDetail(held),
                     Data = holder,
+                    OnInfo = delegate { Find.WindowStack.Add(new Dialog_InfoCard(held)); },
                     IndentLevel = 1,
                 });
             }
             return itemNode;
-        }
-
-        /// <summary>The gear tab's section: weapons and belts under Equipment, the rest under Apparel.</summary>
-        private static int SortRank(Thing thing)
-        {
-            return thing is Apparel apparel && !apparel.def.apparel.layers.Contains(ApparelLayerDefOf.Belt) ? 1 : 0;
-        }
-
-        /// <summary>ITab_Pawn_Gear's apparel order key, sorted descending.</summary>
-        private static int ApparelListOrder(Thing thing)
-        {
-            List<BodyPartGroupDef> parts = thing.def.apparel?.bodyPartGroups;
-            return parts != null && parts.Count > 0 ? parts[0].listOrder : 0;
         }
 
         private static string HolderDetail(Thing thing)
@@ -381,45 +332,9 @@ namespace RimWorldAccess.Shell
             AnnounceCurrentItem();
         }
 
-        /// <summary>
-        /// The log tab's jump (<see cref="CameraJumper.TryJumpAndSelect"/>), then vanilla's
-        /// <see cref="InspectPaneUtility.OpenTab"/> as a death letter does. The window closes first:
-        /// the tab bridge stands down under a foreign dialog.
-        /// </summary>
         private void OpenGearTab(Holder holder)
         {
-            Pawn pawn = holder.Pawn;
-            if (pawn.Destroyed || !pawn.Spawned || !CameraJumper.CanJump(pawn))
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.SpeakData("RimWorldAccess.GlobalGear.JumpUnavailable".Translate());
-                return;
-            }
-            window.Close();
-            CameraJumper.TryJumpAndSelect(pawn);
-            bool landed = WindowlessInspectionState.OpenTabLandingOn(typeof(ITab_Pawn_Gear), holder.Thing);
-            if (!landed)
-            {
-                MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
-            }
-            ArmReturn(landed, GlobalGearWindow.Open);
-        }
-
-        /// <summary>Alt+I: the held thing's own card on a holder row, so condition and quality are its own.</summary>
-        private void PerformInfoCard()
-        {
-            InspectionTreeItem item = CurrentTreeItem();
-            if (item?.Data is Holder holder)
-            {
-                Find.WindowStack.Add(new Dialog_InfoCard(holder.Thing));
-                return;
-            }
-            if (item?.LinkedDef != null)
-            {
-                InfoCardState.OpenInfoCardForDef(item.LinkedDef);
-                return;
-            }
-            InfoCardState.SpeakNoInfoCardAvailable();
+            HandOffToTab(holder.Pawn, typeof(ITab_Pawn_Gear), holder.Thing, "RimWorldAccess.GlobalGear.JumpUnavailable", GlobalGearWindow.Open);
         }
     }
 }

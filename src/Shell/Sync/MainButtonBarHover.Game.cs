@@ -37,6 +37,11 @@ namespace RimWorldAccess.Shell
         /// <summary>Frame of the most recent bar draw — see <see cref="TryHitTest"/>.</summary>
         private static int lastDrawFrame = -1;
 
+        /// <summary>Hotkey label memo for the button under a continuous dwell; see <see cref="ReachableHotkeyLabel"/>.</summary>
+        private static MainButtonDef hotkeyDef;
+        private static string hotkeyLabel;
+        private static int hotkeyFrame = -1;
+
         /// <summary>
         /// Opens the recording window and drops every rect from the previous bar
         /// draw, so a button that has since stopped being visible can never be
@@ -100,15 +105,8 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// A main button's spoken name — its own label, or its defName split into
-        /// words when it has none.
-        ///
-        /// Some mods ship a MainButtonDef with no label at all (RimTalk's
-        /// "RimTalkDebug", live-verified) because the button never draws its own
-        /// caption. A raw defName is still better than silence, but reads as one
-        /// run-on word; splitting it the same way this codebase already humanizes
-        /// other def names (ScenarioBuilderState's field/enum labels) gives every
-        /// future mod with the same omission a readable name for free.
+        /// A main button's spoken name: its own label, or its defName split into words
+        /// for a modded def that ships no label because the button never draws a caption.
         /// </summary>
         internal static string LabelOf(MainButtonDef def)
         {
@@ -132,10 +130,10 @@ namespace RimWorldAccess.Shell
             }
             description.Label = LabelOf(def);
             description.Role = ElementRole.Button;
-            string hotkeyLabel = VanillaBindings.ReachableHotkeyLabel(def.hotKey);
-            if (hotkeyLabel != null)
+            string hotkey = ReachableHotkeyLabel(def);
+            if (hotkey != null)
             {
-                description.Hotkey = hotkeyLabel;
+                description.Hotkey = hotkey;
             }
             // A broken modded worker must not cost the button its label.
             try
@@ -157,6 +155,22 @@ namespace RimWorldAccess.Shell
             }
             description.Extras = def.description;
             return description;
+        }
+
+        /// <summary>
+        /// Hover describes the button under the pointer on every repaint, and the reachability walk
+        /// over the focus stack is the costly part, so it is computed once per dwell.
+        /// </summary>
+        private static string ReachableHotkeyLabel(MainButtonDef def)
+        {
+            int frame = Time.frameCount;
+            if (def != hotkeyDef || frame - hotkeyFrame > 1)
+            {
+                hotkeyDef = def;
+                hotkeyLabel = VanillaBindings.ReachableHotkeyLabel(def.hotKey);
+            }
+            hotkeyFrame = frame;
+            return hotkeyLabel;
         }
     }
 

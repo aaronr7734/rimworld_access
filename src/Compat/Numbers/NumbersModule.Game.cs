@@ -1,4 +1,7 @@
+using System;
 using HarmonyLib;
+using RimWorldAccess.Shell;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -11,7 +14,18 @@ namespace RimWorldAccess
     {
         public override string TargetPackageId => "Mehni.Numbers";
 
-        public override bool ShouldActivate => AccessTools.TypeByName("Numbers.PawnTable_NumbersMain") != null;
+        public override bool ShouldActivate =>
+            ModsConfig.IsActive(TargetPackageId) || AccessTools.TypeByName("Numbers.PawnTable_NumbersMain") != null;
+
+        internal static void RegisterWorker(string workerTypeName, IPawnColumnHandler handler)
+        {
+            var surface = new ReflectionSurface(handler.GetType().Name);
+            Type workerType = surface.Type(workerTypeName);
+            if (surface.Ready)
+            {
+                PawnColumnHandlerRegistry.Register(workerType, handler);
+            }
+        }
 
         public override void Activate(Harmony harmony)
         {

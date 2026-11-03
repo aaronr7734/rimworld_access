@@ -292,15 +292,17 @@ namespace RimWorldAccess
         // === Fixed Column Accessors ===
 
         /// <summary>The bare animal name, without activity, for row labels.</summary>
-        public static string GetAnimalName(Pawn pawn)
+        public static string GetNameWithKind(Pawn pawn)
         {
-            return pawn.Name != null ? $"{pawn.Name.ToStringShort} ({pawn.def.LabelCap})" : pawn.def.LabelCap.ToString();
+            return pawn.Name != null
+                ? "RimWorldAccess.Animals.NameWithKind".Translate(pawn.Name.ToStringShort, pawn.def.LabelCap).ToString()
+                : pawn.def.LabelCap.ToString();
         }
 
         /// <summary>The animal name with its current activity, for the Name column value.</summary>
         public static string GetAnimalNameWithActivity(Pawn pawn)
         {
-            string baseName = GetAnimalName(pawn);
+            string baseName = GetNameWithKind(pawn);
             string activity = PawnHelper.GetPawnActivity(pawn);
             return activity != null ? $"{baseName} - {activity}" : baseName;
         }

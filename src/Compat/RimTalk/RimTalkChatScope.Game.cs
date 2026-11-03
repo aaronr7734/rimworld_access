@@ -139,7 +139,6 @@ namespace RimWorldAccess.Shell
 
         internal void OnGuiPass()
         {
-            TextDialogCapture.EndPass();
             RefreshModel();
 
             ShellTextFocus.ReleaseNativeFocus();

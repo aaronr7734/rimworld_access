@@ -236,17 +236,18 @@ namespace RimWorldAccess
             // Single hediff group: skip intermediate node, attach details directly to body part
             if (groups.Count == 1)
             {
+                List<HediffTip> tips = TooltipsOf(groups[0], pawn);
                 InspectNodeFactory.Attach(parentItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = HediffGroupRowLabel(groups[0], pawn),
+                    Label = HediffGroupRowLabel(groups[0], tips),
                     Data = groups[0][0],
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = false
                 });
 
                 int childrenBefore = parentItem.Children.Count;
-                BuildHediffDetailChildren(parentItem, groups[0], pawn);
+                BuildHediffDetailChildren(parentItem, groups[0], tips);
                 if (parentItem.Children.Count == childrenBefore)
                     parentItem.IsExpandable = false;
 
@@ -258,7 +259,8 @@ namespace RimWorldAccess
 
             foreach (var hediffGroup in groups)
             {
-                string rowLabel = HediffGroupRowLabel(hediffGroup, pawn);
+                List<HediffTip> tips = TooltipsOf(hediffGroup, pawn);
+                string rowLabel = HediffGroupRowLabel(hediffGroup, tips);
                 var hediffItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
@@ -270,7 +272,7 @@ namespace RimWorldAccess
                 };
 
                 // Build children eagerly for collapsed summary
-                BuildHediffDetailChildren(hediffItem, hediffGroup, pawn);
+                BuildHediffDetailChildren(hediffItem, hediffGroup, tips);
                 hediffItem.IsExpandable = hediffItem.Children.Count > 0;
                 var hediffChildLabels = hediffItem.Children.Select(c => c.Label).ToList();
                 if (hediffChildLabels.Count > 0)
@@ -287,25 +289,51 @@ namespace RimWorldAccess
         /// Vanilla's row text ("Label xN") for a group; a lone hediff takes its tooltip header
         /// instead, which carries the severity.
         /// </summary>
-        private static string HediffGroupRowLabel(List<Hediff> group, Pawn pawn)
+        private static string HediffGroupRowLabel(List<Hediff> group, List<HediffTip> tips)
         {
             string name = group[0].LabelCap.StripTags();
             if (group.Count > 1)
                 return $"{name} x{group.Count}";
-            HealthTabHelper.GetHediffTooltipLines(group[0], pawn, out string header);
+            string header = tips[0].Header;
             return string.IsNullOrEmpty(header) ? name : header;
+        }
+
+        private readonly struct HediffTip
+        {
+            public readonly string Header;
+            public readonly List<string> Lines;
+
+            public HediffTip(string header, List<string> lines)
+            {
+                Header = header;
+                Lines = lines;
+            }
+        }
+
+        /// <summary>Each grouped hediff's tooltip, split once for both the row label and its detail children.</summary>
+        private static List<HediffTip> TooltipsOf(List<Hediff> group, Pawn pawn)
+        {
+            var tips = new List<HediffTip>(group.Count);
+            foreach (Hediff hediff in group)
+            {
+                List<string> lines = HealthTabHelper.GetHediffTooltipLines(hediff, pawn, out string header);
+                tips.Add(new HediffTip(header, lines));
+            }
+            return tips;
         }
 
         /// <summary>
         /// Detail children from vanilla's hover tooltip, which stacks one block per grouped
         /// hediff. Lines repeated across the stack are spoken once.
         /// </summary>
-        private static void BuildHediffDetailChildren(InspectionTreeItem hediffItem, List<Hediff> group, Pawn pawn)
+        private static void BuildHediffDetailChildren(InspectionTreeItem hediffItem, List<Hediff> group, List<HediffTip> tips)
         {
             var seen = new HashSet<string>();
-            foreach (Hediff hediff in group)
+            for (int i = 0; i < group.Count; i++)
             {
-                List<string> lines = HealthTabHelper.GetHediffTooltipLines(hediff, pawn, out string header);
+                Hediff hediff = group[i];
+                string header = tips[i].Header;
+                List<string> lines = tips[i].Lines;
                 if (group.Count > 1 && !string.IsNullOrEmpty(header) && header != hediff.LabelCap.StripTags())
                     AttachDetail(hediffItem, header);
                 foreach (string line in lines)

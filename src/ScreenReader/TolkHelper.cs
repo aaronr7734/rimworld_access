@@ -562,7 +562,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            text = SpeechSanitizer.Sanitize(SpokenHintRewrites.Apply(text));
+            text = SpeechSanitizer.Sanitize(text);
             if (string.IsNullOrEmpty(text))
             {
                 return;

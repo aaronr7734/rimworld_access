@@ -202,7 +202,7 @@ namespace RimWorldAccess
                         "resolve; RimWorld of Magic's autocast gizmo hotkeys will not require Shift.");
                 }
             }
-            catch (Exception ex) when (ex is TypeLoadException || ex.InnerException is TypeLoadException)
+            catch (Exception ex) when (ModLogger.IsForeignAssemblyFault(ex))
             {
                 ModLogger.Warning($"JecsAbilityCompat: TM_Action references a type its own assemblies lack, so the installed RimWorld of Magic does not match this game version; hotkey shift gate skipped. {ex.Message}");
             }

@@ -47,15 +47,15 @@ namespace RimWorldAccess.Shell
 
         internal static string OpenerHotkey()
         {
-            return ActionRegistry.Catalog.TryGet("map.openGlobalLog", out InputAction action) && action.Bindings.Count > 0
-                ? action.Bindings[0].DisplayLabel
-                : null;
+            return ActionChords.Display("map.openGlobalLog");
         }
 
         public override Vector2 InitialSize
         {
             get { return new Vector2(1040f, 640f); }
         }
+
+        private const float MaxButtonWidth = 200f;
 
         public override void DoWindowContents(Rect inRect)
         {
@@ -100,28 +100,10 @@ namespace RimWorldAccess.Shell
 
         private static void DrawFilters(Rect rect, GlobalLogScope scope)
         {
-            if (scope == null)
+            if (scope != null)
             {
-                return;
-            }
-            float y = rect.y;
-            for (int i = 0; i < GlobalLogScope.FilterCount; i++)
-            {
-                Rect row = new Rect(rect.x, y, rect.width, 28f);
-                scope.FilterRects[i] = GuiSpace.VisibleScreenRect(row);
-                bool value = GlobalLogScope.FilterValue(i);
-                bool before = value;
-                string tip = GlobalLogScope.FilterTooltip(i);
-                if (tip != null)
-                {
-                    TooltipHandler.TipRegion(row, tip);
-                }
-                Widgets.CheckboxLabeled(row, GlobalLogScope.FilterLabel(i), ref value);
-                if (value != before)
-                {
-                    scope.ClickFilter(i);
-                }
-                y += 30f;
+                ScreenControlPainter.DrawCheckboxColumn(rect, scope.FilterRects, GlobalLogScope.FilterCount,
+                    GlobalLogScope.FilterLabel, GlobalLogScope.FilterValue, GlobalLogScope.FilterTooltip, scope.ClickFilter, -1);
             }
         }
 
@@ -249,33 +231,11 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        private void DrawButtons(Rect rect, GlobalLogScope scope)
+        private static void DrawButtons(Rect rect, GlobalLogScope scope)
         {
-            if (scope == null)
+            if (scope != null)
             {
-                return;
-            }
-            IReadOnlyList<ScreenAction> actions = scope.CurrentActions();
-            const float spacing = 10f;
-            float width = Mathf.Min(200f, (rect.width - spacing * (actions.Count - 1)) / actions.Count);
-            float x = rect.x;
-            int focusedIndex = scope.CurrentActionIndex;
-            for (int i = 0; i < actions.Count; i++)
-            {
-                ScreenAction action = actions[i];
-                Rect r = new Rect(x, rect.y, width, rect.height);
-                bool wasEnabled = GUI.enabled;
-                GUI.enabled = !action.Disabled;
-                if (Widgets.ButtonText(r, action.Label))
-                {
-                    action.Activate();
-                }
-                GUI.enabled = wasEnabled;
-                if (i == focusedIndex)
-                {
-                    FocusRing.Draw(r);
-                }
-                x += width + spacing;
+                ScreenControlPainter.DrawActionRow(rect, scope.CurrentActions(), scope.CurrentActionIndex, MaxButtonWidth);
             }
         }
     }

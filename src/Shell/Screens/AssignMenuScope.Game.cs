@@ -181,11 +181,12 @@ namespace RimWorldAccess.Shell
             return AssignMenuHelper.GetCellTip(pawnsList[row], column);
         }
 
-        protected override string ContentCellHint(int region, int row, int column)
+        protected override bool TryGetPawnCell(int region, int row, int column, out PawnColumnDef def, out Pawn pawn)
         {
-            if (row < 0 || row >= pawnsList.Count)
-                return null;
-            return PawnColumnCellReader.CellHint(AssignMenuHelper.GetColumnDef(column), pawnsList[row]);
+            bool inRange = row >= 0 && row < pawnsList.Count;
+            def = inRange ? AssignMenuHelper.GetColumnDef(column) : null;
+            pawn = inRange ? pawnsList[row] : null;
+            return def != null;
         }
 
         /// <summary>
@@ -308,8 +309,7 @@ namespace RimWorldAccess.Shell
                     if (idx >= 0)
                         initialTable.Rows.MoveTo(idx + 1);
                 }
-                if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
-                    saved.LandOn(initialTable, pawnsList);
+                ScreenReturn.LandTableCursor(Name, initialTable, pawnsList);
             }
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
@@ -347,17 +347,8 @@ namespace RimWorldAccess.Shell
 
         private void JumpToPawnOnMap(Pawn pawn)
         {
-            if (pawn == null || pawn.Map == null)
-            {
-                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap".Loc(), SpeechPriority.High);
-                return;
-            }
-            IntVec3 position = pawn.Position;
-            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Assign, pawn, Model.CurrentTable);
-            Close();
-            MapNavigationState.CurrentCursorPosition = position;
-            Find.CameraDriver?.JumpToCurrentMapLoc(position);
-            MapNavigationState.SpeakJumpedTo(pawn.LabelShort);
+            ScreenReturn.JumpToPawn(Name, MainTabWindowLink.Assign, Model.CurrentTable, Close,
+                pawn, "RimWorldAccess.Pawns.AssignMenu.PawnNotOnMap", p => p.LabelShort);
         }
 
         /// <summary>

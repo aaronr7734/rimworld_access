@@ -36,7 +36,7 @@ namespace RimWorldAccess.Shell
         private const int CellMaxWidth = 120;
 
         /// <summary>Vanilla's own skill tooltip, whose builder is private to <c>SkillUI</c>.</summary>
-        private static readonly Func<SkillRecord, string> SkillDescription = BuildSkillDescription();
+        internal static readonly Func<SkillRecord, string> SkillDescription = BuildSkillDescription();
 
         private PawnColumnDef_AccessSkill SkillColumn
         {

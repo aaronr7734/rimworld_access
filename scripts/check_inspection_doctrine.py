@@ -23,15 +23,13 @@ Locks that doctrine in so it can't silently regress:
    shadowed the moment a base type gains a registration (the
    registration-order trap). Public types register via Register(typeof(...));
    the name tier exists only for genuinely non-public types, which our own
-   source has none of. NAME_TIER_ALLOWLIST is the one frozen exception: VEF
-   compat's insectoid auto-cast handler ADDS a facet to vanilla's public
-   Command_Ability without replacing AbilityGizmoHandler's existing byType
-   registration (Register(Type, handler) REPLACES rather than merges — see
-   TypeChainResolver.Register — so Register(typeof(Command_Ability), ...)
-   would silently drop AbilityGizmoHandler's cost/range/cooldown facets). The
-   handler's own exact-type + IsPlayerDraftedInsectoid gates keep it inert
-   everywhere else. New entries need the same "additive, can't use Register"
-   justification, not just a build-passes excuse.
+   source has none of. Register(Type, handler) appends to that type's
+   handler list, so an additive facet on a public type registers by Type too.
+   NAME_TIER_ALLOWLIST is the one frozen exception: VEF compat's insectoid
+   auto-cast handler, a name-tier facet on vanilla's Command_Ability whose
+   exact-type + IsPlayerDraftedInsectoid gates keep it inert everywhere else.
+   New entries need a "can't use Register" justification, not just a
+   build-passes excuse.
 
 4. Type-name guard: `GetType().Name ==` / `typeName ==` / `switch (typeName)`
    dispatch is forbidden in the inspection tree sources (TabRegistry,
@@ -115,8 +113,6 @@ NAME_TIER_RE = re.compile(r'RegisterByTypeName\s*\(\s*"([^"]+)"')
 # add one just to make the build pass.
 NAME_TIER_ALLOWLIST = {
     ("src/Compat/VEF/VefGizmoCompat.Game.cs", "Command_Ability"),
-    # Drafted Auto-Combat's auto-cast facet: same additive shape, gated on exact type + IsDraftedPlayerPawn.
-    ("src/Compat/AutoCombat/AutoCombatModule.Game.cs", "Command_Ability"),
 }
 TYPE_NAME_DISPATCH_RE = re.compile(
     r'GetType\(\)\s*\.\s*Name\s*==|\btypeName\s*==\s*"|switch\s*\(\s*typeName\s*\)')

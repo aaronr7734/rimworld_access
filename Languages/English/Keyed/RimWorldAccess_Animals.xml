@@ -73,6 +73,8 @@
   <RimWorldAccess.Animals.Menu.ClosedWithSummary>Animals menu closed. {0}</RimWorldAccess.Animals.Menu.ClosedWithSummary>
   <RimWorldAccess.Animals.Menu.ReturnTitle>Animals menu</RimWorldAccess.Animals.Menu.ReturnTitle>
   <RimWorldAccess.Animals.Menu.NotOnMap>Animal not on map</RimWorldAccess.Animals.Menu.NotOnMap>
+  <!-- {0} = the pawn's short name, {1} = its kind (an animal's or mechanoid's def label) -->
+  <RimWorldAccess.Animals.NameWithKind>{0} ({1})</RimWorldAccess.Animals.NameWithKind>
 
   <!-- Cell-interaction feedback for training, follow, dig/forage, etc.
        {0} = animal name (pawn.LabelShort), {1} = trainable LabelCap

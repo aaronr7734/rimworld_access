@@ -171,7 +171,7 @@ namespace RimWorldAccess.Shell
             }
             if (index >= 0 && index < mechsList.Count)
             {
-                d.Label = MechsMenuHelper.GetMechName(mechsList[index]);
+                d.Label = AnimalsMenuHelper.GetNameWithKind(mechsList[index]);
             }
             return d;
         }
@@ -227,14 +227,12 @@ namespace RimWorldAccess.Shell
             return MechsMenuHelper.GetUnknownCellTip(mechsList[row], column);
         }
 
-        protected override string ContentCellHint(int region, int row, int column)
+        protected override bool TryGetPawnCell(int region, int row, int column, out PawnColumnDef def, out Pawn pawn)
         {
-            if (IsInSubmenu || row < 0 || row >= mechsList.Count)
-                return null;
-            MechsMenuHelper.ColumnType type = MechsMenuHelper.GetColumnType(column);
-            return type == MechsMenuHelper.ColumnType.Name || type == MechsMenuHelper.ColumnType.Overseer
-                ? PawnColumnCellReader.CellHint(MechsMenuHelper.GetDef(column), mechsList[row])
-                : null;
+            bool inRange = !IsInSubmenu && row >= 0 && row < mechsList.Count;
+            def = inRange ? MechsMenuHelper.GetDef(column) : null;
+            pawn = inRange ? mechsList[row] : null;
+            return def != null;
         }
 
         /// <summary>Enter on an interactive column: Name jumps to the mech, Overseer to its overseer, Draft/AutoRepair toggle, Control Group/Work Mode/Allowed Area open a submenu.</summary>
@@ -243,14 +241,7 @@ namespace RimWorldAccess.Shell
             if (row < 0 || row >= mechsList.Count)
                 return false;
             if (MechsMenuHelper.GetColumnType(column) == MechsMenuHelper.ColumnType.Unknown)
-            {
-                switch (PawnColumnCellReader.ActivateCellTableless(MechsMenuHelper.GetDef(column), mechsList[row]))
-                {
-                    case PawnColumnActivation.StateChanged: AnnounceCurrentCellStateChange(); return true;
-                    case PawnColumnActivation.OpenedUI: return true;
-                    default: return false;
-                }
-            }
+                return ActivatePawnCellTableless(region, row, column);
             if (!MechsMenuHelper.IsColumnInteractive(column))
                 return false;
 
@@ -324,8 +315,7 @@ namespace RimWorldAccess.Shell
             announcedOpen = true;
             if (mechsList.Count == 0)
                 return; // MechsMenuState.Open() already refused to open/announce for an empty roster.
-            if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
-                saved.LandOn(Model.CurrentTable, mechsList);
+            ScreenReturn.LandTableCursor(Name, Model.CurrentTable, mechsList);
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             TolkHelper.SpeakData("RimWorldAccess.Mechs.Menu.OpeningTitle".Translate(mechsList.Count).ToString());
@@ -430,18 +420,8 @@ namespace RimWorldAccess.Shell
 
         private void JumpToMechOnMap(Pawn pawn)
         {
-            if (pawn == null || pawn.Map == null)
-            {
-                TolkHelper.Speak("RimWorldAccess.Mechs.Menu.NotOnMap".Loc(), SpeechPriority.High);
-                return;
-            }
-            IntVec3 position = pawn.Position;
-            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Mechs, pawn, Model.CurrentTable);
-            Close();
-            MapNavigationState.CurrentCursorPosition = position;
-            Find.CameraDriver?.JumpToCurrentMapLoc(position);
-            string mechName = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
-            MapNavigationState.SpeakJumpedTo(mechName);
+            ScreenReturn.JumpToPawn(Name, MainTabWindowLink.Mechs, Model.CurrentTable, Close,
+                pawn, "RimWorldAccess.Mechs.Menu.NotOnMap");
         }
 
         private bool JumpToOverseer(Pawn mech, int column)
@@ -543,7 +523,7 @@ namespace RimWorldAccess.Shell
             string columnValue = MechsMenuHelper.GetColumnValue(pawn, column);
             if (!includeItemName)
                 return columnValue;
-            string itemLabel = MechsMenuHelper.GetMechName(pawn);
+            string itemLabel = AnimalsMenuHelper.GetNameWithKind(pawn);
             if (itemLabel == columnValue || columnValue.StartsWith(itemLabel))
                 return columnValue;
             string columnName = MechsMenuHelper.GetColumnName(column);

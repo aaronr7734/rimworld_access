@@ -228,4 +228,5 @@
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>Порожньо</RimWorldAccess.Animals.AutoSlaughter.Numeric.Empty>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>Недійсне число. Використовуйте мінус 1 для необмеженого значення</RimWorldAccess.Animals.AutoSlaughter.Numeric.Invalid>
   <RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>Скасовано</RimWorldAccess.Animals.AutoSlaughter.Numeric.Cancelled>
+  <RimWorldAccess.Animals.NameWithKind>{0} ({1})</RimWorldAccess.Animals.NameWithKind>
 </LanguageData>

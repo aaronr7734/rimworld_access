@@ -299,7 +299,6 @@ namespace RimWorldAccess.Shell
         /// <summary>Runs from the DoWindowContents finalizer, after vanilla's own scroll view has already closed.</summary>
         internal void OnGuiPass()
         {
-            EndCapturePasses();
             capturedSearch = QuickSearchCapture.Items.Count > 0 ? QuickSearchCapture.Items[0].Widget : null;
             session.MirrorLive();
 
@@ -514,15 +513,15 @@ namespace RimWorldAccess.Shell
     public static class AssignScopeDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_AssignBuildingOwner __instance, Rect inRect, out bool __state)
+        public static void Prefix(Dialog_AssignBuildingOwner __instance, Rect inRect, out AssignScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 AssignScope scope = AssignScope.OwningScope(__instance);
                 if (scope != null)
                 {
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass(inRect);
                 }
             }
@@ -535,27 +534,12 @@ namespace RimWorldAccess.Shell
         // A finalizer runs after every postfix, including a third party's that draws its own
         // search widget, and still closes the passes when the body throws.
         [HarmonyFinalizer]
-        public static void Finalizer(Dialog_AssignBuildingOwner __instance, Exception __exception, bool __state)
+        public static void Finalizer(Exception __exception, AssignScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                AssignScope scope = __exception == null ? AssignScope.OwningScope(__instance) : null;
-                if (scope != null)
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    AssignScope.EndCapturePasses();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("Assign dialog draw pass error", ex);
+                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
+                    () => AssignScope.EndCapturePasses(), s => s.OnGuiPass(), "Assign dialog draw pass error");
             }
         }
     }

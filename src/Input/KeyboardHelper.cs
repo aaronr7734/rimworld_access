@@ -86,12 +86,50 @@ namespace RimWorldAccess
         // The frame a real KeyCode.RightBracket arrived, so its follow-up character event is not remapped too.
         private static int lastRightBracketFrame = -1;
 
-        /// <summary>
-        /// True if this frame's character is the twin of a physical ] keypress, so the character handler
-        /// can discard it; on non-US layouts it can be a letter leaking into typeahead.
-        /// </summary>
+        /// <summary>True if this frame's character is the twin of a physical ] keypress (on non-US layouts, a letter that would leak into typeahead).</summary>
         public static bool WasRightBracketThisFrame =>
             lastRightBracketFrame == Time.frameCount || IsPhysicallyDown(KeyCode.RightBracket);
+
+        internal enum CharTwin
+        {
+            None,
+            /// <summary>Skip the char offer but still dispatch: a held action modifier (AZERTY Alt+letter twins; ApplyGlobalRemap leaves the character alone) or the ']' follow-up.</summary>
+            Chord,
+            /// <summary>Consume outright: the accent a macOS Option dead key strands onto the next key, Option released.</summary>
+            StrandedAccent,
+        }
+
+        private static bool optionChordPending;
+
+        /// <summary>Classifies a KeyDown's character against the chords that spawn twins. Call exactly once per routed KeyDown: it arms the dead-key state.</summary>
+        internal static CharTwin ClassifyCharTwin(Event e)
+        {
+            if (e.keyCode != KeyCode.None && !IsModifierKeyCode(e.keyCode))
+            {
+                optionChordPending = NativeLibraryLoader.IsMacOS && IsAltHeld;
+            }
+            else if (optionChordPending && e.keyCode == KeyCode.None && IsSpacingDiacritic(e.character))
+            {
+                optionChordPending = false;
+                return CharTwin.StrandedAccent;
+            }
+            return IsAltHeld || IsCtrlHeld || WasRightBracketThisFrame ? CharTwin.Chord : CharTwin.None;
+        }
+
+        private static bool IsModifierKeyCode(KeyCode key)
+        {
+            return key == KeyCode.LeftAlt || key == KeyCode.RightAlt || key == KeyCode.AltGr
+                || key == KeyCode.LeftShift || key == KeyCode.RightShift
+                || key == KeyCode.LeftControl || key == KeyCode.RightControl
+                || key == KeyCode.LeftCommand || key == KeyCode.RightCommand;
+        }
+
+        private static bool IsSpacingDiacritic(char ch)
+        {
+            System.Globalization.UnicodeCategory category = char.GetUnicodeCategory(ch);
+            return category == System.Globalization.UnicodeCategory.ModifierSymbol
+                || category == System.Globalization.UnicodeCategory.ModifierLetter;
+        }
 
         // Frame tracking for KeypadMultiply: US numpad * sends keyCode then character='*' in one
         // frame, while an AZERTY dedicated * key sends only character='*' with keyCode=None.

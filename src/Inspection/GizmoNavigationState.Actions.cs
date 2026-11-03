@@ -217,7 +217,7 @@ namespace RimWorldAccess
 
         /// <summary>GizmoGridDrawer.ProcessGizmoState treats a right-click with no float menu options as an
         /// interaction: the right-button event rides the left-click ProcessInput chain. Every changed
-        /// toggle in the menu is spoken, else what a registered outcome describer reports.</summary>
+        /// toggle in the menu is spoken, else what a handler's right-click facet reports.</summary>
         private static void DispatchRightButtonInput(Gizmo gizmo)
         {
             var toggles = new List<(Command_Toggle toggle, ISelectable owner, bool wasOn)>();
@@ -230,7 +230,7 @@ namespace RimWorldAccess
                 }
             }
             gizmoOwners.TryGetValue(gizmo, out ISelectable gizmoOwner);
-            var outcomes = RightClickOutcomeRegistry.Capture(gizmo, gizmoOwner);
+            var outcomes = GizmoHandlerRegistry.CaptureRightClickState(gizmo, gizmoOwner);
             int windowsBefore = Find.WindowStack.Count;
 
             ExecuteSelected(1);
@@ -245,7 +245,7 @@ namespace RimWorldAccess
                     changes.Add(ComposeGizmoStateChange(entry.toggle, entry.owner, includeLabel: true));
             }
             if (changes.Count == 0)
-                RightClickOutcomeRegistry.AppendChanges(outcomes, gizmo, gizmoOwner, changes);
+                GizmoHandlerRegistry.AppendRightClickChanges(outcomes, gizmo, gizmoOwner, changes);
 
             if (changes.Count > 0)
                 TolkHelper.SpeakData(JoinSentences(changes));
@@ -255,7 +255,7 @@ namespace RimWorldAccess
         {
             try
             {
-                isOn = toggle.isActive?.Invoke() ?? false;
+                isOn = ToggleGizmoHandler.IsOn(toggle);
                 return true;
             }
             catch

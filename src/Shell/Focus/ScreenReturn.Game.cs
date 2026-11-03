@@ -59,6 +59,28 @@ namespace RimWorldAccess.Shell
                 () => MainTabWindowLink.EnsureTabOpen(mainTabDefName));
         }
 
+        /// <summary>
+        /// A main-tab pawn table's jump to <paramref name="pawn"/>: closes the table, moves the map
+        /// cursor and camera there, speaks its name (<paramref name="spokenName"/>, else the short
+        /// name or the kind), and arms the return.
+        /// </summary>
+        internal static void JumpToPawn(string screen, string mainTabDefName, TableModel table, Action close,
+            Pawn pawn, string notOnMapKey, Func<Pawn, string> spokenName = null)
+        {
+            if (pawn == null || pawn.Map == null)
+            {
+                TolkHelper.Speak(notOnMapKey.Loc(), SpeechPriority.High);
+                return;
+            }
+            IntVec3 position = pawn.Position;
+            ArmMainTabTable(screen, mainTabDefName, pawn, table);
+            close();
+            MapNavigationState.CurrentCursorPosition = position;
+            Find.CameraDriver?.JumpToCurrentMapLoc(position);
+            MapNavigationState.SpeakJumpedTo(spokenName != null ? spokenName(pawn)
+                : pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString());
+        }
+
         /// <summary>Detaches the pending point of <paramref name="binding"/>, or null when there is none.</summary>
         internal static Point Take(Binding binding)
         {
@@ -116,6 +138,15 @@ namespace RimWorldAccess.Shell
             cursorScreen = null;
             cursor = null;
             return value != null;
+        }
+
+        /// <summary>Lands a reopened pawn table on its saved cell, when <paramref name="screen"/> has one queued.</summary>
+        internal static void LandTableCursor(string screen, TableModel table, IList<Pawn> rows)
+        {
+            if (TryTakeCursor(screen, out TableReturnCursor saved))
+            {
+                saved.LandOn(table, rows);
+            }
         }
 
         /// <summary>The map point a key is about to meet, read before the key dispatches.</summary>

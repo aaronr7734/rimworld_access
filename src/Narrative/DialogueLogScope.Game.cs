@@ -38,7 +38,7 @@ namespace RimWorldAccess.Shell
         /// companion sees what the keyboard cursor reads, highlighting the cursor's row. A left-click
         /// moves the cursor there and reads it (<see cref="DialogueLogScope.SelectRow"/>), so the
         /// window is never a second, mouse-only surface. The action buttons read their label and
-        /// enabled state from the scope and invoke its methods, so mouse and keyboard cannot drift.
+        /// enabled state from the scope's own declared actions, so mouse and keyboard cannot drift.
         /// </summary>
         public override void DoWindowContents(Rect inRect)
         {
@@ -108,105 +108,11 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        private void DrawButtons(Rect rect, DialogueLogScope scope)
+        private static void DrawButtons(Rect rect, DialogueLogScope scope)
         {
-            var labels = new List<string>(4);
-            var actions = new List<Action>(4);
-            var enabledFlags = new List<bool>(4);
-
-            bool jumpEnabled = scope != null && scope.JumpEnabled;
-            labels.Add((string)"RimWorldAccess.Narrative.DialogueLog.JumpToSpeaker".Translate());
-            actions.Add(delegate { scope?.JumpToSpeaker(); });
-            enabledFlags.Add(jumpEnabled);
-
-            if (scope != null && scope.RimTalkPresent)
-            {
-                bool overlayOn = scope.OverlayEnabled;
-                labels.Add(overlayOn
-                    ? (string)"RimWorldAccess.Narrative.DialogueLog.ToggleOverlayOff".Translate()
-                    : (string)"RimWorldAccess.Narrative.DialogueLog.ToggleOverlayOn".Translate());
-                actions.Add(delegate { scope.ToggleOverlay(); });
-                enabledFlags.Add(true);
-
-                AddToolbarVariantButtons("rimtalk.toggle", labels, actions, enabledFlags);
-            }
-
-            // Bubbles may be installed without RimTalk, so its toolbar variants are gated
-            // independently of the block above.
-            AddToolbarVariantButtons("bubbles.toggle", labels, actions, enabledFlags);
-
-            // The RimTalk TTS addon's overlay-adjacent controls. Each gate mirrors the addon's own
-            // draw gate (RimTalkTtsOverlayCompat), so a button appears iff its mouse control would.
             if (scope != null)
             {
-                bool ttsOnVisible = RimTalkTtsOverlayCompat.TryGetOnState(out bool ttsIsOn);
-                if (ttsOnVisible)
-                {
-                    labels.Add(ttsIsOn
-                        ? (string)"RimWorldAccess.Narrative.DialogueLog.TtsToggleOff".Translate()
-                        : (string)"RimWorldAccess.Narrative.DialogueLog.TtsToggleOn".Translate());
-                    actions.Add(delegate { scope.ToggleTtsOnState(); });
-                    enabledFlags.Add(true);
-                }
-
-                if (RimTalkTtsOverlayCompat.ControlButtonsAvailable())
-                {
-                    labels.Add((string)"RimWorldAccess.Narrative.DialogueLog.TtsResetAudio".Translate());
-                    actions.Add(delegate { scope.TtsResetAudio(); });
-                    enabledFlags.Add(true);
-
-                    labels.Add((string)"RimWorldAccess.Narrative.DialogueLog.TtsGenerateDialogue".Translate());
-                    actions.Add(delegate { scope.TtsGenerateDialogue(); });
-                    enabledFlags.Add(true);
-
-                    labels.Add((string)"RimWorldAccess.Narrative.DialogueLog.TtsIgnoreAll".Translate());
-                    actions.Add(delegate { scope.TtsIgnoreAllDialogue(); });
-                    enabledFlags.Add(true);
-
-                    labels.Add((string)"RimWorldAccess.Narrative.DialogueLog.TtsDisplayNext".Translate());
-                    actions.Add(delegate { scope.TtsDisplayNextDialogue(); });
-                    enabledFlags.Add(true);
-                }
-            }
-
-            labels.Add((string)"CloseButton".Translate());
-            actions.Add(delegate { Close(); });
-            enabledFlags.Add(true);
-
-            const float spacing = 10f;
-            float width = (rect.width - spacing * (labels.Count - 1)) / labels.Count;
-            float x = rect.x;
-            int focusedIndex = scope != null ? scope.CurrentActionIndex : -1;
-            for (int i = 0; i < labels.Count; i++)
-            {
-                Rect r = new Rect(x, rect.y, width, rect.height);
-                bool wasEnabled = GUI.enabled;
-                GUI.enabled = enabledFlags[i];
-                if (Widgets.ButtonText(r, labels[i]))
-                {
-                    actions[i]();
-                }
-                GUI.enabled = wasEnabled;
-                if (i == focusedIndex)
-                {
-                    FocusRing.Draw(r);
-                }
-                x += width + spacing;
-            }
-        }
-
-        /// <summary>
-        /// Appends every currently-available modifier variant of a mod's PlaySettings toolbar icon as
-        /// its own visual button, running the SAME Activate delegate a keyboard press would.
-        /// </summary>
-        private static void AddToolbarVariantButtons(string iconId, List<string> labels, List<Action> actions, List<bool> enabledFlags)
-        {
-            foreach (ToolbarModifierRegistry.Variant variant in ToolbarModifierRegistry.AvailableVariants(iconId))
-            {
-                Action activate = variant.Activate;
-                labels.Add(variant.LabelKey.Translate().ToString());
-                actions.Add(delegate { activate(); });
-                enabledFlags.Add(true);
+                ScreenControlPainter.DrawActionRow(rect, scope.CurrentActions(), scope.CurrentActionIndex, float.MaxValue);
             }
         }
     }
@@ -228,8 +134,8 @@ namespace RimWorldAccess.Shell
     ///
     /// BUTTONS: <see cref="CaptureWindowButtons"/> is false — the window's plain ButtonText calls
     /// carry no disabled-state semantics to mirror, and "Jump to speaker" needs one — so
-    /// <see cref="DeclaredActions"/> supplies every conditional action plus Close, and the window's
-    /// draw rebuilds the identical state and invokes the SAME delegates.
+    /// <see cref="DeclaredActions"/> supplies every conditional action plus Close, and the window
+    /// draws those same actions.
     /// <list type="bullet">
     /// <item>"Jump to speaker" — always present, disabled with a reason unless the focused row's
     /// speaker resolves live and is reachable, mirroring RimTalk's own overlay clickable name
@@ -490,6 +396,11 @@ namespace RimWorldAccess.Shell
                 ListModel region = Model.CurrentRegion;
                 return (region != null && !region.IsEmpty) ? region.Index : -1;
             }
+        }
+
+        internal IReadOnlyList<ScreenAction> CurrentActions()
+        {
+            return DeclaredActions;
         }
 
         /// <summary>Snapshot of this pass's rows, for the window's own read-only visual mirror.</summary>

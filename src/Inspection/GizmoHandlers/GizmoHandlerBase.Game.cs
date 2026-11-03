@@ -48,5 +48,16 @@ namespace RimWorldAccess
         {
             return false;
         }
+
+        public virtual bool TryCaptureRightClickState(Gizmo gizmo, ISelectable owner, out object snapshot)
+        {
+            snapshot = null;
+            return false;
+        }
+
+        public virtual string DescribeRightClickChange(Gizmo gizmo, ISelectable owner, object snapshot)
+        {
+            return null;
+        }
     }
 }

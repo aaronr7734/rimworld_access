@@ -17,6 +17,12 @@ namespace RimWorldAccess
     /// </summary>
     internal sealed class ToggleGizmoHandler : GizmoHandlerBase
     {
+        /// <summary>The toggle's live state; a null isActive reads as off.</summary>
+        internal static bool IsOn(Command_Toggle toggle)
+        {
+            return toggle.isActive?.Invoke() ?? false;
+        }
+
         public override bool TryExecute(Gizmo gizmo, GizmoHandlerContext ctx, out bool runEpilogue)
         {
             runEpilogue = false;
@@ -58,7 +64,7 @@ namespace RimWorldAccess
             if (!(gizmo is Command_Toggle toggle))
                 return false;
 
-            bool isOn = toggle.isActive?.Invoke() ?? false;
+            bool isOn = IsOn(toggle);
 
             // The speech path reads this and presents the gizmo as a checkbox.
             fragments.ToggleState = isOn

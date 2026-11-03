@@ -14,9 +14,8 @@ namespace RimWorldAccess
         /// facts into one parenthesis separated by a space ("excellent 43%"), which reads as if
         /// the percent qualifies the quality, and a comp such as CompUniqueWeapon replaces the
         /// whole label with just the item's name (Odyssey unique weapons), dropping the suffix
-        /// entirely. Vanilla's own suffix is stripped and the same facts re-added comma-separated,
-        /// so quality and condition read as the distinct things they are and a named weapon keeps
-        /// them. The parts mirror GenLabel.LabelExtras.
+        /// entirely. Vanilla's own suffix is stripped and the same GenLabel.LabelExtras facts
+        /// re-added comma-separated, so they read as distinct and a named weapon keeps them.
         /// </summary>
         public static string LabelWithCondition(Thing thing)
         {
@@ -28,19 +27,28 @@ namespace RimWorldAccess
             if (!vanillaExtras.NullOrEmpty() && label.EndsWith(vanillaExtras))
                 label = label.Substring(0, label.Length - vanillaExtras.Length);
 
+            QualityCategory? quality = thing.TryGetQuality(out QualityCategory qc) ? qc : (QualityCategory?)null;
+            string wornByCorpse = thing is Apparel apparel && apparel.WornByCorpse
+                ? (string)"WornByCorpseChar".Translate()
+                : null;
+            return WithExtras(label, quality, thing, wornByCorpse);
+        }
+
+        /// <summary><paramref name="label"/> with a comma-separated "(quality, condition, trailing)" suffix of whichever parts exist.</summary>
+        public static string WithExtras(string label, QualityCategory? quality, Thing conditionSource, string trailing = null)
+        {
             var parts = new List<string>();
-            if (thing.TryGetQuality(out QualityCategory quality))
-                parts.Add(quality.GetLabel());
-            string condition = ConditionPercent(thing);
+            if (quality.HasValue)
+                parts.Add(quality.Value.GetLabel());
+            string condition = ConditionPercent(conditionSource);
             if (condition != null)
                 parts.Add(condition);
-            if (thing is Apparel apparel && apparel.WornByCorpse)
-                parts.Add("WornByCorpseChar".Translate());
-
+            if (trailing != null)
+                parts.Add(trailing);
             return parts.Count > 0 ? label + " (" + string.Join(", ", parts) + ")" : label;
         }
 
-        /// <summary>The damaged-item percent GenLabel.LabelExtras shows, or null when vanilla shows none.</summary>
+        /// <summary>The damaged-item percent, or null; mirrors GenLabel.LabelExtras' hit-point gate (RimWorld/GenLabel.cs:193).</summary>
         public static string ConditionPercent(Thing thing)
         {
             if (thing == null || !thing.def.useHitPoints || thing.HitPoints >= thing.MaxHitPoints || thing.def.stackLimit != 1)

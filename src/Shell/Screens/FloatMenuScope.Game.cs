@@ -372,15 +372,15 @@ namespace RimWorldAccess.Shell
     public static class FloatMenuDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(FloatMenu __instance, out bool __state)
+        public static void Prefix(FloatMenu __instance, out FloatMenuScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 FloatMenuScope scope = FocusStack.Top as FloatMenuScope;
                 if (scope != null && scope.Owns(__instance))
                 {
-                    __state = true;
+                    __state = scope;
                     FloatMenuOptionCapture.BeginPass();
                     TooltipCapture.BeginPass();
                 }
@@ -392,25 +392,12 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyFinalizer]
-        public static void Finalizer(FloatMenu __instance, Rect rect, Exception __exception, bool __state)
+        public static void Finalizer(Rect rect, Exception __exception, FloatMenuScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                FloatMenuOptionCapture.EndPass();
-                TooltipCapture.EndPass();
-                FloatMenuScope scope = __exception == null ? FocusStack.Top as FloatMenuScope : null;
-                if (scope != null && scope.Owns(__instance))
-                {
-                    scope.OnGuiPass(rect);
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("Float menu draw pass error", ex);
+                CapturePasses.Finish(__state, rect, ReferenceEquals(FocusStack.Top, __state), __exception,
+                    () => { FloatMenuOptionCapture.EndPass(); TooltipCapture.EndPass(); }, (s, r) => s.OnGuiPass(r), "Float menu draw pass error");
             }
         }
     }

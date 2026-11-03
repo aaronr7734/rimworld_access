@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
+using RimWorld;
 using Verse;
 using Verse.Sound;
 
@@ -414,9 +415,36 @@ namespace RimWorldAccess.Shell
             return null;
         }
 
+        protected virtual bool TryGetPawnCell(int region, int row, int column, out PawnColumnDef def, out Pawn pawn)
+        {
+            def = null;
+            pawn = null;
+            return false;
+        }
+
         protected virtual string ContentCellHint(int region, int row, int column)
         {
-            return null;
+            return TryGetPawnCell(region, row, column, out PawnColumnDef def, out Pawn pawn)
+                ? PawnColumnCellReader.CellHint(def, pawn)
+                : null;
+        }
+
+        protected bool ActivatePawnCellTableless(int region, int row, int column)
+        {
+            if (!TryGetPawnCell(region, row, column, out PawnColumnDef def, out Pawn pawn))
+            {
+                return false;
+            }
+            switch (PawnColumnCellReader.ActivateCellTableless(def, pawn))
+            {
+                case PawnColumnActivation.StateChanged:
+                    AnnounceCurrentCellStateChange();
+                    return true;
+                case PawnColumnActivation.OpenedUI:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         protected virtual bool TryGetLiveSort(int region, out int column, out bool descending)
@@ -594,12 +622,7 @@ namespace RimWorldAccess.Shell
         /// <summary>The player's current chord for an action id, spoken-form ("Alt+S"), or null.</summary>
         protected static string ChordDisplay(string actionId)
         {
-            if (string.IsNullOrEmpty(actionId))
-                return null;
-            InputAction action;
-            if (!ActionRegistry.Catalog.TryGet(actionId, out action) || action.Bindings.Count == 0)
-                return null;
-            return action.Bindings[0].DisplayLabel;
+            return ActionChords.Display(actionId);
         }
 
         // The captured-extras region: an opt-in net surfacing every widget the owned window's draw

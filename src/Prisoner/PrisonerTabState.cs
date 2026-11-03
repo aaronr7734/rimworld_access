@@ -146,19 +146,24 @@ namespace RimWorldAccess
         /// </summary>
         public static bool SetExclusiveMode(PrisonerInteractionModeDef mode)
         {
-            if (CurrentPawn?.guest == null || mode == null)
+            return SetExclusiveMode(CurrentPawn, mode);
+        }
+
+        public static bool SetExclusiveMode(Pawn pawn, PrisonerInteractionModeDef mode)
+        {
+            if (pawn?.guest == null || mode == null)
                 return false;
 
-            CurrentPawn.guest.SetExclusiveInteraction(mode);
+            pawn.guest.SetExclusiveInteraction(mode);
 
             if (mode == PrisonerInteractionModeDefOf.Convert
-                && CurrentPawn.guest.ideoForConversion == null
+                && pawn.guest.ideoForConversion == null
                 && Faction.OfPlayer.ideos != null)
             {
                 // MUTATION-C: mirrors ITab_Pawn_Visitor.InteractionModeChanged's
                 // `SelPawn.guest.ideoForConversion = Faction.OfPlayer.ideos.PrimaryIdeo;`
                 // (decompiled RimWorld/ITab_Pawn_Visitor.cs:509); vanilla has no gated setter.
-                CurrentPawn.guest.ideoForConversion = Faction.OfPlayer.ideos.PrimaryIdeo;
+                pawn.guest.ideoForConversion = Faction.OfPlayer.ideos.PrimaryIdeo;
             }
 
             return mode == PrisonerInteractionModeDefOf.Convert

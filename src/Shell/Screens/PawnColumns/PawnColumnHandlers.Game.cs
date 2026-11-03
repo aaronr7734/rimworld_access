@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using UnityEngine;
 using Verse;
 using Verse.Sound;
 
@@ -256,17 +257,33 @@ namespace RimWorldAccess.Shell
     internal sealed class IconColumnHandler : PawnColumnHandler
     {
         private static readonly MethodInfo getIconTip = AccessTools.Method(typeof(PawnColumnWorker_Icon), "GetIconTip");
+        private static readonly MethodInfo getIconFor = AccessTools.Method(typeof(PawnColumnWorker_Icon), "GetIconFor");
         private static readonly MethodInfo clickedIcon = AccessTools.Method(typeof(PawnColumnWorker_Icon), "ClickedIcon");
+
+        internal static string GetIconTip(PawnColumnDef def, Pawn pawn)
+        {
+            return (string)getIconTip.Invoke(def.Worker, new object[] { pawn });
+        }
+
+        internal static Texture2D GetIconFor(PawnColumnDef def, Pawn pawn)
+        {
+            return getIconFor.Invoke(def.Worker, new object[] { pawn }) as Texture2D;
+        }
+
+        internal static void ClickedIcon(PawnColumnDef def, Pawn pawn)
+        {
+            clickedIcon.Invoke(def.Worker, new object[] { pawn });
+        }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
         {
-            string tip = (string)getIconTip.Invoke(def.Worker, new object[] { pawn });
+            string tip = GetIconTip(def, pawn);
             return string.IsNullOrEmpty(tip) ? "" : tip.StripTags();
         }
 
         public override PawnColumnActivation ActivateCell(PawnColumnDef def, Pawn pawn, PawnTable table)
         {
-            clickedIcon.Invoke(def.Worker, new object[] { pawn });
+            ClickedIcon(def, pawn);
             return PawnColumnActivation.OpenedUI;
         }
 
@@ -706,11 +723,16 @@ namespace RimWorldAccess.Shell
         }
     }
 
+    /// <summary>Copies a mod column's value between pawns; Assign copy and paint ask it before the vanilla cases.</summary>
+    internal interface IPawnColumnValueCopier
+    {
+        bool TryCopyValue(PawnColumnDef def, Pawn sourcePawn, Pawn targetPawn);
+    }
+
     /// <summary>
-    /// Implemented by every dropdown-shaped column handler: applies a SOURCE pawn's current value to
-    /// a TARGET pawn by matching the entry in the target's own freshly-generated menu and invoking
-    /// its real FloatMenuOption action. Kept off <see cref="IPawnColumnHandler"/> because it is
-    /// meaningless for non-dropdown columns.
+    /// Implemented by every dropdown-shaped column handler: applies a SOURCE pawn's value to a TARGET
+    /// by invoking the matching option in the target's own freshly generated menu. Kept off
+    /// <see cref="IPawnColumnHandler"/> because it is meaningless for non-dropdown columns.
     /// </summary>
     internal interface IGeneratedMenuSource
     {

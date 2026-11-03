@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using Verse;
 
 namespace RimWorldAccess
@@ -15,17 +17,13 @@ namespace RimWorldAccess
         private static readonly Dictionary<string, int> limitedErrorCounts = new Dictionary<string, int>();
         private static readonly Dictionary<string, int> limitedMessageCounts = new Dictionary<string, int>();
 
-        /// <summary>
-        /// Log a message to RimWorld's log.
-        /// </summary>
+        /// <summary>Log a message to RimWorld's log.</summary>
         public static void Msg(string message)
         {
             Log.Message(Prefix + message);
         }
 
-        /// <summary>
-        /// Log a warning to RimWorld's log.
-        /// </summary>
+        /// <summary>Log a warning to RimWorld's log.</summary>
         public static void Warning(string message)
         {
             Log.Warning(Prefix + message);
@@ -65,6 +63,18 @@ namespace RimWorldAccess
             {
                 Log.Message(Prefix + context + ": " + ex);
             }
+        }
+
+        /// <summary>A fault in another mod's own assemblies (a type, file or image it cannot load): its mismatch with this game version, not our defect.</summary>
+        public static bool IsForeignAssemblyFault(Exception ex)
+        {
+            return IsAssemblyLoadFault(ex) || IsAssemblyLoadFault(ex?.InnerException);
+        }
+
+        private static bool IsAssemblyLoadFault(Exception ex)
+        {
+            return ex is TypeLoadException || ex is ReflectionTypeLoadException || ex is BadImageFormatException
+                || ex is FileNotFoundException || ex is FileLoadException;
         }
 
         private static bool WithinCap(Dictionary<string, int> counts, string context)

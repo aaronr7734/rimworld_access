@@ -153,7 +153,7 @@ namespace RimWorldAccess.Shell
             }
             if (index >= 0 && index < animalsList.Count)
             {
-                d.Label = AnimalsMenuHelper.GetAnimalName(animalsList[index]);
+                d.Label = AnimalsMenuHelper.GetNameWithKind(animalsList[index]);
             }
             return d;
         }
@@ -189,11 +189,12 @@ namespace RimWorldAccess.Shell
             return AnimalsMenuHelper.GetColumnValue(animalsList[row], column);
         }
 
-        protected override string ContentCellHint(int region, int row, int column)
+        protected override bool TryGetPawnCell(int region, int row, int column, out PawnColumnDef def, out Pawn pawn)
         {
-            if (IsInSubmenu || row < 0 || row >= animalsList.Count || AnimalsMenuHelper.GetColumnType(column) != AnimalsMenuHelper.ColumnType.Name)
-                return null;
-            return PawnColumnCellReader.CellHint(AnimalsMenuHelper.GetDef(column), animalsList[row]);
+            bool inRange = !IsInSubmenu && row >= 0 && row < animalsList.Count;
+            def = inRange ? AnimalsMenuHelper.GetDef(column) : null;
+            pawn = inRange ? animalsList[row] : null;
+            return def != null;
         }
 
         /// <summary>Registry cell tips for Unknown-classified (typically modded) columns only; the curated columns speak through their own value phrasing.</summary>
@@ -210,14 +211,7 @@ namespace RimWorldAccess.Shell
             if (row < 0 || row >= animalsList.Count)
                 return false;
             if (AnimalsMenuHelper.GetColumnType(column) == AnimalsMenuHelper.ColumnType.Unknown)
-            {
-                switch (PawnColumnCellReader.ActivateCellTableless(AnimalsMenuHelper.GetDef(column), animalsList[row]))
-                {
-                    case PawnColumnActivation.StateChanged: AnnounceCurrentCellStateChange(); return true;
-                    case PawnColumnActivation.OpenedUI: return true;
-                    default: return false;
-                }
-            }
+                return ActivatePawnCellTableless(region, row, column);
             if (!AnimalsMenuHelper.IsColumnInteractive(column))
                 return false;
 
@@ -296,8 +290,7 @@ namespace RimWorldAccess.Shell
             announcedOpen = true;
             if (animalsList.Count == 0)
                 return; // AnimalsMenuState.Open() already refused to open/announce for an empty roster.
-            if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
-                saved.LandOn(Model.CurrentTable, animalsList);
+            ScreenReturn.LandTableCursor(Name, Model.CurrentTable, animalsList);
 
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             string tabCount = TabCountFragment();
@@ -409,18 +402,8 @@ namespace RimWorldAccess.Shell
 
         private void JumpToAnimalOnMap(Pawn pawn)
         {
-            if (pawn == null || pawn.Map == null)
-            {
-                TolkHelper.Speak("RimWorldAccess.Animals.Menu.NotOnMap".Loc(), SpeechPriority.High);
-                return;
-            }
-            IntVec3 position = pawn.Position;
-            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Animals, pawn, Model.CurrentTable);
-            Close();
-            MapNavigationState.CurrentCursorPosition = position;
-            Find.CameraDriver?.JumpToCurrentMapLoc(position);
-            string animalName = pawn.Name != null ? pawn.Name.ToStringShort : pawn.def.LabelCap.ToString();
-            MapNavigationState.SpeakJumpedTo(animalName);
+            ScreenReturn.JumpToPawn(Name, MainTabWindowLink.Animals, Model.CurrentTable, Close,
+                pawn, "RimWorldAccess.Animals.Menu.NotOnMap");
         }
 
         private void OpenAutoSlaughter()
@@ -629,7 +612,7 @@ namespace RimWorldAccess.Shell
             string columnValue = AnimalsMenuHelper.GetColumnValue(pawn, column);
             if (!includeItemName)
                 return columnValue;
-            string itemLabel = AnimalsMenuHelper.GetAnimalName(pawn);
+            string itemLabel = AnimalsMenuHelper.GetNameWithKind(pawn);
             if (itemLabel == columnValue || columnValue.StartsWith(itemLabel))
                 return columnValue;
             string columnName = AnimalsMenuHelper.GetColumnName(column);

@@ -138,16 +138,16 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawPrefix(object __instance, out bool __state)
+        public static void DrawPrefix(object __instance, out RimTalkTtsVoiceSelectionScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 Window window = __instance as Window;
                 RimTalkTtsVoiceSelectionScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkTtsVoiceSelectionScope>(window);
                 if (scope != null)
                 {
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass();
                 }
             }
@@ -157,29 +157,12 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        public static void DrawFinalizer(object __instance, Exception __exception, bool __state)
+        public static void DrawFinalizer(Exception __exception, RimTalkTtsVoiceSelectionScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                RimTalkTtsVoiceSelectionScope scope = __exception == null
-                    ? RimTalkTextDialogScopeBase.OwningScope<RimTalkTtsVoiceSelectionScope>(__instance as Window)
-                    : null;
-                if (scope != null)
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    WidgetCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("RimTalk TTS voice selection guard", ex);
+                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
+                    () => WidgetCapture.EndPass(), s => s.OnGuiPass(), "RimTalk TTS voice selection guard");
             }
         }
     }

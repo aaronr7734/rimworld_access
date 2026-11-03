@@ -1,4 +1,3 @@
-using System;
 using RimWorld;
 using RimWorldAccess.Shell;
 using Verse;
@@ -10,12 +9,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            var surface = new ReflectionSurface("NumbersPsyfocusColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_Psyfocus");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersPsyfocusColumnHandler());
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Psyfocus", new NumbersPsyfocusColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)

@@ -110,14 +110,9 @@ namespace RimWorldAccess
 
         // === Row Label (for typeahead search) ===
 
-        public static string GetMechName(Pawn pawn)
-        {
-            return pawn.Name != null ? $"{pawn.Name.ToStringShort} ({pawn.def.LabelCap})" : pawn.def.LabelCap.ToString();
-        }
-
         private static string GetMechNameWithActivity(Pawn pawn)
         {
-            string baseName = GetMechName(pawn);
+            string baseName = AnimalsMenuHelper.GetNameWithKind(pawn);
             string activity = PawnHelper.GetPawnActivity(pawn);
             return activity != null ? $"{baseName} - {activity}" : baseName;
         }

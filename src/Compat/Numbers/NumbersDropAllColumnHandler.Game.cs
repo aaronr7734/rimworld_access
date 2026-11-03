@@ -1,9 +1,5 @@
-using System;
-using System.Reflection;
-using HarmonyLib;
 using RimWorld;
 using RimWorldAccess.Shell;
-using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
@@ -15,22 +11,14 @@ namespace RimWorldAccess
     /// </summary>
     internal sealed class NumbersDropAllColumnHandler : PawnColumnHandler
     {
-        private static readonly MethodInfo getIconFor = AccessTools.Method(typeof(PawnColumnWorker_Icon), "GetIconFor");
-        private static readonly MethodInfo clickedIcon = AccessTools.Method(typeof(PawnColumnWorker_Icon), "ClickedIcon");
-
         public static void Register()
         {
-            var surface = new ReflectionSurface("NumbersDropAllColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_InventoryDropAll");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersDropAllColumnHandler());
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_InventoryDropAll", new NumbersDropAllColumnHandler());
         }
 
         private static bool IconShown(PawnColumnDef def, Pawn pawn)
         {
-            return pawn.inventory != null && getIconFor.Invoke(def.Worker, new object[] { pawn }) as Texture2D != null;
+            return pawn.inventory != null && IconColumnHandler.GetIconFor(def, pawn) != null;
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
@@ -44,7 +32,7 @@ namespace RimWorldAccess
             {
                 return PawnColumnActivation.NotHandled;
             }
-            clickedIcon.Invoke(def.Worker, new object[] { pawn });
+            IconColumnHandler.ClickedIcon(def, pawn);
             TolkHelper.SpeakData("RimWorldAccess.Compat.Numbers.InventoryDropped".Loc(pawn.LabelShortCap).ToString());
             return PawnColumnActivation.OpenedUI;
         }

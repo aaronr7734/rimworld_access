@@ -94,7 +94,6 @@ namespace RimWorldAccess
 
             foreach (var apparel in pawn.apparel.WornApparel)
             {
-                // Belt items belong to the equipment list.
                 if (apparel.def.apparel.layers.Contains(ApparelLayerDefOf.Belt))
                     continue;
 
@@ -102,6 +101,13 @@ namespace RimWorldAccess
             }
 
             return items;
+        }
+
+        /// <summary>ITab_Pawn_Gear's apparel order key, sorted descending; 0 for anything without body part groups.</summary>
+        public static int ApparelListOrder(Thing thing)
+        {
+            List<BodyPartGroupDef> parts = thing.def.apparel?.bodyPartGroups;
+            return parts != null && parts.Count > 0 ? parts[0].listOrder : 0;
         }
 
         /// <summary>All inventory items for a pawn.</summary>

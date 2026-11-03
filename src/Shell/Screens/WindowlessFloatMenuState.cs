@@ -36,13 +36,32 @@ namespace RimWorldAccess
         // Without this rule a two-level flow would re-open the grandparent on top of the submenu.
         private static System.Action<bool> onCloseCallback = null;
 
+        private static int batchDepth;
+        private static bool batchAnnouncePending;
+
         public static bool IsActive => isActive;
 
-        /// <summary>
-        /// True only while a selected option's Chosen() delegate runs. Some options synchronously
-        /// open a real vanilla FloatMenu of their own, and this arms DialogInterceptionPatch to
-        /// redirect that nested menu into another windowless one.
-        /// </summary>
+        internal static bool IsBatching => batchDepth > 0;
+
+        // Defers opening announcements to EndBatch: grouped gizmos may open one menu each, and only the survivor is spoken.
+        internal static void BeginBatch()
+        {
+            if (batchDepth++ == 0)
+                batchAnnouncePending = false;
+        }
+
+        /// <summary>The outermost end announces the surviving menu. Returns whether a menu opened inside the batch.</summary>
+        internal static bool EndBatch()
+        {
+            if (batchDepth == 0)
+                return false;
+            bool opened = batchAnnouncePending;
+            if (--batchDepth == 0 && opened && isActive)
+                AnnounceCurrentSelection();
+            return opened;
+        }
+
+        /// <summary>True only while a chosen option's delegate runs, arming DialogInterceptionPatch to redirect a vanilla FloatMenu it opens into another windowless one.</summary>
         public static bool IsExecutingOption { get; private set; }
 
         public static int SelectedIndex => selectedIndex;
@@ -90,7 +109,11 @@ namespace RimWorldAccess
             if (playOpenSound)
                 SoundDefOf.FloatMenu_Open.PlayOneShotOnCamera();
 
-            if (announceFirst)
+            if (!announceFirst)
+                return;
+            if (batchDepth > 0)
+                batchAnnouncePending = true;
+            else
                 AnnounceCurrentSelection();
         }
 
@@ -269,12 +292,6 @@ namespace RimWorldAccess
             if (currentOptions == null || index < 0 || index >= currentOptions.Count)
                 return;
             selectedIndex = index;
-        }
-
-        internal static void AnnounceOpened()
-        {
-            if (isActive)
-                AnnounceCurrentSelection();
         }
 
         private static void AnnounceCurrentSelection()

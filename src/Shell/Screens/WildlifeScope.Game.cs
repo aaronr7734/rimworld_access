@@ -161,11 +161,12 @@ namespace RimWorldAccess.Shell
             return WildlifeMenuHelper.GetColumnValue(wildlifeList[row], column);
         }
 
-        protected override string ContentCellHint(int region, int row, int column)
+        protected override bool TryGetPawnCell(int region, int row, int column, out PawnColumnDef def, out Pawn pawn)
         {
-            if (row < 0 || row >= wildlifeList.Count || WildlifeMenuHelper.GetColumnType(column) != WildlifeMenuHelper.ColumnType.Name)
-                return null;
-            return PawnColumnCellReader.CellHint(WildlifeMenuHelper.GetDef(column), wildlifeList[row]);
+            bool inRange = row >= 0 && row < wildlifeList.Count;
+            def = inRange ? WildlifeMenuHelper.GetDef(column) : null;
+            pawn = inRange ? wildlifeList[row] : null;
+            return def != null;
         }
 
         /// <summary>Registry cell tips for Unknown-classified (typically modded) columns only; the curated columns speak through their own value phrasing.</summary>
@@ -182,14 +183,7 @@ namespace RimWorldAccess.Shell
             if (row < 0 || row >= wildlifeList.Count)
                 return false;
             if (WildlifeMenuHelper.GetColumnType(column) == WildlifeMenuHelper.ColumnType.Unknown)
-            {
-                switch (PawnColumnCellReader.ActivateCellTableless(WildlifeMenuHelper.GetDef(column), wildlifeList[row]))
-                {
-                    case PawnColumnActivation.StateChanged: AnnounceCurrentCellStateChange(); return true;
-                    case PawnColumnActivation.OpenedUI: return true;
-                    default: return false;
-                }
-            }
+                return ActivatePawnCellTableless(region, row, column);
             if (!WildlifeMenuHelper.IsColumnInteractive(column))
                 return false;
 
@@ -253,8 +247,7 @@ namespace RimWorldAccess.Shell
                 TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NoWildlife".Loc());
                 return;
             }
-            if (ScreenReturn.TryTakeCursor(Name, out TableReturnCursor saved))
-                saved.LandOn(Model.CurrentTable, wildlifeList);
+            ScreenReturn.LandTableCursor(Name, Model.CurrentTable, wildlifeList);
             SoundDefOf.TabOpen.PlayOneShotOnCamera();
             string announcement = "RimWorldAccess.Animals.Wildlife.Menu.OpeningTitle".Translate(wildlifeList.Count).ToString();
             TolkHelper.SpeakData(announcement);
@@ -284,18 +277,8 @@ namespace RimWorldAccess.Shell
 
         private void JumpToAnimalOnMap(Pawn pawn)
         {
-            if (pawn == null || pawn.Map == null)
-            {
-                TolkHelper.Speak("RimWorldAccess.Animals.Wildlife.Menu.NotOnMap".Loc(), SpeechPriority.High);
-                return;
-            }
-            IntVec3 position = pawn.Position;
-            ScreenReturn.ArmMainTabTable(Name, MainTabWindowLink.Wildlife, pawn, Model.CurrentTable);
-            Close();
-            MapNavigationState.CurrentCursorPosition = position;
-            Find.CameraDriver?.JumpToCurrentMapLoc(position);
-            string animalName = WildlifeMenuHelper.GetAnimalName(pawn);
-            MapNavigationState.SpeakJumpedTo(animalName);
+            ScreenReturn.JumpToPawn(Name, MainTabWindowLink.Wildlife, Model.CurrentTable, Close,
+                pawn, "RimWorldAccess.Animals.Wildlife.Menu.NotOnMap");
         }
 
         private void ToggleHunt(Pawn pawn)

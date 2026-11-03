@@ -247,7 +247,7 @@ namespace RimWorldAccess.Shell
                 "RimWorldAccess.Core.Settings.PointerFollowsKeyboard.Label".Translate(),
                 ref pointerFollowsKeyboard,
                 "RimWorldAccess.Core.Settings.PointerFollowsKeyboard.Desc".Translate(
-                    ActionChordDisplay("map.cursor.toggleFollowKeyboard")),
+                    (ActionChords.Display("map.cursor.toggleFollowKeyboard") ?? "")),
                 30f, 0.6f);
             settings.PointerFollowsKeyboard = pointerFollowsKeyboard;
 
@@ -256,7 +256,7 @@ namespace RimWorldAccess.Shell
                 "RimWorldAccess.Core.Settings.ScannerAutoJump.Label".Translate(),
                 ref scannerAutoJump,
                 "RimWorldAccess.Core.Settings.ScannerAutoJump.Desc".Translate(
-                    ActionChordDisplay("map.scanner.toggleAutoJump")),
+                    (ActionChords.Display("map.scanner.toggleAutoJump") ?? "")),
                 30f, 0.6f);
             settings.ScannerAutoJump = scannerAutoJump;
 
@@ -316,17 +316,6 @@ namespace RimWorldAccess.Shell
                     30f, 0.6f);
                 settings.TtsAnnounceAnyway = ttsAnnounceAnyway;
             }
-        }
-
-        /// <summary>The player's current chord for an action id in spoken form, or "" when unbound.</summary>
-        internal static string ActionChordDisplay(string actionId)
-        {
-            InputAction action;
-            if (!ActionRegistry.Catalog.TryGet(actionId, out action) || action.Bindings.Count == 0)
-            {
-                return "";
-            }
-            return action.Bindings[0].DisplayLabel;
         }
 
         private static string WorkMenuViewValueLabel(WorkMenuView view)

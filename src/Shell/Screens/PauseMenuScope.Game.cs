@@ -365,14 +365,15 @@ namespace RimWorldAccess.Shell
     public static class PauseMenuDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(out bool __state)
+        public static void Prefix(out PauseMenuScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
-                if (FocusStack.Top is PauseMenuScope)
+                PauseMenuScope scope = FocusStack.Top as PauseMenuScope;
+                if (scope != null)
                 {
-                    __state = true;
+                    __state = scope;
                     TooltipCapture.BeginPass();
                 }
             }
@@ -382,27 +383,15 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        // The describe path reads the tooltip index after EndPass, which stops recording but
+        // leaves it readable.
         [HarmonyFinalizer]
-        public static void Finalizer(Rect rect, Exception __exception, bool __state)
+        public static void Finalizer(Rect rect, Exception __exception, PauseMenuScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                // Closed before the describe path reads the index: EndPass stops recording but
-                // leaves it readable.
-                TooltipCapture.EndPass();
-                PauseMenuScope scope = __exception == null ? FocusStack.Top as PauseMenuScope : null;
-                if (scope != null)
-                {
-                    scope.OnMenuGuiPass(rect);
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("Pause menu draw pass error", ex);
+                CapturePasses.Finish(__state, rect, ReferenceEquals(FocusStack.Top, __state), __exception,
+                    () => TooltipCapture.EndPass(), (s, r) => s.OnMenuGuiPass(r), "Pause menu draw pass error");
             }
         }
     }

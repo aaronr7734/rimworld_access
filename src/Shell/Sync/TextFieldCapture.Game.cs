@@ -49,13 +49,12 @@ namespace RimWorldAccess.Shell
 
         internal static void EndLeakedPass()
         {
-            if (!passOpen || Time.frameCount == passOpenFrame)
+            if (!CapturePasses.Leaked(passOpen, passOpenFrame))
             {
                 return;
             }
             EndPass();
-            items.Clear();
-            items.TrimExcess();
+            CapturePasses.Release(items);
         }
 
         /// <summary>Stop recording. Call from the armed surface's draw postfix.</summary>
@@ -91,6 +90,12 @@ namespace RimWorldAccess.Shell
         {
             ButtonTextCapture.EndPass();
             TextFieldCapture.EndPass();
+        }
+
+        internal static void EndMaskedPass()
+        {
+            TextFieldRawPollGuard.RestoreAcceptPoll();
+            EndPass();
         }
     }
 

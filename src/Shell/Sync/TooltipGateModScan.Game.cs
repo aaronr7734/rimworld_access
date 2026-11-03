@@ -166,8 +166,7 @@ namespace RimWorldAccess.Shell
         /// </summary>
         private static void LogScanFailure(string context, Exception ex)
         {
-            if (ex is TypeLoadException || ex is ReflectionTypeLoadException || ex is BadImageFormatException
-                || ex is FileNotFoundException || ex is FileLoadException)
+            if (ModLogger.IsForeignAssemblyFault(ex))
             {
                 ModLogger.LimitedMessage(context, ex);
                 return;

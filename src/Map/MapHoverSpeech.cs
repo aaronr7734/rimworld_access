@@ -28,7 +28,9 @@ namespace RimWorldAccess
         private static int spokenMapId = -1;
         private static Designator spokenDesignator;
         private static Rot4 spokenRot = Rot4.North;
-        private static bool spokenOffSurface;
+
+        private static readonly PointerHoverGate Gate =
+            new PointerHoverGate(SurfaceLive, PointerOwnedByChrome, DragInFlight, Reset);
 
         /// <summary>
         /// Called once per map OnGUI pass, after vanilla's camera work.
@@ -38,72 +40,11 @@ namespace RimWorldAccess
             try
             {
                 RimWorldAccessSettings settings = RimWorldAccessMod_Settings.Settings;
-                if (settings == null || !settings.HoverSpeech)
-                {
-                    Reset();
-                    return;
-                }
-                // The several IMGUI events per frame collapse to one evaluation on Repaint.
-                if (Event.current == null || Event.current.type != EventType.Repaint)
+                if (!Gate.ShouldResolve(settings != null && settings.HoverSpeech))
                 {
                     return;
                 }
-                // Re-armed here rather than beside the announcement below, so a pointer that comes
-                // back over a window or a piece of chrome still re-arms and a second departure is
-                // announced again.
-                if (PointerSurface.PointerInside)
-                {
-                    spokenOffSurface = false;
-                }
-                if (!MapScope.MapSurfaceLive())
-                {
-                    Reset();
-                    return;
-                }
-                // A live menu owns the surface even when the map is drawn behind it. Placement is
-                // the exception: its scope owns input without covering the map, and the pointer is
-                // how a sighted player aims the ghost.
                 Designator designator = ActiveDesignator();
-                if (designator == null && ShellGuards.MenuOwnsInput())
-                {
-                    Reset();
-                    return;
-                }
-                if (ShellGuards.NonImmediateWindowUnderPointer() || PointerOwnedByChrome())
-                {
-                    Reset();
-                    return;
-                }
-                // A drag owns the speech channel for as long as it is in flight: the extent it is
-                // growing is the only thing the player is asking about, and a cell read between two
-                // extents buries the number they were waiting for.
-                // Deliberately not a Reset: the drag ends on the cell it ends on, and forgetting it
-                // would re-read that cell on top of the drag's own result.
-                if (DragInFlight())
-                {
-                    return;
-                }
-
-                // A stationary pointer never speaks, even when the cell changes under it.
-                if (!PointerMotion.MovedThisFrame())
-                {
-                    return;
-                }
-                // A pointer that has left the game's surface is not hovering anything, but the
-                // camera ray still resolves it to an in-bounds cell — see PointerSurface. Say so
-                // once, because the presses made out there never reach the game either, and a
-                // silent reader is indistinguishable from a mod that stopped working.
-                if (!PointerSurface.PointerInside)
-                {
-                    if (!spokenOffSurface)
-                    {
-                        spokenOffSurface = true;
-                        TolkHelper.SpeakData("RimWorldAccess.Input.Cursor.PointerOffWindow".Loc().ToString(),
-                            SpeechPriority.High);
-                    }
-                    Reset();
-                    return;
-                }
 
                 Map map = Find.CurrentMap;
                 // UI.MouseCell is patched to answer with the keyboard cursor under a dev-tool
@@ -163,7 +104,21 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>True while vanilla's dragger is building a selection from the pointer.</summary>
+        /// <summary>
+        /// A live menu owns the surface even when the map is drawn behind it. Placement is the
+        /// exception: its scope owns input without covering the map, and the pointer is how a
+        /// sighted player aims the ghost.
+        /// </summary>
+        private static bool SurfaceLive()
+        {
+            return MapScope.MapSurfaceLive() && (ActiveDesignator() != null || !ShellGuards.MenuOwnsInput());
+        }
+
+        /// <summary>
+        /// True while vanilla's dragger is building a selection from the pointer. The extent it is
+        /// growing is the only thing the player is asking about, and a cell read between two
+        /// extents buries the number they were waiting for.
+        /// </summary>
         private static bool DragInFlight()
         {
             DesignatorManager manager = Find.DesignatorManager;
@@ -224,8 +179,6 @@ namespace RimWorldAccess
             spokenRot = Rot4.North;
             spokenCell = IntVec3.Invalid;
             spokenMapId = -1;
-            // spokenOffSurface is deliberately NOT cleared here: Reset runs on every pass the
-            // pointer is off the surface, and clearing it would repeat the announcement each pass.
         }
     }
 }

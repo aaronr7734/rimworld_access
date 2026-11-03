@@ -1,4 +1,6 @@
 using HarmonyLib;
+using RimWorld;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -12,9 +14,10 @@ namespace RimWorldAccess
             {
                 return;
             }
-            // By name: the byType slot for Command_Ability belongs to the core handler.
-            GizmoHandlerRegistry.RegisterByTypeName("Command_Ability", new AutoCombatAbilityHandler());
-            RightClickOutcomeRegistry.Register(new AutoCombatRightClickDescriber());
+            GizmoHandlerRegistry.Register(typeof(Command_Ability), new AutoCombatAbilityHandler());
+            // On the vanilla base, not the mod's subtype: the most-derived registration owns execution,
+            // and ToggleGizmoHandler must keep executing and describing the toggle.
+            GizmoHandlerRegistry.Register(typeof(Command_Toggle), new AutoCombatRightClickHandler());
         }
     }
 }

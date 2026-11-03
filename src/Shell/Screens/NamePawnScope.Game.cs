@@ -196,8 +196,6 @@ namespace RimWorldAccess.Shell
 
         internal void OnGuiPass()
         {
-            TextDialogCapture.EndPass();
-
             RefreshModel();
 
             if (pendingRandomizeRow >= 0)
@@ -714,15 +712,15 @@ namespace RimWorldAccess.Shell
     public static class NamePawnDrawPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Dialog_NamePawn __instance, out bool __state)
+        public static void Prefix(Dialog_NamePawn __instance, out NamePawnScope __state)
         {
-            __state = false;
+            __state = null;
             try
             {
                 NamePawnScope scope = FocusStack.Top as NamePawnScope;
                 if (scope != null && scope.Owns(__instance))
                 {
-                    __state = true;
+                    __state = scope;
                     scope.BeginDrawPass();
                 }
             }
@@ -733,27 +731,12 @@ namespace RimWorldAccess.Shell
         }
 
         [HarmonyFinalizer]
-        public static void Finalizer(Dialog_NamePawn __instance, Exception __exception, bool __state)
+        public static void Finalizer(Exception __exception, NamePawnScope __state)
         {
-            if (!__state)
+            if (__state != null)
             {
-                return;
-            }
-            try
-            {
-                NamePawnScope scope = __exception == null ? FocusStack.Top as NamePawnScope : null;
-                if (scope != null && scope.Owns(__instance))
-                {
-                    scope.OnGuiPass();
-                }
-                else
-                {
-                    TextDialogCapture.EndPass();
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("NamePawn dialog draw pass error", ex);
+                CapturePasses.Finish(__state, ReferenceEquals(FocusStack.Top, __state), __exception,
+                    () => TextDialogCapture.EndPass(), s => s.OnGuiPass(), "NamePawn dialog draw pass error");
             }
         }
     }

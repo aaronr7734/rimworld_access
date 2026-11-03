@@ -235,4 +235,5 @@
   <!-- Auto-slaughter partial cell shapes (single-axis announcements).
        NameWithoutColumn: {0} = animal, {1} = value, {2} = position.
        ValueOnly: {0} = value, {1} = position. -->
+  <RimWorldAccess.Animals.NameWithKind>{0} ({1})</RimWorldAccess.Animals.NameWithKind>
 </LanguageData>

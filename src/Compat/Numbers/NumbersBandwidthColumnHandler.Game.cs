@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using RimWorld;
 using RimWorldAccess.Shell;
 using Verse;
@@ -12,53 +9,23 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            var surface = new ReflectionSurface("NumbersBandwidthColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_Bandwidth");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersBandwidthColumnHandler());
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Bandwidth", new NumbersBandwidthColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
         {
             Pawn_MechanitorTracker tracker = pawn.mechanitor;
-            if (tracker == null)
-            {
-                return "";
-            }
-            return "RimWorldAccess.Compat.Numbers.ValueOfMaximum".Loc(
-                tracker.UsedBandwidth.ToString("F0"), tracker.TotalBandwidth.ToString("F0")).ToString();
+            return tracker != null
+                ? "RimWorldAccess.Inspection.Gizmo.Status.UsedTotal".Translate(tracker.UsedBandwidth, tracker.TotalBandwidth).ToString()
+                : "";
         }
 
         public override string CellTip(PawnColumnDef def, Pawn pawn)
         {
             Pawn_MechanitorTracker tracker = pawn.mechanitor;
-            if (tracker == null)
-            {
-                return null;
-            }
-            // Transcribed from MechanitorBandwidthGizmo's parts: Numbers builds this tip inline in DoCell, with no method to call.
-            var parts = new List<string> { "BandwidthGizmoTip".Translate().Resolve() };
-            if (tracker.UsedBandwidthFromSubjects > 0)
-            {
-                parts.Add("BandwidthUsage".Translate() + ": " + tracker.UsedBandwidthFromSubjects);
-                parts.AddRange(MechGroups(tracker, gestating: false));
-            }
-            if (tracker.UsedBandwidthFromGestation > 0)
-            {
-                parts.Add("MechGestationBandwidthUsed".Translate() + ": " + tracker.UsedBandwidthFromGestation);
-                parts.AddRange(MechGroups(tracker, gestating: true));
-            }
-            return CompatText.JoinSentences(parts).StripTags();
-        }
-
-        private static IEnumerable<string> MechGroups(Pawn_MechanitorTracker tracker, bool gestating)
-        {
-            return from p in tracker.OverseenPawns
-                   where p.IsGestating() == gestating
-                   group p by p.kindDef into g
-                   select g.Key.LabelCap + " x" + g.Count() + " (+" + g.Sum(m => m.GetStatValue(StatDefOf.BandwidthCost)) + ")";
+            return tracker != null
+                ? GizmoTextUtility.FlattenNewlines(MechanitorBandwidthGizmoHandler.TooltipBody(tracker).Resolve().StripTags())
+                : null;
         }
     }
 }

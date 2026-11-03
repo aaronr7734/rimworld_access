@@ -220,8 +220,6 @@ namespace RimWorldAccess.Shell
 
         internal void OnGuiPass()
         {
-            TextDialogCapture.EndPass();
-
             ShellTextFocus.ReleaseNativeFocus();
             session.MirrorLive();
 

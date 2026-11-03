@@ -366,18 +366,31 @@ namespace RimWorldAccess
             return "PawnsWithLifeThreateningDisease".Translate().ToString().ToUpper();
         }
 
-        /// <summary>Tooltip header, life-threatening flag, then the immunity and tending comps' tooltip lines.</summary>
-        public static List<string> GetHediffSummaryLines(Hediff hediff, Pawn pawn)
+        private static readonly char[] LineBreaks = { '\r', '\n' };
+
+        public static string GetHediffHeader(Hediff hediff, Pawn pawn)
         {
+            string tip = hediff.GetTooltip(pawn, false);
+            int end = tip.IndexOfAny(LineBreaks);
+            string header = (end < 0 ? tip : tip.Substring(0, end)).StripTags().Trim();
+            return header.Length > 0 ? header : hediff.LabelCap.StripTags();
+        }
+
+        /// <summary>Tooltip header, life-threatening flag, then the immunity and tending comps' lines; <paramref name="immunity"/> is the immunity comp's part, or null.</summary>
+        public static List<string> GetHediffSummaryLines(Hediff hediff, Pawn pawn, out string immunity)
+        {
+            immunity = null;
             var lines = new List<string>();
             if (hediff == null)
                 return lines;
 
-            GetHediffTooltipLines(hediff, pawn, out string header);
-            lines.Add(string.IsNullOrEmpty(header) ? hediff.LabelCap.StripTags() : header);
+            lines.Add(GetHediffHeader(hediff, pawn));
             if (hediff.IsCurrentlyLifeThreatening)
                 lines.Add(LifeThreateningFlag());
+            int immunityStart = lines.Count;
             AddCompTipLines(lines, hediff.TryGetComp<HediffComp_Immunizable>());
+            if (lines.Count > immunityStart)
+                immunity = string.Join(", ", lines.GetRange(immunityStart, lines.Count - immunityStart));
             AddCompTipLines(lines, hediff.TryGetComp<HediffComp_TendDuration>());
             return lines;
         }
@@ -387,7 +400,7 @@ namespace RimWorldAccess
             string tip = comp?.CompTipStringExtra;
             if (string.IsNullOrEmpty(tip))
                 return;
-            foreach (string raw in tip.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries))
+            foreach (string raw in tip.Split(LineBreaks, StringSplitOptions.RemoveEmptyEntries))
             {
                 string line = raw.StripTags().Trim();
                 if (line.Length > 0)

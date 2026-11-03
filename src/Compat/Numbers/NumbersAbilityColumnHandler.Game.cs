@@ -1,4 +1,3 @@
-using System;
 using RimWorld;
 using RimWorldAccess.Shell;
 using Verse;
@@ -17,29 +16,15 @@ namespace RimWorldAccess
 
         public static void Register(NumbersColumnExtension extension)
         {
-            var surface = new ReflectionSurface("NumbersAbilityColumnHandler");
-            Type workerType = surface.Type("Numbers.PawnColumnWorker_Ability");
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new NumbersAbilityColumnHandler(extension));
-            }
+            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Ability", new NumbersAbilityColumnHandler(extension));
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
         {
             AbilityDef abilityDef = extension.Ability(def);
-            if (abilityDef == null || pawn.abilities == null)
-            {
-                return "";
-            }
-            foreach (Ability ability in pawn.abilities.abilities)
-            {
-                if (ability.def == abilityDef)
-                {
-                    return abilityDef.LabelCap.ToString();
-                }
-            }
-            return "";
+            return abilityDef != null && pawn.abilities?.GetAbility(abilityDef) != null
+                ? abilityDef.LabelCap.ToString()
+                : "";
         }
     }
 }

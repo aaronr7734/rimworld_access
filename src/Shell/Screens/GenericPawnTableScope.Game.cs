@@ -448,13 +448,12 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        protected override string ContentCellHint(int region, int row, int column)
+        protected override bool TryGetPawnCell(int region, int row, int column, out PawnColumnDef def, out Pawn pawn)
         {
-            if (row < 0 || row >= rows.Count || column < 0 || column >= columns.Count)
-            {
-                return null;
-            }
-            return PawnColumnCellReader.CellHint(columns[column], rows[row]);
+            bool inRange = row >= 0 && row < rows.Count && column >= 0 && column < columns.Count;
+            def = inRange ? columns[column] : null;
+            pawn = inRange ? rows[row] : null;
+            return inRange;
         }
 
         protected override bool TryGetLiveSort(int region, out int column, out bool descending)
@@ -582,82 +581,76 @@ namespace RimWorldAccess.Shell
             return false;
         }
 
-        private void RemoveCurrentColumn()
+        private void TryEditColumn(string headerOnlyRefusal, Action<IPawnTableColumnEditor, PawnTable, int> edit)
         {
-            if (!OnHeaderRow("RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly".Loc().ToString()))
+            if (!OnHeaderRow(headerOnlyRefusal))
             {
                 return;
             }
             PawnTable table = tableSupplier();
-            IPawnTableColumnEditor editor = PawnTableColumnEditorRegistry.Resolve(table);
-            TableModel model = Model.CurrentTable;
-            if (editor == null || model == null || model.ColumnIndex < 0 || model.ColumnIndex >= columns.Count)
+            edit(PawnTableColumnEditorRegistry.Resolve(table), table, Model.CurrentTable.ColumnIndex);
+        }
+
+        private void RemoveCurrentColumn()
+        {
+            TryEditColumn("RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly".Loc().ToString(), (editor, table, index) =>
             {
-                return;
-            }
-            PawnColumnDef def = columns[model.ColumnIndex];
-            string label = ColumnHeaderLabel(def);
-            if (columns.Count <= 1)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.SpeakData("RimWorldAccess.Shell.Generic.CannotRemoveLastColumn".Loc(label).ToString());
-                return;
-            }
-            try
-            {
-                editor.RemoveColumn(window, table, def);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("GenericPawnTableScope.RemoveColumn", ex);
-                return;
-            }
-            RefreshModel();
-            TolkHelper.SpeakData("RimWorldAccess.Shell.Generic.ColumnRemoved".Loc(label).ToString());
+                PawnColumnDef def = columns[index];
+                string label = ColumnHeaderLabel(def);
+                if (columns.Count <= 1)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.SpeakData("RimWorldAccess.Shell.Generic.CannotRemoveLastColumn".Loc(label).ToString());
+                    return;
+                }
+                try
+                {
+                    editor.RemoveColumn(window, table, def);
+                }
+                catch (Exception ex)
+                {
+                    ModLogger.LimitedError("GenericPawnTableScope.RemoveColumn", ex);
+                    return;
+                }
+                RefreshModel();
+                TolkHelper.SpeakData("RimWorldAccess.Shell.Generic.ColumnRemoved".Loc(label).ToString());
+            });
         }
 
         private void MoveCurrentColumn(int direction)
         {
-            if (!OnHeaderRow("RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly".Loc().ToString()))
+            TryEditColumn("RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly".Loc().ToString(), (editor, table, index) =>
             {
-                return;
-            }
-            PawnTable table = tableSupplier();
-            IPawnTableColumnEditor editor = PawnTableColumnEditorRegistry.Resolve(table);
-            TableModel model = Model.CurrentTable;
-            if (editor == null || model == null || model.ColumnIndex < 0 || model.ColumnIndex >= columns.Count)
-            {
-                return;
-            }
-            int target = model.ColumnIndex + direction;
-            PawnColumnDef moved = columns[model.ColumnIndex];
-            if (target < 0 || target >= columns.Count)
-            {
-                SoundDefOf.ClickReject.PlayOneShotOnCamera();
-                TolkHelper.SpeakData("RimWorldAccess.Shell.Screen.CannotReorder".Translate().ToString());
-                return;
-            }
-            try
-            {
-                editor.MoveColumn(window, table, moved, columns[target], direction);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("GenericPawnTableScope.MoveColumn", ex);
-                return;
-            }
-            RefreshModel();
-            int landed = columns.IndexOf(moved);
-            TableModel refreshed = Model.CurrentTable;
-            if (landed < 0 || refreshed == null)
-            {
-                return;
-            }
-            if (refreshed.ColumnIndex != landed)
-            {
-                refreshed.MoveToColumn(landed);
-            }
-            TolkHelper.SpeakData("RimWorldAccess.Shell.Generic.ColumnMoved".Loc(ColumnHeaderLabel(moved), landed + 1).ToString());
+                int target = index + direction;
+                PawnColumnDef moved = columns[index];
+                if (target < 0 || target >= columns.Count)
+                {
+                    SoundDefOf.ClickReject.PlayOneShotOnCamera();
+                    TolkHelper.SpeakData("RimWorldAccess.Shell.Screen.CannotReorder".Translate().ToString());
+                    return;
+                }
+                try
+                {
+                    editor.MoveColumn(window, table, moved, columns[target], direction);
+                }
+                catch (Exception ex)
+                {
+                    ModLogger.LimitedError("GenericPawnTableScope.MoveColumn", ex);
+                    return;
+                }
+                RefreshModel();
+                int landed = columns.IndexOf(moved);
+                TableModel refreshed = Model.CurrentTable;
+                if (landed < 0 || refreshed == null)
+                {
+                    return;
+                }
+                if (refreshed.ColumnIndex != landed)
+                {
+                    refreshed.MoveToColumn(landed);
+                }
+                TolkHelper.SpeakData("RimWorldAccess.Shell.Generic.ColumnMoved".Loc(ColumnHeaderLabel(moved), landed + 1).ToString());
+            });
         }
 
         /// <summary>

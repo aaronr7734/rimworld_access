@@ -253,7 +253,6 @@ namespace RimWorldAccess.Shell
 
         internal void OnGuiPass()
         {
-            WidgetCapture.EndPass();
             ResolveIndices();
             RefreshModel();
 

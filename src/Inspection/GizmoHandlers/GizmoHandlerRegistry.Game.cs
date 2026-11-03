@@ -7,9 +7,9 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Ordered resolution for gizmo execution and announcement. Three tiers: exact runtime type then
-    /// its base types (<see cref="TypeChainResolver{T}"/>), then a <c>GetType().Name</c> match for the
-    /// few non-public types, then the generic fallback (<c>ProcessInput</c> verbatim), tried whenever
-    /// the earlier tiers have no candidate or their candidate declines.
+    /// its base types (<see cref="TypeChainResolver{T}"/>, a handler list per type, core first), then
+    /// a <c>GetType().Name</c> match for the few non-public types, then the generic fallback
+    /// (<c>ProcessInput</c> verbatim), tried whenever the earlier tiers' candidates all decline.
     /// Tier order between 1 and 2 cannot change behaviour: every branch tests a distinct,
     /// non-overlapping concrete type, and none of the name-matched types derive from Command.
     /// A candidate may decline (TryExecute/TryDescribe returning false) to fall through —
@@ -21,8 +21,8 @@ namespace RimWorldAccess
     /// </summary>
     public static class GizmoHandlerRegistry
     {
-        private static readonly TypeChainResolver<IGizmoHandler> byType = new TypeChainResolver<IGizmoHandler>();
-        // A list per name: several mods may each add a facet to the same vanilla type.
+        // A list per type and per name: several mods may each add a facet to the same vanilla type.
+        private static readonly TypeChainResolver<List<IGizmoHandler>> byType = new TypeChainResolver<List<IGizmoHandler>>();
         private static readonly Dictionary<string, List<IGizmoHandler>> byTypeName = new Dictionary<string, List<IGizmoHandler>>();
         private static readonly List<IGizmoHandler> noHandlers = new List<IGizmoHandler>();
         private static IGizmoHandler fallback;
@@ -73,15 +73,22 @@ namespace RimWorldAccess
             fallback = new GenericFallbackGizmoHandler();
         }
 
-        /// <summary>Registers (or replaces) the handler for an exact gizmo type and its subtypes.</summary>
+        /// <summary>Adds a handler for an exact gizmo type and its subtypes, after any already registered for that type.</summary>
         public static void Register(Type gizmoType, IGizmoHandler handler)
         {
-            byType.Register(gizmoType, handler);
+            EnsureInitialized();
+            if (!byType.TryResolve(gizmoType, out List<IGizmoHandler> handlers, out Type matched) || matched != gizmoType)
+            {
+                handlers = new List<IGizmoHandler>();
+                byType.Register(gizmoType, handlers);
+            }
+            handlers.Add(handler);
         }
 
         /// <summary>Adds a handler for gizmos matched by GetType().Name, after any already registered for that name.</summary>
         public static void RegisterByTypeName(string typeName, IGizmoHandler handler)
         {
+            EnsureInitialized();
             if (!byTypeName.TryGetValue(typeName, out List<IGizmoHandler> handlers))
             {
                 handlers = new List<IGizmoHandler>();
@@ -95,24 +102,42 @@ namespace RimWorldAccess
             return byTypeName.TryGetValue(runtimeType.Name, out List<IGizmoHandler> handlers) ? handlers : noHandlers;
         }
 
+        private static IEnumerable<IGizmoHandler> Candidates(Type runtimeType)
+        {
+            foreach (List<IGizmoHandler> handlers in byType.ResolveChain(runtimeType))
+            {
+                foreach (IGizmoHandler handler in handlers)
+                    yield return handler;
+            }
+            foreach (IGizmoHandler handler in NameHandlers(runtimeType))
+                yield return handler;
+        }
+
+        /// <summary>The most-derived registered type whose handlers implement the facet, then the name tier.</summary>
+        private static IEnumerable<IGizmoHandler> OwningCandidates(Type runtimeType, string facet)
+        {
+            foreach (List<IGizmoHandler> handlers in byType.ResolveChain(runtimeType))
+            {
+                if (!handlers.Exists(h => Implements(h, facet)))
+                    continue;
+                foreach (IGizmoHandler handler in handlers)
+                    yield return handler;
+                break;
+            }
+            foreach (IGizmoHandler handler in NameHandlers(runtimeType))
+                yield return handler;
+        }
+
         /// <summary>Executes through the handler chain (type, name, fallback), skipping declining candidates;
         /// returns whether GizmoNavigationState's shared post-execution epilogue should run.</summary>
         public static bool Execute(Gizmo gizmo, GizmoHandlerContext ctx)
         {
             EnsureInitialized();
             Shell.ScopeForWindow.ArmDeliberateGenericAttach();
-            Type runtimeType = gizmo.GetType();
-
-            if (byType.TryResolve(runtimeType, out IGizmoHandler typeHandler)
-                && typeHandler.TryExecute(gizmo, ctx, out bool runEpilogueTyped))
+            foreach (IGizmoHandler handler in OwningCandidates(gizmo.GetType(), nameof(IGizmoHandler.TryExecute)))
             {
-                return runEpilogueTyped;
-            }
-
-            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
-            {
-                if (nameHandler.TryExecute(gizmo, ctx, out bool runEpilogueNamed))
-                    return runEpilogueNamed;
+                if (handler.TryExecute(gizmo, ctx, out bool runEpilogue))
+                    return runEpilogue;
             }
 
             fallback.TryExecute(gizmo, ctx, out bool runEpilogueFallback);
@@ -123,17 +148,9 @@ namespace RimWorldAccess
         public static void Describe(Gizmo gizmo, GizmoDescriptionFragments fragments)
         {
             EnsureInitialized();
-            Type runtimeType = gizmo.GetType();
-
-            if (byType.TryResolve(runtimeType, out IGizmoHandler typeHandler)
-                && typeHandler.TryDescribe(gizmo, fragments))
+            foreach (IGizmoHandler handler in OwningCandidates(gizmo.GetType(), nameof(IGizmoHandler.TryDescribe)))
             {
-                return;
-            }
-
-            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
-            {
-                if (nameHandler.TryDescribe(gizmo, fragments))
+                if (handler.TryDescribe(gizmo, fragments))
                     return;
             }
         }
@@ -163,17 +180,9 @@ namespace RimWorldAccess
         public static bool TryResolveSliderAdapter(Gizmo gizmo, out GizmoSliderAdapter adapter)
         {
             EnsureInitialized();
-            Type runtimeType = gizmo.GetType();
-
-            foreach (IGizmoHandler typeHandler in byType.ResolveChain(runtimeType))
+            foreach (IGizmoHandler handler in Candidates(gizmo.GetType()))
             {
-                if (typeHandler.TryGetSliderAdapter(gizmo, out adapter))
-                    return true;
-            }
-
-            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
-            {
-                if (nameHandler.TryGetSliderAdapter(gizmo, out adapter))
+                if (handler.TryGetSliderAdapter(gizmo, out adapter))
                     return true;
             }
 
@@ -212,49 +221,34 @@ namespace RimWorldAccess
         public static bool HasExecutionHandler(Gizmo gizmo)
         {
             EnsureInitialized();
-            Type runtimeType = gizmo.GetType();
-
-            foreach (IGizmoHandler typeHandler in byType.ResolveChain(runtimeType))
+            foreach (IGizmoHandler handler in Candidates(gizmo.GetType()))
             {
-                if (ImplementsExecution(typeHandler))
-                    return true;
-            }
-
-            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
-            {
-                if (ImplementsExecution(nameHandler))
+                if (Implements(handler, nameof(IGizmoHandler.TryExecute)))
                     return true;
             }
             return false;
         }
 
-        private static readonly Dictionary<Type, bool> executionOverrides = new Dictionary<Type, bool>();
-        private static readonly Dictionary<Type, bool> processInputOverrides = new Dictionary<Type, bool>();
+        private static readonly Dictionary<(Type, string), bool> facetOverrides = new Dictionary<(Type, string), bool>();
+        private static readonly Dictionary<Type, System.Reflection.MethodInfo> processInputs = new Dictionary<Type, System.Reflection.MethodInfo>();
 
-        private static bool ImplementsExecution(IGizmoHandler handler)
+        private static bool Implements(IGizmoHandler handler, string facet)
         {
-            Type handlerType = handler.GetType();
-            if (executionOverrides.TryGetValue(handlerType, out bool cached))
+            var key = (handler.GetType(), facet);
+            if (facetOverrides.TryGetValue(key, out bool cached))
                 return cached;
 
-            System.Reflection.MethodInfo method = handlerType.GetMethod("TryExecute");
+            System.Reflection.MethodInfo method = key.Item1.GetMethod(facet);
             bool implemented = method != null && method.DeclaringType != typeof(GizmoHandlerBase);
-            executionOverrides[handlerType] = implemented;
+            facetOverrides[key] = implemented;
             return implemented;
         }
 
         private static bool OverridesProcessInput(Type gizmoType)
         {
-            if (processInputOverrides.TryGetValue(gizmoType, out bool cached))
-                return cached;
-
             System.Reflection.MethodInfo method = FindProcessInput(gizmoType);
-            bool overridden = method != null && method.DeclaringType != typeof(Gizmo);
-            processInputOverrides[gizmoType] = overridden;
-            return overridden;
+            return method != null && method.DeclaringType != typeof(Gizmo);
         }
-
-        private static readonly Dictionary<Type, bool> modProcessInputs = new Dictionary<Type, bool>();
 
         // No game ProcessInput reads the event's button, so only an override declared outside the
         // game assembly can make a right-click without float menu options differ from a left-click.
@@ -262,24 +256,23 @@ namespace RimWorldAccess
         {
             if (gizmo == null)
                 return false;
-            Type gizmoType = gizmo.GetType();
-            if (modProcessInputs.TryGetValue(gizmoType, out bool cached))
-                return cached;
-
-            System.Reflection.MethodInfo method = FindProcessInput(gizmoType);
-            bool fromMod = method != null && method.DeclaringType.Assembly != typeof(Gizmo).Assembly;
-            modProcessInputs[gizmoType] = fromMod;
-            return fromMod;
+            System.Reflection.MethodInfo method = FindProcessInput(gizmo.GetType());
+            return method != null && method.DeclaringType.Assembly != typeof(Gizmo).Assembly;
         }
 
         private static System.Reflection.MethodInfo FindProcessInput(Type gizmoType)
         {
-            return gizmoType.GetMethod(
-                "ProcessInput",
-                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public,
-                null,
-                new Type[] { typeof(UnityEngine.Event) },
-                null);
+            if (!processInputs.TryGetValue(gizmoType, out System.Reflection.MethodInfo method))
+            {
+                method = gizmoType.GetMethod(
+                    "ProcessInput",
+                    System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public,
+                    null,
+                    new Type[] { typeof(UnityEngine.Event) },
+                    null);
+                processInputs[gizmoType] = method;
+            }
+            return method;
         }
 
         /// <summary>
@@ -290,9 +283,9 @@ namespace RimWorldAccess
         internal static bool HasNonFallbackHandler(Type gizmoType)
         {
             EnsureInitialized();
-            foreach (IGizmoHandler _ in byType.ResolveChain(gizmoType))
+            foreach (IGizmoHandler _ in Candidates(gizmoType))
                 return true;
-            return NameHandlers(gizmoType).Count > 0;
+            return false;
         }
 
         /// <summary>
@@ -303,45 +296,62 @@ namespace RimWorldAccess
         public static bool CollectExtraOptions(Gizmo gizmo, List<FloatMenuOption> options)
         {
             EnsureInitialized();
-            Type runtimeType = gizmo.GetType();
             bool any = false;
-
-            foreach (IGizmoHandler typeHandler in byType.ResolveChain(runtimeType))
+            foreach (IGizmoHandler handler in Candidates(gizmo.GetType()))
             {
-                if (typeHandler.TryGetExtraOptions(gizmo, options))
+                if (handler.TryGetExtraOptions(gizmo, options))
                     any = true;
             }
-
-            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
-            {
-                if (nameHandler.TryGetExtraOptions(gizmo, options))
-                    any = true;
-            }
-
             return any;
+        }
+
+        /// <summary>Snapshots, from every handler along the chain that claims the gizmo, the state a replayed right-click may change unseen.</summary>
+        internal static List<KeyValuePair<IGizmoHandler, object>> CaptureRightClickState(Gizmo gizmo, ISelectable owner)
+        {
+            EnsureInitialized();
+            var captured = new List<KeyValuePair<IGizmoHandler, object>>();
+            foreach (IGizmoHandler handler in Candidates(gizmo.GetType()))
+            {
+                try
+                {
+                    if (handler.TryCaptureRightClickState(gizmo, owner, out object snapshot))
+                        captured.Add(new KeyValuePair<IGizmoHandler, object>(handler, snapshot));
+                }
+                catch (Exception ex)
+                {
+                    ModLogger.LimitedError("GizmoHandlerRegistry.CaptureRightClickState", ex);
+                }
+            }
+            return captured;
+        }
+
+        internal static void AppendRightClickChanges(List<KeyValuePair<IGizmoHandler, object>> captured,
+            Gizmo gizmo, ISelectable owner, List<string> changes)
+        {
+            foreach (KeyValuePair<IGizmoHandler, object> entry in captured)
+            {
+                try
+                {
+                    string change = entry.Key.DescribeRightClickChange(gizmo, owner, entry.Value);
+                    if (!string.IsNullOrEmpty(change))
+                        changes.Add(change);
+                }
+                catch (Exception ex)
+                {
+                    ModLogger.LimitedError("GizmoHandlerRegistry.AppendRightClickChanges", ex);
+                }
+            }
         }
 
         private static string ResolveFacet(Gizmo gizmo, Func<IGizmoHandler, Gizmo, string> facet)
         {
             EnsureInitialized();
-            Type runtimeType = gizmo.GetType();
-
-            // Offer the facet to every handler along the chain, most derived first: a subtype handler
-            // that declines defers to its base type's handler.
-            foreach (IGizmoHandler typeHandler in byType.ResolveChain(runtimeType))
+            foreach (IGizmoHandler handler in Candidates(gizmo.GetType()))
             {
-                string value = facet(typeHandler, gizmo);
+                string value = facet(handler, gizmo);
                 if (value != null)
                     return value;
             }
-
-            foreach (IGizmoHandler nameHandler in NameHandlers(runtimeType))
-            {
-                string value = facet(nameHandler, gizmo);
-                if (value != null)
-                    return value;
-            }
-
             return null;
         }
     }
