@@ -234,6 +234,53 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        private void FuseValueLabeledSlider(bool[] consumed, FusionResult[] fusion, int sliderIndex, int headingBoundary)
+        {
+            CapturedWidget slider = captureRows[sliderIndex];
+            if (!ValueLabeledSlider.LabelIsValue(slider.Label, slider.SliderValue))
+            {
+                return;
+            }
+            int captionIndex = sliderIndex - 1;
+            int iconIndex = -1;
+            if (captionIndex > headingBoundary && captureRows[captionIndex].Composite == CompositeMember.Icon)
+            {
+                iconIndex = captionIndex;
+                captionIndex--;
+            }
+            if (captionIndex <= headingBoundary || consumed[captionIndex] || (iconIndex >= 0 && consumed[iconIndex]))
+            {
+                return;
+            }
+            CapturedWidget caption = captureRows[captionIndex];
+            if (!IsStealableCaption(caption) || caption.Composite != CompositeMember.None
+                || string.IsNullOrWhiteSpace(caption.Label) || !caption.Clip.Equals(slider.Clip)
+                || !ValueLabeledSlider.CaptionsOnRow(LineBoxOf(caption), LineBoxOf(slider)))
+            {
+                return;
+            }
+            if (iconIndex >= 0)
+            {
+                CapturedWidget icon = captureRows[iconIndex];
+                if (!icon.Clip.Equals(slider.Clip)
+                    || !string.Equals((icon.Label ?? "").StripTags().Trim(), caption.Label.StripTags().Trim(), StringComparison.OrdinalIgnoreCase)
+                    || !ValueLabeledSlider.IconBetween(LineBoxOf(caption), LineBoxOf(icon), LineBoxOf(slider)))
+                {
+                    return;
+                }
+                consumed[iconIndex] = true;
+            }
+            consumed[captionIndex] = true;
+            fusion[sliderIndex].LabelIndex = captionIndex;
+            fusion[sliderIndex].OwnLabelIsValue = true;
+        }
+
+        private static LineBox LineBoxOf(CapturedWidget row)
+        {
+            Rect r = row.ScreenRect;
+            return new LineBox { X = r.x, Y = r.y, Width = r.width, Height = r.height };
+        }
+
         /// <summary>
         /// The member buttons' captions in VISUAL left-to-right order (-10, -1, +1, +10), which
         /// is not draw order: Widgets.IntEntry anchors the plus pair right-edge with +10

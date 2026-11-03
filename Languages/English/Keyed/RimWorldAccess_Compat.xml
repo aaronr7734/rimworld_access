@@ -1218,4 +1218,7 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Auto-cast on for {0} abilities</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Auto-cast off for all abilities</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
 
+  <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+
 </LanguageData>

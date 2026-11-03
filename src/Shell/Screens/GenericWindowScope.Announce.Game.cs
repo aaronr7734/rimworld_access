@@ -284,7 +284,11 @@ namespace RimWorldAccess.Shell
                     // this control's number — so the value comes from the slider itself. The exception
                     // is a caption the capture engine PROVED to be a name/value pair on the control's
                     // own line (CaptionCarriesValue): that text is the number a sighted player reads.
-                    if (string.IsNullOrEmpty(source.Label) && !row.CaptionCarriesValue)
+                    if (row.OwnLabelIsValue)
+                    {
+                        d.Value = source.Label;
+                    }
+                    else if (string.IsNullOrEmpty(source.Label) && !row.CaptionCarriesValue)
                     {
                         d.Value = !string.IsNullOrEmpty(source.SliderValueText) ? source.SliderValueText : FormatSliderValue(source);
                     }
@@ -491,7 +495,11 @@ namespace RimWorldAccess.Shell
                     // proven name/value pair. captionMoved is the evidence-based third tier: a fused
                     // caption whose text changed across this adjust just demonstrated it renders the
                     // value, which the pair-fold's CaptionCarriesValue can never see.
-                    if (!string.IsNullOrEmpty(row.Source.Label) || row.CaptionCarriesValue || captionMoved)
+                    if (row.OwnLabelIsValue)
+                    {
+                        d.Value = row.Source.Label;
+                    }
+                    else if (!string.IsNullOrEmpty(row.Source.Label) || row.CaptionCarriesValue || captionMoved)
                     {
                         d.Value = row.Label;
                     }

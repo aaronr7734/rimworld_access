@@ -738,7 +738,8 @@ namespace RimWorldAccess.Shell
                 return false;
             }
             CapturedWidget source = captureRows[index];
-            return SliderCaption.CaptionImpliesFractional(row.Label, source.SliderValue, source.SliderMin, source.SliderMax);
+            string valueText = row.OwnLabelIsValue ? source.Label : row.Label;
+            return SliderCaption.CaptionImpliesFractional(valueText, source.SliderValue, source.SliderMin, source.SliderMax);
         }
 
         private void OnStepperIncrease(KeyEventSnapshot e)

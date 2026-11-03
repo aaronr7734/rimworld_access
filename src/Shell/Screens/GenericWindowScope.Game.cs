@@ -71,14 +71,14 @@ namespace RimWorldAccess.Shell
     /// toward <see cref="HasMultipleSections"/>, while staying present and operable.
     ///
     /// <b>Own-label slider value rule.</b> Whether a value needs speaking turns on the slider's own
-    /// captured <see cref="CapturedWidget.Label"/>, read before any caption fusion — never on
-    /// RingCaptureIndex vs. ActivateCaptureIndex, which says nothing about whether a borrowed
-    /// caption carries a number. A non-blank own label already holds the only value a sighted
-    /// player sees, so <see cref="BuildDescription"/> speaks it once and never invents a raw float
-    /// alongside it; a blank own label means both <see cref="BuildDescription"/> and
-    /// <see cref="AnnounceStateChange"/> speak the refreshed SliderValueText or the
-    /// FormatSliderValue guess, keeping the AtMinimum/AtMaximum flags either way. The same test
-    /// governs <see cref="RimWorldAccess.CapturedRowFolder"/>'s ITab slider path.
+    /// captured <see cref="CapturedWidget.Label"/>, never on RingCaptureIndex vs.
+    /// ActivateCaptureIndex. A non-blank own label already holds the only value a sighted player
+    /// sees, so <see cref="BuildDescription"/> speaks it once, never beside an invented raw float;
+    /// when it is ONLY the value and a same-line name Label fused onto it (OwnLabelIsValue), it is
+    /// spoken as the value under that name. A blank own label means <see cref="BuildDescription"/>
+    /// and <see cref="AnnounceStateChange"/> speak the refreshed SliderValueText or the
+    /// FormatSliderValue guess, keeping AtMinimum/AtMaximum either way. The same test governs
+    /// <see cref="RimWorldAccess.CapturedRowFolder"/>'s ITab slider path.
     ///
     /// <b>Activation.</b> Checkbox/RadioButton/Button post
     /// <see cref="WidgetCapture.RequestActivate"/>, so vanilla's own click handling and side

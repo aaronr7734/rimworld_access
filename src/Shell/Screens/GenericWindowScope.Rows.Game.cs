@@ -122,6 +122,8 @@ namespace RimWorldAccess.Shell
             /// </summary>
             public bool CaptionCarriesValue;
 
+            public bool OwnLabelIsValue;
+
             public Rect ScreenRect;
             public Rect LabelScreenRect;
 
@@ -201,6 +203,8 @@ namespace RimWorldAccess.Shell
 
             /// <summary>Twin of <see cref="PresentationRow.ReadOnlyCheckbox"/>, carried from Phase 1 to Phase 2 emission.</summary>
             public bool ReadOnlyCheckbox;
+
+            public bool OwnLabelIsValue;
         }
 
         /// <summary>
@@ -578,6 +582,10 @@ namespace RimWorldAccess.Shell
                         fusion[i].LabelIndex = captionIndex;
                     }
                 }
+                else if (row.Kind == WidgetKind.Slider && fusion[i].KindOverride == null && !string.IsNullOrEmpty(row.Label) && i > 0)
+                {
+                    FuseValueLabeledSlider(consumed, fusion, i, headingBoundary);
+                }
                 else if (row.Kind == WidgetKind.Button && row.Composite == CompositeMember.HyperlinkLabel)
                 {
                     // Widgets.HyperlinkWithIcon's two halves: this caption is what the ring
@@ -927,6 +935,7 @@ namespace RimWorldAccess.Shell
                 pr.SecondaryCaptureIndex = fusion[i].SecondaryIndex;
                 pr.SuppressGenericTip = fusion[i].SuppressGenericTip;
                 pr.ReadOnlyCheckbox = fusion[i].ReadOnlyCheckbox;
+                pr.OwnLabelIsValue = fusion[i].OwnLabelIsValue;
                 pr.SpeechMasked = fusion[i].SpeechMasked;
                 presentationRows.Add(pr);
             }
