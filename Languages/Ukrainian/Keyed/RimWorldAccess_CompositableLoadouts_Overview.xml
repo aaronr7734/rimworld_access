@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClOverviewScope: the loadout overview tab. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>Пошук</RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>Статистика персонажів</RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>
+  <!-- {0} = column position among the tag columns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>Тег {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>
+  <!-- One required item in a tag's tooltip. {0} = item, {1} = quantity. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>{0} x{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>Поза мапою</RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>
+  <!-- Toolbar buttons. {0} = the button's own label. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>Персонажі з: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>Переглядати статистику, ніби {0} активний</RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>
+  <!-- Hints. Each {n} is a key chord. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>Enter переходить до персонажа. {0} вибирає лише цього персонажа, {1} додає його до виділення або прибирає з нього, {2} виділяє всіх персонажів від останнього вибраного. Тег, вставлений на виділеного персонажа, потрапляє до всіх виділених персонажів.</RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>Enter відкриває параметри. {0} прибирає його. {1} вирізає його, а {2} копіює, потім {3} в іншому рядку вставляє його туди. {4} і {5} переміщують його вздовж рядка.</RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>{0}: інші способи копіювання</RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>
+  <!-- Results. {0} = tag or pawn name, {1} = pawn name or a count of pawns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>Скопійовано теги {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>Теги вставлено: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>Нічого вставляти</RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>Вставлення нічого не змінить для {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>Вирізано {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>Скопійовано {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>{0} повернуто на місце</RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>{0} переміщено до {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>{0} скопійовано до {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>{0} переміщено, персонажів: {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>{0} скопійовано, персонажів: {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>{0} вилучено з {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>немає</RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>
+</LanguageData>

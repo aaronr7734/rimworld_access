@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>Колоністів із тегом: {0}</RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>Додаткові копії</RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>На колоніста</RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>Налаштування {0} скопійовано з {1}.</RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOn>Стан паніки увімкнено.</RimWorldAccess.Compat.CompositableLoadouts.PanicOn>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOff>Стан паніки вимкнено.</RimWorldAccess.Compat.CompositableLoadouts.PanicOff>
+</LanguageData>

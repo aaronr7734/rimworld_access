@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>拥有该标签的殖民者: {0}</RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>额外份数</RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>每名殖民者</RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>已将{1}的{0}设置复制过来。</RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOn>恐慌状态已开启。</RimWorldAccess.Compat.CompositableLoadouts.PanicOn>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOff>恐慌状态已关闭。</RimWorldAccess.Compat.CompositableLoadouts.PanicOff>
+</LanguageData>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClTagEditorScope (Dialog_TagEditor). -->
+  <!-- {0} = tag name; the heading above the name box and required items. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ModifyTag>修改{0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ModifyTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.BrowserRegion>类别和筛选</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.BrowserRegion>
+
+  <!-- The category icons' tooltips. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryApparel>衣着</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryApparel>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMelee>近战</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMelee>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryRanged>远程</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryRanged>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMedicine>医药</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMedicine>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryItems>物品</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryItems>
+
+  <!-- The def browser's controls. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Search>搜索</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortName>名称</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortName>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortOrder>排序顺序</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortOrder>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Ascending>升序</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Ascending>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Descending>降序</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Descending>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ShowOnly>显示</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ShowOnly>
+  <!-- {0} = how many things the list shows. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountNone>列表中没有物品</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountNone>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountOne>列表中有 1 件物品</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountOne>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountMany>列表中有 {0} 件物品</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountMany>
+  <!-- {0} = stat or effect being sorted by, {1} = the thing's value for it. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.StatValue>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.StatValue>
+  <!-- {0} = the listed things the hovered one would conflict with, comma separated. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Highlighted>已高亮: {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Highlighted>
+
+  <!-- Required items. {0} = a number. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Quantity>数量</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Quantity>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.QuantityValue>数量 {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.QuantityValue>
+  <!-- {0} = a key chord, e.g. Alt+E; {1} = the icon's own tooltip. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ChordTip>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ChordTip>
+  <!-- {0} = the copy chord, {1} = the paste chord, {2} = the icons' shared tooltip. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CopyPasteTip>{0} 和 {1}: {2}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CopyPasteTip>
+
+  <!-- Results. {0} = item, thing, or tag name; {1} = the item an alternative joins. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Added>已添加{0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Added>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AddedAlternative>已将{0}添加为{1}的替代品</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AddedAlternative>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Removed>已移除{0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Removed>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Copied>已复制{0}的筛选</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Pasted>已将筛选粘贴到{0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.NothingCopied>没有已复制的内容可粘贴</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.NothingCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AlternativesDone>已停止添加替代品</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AlternativesDone>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagCreated>已创建{0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagCreated>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagDeleted>已删除{0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagDeleted>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortByDesc>选择用于对所列事物排序的属性</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortByDesc>
+  <!-- {0} and {1} are key chords, e.g. Ctrl+Up Arrow. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ReorderAlternativeHint>{0}和{1}: 更改角色优先选用哪个替代品，越靠上越优先</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ReorderAlternativeHint>
+  <!-- The expand/collapse row inside the "Mass Assign to Pawns" section; it shows or hides the pawn checkboxes. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.PawnList>角色列表</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.PawnList>
+</LanguageData>

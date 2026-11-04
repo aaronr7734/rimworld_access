@@ -117,8 +117,10 @@ namespace RimWorldAccess
         public static string GetColumnHeaderTooltip(int index)
         {
             PawnColumnDef def = GetColumnDef(index);
-            if (def == null || def.headerTip.NullOrEmpty())
+            if (def == null)
                 return null;
+            if (def.headerTip.NullOrEmpty())
+                return PawnColumnHandlerRegistry.Resolve(def) is IPawnColumnContextActions extra ? extra.HeaderTip(def) : null;
             string label = GetColumnName(index);
             return def.headerTip == label ? null : def.headerTip;
         }
@@ -362,7 +364,16 @@ namespace RimWorldAccess
             PawnColumnDef def = GetColumnDef(index);
             if (def == null)
                 return false;
-            return IsPolicyWorker(def) || def.Worker is PawnColumnWorker_MedicalCare;
+            return IsPolicyWorker(def) || def.Worker is PawnColumnWorker_MedicalCare
+                || PawnColumnHandlerRegistry.Resolve(def) is IPawnColumnContextActions;
+        }
+
+        public static List<FloatMenuOption> GetHeaderContextMenuOptions(int colIndex)
+        {
+            PawnColumnDef def = GetColumnDef(colIndex);
+            return def != null && PawnColumnHandlerRegistry.Resolve(def) is IPawnColumnContextActions extra
+                ? extra.HeaderOptions(def)
+                : null;
         }
 
         public static List<FloatMenuOption> GetContextMenuOptions(
@@ -372,6 +383,8 @@ namespace RimWorldAccess
             if (def == null)
                 return null;
 
+            if (PawnColumnHandlerRegistry.Resolve(def) is IPawnColumnContextActions extra)
+                return extra.CellOptions(def, pawn);
             if (def.Worker is PawnColumnWorker_Outfit)
             {
                 var db = Current.Game?.outfitDatabase;

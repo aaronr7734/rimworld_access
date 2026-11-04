@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClLoadoutEditorScope (Dialog_LoadoutEditor). -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.HeaderRegion>Параметри набору</RimWorldAccess.Compat.CompositableLoadouts.Editor.HeaderRegion>
+  <!-- The "View stats as if [state] were active" dropdown; the value is the state. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.ViewAsIf>Переглядати статистику, ніби цей стан активний</RimWorldAccess.Compat.CompositableLoadouts.Editor.ViewAsIf>
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.PreviousPawn>Попередній персонаж</RimWorldAccess.Compat.CompositableLoadouts.Editor.PreviousPawn>
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.NextPawn>Наступний персонаж</RimWorldAccess.Compat.CompositableLoadouts.Editor.NextPawn>
+  <!-- Applied tags table. {0} = tag name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.ItemsColumn>Потрібні предмети</RimWorldAccess.Compat.CompositableLoadouts.Editor.ItemsColumn>
+  <!-- {0} = the tags the picker added, comma separated. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.TagsAdded>Додано {0}</RimWorldAccess.Compat.CompositableLoadouts.Editor.TagsAdded>
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.TagRemoved>Вилучено {0}</RimWorldAccess.Compat.CompositableLoadouts.Editor.TagRemoved>
+  <!-- An item icon's count. {0} = item, {1} = how many. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.ItemCount>{0} x{1}</RimWorldAccess.Compat.CompositableLoadouts.Editor.ItemCount>
+  <!-- An item icon's badge for its alternatives. {0} = how many alternatives. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.AlternativesBadge>+{0}</RimWorldAccess.Compat.CompositableLoadouts.Editor.AlternativesBadge>
+  <!-- A label with its value. {0} = label, {1} = value. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.LabelValue>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.Editor.LabelValue>
+  <!-- The weight bar. {0} = mass carried, {1} = carry capacity. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.WeightValue>{0}/{1}</RimWorldAccess.Compat.CompositableLoadouts.Editor.WeightValue>
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.OverCapacity>Перевищено вантажопідйомність</RimWorldAccess.Compat.CompositableLoadouts.Editor.OverCapacity>
+  <!-- One item's share of an equipped stat offset. {0} = item, {1} = offset. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.StatContribution>{0} {1}</RimWorldAccess.Compat.CompositableLoadouts.Editor.StatContribution>
+  <!-- Coverage, apparel tab: one slot of a body part group. {0} = apparel layer. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotEmpty>{0}: порожньо</RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotEmpty>
+  <!-- {0} = apparel layer, {1} = apparel, {2} = tag it comes from. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotWorn>{0}: {1} з {2}</RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotWorn>
+  <!-- {0} = list of apparel from other tags this slot's apparel keeps out. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotBlocks>Блокує: {0}</RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotBlocks>
+  <!-- {0} = apparel layer, {1} = list of apparel whose tags are blocked from it. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotBlocked>{0}: заблоковані теги: {1}</RimWorldAccess.Compat.CompositableLoadouts.Editor.SlotBlocked>
+  <!-- {0} = apparel, {1} = tag name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.ItemFromTag>{0} з {1}</RimWorldAccess.Compat.CompositableLoadouts.Editor.ItemFromTag>
+  <!-- Coverage, body parts tab. {0} = the blocked prosthetic shown on a part nothing can go on. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.PartBlocked>{0}, заблоковано</RimWorldAccess.Compat.CompositableLoadouts.Editor.PartBlocked>
+  <!-- {0} = prosthetic, {1} = tag name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Editor.BlockedProsthetic>{0} ({1})</RimWorldAccess.Compat.CompositableLoadouts.Editor.BlockedProsthetic>
+</LanguageData>

@@ -1207,4 +1207,7 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>已为 1 项能力开启自动施放</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>已为 {0} 项能力开启自动施放</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>已关闭所有能力的自动施放</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+
+  <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
 </LanguageData>

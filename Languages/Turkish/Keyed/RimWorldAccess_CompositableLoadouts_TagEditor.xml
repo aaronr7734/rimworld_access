@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClTagEditorScope (Dialog_TagEditor). -->
+  <!-- {0} = tag name; the heading above the name box and required items. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ModifyTag>{0} düzenle</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ModifyTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.BrowserRegion>Kategoriler ve filtreler</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.BrowserRegion>
+
+  <!-- The category icons' tooltips. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryApparel>Giyim</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryApparel>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMelee>Yakın dövüş</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMelee>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryRanged>Menzilli</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryRanged>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMedicine>İlaç</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMedicine>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryItems>Eşyalar</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryItems>
+
+  <!-- The def browser's controls. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Search>Ara</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortName>İsim</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortName>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortOrder>Sıralama düzeni</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortOrder>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Ascending>Artan</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Ascending>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Descending>Azalan</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Descending>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ShowOnly>Göster</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ShowOnly>
+  <!-- {0} = how many things the list shows. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountNone>Listelenen şey yok</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountNone>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountOne>1 şey listelendi</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountOne>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountMany>{0} şey listelendi</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountMany>
+  <!-- {0} = stat or effect being sorted by, {1} = the thing's value for it. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.StatValue>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.StatValue>
+  <!-- {0} = the listed things the hovered one would conflict with, comma separated. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Highlighted>Vurgulananlar: {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Highlighted>
+
+  <!-- Required items. {0} = a number. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Quantity>Miktar</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Quantity>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.QuantityValue>miktar {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.QuantityValue>
+  <!-- {0} = a key chord, e.g. Alt+E; {1} = the icon's own tooltip. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ChordTip>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ChordTip>
+  <!-- {0} = the copy chord, {1} = the paste chord, {2} = the icons' shared tooltip. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CopyPasteTip>{0} ve {1}: {2}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CopyPasteTip>
+
+  <!-- Results. {0} = item, thing, or tag name; {1} = the item an alternative joins. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Added>{0} eklendi</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Added>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AddedAlternative>{0}, {1} için alternatif olarak eklendi</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AddedAlternative>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Removed>{0} kaldırıldı</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Removed>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Copied>{0} filtresi kopyalandı</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Pasted>Filtre {0} üzerine yapıştırıldı</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.NothingCopied>Yapıştırılacak kopyalanmış bir şey yok</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.NothingCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AlternativesDone>Alternatif ekleme durduruldu</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AlternativesDone>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagCreated>{0} oluşturuldu</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagCreated>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagDeleted>{0} silindi</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagDeleted>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortByDesc>Listelenen nesneleri sıralamak için bir öznitelik seçin</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortByDesc>
+  <!-- {0} and {1} are key chords, e.g. Ctrl+Up Arrow. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ReorderAlternativeHint>{0} ve {1}: kişilerin tercih ettiği alternatifi değiştirir, daha yukarıdaki daha çok tercih edilir</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ReorderAlternativeHint>
+  <!-- The expand/collapse row inside the "Mass Assign to Pawns" section; it shows or hides the pawn checkboxes. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.PawnList>Kişi listesi</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.PawnList>
+</LanguageData>

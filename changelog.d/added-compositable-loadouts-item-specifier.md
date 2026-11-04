@@ -1,0 +1,1 @@
+Compositable Loadouts' item customization window now works from the keyboard: pick which alternative to edit, set the hit point and quality ranges, choose allowed materials with a search box, and compare statistics between materials and qualities.

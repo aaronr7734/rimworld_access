@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>Colons avec l'étiquette : {0}</RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>Copies supplémentaires</RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>Par colon</RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>Réglages de {0} copiés depuis {1}.</RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOn>État de panique activé.</RimWorldAccess.Compat.CompositableLoadouts.PanicOn>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOff>État de panique désactivé.</RimWorldAccess.Compat.CompositableLoadouts.PanicOff>
+</LanguageData>

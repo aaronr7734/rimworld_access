@@ -1209,4 +1209,7 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Uso automático ativado para 1 habilidade</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Uso automático ativado para {0} habilidades</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Uso automático desativado para todas as habilidades</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+  <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+
 </LanguageData>

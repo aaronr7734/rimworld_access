@@ -1209,4 +1209,8 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>1 yetenek için otomatik kullanım açık</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>{0} yetenek için otomatik kullanım açık</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Tüm yetenekler için otomatik kullanım kapalı</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+
+  <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+
 </LanguageData>

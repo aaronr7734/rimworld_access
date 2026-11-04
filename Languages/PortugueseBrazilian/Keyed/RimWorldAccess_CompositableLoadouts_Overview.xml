@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClOverviewScope: the loadout overview tab. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>Procurar</RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>Estatísticas dos personagens</RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>
+  <!-- {0} = column position among the tag columns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>Tag {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>
+  <!-- One required item in a tag's tooltip. {0} = item, {1} = quantity. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>{0} x{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>Fora do mapa</RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>
+  <!-- Toolbar buttons. {0} = the button's own label. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>Personagens de: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>Ver estatísticas como se {0} estivesse ativo</RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>
+  <!-- Hints. Each {n} is a key chord. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>Enter vai até o personagem. {0} seleciona somente este personagem, {1} o adiciona à seleção ou o remove dela, {2} seleciona todos os personagens a partir do último escolhido. Uma tag colada em um personagem selecionado vai para todos os personagens selecionados.</RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>Enter para opções. {0} a remove. {1} a recorta e {2} a copia, depois {3} em outra linha a coloca ali. {4} e {5} a movem ao longo da linha.</RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>{0} para mais formas de copiar</RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>
+  <!-- Results. {0} = tag or pawn name, {1} = pawn name or a count of pawns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>Tags de {0} copiadas</RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>Tags coladas em {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>Nada para colar</RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>Colar não mudaria nada para {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>Recortado: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>Copiado: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>{0} devolvido</RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>{0} movido para {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>{0} copiado para {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>{0} movido para {1} personagens</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>{0} copiado para {1} personagens</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>{0} removido de {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>nenhuma</RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>
+</LanguageData>

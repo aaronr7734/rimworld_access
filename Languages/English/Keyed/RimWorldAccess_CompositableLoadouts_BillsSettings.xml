@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>Colonists with the tag: {0}</RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>Extra copies</RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>Per colonist</RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>Copied the {0} settings from {1}.</RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOn>Panic state on.</RimWorldAccess.Compat.CompositableLoadouts.PanicOn>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOff>Panic state off.</RimWorldAccess.Compat.CompositableLoadouts.PanicOff>
+</LanguageData>

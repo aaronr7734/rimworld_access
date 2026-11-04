@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClItemSpecifierScope (Dialog_ItemSpecifier). {0} = the item's name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ItemSpecifierTitle>Налаштування: {0}</RimWorldAccess.Compat.CompositableLoadouts.ItemSpecifierTitle>
+  <!-- A statistics cell the mod paints green: the largest value of its row. {0} = the value. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.HighestStatValue>{0}, найвище</RimWorldAccess.Compat.CompositableLoadouts.HighestStatValue>
+  <!-- After Set as default. {0}/{1} = hit point percents, {2}/{3} = quality labels. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.DefaultsSet>Задано за замовчуванням для нових предметів: міцність від {0} до {1}, якість від {2} до {3}</RimWorldAccess.Compat.CompositableLoadouts.DefaultsSet>
+</LanguageData>

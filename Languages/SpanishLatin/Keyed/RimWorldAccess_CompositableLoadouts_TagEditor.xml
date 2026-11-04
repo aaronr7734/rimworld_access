@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClTagEditorScope (Dialog_TagEditor). -->
+  <!-- {0} = tag name; the heading above the name box and required items. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ModifyTag>Modificar {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ModifyTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.BrowserRegion>Categorías y filtros</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.BrowserRegion>
+
+  <!-- The category icons' tooltips. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryApparel>Vestimenta</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryApparel>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMelee>Cuerpo a cuerpo</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMelee>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryRanged>A distancia</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryRanged>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMedicine>Medicina</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryMedicine>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryItems>Objetos</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CategoryItems>
+
+  <!-- The def browser's controls. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Search>Buscar</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortName>Nombre</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortName>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortOrder>Orden</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortOrder>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Ascending>Ascendente</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Ascending>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Descending>Descendente</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Descending>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ShowOnly>Mostrar</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ShowOnly>
+  <!-- {0} = how many things the list shows. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountNone>No hay cosas en la lista</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountNone>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountOne>1 cosa en la lista</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountOne>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountMany>{0} cosas en la lista</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ThingCountMany>
+  <!-- {0} = stat or effect being sorted by, {1} = the thing's value for it. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.StatValue>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.StatValue>
+  <!-- {0} = the listed things the hovered one would conflict with, comma separated. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Highlighted>Resaltado: {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Highlighted>
+
+  <!-- Required items. {0} = a number. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Quantity>Cantidad</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Quantity>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.QuantityValue>cantidad {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.QuantityValue>
+  <!-- {0} = a key chord, e.g. Alt+E; {1} = the icon's own tooltip. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ChordTip>{0}: {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ChordTip>
+  <!-- {0} = the copy chord, {1} = the paste chord, {2} = the icons' shared tooltip. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CopyPasteTip>{0} y {1}: {2}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.CopyPasteTip>
+
+  <!-- Results. {0} = item, thing, or tag name; {1} = the item an alternative joins. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Added>Se agregó {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Added>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AddedAlternative>Se agregó {0} como alternativa a {1}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AddedAlternative>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Removed>Se quitó {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Removed>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Copied>Se copió el filtro de {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Pasted>Se pegó el filtro en {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.NothingCopied>No hay nada copiado para pegar</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.NothingCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AlternativesDone>Se dejó de agregar alternativas</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.AlternativesDone>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagCreated>Se creó {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagCreated>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagDeleted>Se eliminó {0}</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.TagDeleted>
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortByDesc>Elige un atributo para ordenar las cosas de la lista</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.SortByDesc>
+  <!-- {0} and {1} are key chords, e.g. Ctrl+Up Arrow. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ReorderAlternativeHint>{0} y {1}: cambiar qué alternativa prefieren los personajes, cuanto más arriba, más preferida</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.ReorderAlternativeHint>
+  <!-- The expand/collapse row inside the "Mass Assign to Pawns" section; it shows or hides the pawn checkboxes. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.TagEditor.PawnList>Lista de personajes</RimWorldAccess.Compat.CompositableLoadouts.TagEditor.PawnList>
+</LanguageData>

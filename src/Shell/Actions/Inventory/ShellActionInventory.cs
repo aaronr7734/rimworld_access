@@ -26,6 +26,7 @@ namespace RimWorldAccess.Shell
             ShellActionInventoryPart6.Register(catalog);
             ShellActionInventoryPart7.Register(catalog);
             ShellActionInventoryPart8.Register(catalog);
+            ShellActionInventoryCompositableLoadouts.Register(catalog);
         }
     }
 }

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClOverviewScope: the loadout overview tab. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>Ara</RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>Kişi değerleri</RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>
+  <!-- {0} = column position among the tag columns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>Etiket {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>
+  <!-- One required item in a tag's tooltip. {0} = item, {1} = quantity. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>{0} x{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>Haritadan uzakta</RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>
+  <!-- Toolbar buttons. {0} = the button's own label. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>Kişilerin kaynağı: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>Değerleri {0} etkinmiş gibi göster</RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>
+  <!-- Hints. Each {n} is a key chord. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>Enter kişiye gider. {0} yalnızca bu kişiyi seçer, {1} kişiyi seçime ekler veya seçimden çıkarır, {2} en son seçilen kişiden itibaren tüm kişileri seçer. Seçili bir kişiye yapıştırılan etiket seçili tüm kişilere uygulanır.</RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>Enter seçenekleri açar. {0} etiketi kaldırır. {1} keser, {2} kopyalar, ardından başka bir satırda {3} ile oraya yapıştırılır. {4} ve {5} etiketi satır boyunca taşır.</RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>Daha fazla kopyalama yolu için {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>
+  <!-- Results. {0} = tag or pawn name, {1} = pawn name or a count of pawns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>{0} kişisinin etiketleri kopyalandı</RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>Etiketler {0} kişisine yapıştırıldı</RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>Yapıştırılacak bir şey yok</RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>Yapıştırmak {0} için hiçbir şeyi değiştirmez</RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>{0} kesildi</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>{0} kopyalandı</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>{0} geri konuldu</RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>{0}, {1} kişisine taşındı</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>{0}, {1} kişisine kopyalandı</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>{0}, {1} kişiye taşındı</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>{0}, {1} kişiye kopyalandı</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>{0}, {1} kişisinden kaldırıldı</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>yok</RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>
+</LanguageData>

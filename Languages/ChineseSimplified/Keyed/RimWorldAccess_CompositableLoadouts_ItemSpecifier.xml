@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClItemSpecifierScope (Dialog_ItemSpecifier). {0} = the item's name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ItemSpecifierTitle>自定义{0}</RimWorldAccess.Compat.CompositableLoadouts.ItemSpecifierTitle>
+  <!-- A statistics cell the mod paints green: the largest value of its row. {0} = the value. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.HighestStatValue>{0}, 最高</RimWorldAccess.Compat.CompositableLoadouts.HighestStatValue>
+  <!-- After Set as default. {0}/{1} = hit point percents, {2}/{3} = quality labels. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.DefaultsSet>已设为新物品的默认值: 耐久度 {0} 至 {1}, 品质 {2} 至 {3}</RimWorldAccess.Compat.CompositableLoadouts.DefaultsSet>
+</LanguageData>

@@ -1203,4 +1203,5 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Lanzamiento automático activado para 1 habilidad</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Lanzamiento automático activado para {0} habilidades</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Lanzamiento automático desactivado para todas las habilidades</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
 </LanguageData>

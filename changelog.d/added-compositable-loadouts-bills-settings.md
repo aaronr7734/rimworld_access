@@ -1,0 +1,1 @@
+Compositable Loadouts bills and settings now work from the keyboard: the "X per Tag" repeat mode with its tag picker, counts and filters, the panic button through the pause menu, and the settings page tag name box and saved tag lists.

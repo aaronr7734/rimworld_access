@@ -34,6 +34,7 @@ namespace RimWorldAccess
         private static void BuildGearChildren(InspectionTreeItem parentItem, Pawn pawn, InspectionMode mode)
         {
             BuildGearSummary(parentItem, pawn);
+            PawnGearSectionRegistry.BuildAll(parentItem, pawn, mode);
 
             var gearCategories = new (string labelKey, InspectSectionKind kind)[]
             {

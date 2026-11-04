@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClOverviewScope: the loadout overview tab. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>搜索</RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>角色属性</RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>
+  <!-- {0} = column position among the tag columns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>标签 {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>
+  <!-- One required item in a tag's tooltip. {0} = item, {1} = quantity. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>{0} x{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>不在地图上</RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>
+  <!-- Toolbar buttons. {0} = the button's own label. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>角色来源: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>按{0}已激活查看属性</RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>
+  <!-- Hints. Each {n} is a key chord. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>按 Enter 跳转到该角色。{0} 仅选中此角色, {1} 将其加入或移出选择, {2} 选中从上次选中的角色到此角色之间的所有角色。将标签粘贴到已选中的角色上时, 会粘贴给所有已选中的角色。</RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>按 Enter 查看选项。{0} 移除。{1} 剪切, {2} 复制, 然后在另一行按 {3} 放到那里。{4} 和 {5} 在该行中移动。</RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>{0} 查看更多复制方式</RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>
+  <!-- Results. {0} = tag or pawn name, {1} = pawn name or a count of pawns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>已复制{0}的标签</RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>已将标签粘贴给{0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>没有可粘贴的内容</RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>粘贴不会改变{0}的任何内容</RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>已剪切{0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>已复制{0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>已放回{0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>已将{0}移到{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>已将{0}复制到{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>已将{0}移到 {1} 个角色</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>已将{0}复制到 {1} 个角色</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>已从{1}移除{0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>无</RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>
+</LanguageData>

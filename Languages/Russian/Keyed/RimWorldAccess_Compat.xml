@@ -971,4 +971,7 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Автоприменение включено для 1 способности</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Автоприменение включено, способностей: {0}</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Автоприменение выключено для всех способностей</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+
+  <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
 </LanguageData>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>Etikete sahip koloniciler: {0}</RimWorldAccess.Compat.CompositableLoadouts.Bills.ColonistCount>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>Fazladan kopya</RimWorldAccess.Compat.CompositableLoadouts.Bills.ExtraCopies>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>Kolonici başına</RimWorldAccess.Compat.CompositableLoadouts.Bills.PerColonist>
+  <RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>{1} etiketinden {0} ayarları kopyalandı.</RimWorldAccess.Compat.CompositableLoadouts.Bills.CopiedFromTag>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOn>Panik durumu açık.</RimWorldAccess.Compat.CompositableLoadouts.PanicOn>
+  <RimWorldAccess.Compat.CompositableLoadouts.PanicOff>Panik durumu kapalı.</RimWorldAccess.Compat.CompositableLoadouts.PanicOff>
+</LanguageData>

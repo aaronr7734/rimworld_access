@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClOverviewScope: the loadout overview tab. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>Pesquisar</RimWorldAccess.Compat.CompositableLoadouts.Overview.Search>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>Estatísticas dos peões</RimWorldAccess.Compat.CompositableLoadouts.Overview.StatsRegion>
+  <!-- {0} = column position among the tag columns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>Etiqueta {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagColumn>
+  <!-- One required item in a tag's tooltip. {0} = item, {1} = quantity. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>{0} x{1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ItemLine>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>Fora do mapa</RimWorldAccess.Compat.CompositableLoadouts.Overview.AwayFromMap>
+  <!-- Toolbar buttons. {0} = the button's own label. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>Peões de: {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.ScopeButton>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>Ver estatísticas como se {0} estivesse activo</RimWorldAccess.Compat.CompositableLoadouts.Overview.ViewAsButton>
+  <!-- Hints. Each {n} is a key chord. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>Enter salta para o peão. {0} selecciona apenas este peão, {1} adiciona-o à selecção ou remove-o, {2} selecciona todos os peões desde o último escolhido. Uma etiqueta colada num peão seleccionado vai para todos os peões seleccionados.</RimWorldAccess.Compat.CompositableLoadouts.Overview.NameHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>Enter para opções. {0} remove-a. {1} corta-a e {2} copia-a, depois {3} noutra linha coloca-a lá. {4} e {5} movem-na ao longo da linha.</RimWorldAccess.Compat.CompositableLoadouts.Overview.ChipHint>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>{0} para mais formas de copiar</RimWorldAccess.Compat.CompositableLoadouts.Overview.CopyHint>
+  <!-- Results. {0} = tag or pawn name, {1} = pawn name or a count of pawns. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>Etiquetas de {0} copiadas</RimWorldAccess.Compat.CompositableLoadouts.Overview.Copied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>Etiquetas coladas em {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.Pasted>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>Nada para colar</RimWorldAccess.Compat.CompositableLoadouts.Overview.NothingToPaste>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>Colar não alteraria nada para {0}</RimWorldAccess.Compat.CompositableLoadouts.Overview.PasteChangesNothing>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>{0} cortada</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCut>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>{0} copiada</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopied>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>{0} devolvida ao lugar</RimWorldAccess.Compat.CompositableLoadouts.Overview.PickupDropped>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>{0} movida para {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>{0} copiada para {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedTo>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>{0} movida para {1} peões</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagMovedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>{0} copiada para {1} peões</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagCopiedToMany>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>{0} removida de {1}</RimWorldAccess.Compat.CompositableLoadouts.Overview.TagRemoved>
+  <RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>nenhuma</RimWorldAccess.Compat.CompositableLoadouts.Overview.NoTag>
+</LanguageData>

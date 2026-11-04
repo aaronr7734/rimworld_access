@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Compositable Loadouts (src/Compat/CompositableLoadouts/). Feature slices keep their keys in
+       their own RimWorldAccess_CompositableLoadouts_<Slice>.xml. -->
+
+  <!-- ClLoadoutStateColumnHandler: the copy button's right-click options. {0} = pawn's short name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.CopyAllReplace>{0} kişisinin tüm etiketlerini kopyala, yapıştırırken değiştir</RimWorldAccess.Compat.CompositableLoadouts.CopyAllReplace>
+  <RimWorldAccess.Compat.CompositableLoadouts.CopyAllAdd>{0} kişisinin tüm etiketlerini kopyala, yapıştırırken ekle</RimWorldAccess.Compat.CompositableLoadouts.CopyAllAdd>
+  <RimWorldAccess.Compat.CompositableLoadouts.SelectTagsReplace>{0} kişisinin etiketlerinden seç, yapıştırırken değiştir</RimWorldAccess.Compat.CompositableLoadouts.SelectTagsReplace>
+  <RimWorldAccess.Compat.CompositableLoadouts.SelectTagsAdd>{0} kişisinin etiketlerinden seç, yapıştırırken ekle</RimWorldAccess.Compat.CompositableLoadouts.SelectTagsAdd>
+
+  <!-- ClGearSection: one prosthetic row. {0} = prosthetic, {1} = installed, {2} = wanted, {3} = status. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ProstheticRow>{0} {1}/{2}: {3}</RimWorldAccess.Compat.CompositableLoadouts.ProstheticRow>
+
+  <!-- ClTagSelectorScope: the search box above the tag list. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.SearchTags>Etiket ara</RimWorldAccess.Compat.CompositableLoadouts.SearchTags>
+  <!-- {0} = the edit chord, e.g. Alt+E. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.EditTagHint>{0} etiketi düzenler</RimWorldAccess.Compat.CompositableLoadouts.EditTagHint>
+
+  <!-- ClTagStatePopupScope: the popup's sentence. {0} = state name, or the mod's word for any state. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenAnyState>{0} durumu etkinken etkin</RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenAnyState>
+  <RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateActive>{0} etkinken etkin</RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateActive>
+  <RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateInactive>{0} etkin değilken etkin</RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateInactive>
+  <RimWorldAccess.Compat.CompositableLoadouts.ConditionRow>Durum koşulu</RimWorldAccess.Compat.CompositableLoadouts.ConditionRow>
+
+  <!-- ClStateEditorScope. {0} = state name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.StatesRegion>Durumlar</RimWorldAccess.Compat.CompositableLoadouts.StatesRegion>
+  <RimWorldAccess.Compat.CompositableLoadouts.StateCreated>{0} oluşturuldu</RimWorldAccess.Compat.CompositableLoadouts.StateCreated>
+  <RimWorldAccess.Compat.CompositableLoadouts.NewStateName>Yeni durum adı</RimWorldAccess.Compat.CompositableLoadouts.NewStateName>
+  <RimWorldAccess.Compat.CompositableLoadouts.StateDeleted>{0} silindi</RimWorldAccess.Compat.CompositableLoadouts.StateDeleted>
+</LanguageData>

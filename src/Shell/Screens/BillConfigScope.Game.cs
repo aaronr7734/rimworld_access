@@ -469,7 +469,7 @@ namespace RimWorldAccess.Shell
     /// Keeps <see cref="BillConfigScope"/> in lockstep with <see cref="BillConfigState.IsActive"/>,
     /// reconciled every OnGUI pass AFTER <see cref="BillsScopeMirror"/> so it lands above the
     /// bills-menu scope when both are active (opening BillConfigState does not close BillsMenuState).
-    /// Stands down while an info card is open. The ingredient filter submenu
+    /// Stands down while an info card, or a scoped dialog a row opened, is up. The ingredient filter submenu
     /// (<see cref="ThingFilterMenuState"/>) needs no yield gate: it opens ON TOP of BillConfigState
     /// without closing it, and ThingFilterMenuScopeMirror reconciles after this one, so modal stack
     /// masking gives the filter the keyboard.
@@ -480,7 +480,8 @@ namespace RimWorldAccess.Shell
 
         public static void Reconcile()
         {
-            if (BillConfigState.IsActive && !InfoCardState.IsActive)
+            if (BillConfigState.IsActive && !InfoCardState.IsActive
+                && !ShellGuards.ForeignDialogWindowAbove())
             {
                 FocusStack.Push(scope);
             }

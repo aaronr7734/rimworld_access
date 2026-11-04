@@ -424,19 +424,35 @@ namespace RimWorldAccess.Shell
             if (table == null || pawnsList.Count == 0)
                 return;
             int column = table.ColumnIndex;
+            int row = table.Rows.Index - 1;
+            if (row < 0)
+            {
+                OpenHeaderContextMenu(column);
+                return;
+            }
             if (!AssignMenuHelper.HasContextMenu(column))
             {
                 TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn".Loc());
                 return;
             }
-            int row = table.Rows.Index - 1;
-            if (row < 0 || row >= pawnsList.Count)
+            if (row >= pawnsList.Count)
                 return;
             Pawn pawn = pawnsList[row];
 
             Action editCallback = BuildEditCallback(column, pawn, null);
             Action refreshCallback = delegate { AnnounceCurrentCellStateChange(); };
             List<FloatMenuOption> options = AssignMenuHelper.GetContextMenuOptions(column, pawn, refreshCallback, editCallback);
+            if (options == null || options.Count == 0)
+            {
+                TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn".Loc());
+                return;
+            }
+            WindowlessFloatMenuState.Open(options, colonistOrders: false);
+        }
+
+        private static void OpenHeaderContextMenu(int column)
+        {
+            List<FloatMenuOption> options = AssignMenuHelper.GetHeaderContextMenuOptions(column);
             if (options == null || options.Count == 0)
             {
                 TolkHelper.Speak("RimWorldAccess.Pawns.AssignMenu.NoContextMenuColumn".Loc());

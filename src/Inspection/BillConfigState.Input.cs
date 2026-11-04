@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HarmonyLib;
 using Verse;
 using RimWorld;
 using UnityEngine;
@@ -36,6 +37,7 @@ namespace RimWorldAccess
                 ReadOnly = !field.IsEditable,
                 // Enter on a count row opens its own text field rather than the proceed button.
                 EntersEditOnAccept = field.TakesTypedNumber,
+                Extras = field.GetDescription != null ? field.GetDescription() : null,
             };
         }
 
@@ -80,6 +82,7 @@ namespace RimWorldAccess
             if (field != null && field.ApplyNumeric != null)
             {
                 field.ApplyNumeric(value);
+                ResetDialogEditBuffers();
             }
         }
 
@@ -106,6 +109,7 @@ namespace RimWorldAccess
             }
 
             field.Adjust(direction, multiplier);
+            ResetDialogEditBuffers();
         }
 
         /// <summary>Enter on a row that does not take a typed number: run its action, or say which keys do adjust it.</summary>
@@ -137,6 +141,27 @@ namespace RimWorldAccess
             }
 
             jump();
+            ResetDialogEditBuffers();
+        }
+
+        private static readonly string[] DialogEditBufferNames =
+        {
+            "repeatCountEditBuffer", "targetCountEditBuffer", "unpauseCountEditBuffer",
+        };
+
+        private static readonly AccessTools.FieldRef<Dialog_BillConfig, string>[] DialogEditBuffers =
+            DialogEditBufferNames.Select(name => AccessTools.FieldRefAccess<Dialog_BillConfig, string>(name)).ToArray();
+
+        // Clears the dialog's stale count text; TextFieldNumeric reseeds a null buffer from the live value.
+        private static void ResetDialogEditBuffers()
+        {
+            if (openedDialog is Dialog_BillConfig dialog)
+            {
+                foreach (AccessTools.FieldRef<Dialog_BillConfig, string> buffer in DialogEditBuffers)
+                {
+                    buffer(dialog) = null;
+                }
+            }
         }
 
         private static FieldDescriptor RowAt(int index)
@@ -486,8 +511,7 @@ namespace RimWorldAccess
 
         #region Apply-Numeric-Value Actions
 
-        // Exact-entry commits: each clamps as vanilla's own IntEntry for that field does. None
-        // speaks — the text session re-announces the row, carrying the new value, on exit.
+        // Exact-entry commits clamp as that field's IntEntry does; the session's exit re-announces.
 
         private static void ApplyRepeatCountValue(int value)
         {

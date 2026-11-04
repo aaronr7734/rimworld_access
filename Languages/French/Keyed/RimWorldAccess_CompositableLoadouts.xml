@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Compositable Loadouts (src/Compat/CompositableLoadouts/). Feature slices keep their keys in
+       their own RimWorldAccess_CompositableLoadouts_<Slice>.xml. -->
+
+  <!-- ClLoadoutStateColumnHandler: the copy button's right-click options. {0} = pawn's short name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.CopyAllReplace>Copier toutes les étiquettes de {0} et remplacer au collage</RimWorldAccess.Compat.CompositableLoadouts.CopyAllReplace>
+  <RimWorldAccess.Compat.CompositableLoadouts.CopyAllAdd>Copier toutes les étiquettes de {0} et ajouter au collage</RimWorldAccess.Compat.CompositableLoadouts.CopyAllAdd>
+  <RimWorldAccess.Compat.CompositableLoadouts.SelectTagsReplace>Sélectionner des étiquettes de {0} et remplacer au collage</RimWorldAccess.Compat.CompositableLoadouts.SelectTagsReplace>
+  <RimWorldAccess.Compat.CompositableLoadouts.SelectTagsAdd>Sélectionner des étiquettes de {0} et ajouter au collage</RimWorldAccess.Compat.CompositableLoadouts.SelectTagsAdd>
+
+  <!-- ClGearSection: one prosthetic row. {0} = prosthetic, {1} = installed, {2} = wanted, {3} = status. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ProstheticRow>{0} {1}/{2} : {3}</RimWorldAccess.Compat.CompositableLoadouts.ProstheticRow>
+
+  <!-- ClTagSelectorScope: the search box above the tag list. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.SearchTags>Rechercher des étiquettes</RimWorldAccess.Compat.CompositableLoadouts.SearchTags>
+  <!-- {0} = the edit chord, e.g. Alt+E. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.EditTagHint>{0} modifie l'étiquette</RimWorldAccess.Compat.CompositableLoadouts.EditTagHint>
+
+  <!-- ClTagStatePopupScope: the popup's sentence. {0} = state name, or the mod's word for any state. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenAnyState>Actif quand l'état {0} est actif</RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenAnyState>
+  <RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateActive>Actif quand {0} est actif</RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateActive>
+  <RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateInactive>Actif quand {0} est inactif</RimWorldAccess.Compat.CompositableLoadouts.ActiveWhenStateInactive>
+  <RimWorldAccess.Compat.CompositableLoadouts.ConditionRow>Condition d'état</RimWorldAccess.Compat.CompositableLoadouts.ConditionRow>
+
+  <!-- ClStateEditorScope. {0} = state name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.StatesRegion>États</RimWorldAccess.Compat.CompositableLoadouts.StatesRegion>
+  <RimWorldAccess.Compat.CompositableLoadouts.StateCreated>{0} créé</RimWorldAccess.Compat.CompositableLoadouts.StateCreated>
+  <RimWorldAccess.Compat.CompositableLoadouts.NewStateName>Nom du nouvel état</RimWorldAccess.Compat.CompositableLoadouts.NewStateName>
+  <RimWorldAccess.Compat.CompositableLoadouts.StateDeleted>{0} supprimé</RimWorldAccess.Compat.CompositableLoadouts.StateDeleted>
+</LanguageData>

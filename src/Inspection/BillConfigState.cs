@@ -71,7 +71,8 @@ namespace RimWorldAccess
             StyleSelection,
             SuspendToggle,
             UnpauseBill,
-            DeleteBill
+            DeleteBill,
+            Extra
         }
 
         /// <summary>
@@ -111,6 +112,10 @@ namespace RimWorldAccess
             /// <summary>Live checkbox state for a Checkbox field; null for every other role.</summary>
             public readonly Func<Shell.CheckState?> GetCheck;
 
+            public Func<string> GetDescription;
+            public string RingKey;
+            public Func<string> RingTripwire;
+
             public FieldDescriptor(MenuItemType type, Func<bool> isVisible, Func<string> getLabel,
                 Func<string> getSearchLabel = null, bool isEditable = false,
                 Action<int, int> adjust = null, Action execute = null,
@@ -134,8 +139,7 @@ namespace RimWorldAccess
             }
         }
 
-        // Built lazily once, not per Open: every descriptor delegate reads the current static `bill`
-        // at call time, so one table serves every bill.
+        // Built once: every descriptor delegate reads the current static `bill` at call time.
         private static List<FieldDescriptor> fieldDescriptorOrder;
 
         private static void EnsureFieldDescriptors()
@@ -257,11 +261,81 @@ namespace RimWorldAccess
             EnsureFieldDescriptors();
             foreach (FieldDescriptor descriptor in fieldDescriptorOrder)
             {
+                // The repeat-mode section ends just before the store mode button.
+                if (descriptor.Type == MenuItemType.StoreMode)
+                {
+                    AddExtraRows();
+                }
                 if (descriptor.IsVisible())
                 {
                     visibleFields.Add(descriptor);
                 }
             }
+        }
+
+        private static void AddExtraRows()
+        {
+            foreach (Func<Bill_Production, IEnumerable<BillConfigExtraRow>> source in BillConfigExtraRow.Sources)
+            {
+                IEnumerable<BillConfigExtraRow> rows;
+                try
+                {
+                    rows = source(bill);
+                }
+                catch (Exception ex)
+                {
+                    ModLogger.LimitedError("BillConfigState.AddExtraRows", ex);
+                    continue;
+                }
+                if (rows == null)
+                {
+                    continue;
+                }
+                foreach (BillConfigExtraRow row in rows)
+                {
+                    FieldDescriptor descriptor = row.Standard.HasValue ? StandardDescriptor(row.Standard.Value) : ExtraDescriptor(row);
+                    if (descriptor != null)
+                    {
+                        visibleFields.Add(descriptor);
+                    }
+                }
+            }
+        }
+
+        private static FieldDescriptor StandardDescriptor(BillConfigExtraRow.StandardRow row)
+        {
+            MenuItemType type;
+            switch (row)
+            {
+                case BillConfigExtraRow.StandardRow.IncludeEquipped: type = MenuItemType.IncludeEquipped; break;
+                case BillConfigExtraRow.StandardRow.IncludeTainted: type = MenuItemType.IncludeTainted; break;
+                case BillConfigExtraRow.StandardRow.HpRange: type = MenuItemType.HpRange; break;
+                case BillConfigExtraRow.StandardRow.QualityRange: type = MenuItemType.QualityRange; break;
+                default: type = MenuItemType.LimitToAllowedStuff; break;
+            }
+            return fieldDescriptorOrder.Find(d => d.Type == type);
+        }
+
+        private static FieldDescriptor ExtraDescriptor(BillConfigExtraRow row)
+        {
+            Func<string> label = row.Label ?? (() => "");
+            return new FieldDescriptor(MenuItemType.Extra,
+                isVisible: () => true,
+                getLabel: label,
+                getSearchLabel: row.SearchLabel,
+                isEditable: row.Editable,
+                adjust: row.Adjust,
+                execute: row.Execute,
+                jumpMin: row.JumpMin,
+                jumpMax: row.JumpMax,
+                numericText: row.NumericText,
+                applyNumeric: row.ApplyNumeric,
+                role: row.Role)
+            {
+                GetDescription = row.Description,
+                RingKey = row.RingKey,
+                RingTripwire = row.RingTripwire,
+            };
         }
 
         /// <summary>
@@ -611,6 +685,11 @@ namespace RimWorldAccess
             string targetSide = (bill.targetCount < 999999)
                 ? bill.targetCount.ToString()
                 : "Infinite".Translate().ToLower().ToString();
+            return CurrentlyHaveLabel(targetSide);
+        }
+
+        internal static string CurrentlyHaveLabel(string targetSide)
+        {
             string label = "RimWorldAccess.Inspection.BillConfig.Label.CurrentlyHave".Translate(
                 "CurrentlyHave".Translate(),
                 bill.recipe.WorkerCounter.CountProducts(bill),

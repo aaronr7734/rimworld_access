@@ -1210,4 +1210,7 @@
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>Lancement automatique activé pour 1 capacité</RimWorldAccess.Compat.AutoCombat.AutoCastOnForOne>
   <RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>Lancement automatique activé pour {0} capacités</RimWorldAccess.Compat.AutoCombat.AutoCastOnForMany>
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Lancement automatique désactivé pour toutes les capacités</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
+  <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
+  <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+
 </LanguageData>

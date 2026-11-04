@@ -729,10 +729,19 @@ namespace RimWorldAccess.Shell
         bool TryCopyValue(PawnColumnDef def, Pawn sourcePawn, Pawn targetPawn);
     }
 
+    /// <summary>A column whose worker draws more than its main control (header buttons, extra cell buttons, right-click menus), offered on the table's context-menu chord; HeaderTip stands in for a tooltip DoHeader draws instead of the def's headerTip.</summary>
+    internal interface IPawnColumnContextActions
+    {
+        string HeaderTip(PawnColumnDef def);
+
+        List<FloatMenuOption> HeaderOptions(PawnColumnDef def);
+
+        List<FloatMenuOption> CellOptions(PawnColumnDef def, Pawn pawn);
+    }
+
     /// <summary>
-    /// Implemented by every dropdown-shaped column handler: applies a SOURCE pawn's value to a TARGET
-    /// by invoking the matching option in the target's own freshly generated menu. Kept off
-    /// <see cref="IPawnColumnHandler"/> because it is meaningless for non-dropdown columns.
+    /// Dropdown columns: applies a SOURCE pawn's value to a TARGET by invoking the matching option in
+    /// the target's own freshly generated menu. Meaningless for other columns, so not on IPawnColumnHandler.
     /// </summary>
     internal interface IGeneratedMenuSource
     {
@@ -814,10 +823,10 @@ namespace RimWorldAccess.Shell
             return PawnColumnMutationHelper.TryApplyGeneratedOption(ResolveGenerator(worker), GeneratorInstance(worker), targetPawn, payload);
         }
 
-        /// <summary>Invokes a Widgets.DropdownMenuElement&lt;T&gt; generator and opens its options as a FloatMenu.</summary>
-        internal static bool OpenGeneratedMenu(MethodInfo generator, object instance, Pawn pawn)
+        /// <summary>Invokes a Widgets.DropdownMenuElement&lt;T&gt; generator on its one argument (a pawn, or a mod's own target) and opens its options as a FloatMenu.</summary>
+        internal static bool OpenGeneratedMenu(MethodInfo generator, object instance, object argument)
         {
-            List<GeneratedMenuOption> elements = GenerateMenuOptions(generator, instance, pawn);
+            List<GeneratedMenuOption> elements = GenerateMenuOptions(generator, instance, argument);
             if (elements.Count == 0)
             {
                 return false;
@@ -832,14 +841,14 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>Unwraps every entry's real FloatMenuOption plus its boxed payload, without opening anything. Non-generic enumeration because T differs per worker.</summary>
-        internal static List<GeneratedMenuOption> GenerateMenuOptions(MethodInfo generator, object instance, Pawn pawn)
+        internal static List<GeneratedMenuOption> GenerateMenuOptions(MethodInfo generator, object instance, object argument)
         {
             var result = new List<GeneratedMenuOption>();
             if (generator == null)
             {
                 return result;
             }
-            var elements = generator.Invoke(instance, new object[] { pawn }) as IEnumerable;
+            var elements = generator.Invoke(instance, new object[] { argument }) as IEnumerable;
             if (elements == null)
             {
                 return result;

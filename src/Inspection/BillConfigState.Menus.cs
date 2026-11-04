@@ -12,38 +12,36 @@ namespace RimWorldAccess
         #region Submenu Methods
 
         /// <summary>
-        /// The repeat-mode combo's picker.
-        ///
-        /// MUTATION-C: mirrors BillRepeatModeUtility.MakeConfigFloatMenu option for option,
-        /// including its order and its TargetCount gate (WorkerCounter.CanCountProducts, which
-        /// refuses with vanilla's RecipeCannotHaveTargetCount message rather than setting the
-        /// field). Calling MakeConfigFloatMenu itself is impossible: it adds a real mouse-only
-        /// FloatMenu to the WindowStack, and this windowless state sets none of the flags
-        /// DialogInterceptionPatch needs to divert one.
+        /// The repeat-mode combo's picker: the options vanilla's own builder makes, captured
+        /// before its FloatMenu reaches the stack, so modes other mods patch in are offered too.
         /// </summary>
         private static void OpenRepeatModeMenu()
         {
-            var options = new List<FloatMenuOption>
+            Bill_Production menuBill = bill;
+            List<FloatMenuOption> captured = FloatMenuHarvest.Capture(
+                () => BillRepeatModeUtility.MakeConfigFloatMenu(menuBill));
+            if (captured == null || captured.Count == 0)
             {
-                RepeatModeOption(BillRepeatModeDefOf.RepeatCount),
-                RepeatModeOption(BillRepeatModeDefOf.TargetCount),
-                RepeatModeOption(BillRepeatModeDefOf.Forever),
-            };
-            WindowlessFloatMenuState.Open(options, false, announceSelection: false);
-        }
+                return;
+            }
 
-        private static FloatMenuOption RepeatModeOption(BillRepeatModeDef mode)
-        {
-            return new FloatMenuOption(mode.LabelCap, delegate
+            var options = new List<FloatMenuOption>(captured.Count);
+            foreach (FloatMenuOption option in captured)
             {
-                if (mode == BillRepeatModeDefOf.TargetCount && !bill.recipe.WorkerCounter.CanCountProducts(bill))
+                Action vanillaAction = option.action;
+                string label = option.Label;
+                options.Add(new FloatMenuOption(label, vanillaAction == null ? (Action)null : delegate
                 {
-                    Messages.Message("RecipeCannotHaveTargetCount".Translate(), MessageTypeDefOf.RejectInput, historical: false);
-                    return;
-                }
-                bill.repeatMode = mode;
-                RowsChanged();
-            });
+                    BillRepeatModeDef before = bill.repeatMode;
+                    vanillaAction();
+                    // A refused mode (RecipeCannotHaveTargetCount) already spoke its message.
+                    if (bill.repeatMode != before || before.LabelCap.ToString() == label)
+                    {
+                        RowsChanged();
+                    }
+                }));
+            }
+            WindowlessFloatMenuState.Open(options, false, announceSelection: false);
         }
 
         private static void OpenStoreModeMenu()
@@ -491,6 +489,11 @@ namespace RimWorldAccess
                 case MenuItemType.SkillRangeMax:
                     return Ring(Shell.BillConfigRowKeys.SkillRange, VanillaSkillRangeLabel());
 
+                case MenuItemType.Extra:
+                    return field.RingKey == null
+                        ? Shell.ListingRingFocus.None
+                        : Ring(field.RingKey, field.RingTripwire != null ? field.RingTripwire() : null);
+
                 default:
                     return Shell.ListingRingFocus.None;
             }
@@ -560,7 +563,7 @@ namespace RimWorldAccess
         /// every other adjusted control says. Boundary wording stays with
         /// <see cref="NumericStepperHelper"/>, the mod-wide stepper vocabulary.
         /// </summary>
-        private static void SpeakValueChange(string value)
+        internal static void SpeakValueChange(string value)
         {
             TolkHelper.SpeakData(Shell.AnnouncementComposer.ComposeStateChange(
                 new Shell.ElementDescription { Value = value }, Shell.TranslatedShellVocabulary.Instance));

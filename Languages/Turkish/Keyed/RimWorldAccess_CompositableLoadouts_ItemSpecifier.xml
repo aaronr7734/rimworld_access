@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- ClItemSpecifierScope (Dialog_ItemSpecifier). {0} = the item's name. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.ItemSpecifierTitle>{0} özelleştir</RimWorldAccess.Compat.CompositableLoadouts.ItemSpecifierTitle>
+  <!-- A statistics cell the mod paints green: the largest value of its row. {0} = the value. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.HighestStatValue>{0}, en yüksek</RimWorldAccess.Compat.CompositableLoadouts.HighestStatValue>
+  <!-- After Set as default. {0}/{1} = hit point percents, {2}/{3} = quality labels. -->
+  <RimWorldAccess.Compat.CompositableLoadouts.DefaultsSet>Yeni eşyalar için varsayılan olarak ayarlandı: can puanı {0} ile {1} arası, kalite {2} ile {3} arası</RimWorldAccess.Compat.CompositableLoadouts.DefaultsSet>
+</LanguageData>

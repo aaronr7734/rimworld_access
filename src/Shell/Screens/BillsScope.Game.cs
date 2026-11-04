@@ -149,6 +149,10 @@ namespace RimWorldAccess.Shell
                     Bill bill = billGiver.BillStack[i];
                     string billLabel = $"{i + 1}. {bill.LabelCap}";
 
+                    string repeatInfo = RepeatInfoText(bill);
+                    if (!string.IsNullOrEmpty(repeatInfo))
+                        billLabel += $". {repeatInfo}";
+
                     string costInfo = GetBillCostInfo(bill);
                     if (!string.IsNullOrEmpty(costInfo))
                         billLabel += $". {costInfo}";
@@ -541,10 +545,7 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        /// <summary>
-        /// Rebuilds rows for fresh labels while preserving the cursor's INDEX, not its
-        /// identity — <see cref="BillConfigState"/> pokes this after a rename.
-        /// </summary>
+        /// <summary>Rebuilds rows for fresh labels, keeping the cursor's INDEX rather than its identity (after a rename).</summary>
         internal void RefreshRowsPreservingIndex()
         {
             billRows.Clear();
@@ -553,6 +554,8 @@ namespace RimWorldAccess.Shell
 
         internal void ReannounceCurrent()
         {
+            // Called on return from a bill's settings, whose changes the cached labels predate.
+            billRows.Clear();
             RefreshModel();
             AnnounceCurrentItem();
         }
@@ -673,6 +676,21 @@ namespace RimWorldAccess.Shell
                 return "";
 
             return string.Join(", ", costs);
+        }
+
+        /// <summary>The count the bill card draws beside its label; mods patch it for their own repeat modes, which vanilla throws on.</summary>
+        private static string RepeatInfoText(Bill bill)
+        {
+            if (!(bill is Bill_Production production))
+                return "";
+            try
+            {
+                return production.RepeatInfoText;
+            }
+            catch (System.InvalidOperationException)
+            {
+                return "";
+            }
         }
 
         private static string GetBillDescription(Bill bill)
