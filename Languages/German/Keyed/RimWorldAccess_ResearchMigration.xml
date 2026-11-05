@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    ScreenScope migration: research menu and detail (
+    src/Shell/Screens/ResearchScopes.Game.cs). Every other player-facing string this screen
+    speaks reuses an existing RimWorldAccess.Research.*/RimWorldAccess.Dev.* key unchanged;
+    these two are the only genuinely new strings the migration introduces (the tree family's
+    shared content-region name, per screen).
+  -->
+  <RimWorldAccess.Shell.Tree.ResearchMenuRegionName>Forschung</RimWorldAccess.Shell.Tree.ResearchMenuRegionName>
+  <RimWorldAccess.Shell.Tree.ResearchDetailRegionName>Projektdetails</RimWorldAccess.Shell.Tree.ResearchDetailRegionName>
+</LanguageData>

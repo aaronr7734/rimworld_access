@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New whole-phrase keys added by the P14b affordance parity batch.
+    Each entry notes the source file/finding it belongs to.
+  -->
+
+  <!-- PortalPatch.cs: Dialog_EnterPortal's keyboard-mode indicator overlay,
+       previously hardcoded English (a regression versus the localized
+       TransportPodPatch/CaravanFormationPatch siblings it mirrors). -->
+  <RimWorldAccess.Portal.Overlay.KeyboardModeActive>Tastaturmodus aktiv</RimWorldAccess.Portal.Overlay.KeyboardModeActive>
+  <RimWorldAccess.Portal.Overlay.InstructionsLine1>Pfeil nach links/rechts: Tabs | Pfeil nach oben/unten: Einträge | Enter/Leertaste: Auswählen</RimWorldAccess.Portal.Overlay.InstructionsLine1>
+  <RimWorldAccess.Portal.Overlay.InstructionsLine2>Alt+I: Untersuchen | Alt+S: Bestätigen | Esc: Abbrechen</RimWorldAccess.Portal.Overlay.InstructionsLine2>
+</LanguageData>

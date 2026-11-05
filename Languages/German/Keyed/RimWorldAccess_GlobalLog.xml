@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global Log screen (src/Shell/Screens/GlobalLogScope.Game.cs). Row: {0} = the log entry's text, {1} = how long ago, already phrased ("2 hours ago"). -->
+  <RimWorldAccess.GlobalLog.Title>Logbücher</RimWorldAccess.GlobalLog.Title>
+  <RimWorldAccess.GlobalLog.Tab.Social>Sozial-Logbuch</RimWorldAccess.GlobalLog.Tab.Social>
+  <RimWorldAccess.GlobalLog.Tab.Combat>Kampf-Logbuch</RimWorldAccess.GlobalLog.Tab.Combat>
+  <!-- Spoken on opening the screen and on switching logs. {0} = the log's name ("Social log"), {1} = how many entries it shows. -->
+  <RimWorldAccess.GlobalLog.Summary>{0}. {1} Einträge.</RimWorldAccess.GlobalLog.Summary>
+  <RimWorldAccess.GlobalLog.SummaryOne>{0}. 1 Eintrag.</RimWorldAccess.GlobalLog.SummaryOne>
+  <RimWorldAccess.GlobalLog.LogRegion>Logbuch</RimWorldAccess.GlobalLog.LogRegion>
+  <RimWorldAccess.GlobalLog.FiltersRegion>Filter</RimWorldAccess.GlobalLog.FiltersRegion>
+  <RimWorldAccess.GlobalLog.Empty>Kein Eintrag passt zu den Filtern.</RimWorldAccess.GlobalLog.Empty>
+  <RimWorldAccess.GlobalLog.Row>{0}. {1}</RimWorldAccess.GlobalLog.Row>
+  <RimWorldAccess.GlobalLog.Filter.Colonists>Einträge mit deinen Kolonisten anzeigen</RimWorldAccess.GlobalLog.Filter.Colonists>
+  <RimWorldAccess.GlobalLog.Filter.ColonyAnimals>Einträge mit deinen Tieren und Mechanoiden anzeigen</RimWorldAccess.GlobalLog.Filter.ColonyAnimals>
+  <RimWorldAccess.GlobalLog.Filter.Others>Einträge mit allen anderen anzeigen</RimWorldAccess.GlobalLog.Filter.Others>
+  <RimWorldAccess.GlobalLog.Filter.NewestFirst>Neueste zuerst</RimWorldAccess.GlobalLog.Filter.NewestFirst>
+  <RimWorldAccess.GlobalLog.Filter.ShowAllTip>Zeigt auch kleine Kampfereignisse wie verfehlte Angriffe. Normalerweise blendet das Logbuch solche Ereignisse aus.</RimWorldAccess.GlobalLog.Filter.ShowAllTip>
+  <!-- {0} = the checkbox's new state ("checked"), {1} = how many entries now show. -->
+  <RimWorldAccess.GlobalLog.FilterChanged>{0}. {1} Einträge.</RimWorldAccess.GlobalLog.FilterChanged>
+  <RimWorldAccess.GlobalLog.FilterChangedOne>{0}. 1 Eintrag.</RimWorldAccess.GlobalLog.FilterChangedOne>
+  <!-- {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpTo>Springe zu: {0}</RimWorldAccess.GlobalLog.JumpTo>
+  <!-- A disabled choice in the menu Enter opens on an entry naming several pawns. {0} = a pawn's short name. -->
+  <RimWorldAccess.GlobalLog.JumpToUnavailable>Springe zu: {0} (nicht auffindbar)</RimWorldAccess.GlobalLog.JumpToUnavailable>
+  <RimWorldAccess.GlobalLog.JumpUnavailable>Die Spielfigur ist nicht auffindbar.</RimWorldAccess.GlobalLog.JumpUnavailable>
+</LanguageData>

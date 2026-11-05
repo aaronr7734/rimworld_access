@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New strings for the LordJobDialog ScreenScope migration (migration
+    src/Shell/Screens/LordJobDialogScope.Game.cs). The
+    dialog family (Dialog_BeginRitual, Dialog_BeginPsychicRitual,
+    Dialog_BeginGravshipLaunch) moved from three hand-rolled NavigationMode
+    sub-modes onto three ScreenScope regions; these are the region names Tab/
+    Shift+Tab cycling and the Alt+Q quality-stats shortcut announce. Every other
+    spoken string for this dialog family is unchanged and stays in
+    RimWorldAccess_Rituals.xml — see that file for row/announcement content.
+  -->
+  <RimWorldAccess.Rituals.Region.Roles>Rollen</RimWorldAccess.Rituals.Region.Roles>
+  <RimWorldAccess.Rituals.Region.Options>Optionen</RimWorldAccess.Rituals.Region.Options>
+  <RimWorldAccess.Rituals.Region.QualityStats>Qualitätsfaktoren</RimWorldAccess.Rituals.Region.QualityStats>
+</LanguageData>

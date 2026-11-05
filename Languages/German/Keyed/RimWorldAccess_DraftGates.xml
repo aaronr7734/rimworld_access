@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Fallback labels for the Alt+animal-picker (F4-family OnOpenAnimalsMechs,
+    src/Shell/Focus/MapScope.QuickInfo.Game.cs) when both an Animals and a
+    Mechs main-button tab are present on the map. Used only if
+    DefDatabase<MainButtonDef> lookup fails to resolve a label (should not
+    happen with vanilla/Biotech defs, but keeps the fallback out of code
+    per player-facing-string doctrine).
+  -->
+  <RimWorldAccess.Input.AnimalsMenu.AnimalsFallbackLabel>Haustiere</RimWorldAccess.Input.AnimalsMenu.AnimalsFallbackLabel>
+  <RimWorldAccess.Input.AnimalsMenu.MechsFallbackLabel>Mechs</RimWorldAccess.Input.AnimalsMenu.MechsFallbackLabel>
+</LanguageData>

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New strings introduced by the History ScreenScope migration (
+    Statistics and Messages sub-tabs migrate to
+    ScreenScope; Graph stays untouched on its existing architecture). The vast
+    majority of this migration's player-facing text reuses existing keys from
+    RimWorldAccess_History.xml verbatim (list-row composition, filter status,
+    button labels, pin/unpin, etc.) — this file holds only the ONE genuinely
+    new string the migration needed: a name for the Messages sub-tab's new
+    "Message detail" ScreenScope region (the retired code's detail view had no
+    region concept of its own to name).
+  -->
+
+  <RimWorldAccess.History.Messages.DetailRegion>Nachrichtendetails</RimWorldAccess.History.Messages.DetailRegion>
+
+  <!--
+    The Graph sub-tab joined the chassis in a later packet (SLICE-9 of the
+    ScreenScope migration wave), and needed the same one thing for the same
+    reason: a name for the region holding the selected graph's data points.
+  -->
+  <RimWorldAccess.History.Graph.DetailRegion>Graphdaten</RimWorldAccess.History.Graph.DetailRegion>
+</LanguageData>

@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Colony Manager Redux compatibility strings (src/Compat/ColonyManagerRedux/).
+    Only OUR OWN wording lives here. Everything the mod names, it names itself
+    at runtime: tab labels and their disabled reasons, job labels and target
+    lists, the stamp tooltips for a suspended or completed job, the progress
+    bar's status text, and the update interval's own label are all read live
+    from the mod's tabs, jobs and triggers.
+  -->
+
+  <!-- The two typed content components: the mod's icon strip, and the job list
+       of whichever tab it has selected. The third component, the window's own
+       buttons, is named by the shared shell. -->
+  <RimWorldAccess.Cmr.TabsRegion>Manager-Tabs</RimWorldAccess.Cmr.TabsRegion>
+  <RimWorldAccess.Cmr.JobsRegion>Aufgaben</RimWorldAccess.Cmr.JobsRegion>
+
+  <!-- Spoken once after switching tab. {0} = the tab's own label. -->
+  <RimWorldAccess.Cmr.TabSwitched>{0}-Tab.</RimWorldAccess.Cmr.TabSwitched>
+
+  <!-- A job row's state, one of these four, spoken ahead of the mod's own
+       tooltip for that state. "Suspended by an error" is the state the mod
+       shows with an error box around the row rather than a plain paused stamp;
+       "Not managed" is a job that exists but was never handed to the manager. -->
+  <RimWorldAccess.Cmr.Suspended>Gestoppt</RimWorldAccess.Cmr.Suspended>
+  <RimWorldAccess.Cmr.SuspendedByError>Wegen eines Fehlers gestoppt</RimWorldAccess.Cmr.SuspendedByError>
+  <RimWorldAccess.Cmr.Completed>Ziel erreicht</RimWorldAccess.Cmr.Completed>
+  <RimWorldAccess.Cmr.NotManaged>Nicht verwaltet</RimWorldAccess.Cmr.NotManaged>
+  <RimWorldAccess.Cmr.Active>Aktiv</RimWorldAccess.Cmr.Active>
+
+  <!-- Spoken when the Manage! toolbar button commits a job to the manager, the
+       moment its state turns from "Not managed" to managed. -->
+  <RimWorldAccess.Cmr.NowManaged>Wird jetzt verwaltet</RimWorldAccess.Cmr.NowManaged>
+
+  <!-- The clock zone of a job row: how long since the manager last worked the
+       job, and how often it is due to. {0} = a period ("2 days") for the
+       first, the mod's own interval label ("daily") for the second. -->
+  <RimWorldAccess.Cmr.NeverUpdated>Noch nie aktualisiert</RimWorldAccess.Cmr.NeverUpdated>
+  <RimWorldAccess.Cmr.UpdatedAgo>Zuletzt vor {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"} aktualisiert</RimWorldAccess.Cmr.UpdatedAgo>
+  <RimWorldAccess.Cmr.ChecksInterval>Prüfintervall: {0}</RimWorldAccess.Cmr.ChecksInterval>
+
+  <!-- Spoken after suspending or resuming a job. {0} = the job's own label. -->
+  <RimWorldAccess.Cmr.JobSuspended>{0} gestoppt.</RimWorldAccess.Cmr.JobSuspended>
+  <RimWorldAccess.Cmr.JobUnsuspended>{0} wieder aktiv.</RimWorldAccess.Cmr.JobUnsuspended>
+
+  <!-- The selected job's settings column. The mod draws it with no heading of its
+       own (the headings inside it, one per group of settings, are the mod's and
+       are spoken as they are crossed); the animal column next to it carries the
+       mod's own "Allowed animals" heading, so that region needs no key here. -->
+  <RimWorldAccess.Cmr.OptionsRegion>Optionen</RimWorldAccess.Cmr.OptionsRegion>
+
+  <!-- The two icon buttons over the animal list, which the mod draws with no
+       hover text of any kind: the refresh arrows and the padlock. -->
+  <RimWorldAccess.Cmr.Hunting.RefreshAnimals>Tierliste aktualisieren</RimWorldAccess.Cmr.Hunting.RefreshAnimals>
+  <RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>Tierliste aktualisiert.</RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>
+  <RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>Liste auf Tiere dieser Karte beschränken</RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>
+
+  <!-- The three controls the mod's threshold details window draws around its item
+       filter, none of which it labels: a button showing only a comparison glyph,
+       a bare number field beside it, and a grid of stockpile cells. The window's
+       own name, its filter tree, the operator names and their explanations, and
+       every stockpile cell's label are all the mod's own. The target-count key
+       also names every threshold tab's unnamed slider row, one phrase for one
+       control everywhere it appears. -->
+  <RimWorldAccess.Cmr.Threshold.OperatorRow>Vergleich</RimWorldAccess.Cmr.Threshold.OperatorRow>
+  <RimWorldAccess.Cmr.Threshold.TargetCountRow>Zielmenge</RimWorldAccess.Cmr.Threshold.TargetCountRow>
+  <RimWorldAccess.Cmr.Threshold.StockpileRow>Zählen in</RimWorldAccess.Cmr.Threshold.StockpileRow>
+
+  <!-- The claw icon on an animal's row, which the mod draws without hover text.
+       It marks an animal likely to turn on its hunter; how likely is already in
+       the mod's own aggressiveness line, read out with the rest of the row. -->
+  <RimWorldAccess.Cmr.Hunting.RevengeRisk>Rachegefahr</RimWorldAccess.Cmr.Hunting.RevengeRisk>
+
+  <!-- The Forestry, Foraging and Mining clones of the Hunting rows above: the
+       tooltipless refresh and padlock icons over each tab's own list. Mining's
+       buildings column has only a padlock, no refresh icon of its own; the
+       minerals column's refresh already covers both lists. -->
+  <RimWorldAccess.Cmr.Forestry.RefreshTrees>Baumliste aktualisieren</RimWorldAccess.Cmr.Forestry.RefreshTrees>
+  <RimWorldAccess.Cmr.Forestry.TreesRefreshed>Baumliste aktualisiert.</RimWorldAccess.Cmr.Forestry.TreesRefreshed>
+  <RimWorldAccess.Cmr.Forestry.LockTreesToMap>Liste auf Bäume dieser Karte beschränken</RimWorldAccess.Cmr.Forestry.LockTreesToMap>
+
+  <RimWorldAccess.Cmr.Foraging.RefreshPlants>Pflanzenliste aktualisieren</RimWorldAccess.Cmr.Foraging.RefreshPlants>
+  <RimWorldAccess.Cmr.Foraging.PlantsRefreshed>Pflanzenliste aktualisiert.</RimWorldAccess.Cmr.Foraging.PlantsRefreshed>
+  <RimWorldAccess.Cmr.Foraging.LockPlantsToMap>Liste auf Pflanzen dieser Karte beschränken</RimWorldAccess.Cmr.Foraging.LockPlantsToMap>
+
+  <RimWorldAccess.Cmr.Mining.RefreshMinerals>Mineralienliste aktualisieren</RimWorldAccess.Cmr.Mining.RefreshMinerals>
+  <RimWorldAccess.Cmr.Mining.MineralsRefreshed>Mineralienliste aktualisiert.</RimWorldAccess.Cmr.Mining.MineralsRefreshed>
+  <RimWorldAccess.Cmr.Mining.LockMineralsToMap>Liste auf Mineralien dieser Karte beschränken</RimWorldAccess.Cmr.Mining.LockMineralsToMap>
+  <RimWorldAccess.Cmr.Mining.LockBuildingsToMap>Liste auf Gebäude dieser Karte beschränken</RimWorldAccess.Cmr.Mining.LockBuildingsToMap>
+
+  <!-- The Livestock tab. Our wording only: everything the mod names uses the mod's own
+       keys. The "{0}" of the first three is the mod's own whole-phrase age and sex label
+       ("adult female"), composed by its own AgeAndSexExtensions.GetLabel. -->
+  <RimWorldAccess.Cmr.Livestock.JobOpened>{0}: Aufgabe zum Einrichten geöffnet.</RimWorldAccess.Cmr.Livestock.JobOpened>
+  <RimWorldAccess.Cmr.Livestock.CountTarget>{0}: Zielmenge</RimWorldAccess.Cmr.Livestock.CountTarget>
+  <RimWorldAccess.Cmr.Livestock.RestrictAreaRow>{0}: Gebiet</RimWorldAccess.Cmr.Livestock.RestrictAreaRow>
+
+  <!-- The five area strips the mod draws under a send-to-area toggle with no label of their own. -->
+  <RimWorldAccess.Cmr.Livestock.CullingAreaRow>Gebiet zum Schlachten</RimWorldAccess.Cmr.Livestock.CullingAreaRow>
+  <RimWorldAccess.Cmr.Livestock.MilkingAreaRow>Gebiet zum Melken</RimWorldAccess.Cmr.Livestock.MilkingAreaRow>
+  <RimWorldAccess.Cmr.Livestock.ShearingAreaRow>Gebiet zum Scheren</RimWorldAccess.Cmr.Livestock.ShearingAreaRow>
+  <RimWorldAccess.Cmr.Livestock.TrainingAreaRow>Gebiet zum Trainieren</RimWorldAccess.Cmr.Livestock.TrainingAreaRow>
+  <RimWorldAccess.Cmr.Livestock.TrainedAreaRow>Gebiet für trainierte Tiere</RimWorldAccess.Cmr.Livestock.TrainedAreaRow>
+
+  <!-- The Production tab. Our wording only: everything the mod names uses the mod's own keys. -->
+  <RimWorldAccess.Cmr.Production.JobOpened>{0}: Aufgabe zum Einrichten geöffnet.</RimWorldAccess.Cmr.Production.JobOpened>
+  <RimWorldAccess.Cmr.Production.WorkbenchAreaRow>Gebiet für Werkbänke</RimWorldAccess.Cmr.Production.WorkbenchAreaRow>
+
+  <!-- The row that follows an ingredient with a producer link: {0} is the ingredient's own label. -->
+  <RimWorldAccess.Cmr.Production.SupplyLinkRow>{0}: Zulieferung</RimWorldAccess.Cmr.Production.SupplyLinkRow>
+
+  <!-- Spoken after jumping to a linked job from either side of the LinkedJobs section. -->
+  <RimWorldAccess.Cmr.Production.LinkedJobSelected>{0} ausgewählt.</RimWorldAccess.Cmr.Production.LinkedJobSelected>
+
+  <!-- A linked consumer that currently covers nothing still reports its demand; the mod's own
+       "Supplies: {0} (needs {1})" line would read as a bare "Supplies:" there. -->
+  <RimWorldAccess.Cmr.Production.LinkedRow.Demand>Benötigt {0}</RimWorldAccess.Cmr.Production.LinkedRow.Demand>
+
+  <!-- The Overview tab. The workers region normally carries the selected work type's own gerund
+       (the mod's own table header); the key below is only its fallback, and the one-row region
+       over it holds the jump the sighted row's tab icon performs. -->
+  <RimWorldAccess.Cmr.Overview.SelectedJobRegion>Ausgewählte Aufgabe</RimWorldAccess.Cmr.Overview.SelectedJobRegion>
+  <RimWorldAccess.Cmr.Overview.WorkersRegion>Arbeiter</RimWorldAccess.Cmr.Overview.WorkersRegion>
+
+  <!-- The Logs tab. A job row there is the mod's log filter (its click selects a job to filter
+       by, and re-clicking clears it), so Enter on a job row speaks one of these two. -->
+  <RimWorldAccess.Cmr.Logs.LogsRegion>Logbuch</RimWorldAccess.Cmr.Logs.LogsRegion>
+  <RimWorldAccess.Cmr.Logs.FilterApplied>Einträge zu {0} werden angezeigt.</RimWorldAccess.Cmr.Logs.FilterApplied>
+  <RimWorldAccess.Cmr.Logs.FilterCleared>Alle Einträge werden angezeigt.</RimWorldAccess.Cmr.Logs.FilterCleared>
+
+  <!-- The Import/Export tab. Region names for its three unlabeled panels, our names for the
+       per-file rows whose buttons the mod labels without naming their target file, the bare
+       name field, and the export button's disabled reason (sighted players see it greyed). -->
+  <RimWorldAccess.Cmr.ImportExport.ModeRegion>Modus</RimWorldAccess.Cmr.ImportExport.ModeRegion>
+  <RimWorldAccess.Cmr.ImportExport.FilesRegion>Gespeicherte Dateien</RimWorldAccess.Cmr.ImportExport.FilesRegion>
+  <RimWorldAccess.Cmr.ImportExport.ExportRegion>Export</RimWorldAccess.Cmr.ImportExport.ExportRegion>
+  <RimWorldAccess.Cmr.ImportExport.DeleteRow>{0} löschen</RimWorldAccess.Cmr.ImportExport.DeleteRow>
+  <RimWorldAccess.Cmr.ImportExport.SetDefaultRow>{0} als Standardvorlage festlegen</RimWorldAccess.Cmr.ImportExport.SetDefaultRow>
+  <RimWorldAccess.Cmr.ImportExport.FileNameRow>Dateiname</RimWorldAccess.Cmr.ImportExport.FileNameRow>
+  <RimWorldAccess.Cmr.ImportExport.ExportNeedsSelection>Wähle zuerst mindestens eine Aufgabe aus.</RimWorldAccess.Cmr.ImportExport.ExportNeedsSelection>
+
+  <!-- The Power tab. Its three panels are graphs with legends; the legends and the period
+       control are the readable data, and these name the three panels the mod leaves unnamed. -->
+  <RimWorldAccess.Cmr.Power.OverallRegion>Stromübersicht</RimWorldAccess.Cmr.Power.OverallRegion>
+  <RimWorldAccess.Cmr.Power.ConsumptionRegion>Verbrauch</RimWorldAccess.Cmr.Power.ConsumptionRegion>
+  <RimWorldAccess.Cmr.Power.ProductionRegion>Erzeugung</RimWorldAccess.Cmr.Power.ProductionRegion>
+</LanguageData>

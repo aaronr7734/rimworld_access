@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RWA_GizmoEngage.label>Befehl: Ziel angreifen</RWA_GizmoEngage.label>
+  <RWA_GizmoSeekDestroy.label>Befehl: Suchen und zerstören</RWA_GizmoSeekDestroy.label>
+  <RWA_GizmoCombatPolicy.label>Befehl: Kampfrichtlinie</RWA_GizmoCombatPolicy.label>
+  <RWA_GizmoPause.label>Befehl: Kampfautopilot pausieren</RWA_GizmoPause.label>
+  <RWA_GizmoHuntAnimals.label>Befehl: Tiere jagen</RWA_GizmoHuntAnimals.label>
+  <RWA_GizmoAutocastAll.label>Befehl: Alle Fähigkeiten automatisch wirken</RWA_GizmoAutocastAll.label>
+  <RWA_GizmoPatrol.label>Befehl: Patrouille</RWA_GizmoPatrol.label>
+</LanguageData>

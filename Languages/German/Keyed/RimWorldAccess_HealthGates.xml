@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Health tab (src/Shell/Screens/HealthTabScope.Game.cs). Spoken when
+    browsing a surgery recipe that vanilla's own AcceptanceReport refuses but
+    still lists with an explanation (HealthCardUtility.DrawMedOperationsTab
+    keeps such recipes visible-but-disabled rather than hiding them).
+  -->
+  <RimWorldAccess.Health.RecipeDisabledReason>Deaktiviert: {0}</RimWorldAccess.Health.RecipeDisabledReason>
+</LanguageData>

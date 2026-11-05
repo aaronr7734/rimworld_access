@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Abilities module strings (src/Abilities/). Six files contribute:
+      - AbilityTargetingHelper.cs  (helpers that build most announcement text)
+      - AbilityTargetingPatch.cs   (Harmony hooks on Targeter.BeginTargeting)
+      - AbilityTargetingState.cs   (psycast/ability map targeting)
+      - JumpTargetingState.cs      (Jump Pack / Locust Armor jumping)
+      - ItemTargetingState.cs      (CompTargetable/CompUsable items)
+      - WorldAbilityTargetingState.cs (Farskip etc.)
+
+    The targeting validation errors (out-of-range, line-of-sight, not-a-valid-
+    target) are produced here and then spoken by src/Combat/TargetingPatch.cs;
+    a handful of shared phrases (Out of range, Targeting: {0}, Invalid cursor
+    position, No valid tile selected, World navigation not active) are pulled
+    from RimWorldAccess_Common.xml and RimWorldAccess_Combat.xml instead of
+    being re-declared.
+
+    Placeholders follow string.Format. Whole-phrase keys are preferred for any
+    composite sentence whose wording or word order should be free to vary by
+    language. One/Many splits are only used where English agreement actually
+    differs; single-form keys rely on each language's LanguageWorker.
+  -->
+
+  <!-- Fallback labels used when the specific target/equipment/ability can't
+       be named. Spoken inline inside larger sentences, so keep them lowercase
+       like the nouns they substitute for ("Jumping to ground", not "Jumping
+       to Ground"). -->
+  <RimWorldAccess.Abilities.Label.Unknown>unbekannt</RimWorldAccess.Abilities.Label.Unknown>
+  <RimWorldAccess.Abilities.Label.Invalid>ungültig</RimWorldAccess.Abilities.Label.Invalid>
+  <RimWorldAccess.Abilities.Label.Location>Ort</RimWorldAccess.Abilities.Label.Location>
+  <RimWorldAccess.Abilities.Label.Ground>Boden</RimWorldAccess.Abilities.Label.Ground>
+  <RimWorldAccess.Abilities.Label.Target>Ziel</RimWorldAccess.Abilities.Label.Target>
+  <RimWorldAccess.Abilities.Label.Item>Objekt</RimWorldAccess.Abilities.Label.Item>
+  <RimWorldAccess.Abilities.Label.Permit>Ermächtigung</RimWorldAccess.Abilities.Label.Permit>
+  <RimWorldAccess.Abilities.Label.Jump>Sprung</RimWorldAccess.Abilities.Label.Jump>
+
+  <!-- Target-requirement phrases, substituted into "No {requirement} at
+       cursor" and similar sentences. The trailing "valid target" form is the
+       fallback; translators may want distinct words depending on context. -->
+  <RimWorldAccess.Abilities.TargetKind.Unknown>unbekannt</RimWorldAccess.Abilities.TargetKind.Unknown>
+  <RimWorldAccess.Abilities.TargetKind.LocationOrPawn>Ort oder Person</RimWorldAccess.Abilities.TargetKind.LocationOrPawn>
+  <RimWorldAccess.Abilities.TargetKind.Pawn>Person</RimWorldAccess.Abilities.TargetKind.Pawn>
+  <RimWorldAccess.Abilities.TargetKind.HumanlikePawn>Mensch</RimWorldAccess.Abilities.TargetKind.HumanlikePawn>
+  <RimWorldAccess.Abilities.TargetKind.Animal>Tier</RimWorldAccess.Abilities.TargetKind.Animal>
+  <RimWorldAccess.Abilities.TargetKind.BuildingOrStructure>Bauwerk oder Struktur</RimWorldAccess.Abilities.TargetKind.BuildingOrStructure>
+  <RimWorldAccess.Abilities.TargetKind.ValidTarget>gültiges Ziel</RimWorldAccess.Abilities.TargetKind.ValidTarget>
+
+  <!-- Initial ability-targeting announcement, built up piecewise by
+       AbilityTargetingHelper.BuildTargetingStartAnnouncement. {0} = ability
+       label; other placeholders are inserted as their own fragments so that
+       the sentence reads naturally even when some pieces are omitted. -->
+  <RimWorldAccess.Abilities.Start.Fallback>Fähigkeit: Zielauswahl</RimWorldAccess.Abilities.Start.Fallback>
+  <RimWorldAccess.Abilities.Start.Header>{0}: Zielauswahl</RimWorldAccess.Abilities.Start.Header>
+  <RimWorldAccess.Abilities.Start.TouchRange>. Berührungsreichweite</RimWorldAccess.Abilities.Start.TouchRange>
+  <RimWorldAccess.Abilities.Start.Range>. Reichweite: {0} Felder</RimWorldAccess.Abilities.Start.Range>
+  <RimWorldAccess.Abilities.Start.AOE>, Wirkungsradius: {0} Felder</RimWorldAccess.Abilities.Start.AOE>
+  <RimWorldAccess.Abilities.Start.Psyfocus>. Psyfokus: {0}</RimWorldAccess.Abilities.Start.Psyfocus>
+  <RimWorldAccess.Abilities.Start.NeuralHeat>, Neuralhitze: {0}</RimWorldAccess.Abilities.Start.NeuralHeat>
+  <RimWorldAccess.Abilities.Start.HintAoe>. R prüft Entfernung und freie Sicht. T nennt alle Betroffenen.</RimWorldAccess.Abilities.Start.HintAoe>
+  <RimWorldAccess.Abilities.Start.HintSingle>. R prüft Entfernung und freie Sicht.</RimWorldAccess.Abilities.Start.HintSingle>
+
+  <!-- Range/LOS/target feedback built by AbilityTargetingHelper.
+       BuildRangeInfoAnnouncement. {0} = distance; {1} = max range.
+       InRange/OutOfRange forms are dedicated so translators can reorder
+       subject, distance, and verdict freely; NoTargetAtCursor takes the
+       target-kind word as {0}. -->
+  <RimWorldAccess.Abilities.Range.NoAbilityActive>Keine Fähigkeit aktiv</RimWorldAccess.Abilities.Range.NoAbilityActive>
+  <RimWorldAccess.Abilities.Range.Distance>{0} Felder entfernt</RimWorldAccess.Abilities.Range.Distance>
+  <RimWorldAccess.Abilities.Range.InRange>, in Reichweite</RimWorldAccess.Abilities.Range.InRange>
+  <RimWorldAccess.Abilities.Range.OutOfRange>. Außer Reichweite, maximal {0} Felder</RimWorldAccess.Abilities.Range.OutOfRange>
+  <RimWorldAccess.Abilities.Range.InRangeTouch>, in Berührungsreichweite</RimWorldAccess.Abilities.Range.InRangeTouch>
+  <RimWorldAccess.Abilities.Range.MustBeAdjacent>. Das Ziel muss in Berührungsreichweite sein</RimWorldAccess.Abilities.Range.MustBeAdjacent>
+  <RimWorldAccess.Abilities.Range.NoLineOfSight>, keine freie Sicht</RimWorldAccess.Abilities.Range.NoLineOfSight>
+  <RimWorldAccess.Abilities.Range.NoTargetAtCursor>. Am Cursor fehlt: {0}</RimWorldAccess.Abilities.Range.NoTargetAtCursor>
+
+  <!-- Affected-target preview (T key). The AOE list uses whole-phrase One/Many
+       keys because English agreement differs (one target: "Target: Bob"; many:
+       "Affected: 3 - Bob, Alice, ..."). NoValidTargetsAoe/NoValidTargetSingle
+       explain what the ability actually needs. -->
+  <RimWorldAccess.Abilities.Affected.NoValidTargetsAoe>Am Cursor fehlt: {0}. Der Flächeneffekt erfasst dann alle anderen im Umkreis von {1} Feldern</RimWorldAccess.Abilities.Affected.NoValidTargetsAoe>
+  <RimWorldAccess.Abilities.Affected.NoValidTargetSingle>Am Cursor fehlt: {0}</RimWorldAccess.Abilities.Affected.NoValidTargetSingle>
+  <RimWorldAccess.Abilities.Affected.NoPawnsInRadius>Keine Personen im Wirkungsradius</RimWorldAccess.Abilities.Affected.NoPawnsInRadius>
+  <RimWorldAccess.Abilities.Affected.TargetOne>Betroffen: {0}</RimWorldAccess.Abilities.Affected.TargetOne>
+  <RimWorldAccess.Abilities.Affected.CountPrefix>{0} betroffen: {1}</RimWorldAccess.Abilities.Affected.CountPrefix>
+  <RimWorldAccess.Abilities.Affected.AndMore> und {0} weitere</RimWorldAccess.Abilities.Affected.AndMore>
+
+  <!-- Immunity message. {0} = pawn label. -->
+  <RimWorldAccess.Abilities.Immunity.Psychic>{0} ist immun gegen mentale Effekte</RimWorldAccess.Abilities.Immunity.Psychic>
+
+  <!-- Map targeting state messages (R/T spoken when state is inactive or the
+       cursor is junk). NoAbilityTargeting/NoJumpTargeting are distinct so a
+       future rewording can disambiguate them. -->
+  <RimWorldAccess.Abilities.State.NoAbilityTargeting>Keine Zielauswahl für Fähigkeiten aktiv</RimWorldAccess.Abilities.State.NoAbilityTargeting>
+  <RimWorldAccess.Abilities.State.NoJumpTargeting>Keine Zielauswahl für Sprünge aktiv</RimWorldAccess.Abilities.State.NoJumpTargeting>
+
+  <!-- Enter-confirmation validation errors. Spoken by TargetingPatch when an
+       ability/jump rejects the cursor. Range/LOS errors reuse the Combat
+       module keys (Combat.Target.OutOfRange and the existing
+       Combat.Target.NotValidTarget pattern). -->
+  <RimWorldAccess.Abilities.Validate.LineOfSight>Keine freie Sicht auf das Ziel</RimWorldAccess.Abilities.Validate.LineOfSight>
+  <RimWorldAccess.Abilities.Validate.NoPawnAoeNearby>Keine Person am Cursor. Ziele in der Nähe: {0}. Bewege den Cursor direkt auf eine Person</RimWorldAccess.Abilities.Validate.NoPawnAoeNearby>
+  <RimWorldAccess.Abilities.Validate.NoPawnAoeRadius>Keine Person am Cursor. Diese Fähigkeit braucht eine Person als direktes Ziel. Der Flächeneffekt erfasst dann alle anderen im Umkreis von {0} Feldern</RimWorldAccess.Abilities.Validate.NoPawnAoeRadius>
+  <RimWorldAccess.Abilities.Validate.NoValidAtCursor>Am Cursor fehlt: {0}. Bewege den Cursor auf ein gültiges Ziel</RimWorldAccess.Abilities.Validate.NoValidAtCursor>
+
+  <!-- Success announcement for map ability targeting (sighted-equivalent of
+       the targeted confirmation beep). Uses whole-phrase keys per case so
+       One/Many pawn counts can inflect the verb as each language requires. -->
+  <RimWorldAccess.Abilities.Success.TargetingLocation>Ziel: {0}</RimWorldAccess.Abilities.Success.TargetingLocation>
+  <RimWorldAccess.Abilities.Success.TargetingLocationNoPawns>Ort als Ziel gewählt. Keine Personen im Wirkungsradius</RimWorldAccess.Abilities.Success.TargetingLocationNoPawns>
+  <RimWorldAccess.Abilities.Success.TargetingOne>Ziel: {0}</RimWorldAccess.Abilities.Success.TargetingOne>
+  <RimWorldAccess.Abilities.Success.TargetingMany>Ziel gewählt. {0} betroffen: {1}</RimWorldAccess.Abilities.Success.TargetingMany>
+
+  <!-- Jump targeting (Jump Pack, Locust Armor). Per-tile validity prefixes
+       ({0}) are prepended to cursor announcements during arrow navigation,
+       so they end with ", ". Longer "Cannot jump here: ..." forms are
+       Enter-confirmation errors. -->
+  <RimWorldAccess.Abilities.Jump.Start>{0}: Zielauswahl. Reichweite: {1} Felder</RimWorldAccess.Abilities.Jump.Start>
+  <RimWorldAccess.Abilities.Jump.Charges>. {0} von {1} Ladungen</RimWorldAccess.Abilities.Jump.Charges>
+  <RimWorldAccess.Abilities.Jump.HintR>. R prüft Entfernung und freie Sicht.</RimWorldAccess.Abilities.Jump.HintR>
+
+  <RimWorldAccess.Abilities.Jump.InvalidTargetFallback>, ungültiges Sprungziel</RimWorldAccess.Abilities.Jump.InvalidTargetFallback>
+  <RimWorldAccess.Abilities.Jump.InvalidReasonSuffix>, {0}</RimWorldAccess.Abilities.Jump.InvalidReasonSuffix>
+  <RimWorldAccess.Abilities.Jump.ValidSuffix>, gültiges Sprungziel</RimWorldAccess.Abilities.Jump.ValidSuffix>
+
+  <!-- Per-tile validity prefixes spoken when arrow navigating during jump
+       targeting. Each ends with ", " so the following cell name reads
+       smoothly. -->
+  <RimWorldAccess.Abilities.Jump.PrefixInvalid>Ungültig, </RimWorldAccess.Abilities.Jump.PrefixInvalid>
+  <RimWorldAccess.Abilities.Jump.PrefixOutOfRange>Außer Reichweite, </RimWorldAccess.Abilities.Jump.PrefixOutOfRange>
+  <RimWorldAccess.Abilities.Jump.PrefixNoLineOfSight>Keine freie Sicht, </RimWorldAccess.Abilities.Jump.PrefixNoLineOfSight>
+  <RimWorldAccess.Abilities.Jump.PrefixImpassable>Unpassierbar, </RimWorldAccess.Abilities.Jump.PrefixImpassable>
+  <RimWorldAccess.Abilities.Jump.PrefixFogged>Unerforschtes Gebiet, </RimWorldAccess.Abilities.Jump.PrefixFogged>
+  <RimWorldAccess.Abilities.Jump.PrefixClosedDoor>Geschlossene Tür, </RimWorldAccess.Abilities.Jump.PrefixClosedDoor>
+  <RimWorldAccess.Abilities.Jump.PrefixNotWalkable>Nicht begehbar, </RimWorldAccess.Abilities.Jump.PrefixNotWalkable>
+  <RimWorldAccess.Abilities.Jump.PrefixCanJump>Sprung möglich, </RimWorldAccess.Abilities.Jump.PrefixCanJump>
+
+  <!-- Short inline reasons appended to the R-key detailed announcement.
+       Lowercase - they follow a comma inside a sentence. -->
+  <RimWorldAccess.Abilities.Jump.ReasonImpassable>unpassierbares Gelände</RimWorldAccess.Abilities.Jump.ReasonImpassable>
+  <RimWorldAccess.Abilities.Jump.ReasonFogged>unerforschtes Gebiet</RimWorldAccess.Abilities.Jump.ReasonFogged>
+  <RimWorldAccess.Abilities.Jump.ReasonClosedDoor>geschlossene Tür</RimWorldAccess.Abilities.Jump.ReasonClosedDoor>
+  <RimWorldAccess.Abilities.Jump.ReasonNotWalkable>nicht begehbar</RimWorldAccess.Abilities.Jump.ReasonNotWalkable>
+
+  <!-- Enter-confirmation validation errors for jump targeting. Composed with
+       a leading "Cannot jump here:" to stay distinct from similar non-jump
+       error messages. Distance/range shared format: {0} = distance,
+       {1} = max. -->
+  <RimWorldAccess.Abilities.Jump.ErrorInvalidPosition>Ungültige Zielposition</RimWorldAccess.Abilities.Jump.ErrorInvalidPosition>
+  <RimWorldAccess.Abilities.Jump.ErrorOutOfRange>Außer Reichweite. Entfernung: {0} Felder, maximale Reichweite: {1}</RimWorldAccess.Abilities.Jump.ErrorOutOfRange>
+  <RimWorldAccess.Abilities.Jump.ErrorLineOfSight>Keine freie Sicht auf das Ziel</RimWorldAccess.Abilities.Jump.ErrorLineOfSight>
+  <RimWorldAccess.Abilities.Jump.ErrorImpassable>Sprung hier nicht möglich: unpassierbares Gelände</RimWorldAccess.Abilities.Jump.ErrorImpassable>
+  <RimWorldAccess.Abilities.Jump.ErrorFogged>Sprung hier nicht möglich: unerforschtes Gebiet</RimWorldAccess.Abilities.Jump.ErrorFogged>
+  <RimWorldAccess.Abilities.Jump.ErrorClosedDoor>Sprung hier nicht möglich: geschlossene Tür</RimWorldAccess.Abilities.Jump.ErrorClosedDoor>
+  <RimWorldAccess.Abilities.Jump.ErrorNotWalkable>Sprung hier nicht möglich: nicht begehbar</RimWorldAccess.Abilities.Jump.ErrorNotWalkable>
+  <RimWorldAccess.Abilities.Jump.ErrorNoCharges>Keine Ladungen mehr</RimWorldAccess.Abilities.Jump.ErrorNoCharges>
+  <RimWorldAccess.Abilities.Jump.ErrorAlreadyQueued>Sprung bereits in der Warteschlange</RimWorldAccess.Abilities.Jump.ErrorAlreadyQueued>
+
+  <!-- Jump success announcement ({0} = terrain/location label, e.g. "gravel"
+       or the Label.Location fallback). -->
+  <RimWorldAccess.Abilities.Jump.SuccessTo>Sprung. Ziel: {0}</RimWorldAccess.Abilities.Jump.SuccessTo>
+  <RimWorldAccess.Abilities.Jump.SuccessBare>Sprung</RimWorldAccess.Abilities.Jump.SuccessBare>
+
+  <!-- Item targeting (CompTargetable / CompUsable / float-menu callbacks).
+       Start announcements include the item label and the game's own
+       mouse-attached instruction text. Selection/Fallback labels are spoken
+       when a float-menu caller doesn't provide one. -->
+  <RimWorldAccess.Abilities.Item.StartWithInstruction>{0}: {1}. Navigiere mit den Pfeiltasten. Enter bestätigt das Ziel.</RimWorldAccess.Abilities.Item.StartWithInstruction>
+  <RimWorldAccess.Abilities.Item.StartCallback>{0}. Navigiere mit den Pfeiltasten. Enter bestätigt das Ziel. Escape bricht die Zielauswahl ab.</RimWorldAccess.Abilities.Item.StartCallback>
+  <RimWorldAccess.Abilities.Item.DefaultInstruction>Wähle ein Ziel aus</RimWorldAccess.Abilities.Item.DefaultInstruction>
+  <RimWorldAccess.Abilities.Item.InferPawn>Wähle eine Person als Ziel aus</RimWorldAccess.Abilities.Item.InferPawn>
+  <RimWorldAccess.Abilities.Item.InferBuilding>Wähle ein Bauwerk als Ziel aus</RimWorldAccess.Abilities.Item.InferBuilding>
+  <RimWorldAccess.Abilities.Item.InferItem>Wähle ein Objekt als Ziel aus</RimWorldAccess.Abilities.Item.InferItem>
+  <RimWorldAccess.Abilities.Item.InferLocation>Wähle einen Ort aus</RimWorldAccess.Abilities.Item.InferLocation>
+
+  <!-- Item targeting success/error. The two success forms differ because
+       "Using {item} on {target}" requires more context than the bare
+       "Target selected" fallback. -->
+  <RimWorldAccess.Abilities.Item.SuccessUsing>{0} wird auf {1} angewendet</RimWorldAccess.Abilities.Item.SuccessUsing>
+  <RimWorldAccess.Abilities.Item.SuccessSelected>Ziel ausgewählt: {0}</RimWorldAccess.Abilities.Item.SuccessSelected>
+  <RimWorldAccess.Abilities.Item.NoTargetAtCursor>Kein gültiges Ziel am Cursor</RimWorldAccess.Abilities.Item.NoTargetAtCursor>
+
+  <!-- Permit targeting (RoyalTitlePermitWorker_Targeted). {0} = permit
+       label. -->
+  <RimWorldAccess.Abilities.Permit.Start>Wähle ein Ziel für {0}. Navigiere mit den Pfeiltasten. Enter bestätigt das Ziel.</RimWorldAccess.Abilities.Permit.Start>
+
+  <!-- GenericTargetingState: catch-all for verb-based ITargetingSource sessions
+       (apparel weapons, mech abilities, modded verbs). Mirrors the
+       Ability/Jump key families above for range feedback and start
+       announcement. StartFallback/StartHeader replace the English
+       "Targeting"/"X targeting" literals; StartTypeDesc wraps the already-
+       translated type description from TargetingParametersDescriber;
+       StartRangeMinMax covers the min-to-max range case; StartExplosionRadius
+       is the AOE appendage (different form from Start.AOE which uses ", ");
+       StartInstructionTail is the fixed closing instruction sentence.
+       TooClose/ExplosionRadius/RangeOnly/NoRangeInfo mirror the Ability range
+       feedback keys. -->
+  <RimWorldAccess.Abilities.Generic.NoTargetingActive>Keine Zielauswahl aktiv</RimWorldAccess.Abilities.Generic.NoTargetingActive>
+  <RimWorldAccess.Abilities.Generic.StartFallback>Zielauswahl</RimWorldAccess.Abilities.Generic.StartFallback>
+  <RimWorldAccess.Abilities.Generic.StartHeader>{0}: Zielauswahl</RimWorldAccess.Abilities.Generic.StartHeader>
+  <RimWorldAccess.Abilities.Generic.StartTypeDesc>. {0}</RimWorldAccess.Abilities.Generic.StartTypeDesc>
+  <RimWorldAccess.Abilities.Generic.StartRangeMinMax>. Reichweite: {0} bis {1} Felder</RimWorldAccess.Abilities.Generic.StartRangeMinMax>
+  <RimWorldAccess.Abilities.Generic.StartExplosionRadius>. Explosionsradius: {0} Felder</RimWorldAccess.Abilities.Generic.StartExplosionRadius>
+  <RimWorldAccess.Abilities.Generic.StartInstructionTail>. Enter bestätigt das Ziel am Cursor. R prüft Entfernung und freie Sicht. Escape bricht die Zielauswahl ab.</RimWorldAccess.Abilities.Generic.StartInstructionTail>
+  <RimWorldAccess.Abilities.Generic.TooClose>. Zu nah, mindestens {0} Felder</RimWorldAccess.Abilities.Generic.TooClose>
+  <RimWorldAccess.Abilities.Generic.ExplosionRadius>, Explosionsradius: {0}</RimWorldAccess.Abilities.Generic.ExplosionRadius>
+  <RimWorldAccess.Abilities.Generic.RangeOnly>Reichweite: {0} Felder</RimWorldAccess.Abilities.Generic.RangeOnly>
+  <RimWorldAccess.Abilities.Generic.NoRangeInfo>Reichweite unbekannt</RimWorldAccess.Abilities.Generic.NoRangeInfo>
+
+  <!-- AbilityTargetingState.BuildDestinationCellAnnouncement (Skip / dual-
+       target abilities). Terrain is the terrain label at the cursor;
+       Contains lists pawns or things sharing the cell; ValidTeleport is
+       the suffix when the cell passes CompAbilityEffect_WithDest validation.
+       The cell-error suffix (when invalid) is produced by ValidateDestinationCell
+       and passed through as data. -->
+  <RimWorldAccess.Abilities.Destination.Terrain>Zielfeld: {0}</RimWorldAccess.Abilities.Destination.Terrain>
+  <RimWorldAccess.Abilities.Destination.Contains>. Dort: {0}</RimWorldAccess.Abilities.Destination.Contains>
+  <RimWorldAccess.Abilities.Destination.ValidTeleport>. Gültiges Teleportziel</RimWorldAccess.Abilities.Destination.ValidTeleport>
+
+  <!-- ItemTargetingState.AnnounceRangeInfo (R key during item targeting).
+       {0} = item or action label. -->
+  <RimWorldAccess.Abilities.Item.NoRangeConstraint>{0}: unbegrenzte Reichweite. Bewege den Cursor auf ein gültiges Ziel und drücke Enter.</RimWorldAccess.Abilities.Item.NoRangeConstraint>
+
+  <!-- World ability targeting (Farskip, etc.). Start sentence is composed
+       from pieces so "Bringing N: names." can be omitted; TargetingStart
+       holds the leading header, BringingOne/Many inject the AOE passenger
+       list when present, and SelectDestination is the tail call to action. -->
+  <RimWorldAccess.Abilities.World.TargetingStart>{0}: Zielauswahl auf der Weltkarte.</RimWorldAccess.Abilities.World.TargetingStart>
+  <RimWorldAccess.Abilities.World.BringingOne> {0} mitgenommen: {1}.</RimWorldAccess.Abilities.World.BringingOne>
+  <RimWorldAccess.Abilities.World.BringingMany> {0} werden mitgenommen: {1}.</RimWorldAccess.Abilities.World.BringingMany>
+  <RimWorldAccess.Abilities.World.SelectDestination> Wähle ein Zielfeld.</RimWorldAccess.Abilities.World.SelectDestination>
+
+  <!-- World targeter runtime errors and confirmation/cancel announcements. -->
+  <RimWorldAccess.Abilities.World.NotActive>Zielauswahl auf der Weltkarte nicht aktiv</RimWorldAccess.Abilities.World.NotActive>
+  <RimWorldAccess.Abilities.World.CannotAccessAction>Zugriff auf die Aktion der Zielauswahl nicht möglich</RimWorldAccess.Abilities.World.CannotAccessAction>
+  <RimWorldAccess.Abilities.World.NoActionAvailable>Keine Aktion für die Zielauswahl verfügbar</RimWorldAccess.Abilities.World.NoActionAvailable>
+  <RimWorldAccess.Abilities.World.TargetSelected>Ziel ausgewählt</RimWorldAccess.Abilities.World.TargetSelected>
+  <RimWorldAccess.Abilities.World.ErrorSelecting>Fehler beim Auswählen des Zielorts</RimWorldAccess.Abilities.World.ErrorSelecting>
+  <RimWorldAccess.Abilities.World.Cancelled>Zielauswahl abgebrochen</RimWorldAccess.Abilities.World.Cancelled>
+  <RimWorldAccess.Abilities.World.InvalidTarget>Ungültiges Ziel</RimWorldAccess.Abilities.World.InvalidTarget>
+  <!-- TargetingParametersDescriber: "Looking for ..." session descriptions. Each
+       semantic case is its own key; {0}-style slots receive vanilla noun words
+       (person/colonist/animal/...) so only the phrase frame, article, and list
+       conjunction are translated here. -->
+  <RimWorldAccess.Abilities.Describe.Frame>Gesucht: {0}</RimWorldAccess.Abilities.Describe.Frame>
+  <RimWorldAccess.Abilities.Describe.Specific>Gesucht: {0}</RimWorldAccess.Abilities.Describe.Specific>
+  <RimWorldAccess.Abilities.Describe.Door>Gesucht: Tür</RimWorldAccess.Abilities.Describe.Door>
+  <RimWorldAccess.Abilities.Describe.Corpse>Gesucht: Leiche</RimWorldAccess.Abilities.Describe.Corpse>
+  <RimWorldAccess.Abilities.Describe.DownedPerson>Gesucht: {0}, bewegungsunfähig</RimWorldAccess.Abilities.Describe.DownedPerson>
+  <RimWorldAccess.Abilities.Describe.AnimaTree>Gesucht: Animabaum</RimWorldAccess.Abilities.Describe.AnimaTree>
+  <RimWorldAccess.Abilities.Describe.DamagedThing>Gesucht: beschädigtes Objekt</RimWorldAccess.Abilities.Describe.DamagedThing>
+  <RimWorldAccess.Abilities.Describe.Flammable>Gesucht: brennbares Ziel</RimWorldAccess.Abilities.Describe.Flammable>
+  <RimWorldAccess.Abilities.Describe.Colonist>Gesucht: {0}</RimWorldAccess.Abilities.Describe.Colonist>
+  <RimWorldAccess.Abilities.Describe.Prisoner>Gesucht: {0}</RimWorldAccess.Abilities.Describe.Prisoner>
+  <RimWorldAccess.Abilities.Describe.ColonistOrPrisoner>Gesucht: {0} oder {1}</RimWorldAccess.Abilities.Describe.ColonistOrPrisoner>
+  <RimWorldAccess.Abilities.Describe.ColonistPrisonerSlave>Gesucht: {0}, {1} oder {2}</RimWorldAccess.Abilities.Describe.ColonistPrisonerSlave>
+  <!-- Target-descriptor fragments composed into the Frame's {0} list slot. -->
+  <RimWorldAccess.Abilities.Describe.Part.Person>{0}</RimWorldAccess.Abilities.Describe.Part.Person>
+  <RimWorldAccess.Abilities.Describe.Part.Animal>{0}</RimWorldAccess.Abilities.Describe.Part.Animal>
+  <RimWorldAccess.Abilities.Describe.Part.Mech>{0}</RimWorldAccess.Abilities.Describe.Part.Mech>
+  <RimWorldAccess.Abilities.Describe.Part.Entity>Entität</RimWorldAccess.Abilities.Describe.Part.Entity>
+  <RimWorldAccess.Abilities.Describe.Part.Corpse>Leiche</RimWorldAccess.Abilities.Describe.Part.Corpse>
+  <RimWorldAccess.Abilities.Describe.Part.PersonCorpse>Leiche ({0})</RimWorldAccess.Abilities.Describe.Part.PersonCorpse>
+  <RimWorldAccess.Abilities.Describe.Part.AnimalCorpse>Leiche ({0})</RimWorldAccess.Abilities.Describe.Part.AnimalCorpse>
+  <RimWorldAccess.Abilities.Describe.Part.MechCorpse>Leiche ({0})</RimWorldAccess.Abilities.Describe.Part.MechCorpse>
+  <RimWorldAccess.Abilities.Describe.Part.Building>Bauwerk</RimWorldAccess.Abilities.Describe.Part.Building>
+  <RimWorldAccess.Abilities.Describe.Part.Item>Objekt</RimWorldAccess.Abilities.Describe.Part.Item>
+  <RimWorldAccess.Abilities.Describe.Part.Fire>Feuer</RimWorldAccess.Abilities.Describe.Part.Fire>
+  <RimWorldAccess.Abilities.Describe.Part.Plant>Pflanze</RimWorldAccess.Abilities.Describe.Part.Plant>
+  <RimWorldAccess.Abilities.Describe.Part.Self>Selbst</RimWorldAccess.Abilities.Describe.Part.Self>
+  <RimWorldAccess.Abilities.Describe.Part.Location>{0}</RimWorldAccess.Abilities.Describe.Part.Location>
+  <!-- List joining for 2 and 3+ descriptor fragments. -->
+  <RimWorldAccess.Abilities.Describe.JoinPair>{0} oder {1}</RimWorldAccess.Abilities.Describe.JoinPair>
+  <RimWorldAccess.Abilities.Describe.JoinSeparator>, </RimWorldAccess.Abilities.Describe.JoinSeparator>
+  <RimWorldAccess.Abilities.Describe.JoinLast>{0} oder {1}</RimWorldAccess.Abilities.Describe.JoinLast>
+  <!-- GenericTargetingState range-error and success returns (consumed via SpeakData
+       in the Combat TargetingPatch). {0}/{1} are pre-formatted distances/ranges. -->
+  <RimWorldAccess.Abilities.Generic.OutOfRangeError>Außer Reichweite. Distanz: {0}, maximale Reichweite: {1}</RimWorldAccess.Abilities.Generic.OutOfRangeError>
+  <RimWorldAccess.Abilities.Generic.TooCloseError>Zu nah. Distanz: {0}, Mindestreichweite: {1}</RimWorldAccess.Abilities.Generic.TooCloseError>
+  <RimWorldAccess.Abilities.Generic.LocationFallback>Ort</RimWorldAccess.Abilities.Generic.LocationFallback>
+  <RimWorldAccess.Abilities.Generic.TargetSelected>Ziel ausgewählt: {0}</RimWorldAccess.Abilities.Generic.TargetSelected>
+  <RimWorldAccess.Abilities.Generic.SourceTarget>{0}: {1}</RimWorldAccess.Abilities.Generic.SourceTarget>
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Abilities.Teleport.Impassable>Teleport hierher nicht möglich. Das Feld ist unpassierbar</RimWorldAccess.Abilities.Teleport.Impassable>
+  <RimWorldAccess.Abilities.Teleport.DoorClosed>Teleport hierher nicht möglich. Die Tür ist geschlossen</RimWorldAccess.Abilities.Teleport.DoorClosed>
+  <RimWorldAccess.Abilities.Teleport.ItemInCell>Teleport hierher nicht möglich. Objekt im Feld: {0}</RimWorldAccess.Abilities.Teleport.ItemInCell>
+  <RimWorldAccess.Abilities.Teleport.BlockedBy>Teleport hierher nicht möglich. Blockiert durch {0}</RimWorldAccess.Abilities.Teleport.BlockedBy>
+  <RimWorldAccess.Abilities.Teleport.NotStandable>Teleport hierher nicht möglich. Das Feld ist nicht begehbar</RimWorldAccess.Abilities.Teleport.NotStandable>
+  <RimWorldAccess.Abilities.Teleport.Generic>Teleport hierher nicht möglich</RimWorldAccess.Abilities.Teleport.Generic>
+  <RimWorldAccess.Abilities.Teleport.NoLineOfSight>Keine freie Sicht auf den Zielort</RimWorldAccess.Abilities.Teleport.NoLineOfSight>
+  <RimWorldAccess.Abilities.Teleport.InvalidDestination>Ungültiges Teleportziel</RimWorldAccess.Abilities.Teleport.InvalidDestination>
+  <RimWorldAccess.Abilities.Success.WarningsSuffix>. Warnung: {0}</RimWorldAccess.Abilities.Success.WarningsSuffix>
+
+  <!-- Seed planting (CompPlantable: Gauranlen seeds, etc.). Per-tile prefixes are
+       kept terse for fast sweeping. Pressing Enter already reports why a cell can
+       or can't be planted, so there is no separate reason key. On entering planting
+       mode a temporary scanner category lists every plantable area nearest first
+       (Page Down through them, Home to jump the cursor there). {0} in Start/
+       StartNoAreas/ScannerCategory = the tree's label (e.g. "Gauranlen tree");
+       {1} in Start = the number of plantable areas found. -->
+  <RimWorldAccess.Abilities.Plant.Start>{0} pflanzen. Wähle mit den Pfeiltasten einen Ort aus. Enter pflanzt den Samen dort ein. Der Scanner listet {1} Pflanzflächen auf, die nächstgelegene zuerst. Bild ab blättert durch die Liste. Pos1 setzt den Cursor auf die gewählte Fläche.</RimWorldAccess.Abilities.Plant.Start>
+  <RimWorldAccess.Abilities.Plant.StartNoAreas>{0} pflanzen. Wähle mit den Pfeiltasten einen Ort aus. Enter pflanzt den Samen dort ein. Auf der Karte gibt es keine Pflanzflächen.</RimWorldAccess.Abilities.Plant.StartNoAreas>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlant>Pflanzbar, </RimWorldAccess.Abilities.Plant.PrefixCanPlant>
+  <RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>Pflanzbar, Bauwerke in der Nähe, </RimWorldAccess.Abilities.Plant.PrefixCanPlantNearBuildings>
+  <RimWorldAccess.Abilities.Plant.PrefixBlocked>Blockiert, </RimWorldAccess.Abilities.Plant.PrefixBlocked>
+  <RimWorldAccess.Abilities.Plant.ScannerCategory>Pflanzflächen für {0}</RimWorldAccess.Abilities.Plant.ScannerCategory>
+  <RimWorldAccess.Abilities.Plant.ScannerItemLabel>Pflanzfläche</RimWorldAccess.Abilities.Plant.ScannerItemLabel>
+
+  <!-- Subcategory split for plants whose connection strength is reduced by nearby
+       artificial buildings (Gauranlen trees). Subcategory names are announced
+       verbatim by the scanner (Shift+Page Down switches between them). The Start
+       suffixes are appended to Plant.Start after a space; {0} in StartClearSuffix
+       = the clear-of-buildings subcategory's area count (grouped independently,
+       so it can exceed the total plantable area count). -->
+  <RimWorldAccess.Abilities.Plant.SubcatAll>Alle Pflanzflächen</RimWorldAccess.Abilities.Plant.SubcatAll>
+  <RimWorldAccess.Abilities.Plant.SubcatClear>Frei von Bauwerken</RimWorldAccess.Abilities.Plant.SubcatClear>
+  <RimWorldAccess.Abilities.Plant.StartClearSuffix>Die Liste 'Frei von Bauwerken' enthält {0} Flächen. Auf diesen Flächen sinkt die Verbindungsstärke nicht. Umschalt+Bild ab wechselt zu dieser Liste.</RimWorldAccess.Abilities.Plant.StartClearSuffix>
+  <RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>Warnung: Alle Pflanzflächen liegen in der Nähe von künstlichen Bauwerken. Die Verbindungsstärke nimmt daher überall ab.</RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>
+</LanguageData>
