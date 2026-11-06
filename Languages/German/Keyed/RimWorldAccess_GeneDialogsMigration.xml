@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New keys for the ScreenScope migration of the two gene dialogs (Xenogerm
+    Creation, Xenotype Editor). Own file
+    per WAVE_RULES (never edit an existing Keyed XML).
+  -->
+
+  <!-- Shared Controls-region label; replaces the old "Xenogerm.Controls"/"XenotypeEditor.ControlsLabel"
+       keys, which carried a baked trailing period unsuitable for use as a joined region-name
+       fragment (see checkpoint). -->
+  <RimWorldAccess.Shell.GeneDialogs.ControlsRegionName>Steuerelemente</RimWorldAccess.Shell.GeneDialogs.ControlsRegionName>
+
+  <!-- Shared plain noun label for the Name lock Checkbox row (both dialogs); the row's Check
+       state is spoken by the standard vocabulary, so this key carries no state word. -->
+  <RimWorldAccess.Shell.GeneDialogs.NameLockLabel>Namen sperren</RimWorldAccess.Shell.GeneDialogs.NameLockLabel>
+
+  <!-- Xenogerm's opening announcement preamble, replacing "Xenogerm.OpeningSummary"'s first
+       three parts ("{0}. {1} limit {2}. {3}"); the 4th argument (the old hand-built tab
+       summary) is dropped since the scope's standard AnnounceRegion composition now speaks the
+       initial region separately. -->
+  <RimWorldAccess.Biotech.GeneDialogsMigration.XenogermOpeningPreamble>{0}. {1}: maximal {2}.</RimWorldAccess.Biotech.GeneDialogsMigration.XenogermOpeningPreamble>
+</LanguageData>

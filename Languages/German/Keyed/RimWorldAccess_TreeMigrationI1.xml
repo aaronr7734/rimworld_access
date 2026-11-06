@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    ScreenScope migration: FilterTreeScopeBase (
+    StorageSettingsScope pilot; src/Shell/Screens/TreeRegionScope.Game.cs,
+    FilterTreeScopeBase.Game.cs, StorageSettingsScope.Game.cs). The four keys below are the genuinely NEW spoken strings this
+    packet introduces.
+  -->
+  <RimWorldAccess.Shell.FilterTree.NoInfoCard>Keine Infokarte verfügbar</RimWorldAccess.Shell.FilterTree.NoInfoCard>
+  <!-- Range-slider value: {0} = min, {1} = max, already formatted (percent or QualityCategory label). -->
+  <RimWorldAccess.Shell.FilterTree.RangeValue>{0} bis {1}</RimWorldAccess.Shell.FilterTree.RangeValue>
+  <RimWorldAccess.Shell.FilterTree.StorageRegionName>Lager</RimWorldAccess.Shell.FilterTree.StorageRegionName>
+</LanguageData>

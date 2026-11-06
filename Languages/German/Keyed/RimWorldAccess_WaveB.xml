@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Wave B, package B1 (NodeTreeScope, src/Shell/Screens/NodeTreeScope.Game.cs).
+    Every other announcement reuses vanilla strings (title, node text,
+    negotiator/faction facts) or existing RimWorldAccess.UI.Dialog./Shell.
+    keys (Opened, ButtonCannotActivate); this is the one genuinely new
+    string the package needs.
+  -->
+
+  <!-- Hyperlink DiaOption rows (Widgets.HyperlinkWithIcon) draw and activate
+       completely differently from a plain button (they navigate to an info
+       card / faction / research project instead of resolving the tree), and
+       ElementRole has no dedicated role word for them, so this is appended
+       to the Extras tail instead of composed through the Role channel. -->
+  <RimWorldAccess.UI.NodeTree.HyperlinkTag>Link</RimWorldAccess.UI.NodeTree.HyperlinkTag>
+</LanguageData>

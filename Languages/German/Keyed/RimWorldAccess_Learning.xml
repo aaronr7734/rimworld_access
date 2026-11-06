@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Learning module strings (src/Learning/). Two files contribute:
+      - LearningHelperState.cs  (? key; windowless menu over the Learning Helper)
+      - LearningHelperPatch.cs  (announces newly-activated tutorial concepts)
+
+    The feature title and the two button labels ("Mark as learned", "Already
+    learned") come from vanilla keys (LearningHelper, MarkLearned,
+    AlreadyLearned) and are referenced directly via .Translate() rather than
+    re-keyed here. ConceptDef.LabelCap and ConceptDef.HelpTextAdjusted (lesson
+    titles and body text) are also vanilla data and are injected as
+    placeholders; they are NOT translated in this file.
+
+    Placeholder convention: {0} is the primary substitution (usually the
+    vanilla "LearningHelper" title, a lesson name, or a count). Keys with
+    multiple placeholders are documented above the block that uses them.
+  -->
+
+  <!-- Status announcements when the menu opens or is toggled.
+       DisabledSuffix is spoken when adaptive training is off / tutorial mode
+       is on. The C# composes it after the vanilla "LearningHelper" title
+       so the user hears "Learning helper disabled". -->
+  <RimWorldAccess.Learning.DisabledSuffix>deaktiviert</RimWorldAccess.Learning.DisabledSuffix>
+  <RimWorldAccess.Learning.Closed>{0} geschlossen</RimWorldAccess.Learning.Closed>
+
+  <!-- Menu opening / Tab-toggle announcements.
+       {0} = vanilla "LearningHelper" title.
+       AllLessonsCount additionally takes {1} = total concept count. -->
+
+  <!-- Empty-list announcements. NoActive is also spoken after returning to
+       an empty list when leaving detail view. -->
+  <RimWorldAccess.Learning.NoLessonsAvailable>Keine Lektionen verfügbar</RimWorldAccess.Learning.NoLessonsAvailable>
+
+  <!-- Button feedback.
+       MarkLearnedConfirmation is spoken immediately after the "Mark as
+       learned" button is pressed. {0} = vanilla "MarkLearned" label.
+       Example result: "Mark as learned. 100%". -->
+  <RimWorldAccess.Learning.MarkLearnedConfirmation>{0}. 100%</RimWorldAccess.Learning.MarkLearnedConfirmation>
+  <RimWorldAccess.Learning.ButtonActivationFailed>Schaltfläche konnte nicht aktiviert werden</RimWorldAccess.Learning.ButtonActivationFailed>
+
+  <!-- Typeahead search context suffix used only by the Learning menu.
+       {0} = the user's current search buffer. Other menus use the generic
+       RimWorldAccess.Search.ContextSuffix key; Learning uses this simpler
+       form because its announcement does not yet include a match position. -->
+
+  <!-- TwoLevelMenuHelper boundary messages (Learning-scoped).
+       Passed as the endOfItemMessage / startOfItemMessage / openFirstMessage
+       arguments when the helper is constructed. -->
+
+  <!-- Fallback when a ConceptDef has no help text (should be rare - vanilla
+       concepts always ship with HelpTextAdjusted). -->
+  <RimWorldAccess.Learning.NoHelpText>Kein Hilfetext verfügbar</RimWorldAccess.Learning.NoHelpText>
+
+  <!-- Patch announcement: fires when the game auto-activates a new concept.
+       {0} = vanilla "LearningHelper" title, {1} = the concept's LabelCap. -->
+  <RimWorldAccess.Learning.NewLessonAnnouncement>{0}: {1}.</RimWorldAccess.Learning.NewLessonAnnouncement>
+
+  <!-- Hint appended to the FIRST few new-lesson announcements (up to 3, across a
+       player's onboarding) so they learn how to actually read the lessons being
+       announced. Shift Slash opens the Learning Helper MENU (where lessons are
+       chosen), not the announced lesson directly — hence "this and other lessons".
+       The Learning Helper chapter can't teach this itself (you'd have to open it
+       to read that). -->
+  <RimWorldAccess.Learning.HelperHint>Drücke das Fragezeichen, um diese und weitere Lektionen zu lesen.</RimWorldAccess.Learning.HelperHint>
+</LanguageData>

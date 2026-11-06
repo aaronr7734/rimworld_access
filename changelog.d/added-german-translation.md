@@ -1,0 +1,1 @@
+New complete German translation. It covers every interface string and the in-game documentation, using the game's own official German wording, and is written to be easy to follow when a screen reader reads it aloud.

@@ -1,0 +1,298 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Quests module strings (src/Quests/). Five files contribute:
+      - QuestMenuState.cs           (windowless quest browser)
+      - NotificationMenuState.cs    (messages/letters/alerts viewer)
+      - QuestRewardHelper.cs        (reward extraction + reward prefs)
+      - NotificationAccessibilityPatch.cs  (live message/letter/alert
+                                            announcements as they arrive)
+      - QuestMenuPatch.cs           (no user strings)
+
+    The quest list and detail views, the reward-choice float menu, the
+    reward-preferences panel, and the notification menu's two-level
+    navigation all live here. Many phrasings are split into One/Many
+    pairs (1 quest vs N quests, 1 star vs N stars) so plural agreement
+    survives translation.
+
+    Shared phrases delegated elsewhere:
+      - Position / Edge / Search / InfoCard.Unavailable -> Common.xml
+      - "Jumped to {target}"                            -> Common.xml
+      - "Accept", "Delete", "Close", "Activate", "Open",
+        "Difficulty", "JumpToLocation", "ViewRelatedQuest",
+        "QuestExpiresIn", "AvailableQuests"/"ActiveQuests"/
+        "HistoricalQuests", "Goodwill"                  -> vanilla keys
+
+    Data such as quest names, faction names, reward item labels,
+    target locations, ticks-to-period strings, sign-formatted
+    numbers, and royal favor labels (faction.def.royalFavorLabel)
+    comes from the game and is NOT translated in this file.
+  -->
+
+  <!-- =================================================================
+       Live notification announcements (NotificationAccessibilityPatch).
+       Spoken when a Message, Letter, or Alert arrives in-game so screen
+       reader users hear the event without opening the notification menu.
+       {0} = the cleaned text/label of the notification.
+       ================================================================= -->
+  <RimWorldAccess.Notification.LiveMessage>Nachricht: {0}</RimWorldAccess.Notification.LiveMessage>
+  <RimWorldAccess.Notification.LiveLetter>Brief: {0}</RimWorldAccess.Notification.LiveLetter>
+  <RimWorldAccess.Notification.LiveAlert>Warnmeldung: {0}</RimWorldAccess.Notification.LiveAlert>
+
+  <!-- =================================================================
+       Quest menu lifecycle (QuestMenuState.Open / Close / OpenAndSelect).
+       Title is the one-shot screen name spoken when the menu opens; the
+       shared screen machinery announces the focused row separately.
+       ================================================================= -->
+  <RimWorldAccess.Quests.Menu.Title>Quest-Menü</RimWorldAccess.Quests.Menu.Title>
+  <RimWorldAccess.Quests.Menu.Closed>Quest-Menü geschlossen</RimWorldAccess.Quests.Menu.Closed>
+  <RimWorldAccess.Quests.Menu.QuestNoLongerAvailable>Quest nicht mehr verfügbar</RimWorldAccess.Quests.Menu.QuestNoLongerAvailable>
+  <RimWorldAccess.Quests.Menu.NoQuestSelected>Keine Quest ausgewählt</RimWorldAccess.Quests.Menu.NoQuestSelected>
+
+  <!-- =================================================================
+       Quest tabs. Available/Active/Historical (vanilla provides the
+       short labels; we suffix "Quests" because the screen-reader
+       announcement uses the tab in a sentence).
+       Tab.WithCountOne / Many / NoQuests build the per-tab summary
+       sentence; {0} = tab label, {1} = count (Many only).
+       ================================================================= -->
+  <RimWorldAccess.Quests.Tab.Available>Verfügbar</RimWorldAccess.Quests.Tab.Available>
+  <RimWorldAccess.Quests.Tab.Active>Aktiv</RimWorldAccess.Quests.Tab.Active>
+  <RimWorldAccess.Quests.Tab.Historical>Historisch</RimWorldAccess.Quests.Tab.Historical>
+  <RimWorldAccess.Quests.Tab.Generic>Quests</RimWorldAccess.Quests.Tab.Generic>
+  <RimWorldAccess.Quests.Tab.WithCountOne>{0}-Tab. 1 Quest</RimWorldAccess.Quests.Tab.WithCountOne>
+  <RimWorldAccess.Quests.Tab.WithCountMany>{0}-Tab. {1} Quests</RimWorldAccess.Quests.Tab.WithCountMany>
+  <RimWorldAccess.Quests.Tab.NoQuests>{0}-Tab. Keine Quests</RimWorldAccess.Quests.Tab.NoQuests>
+
+  <!-- =================================================================
+       Status words, used both in the list-view name suffix
+       ("{name}, Dismissed") and in the detail-view header
+       ("Quest: {name} (Active)"). Available/Active spell out the
+       NotYetAccepted/Ongoing states for the screen reader. -->
+  <RimWorldAccess.Quests.Status.Available>Verfügbar</RimWorldAccess.Quests.Status.Available>
+  <RimWorldAccess.Quests.Status.Active>Aktiv</RimWorldAccess.Quests.Status.Active>
+  <RimWorldAccess.Quests.Status.Dismissed>Verworfen</RimWorldAccess.Quests.Status.Dismissed>
+  <RimWorldAccess.Quests.Status.Completed>Abgeschlossen</RimWorldAccess.Quests.Status.Completed>
+  <RimWorldAccess.Quests.Status.Failed>Gescheitert</RimWorldAccess.Quests.Status.Failed>
+  <RimWorldAccess.Quests.Status.Expired>Abgelaufen</RimWorldAccess.Quests.Status.Expired>
+
+  <!-- =================================================================
+       List-view row composition (BuildQuestRowLabel).
+       NameWithStatus appends a status word to the quest name; the bare
+       Name case has no suffix and is spoken directly.
+       StarsOne/Many is the difficulty rating; CharitySuffix is appended
+       when quest.charity is true.
+       ExpiresIn / AcceptedAgo / AgoOnly are the short time-info phrases
+       (no colon, terse - distinct from the detail-view variants below).
+       Rewards: {0} = compact reward summary string. -->
+  <RimWorldAccess.Quests.List.NameWithStatus>{0}, {1}</RimWorldAccess.Quests.List.NameWithStatus>
+  <RimWorldAccess.Quests.List.StarsOne>1 Stern</RimWorldAccess.Quests.List.StarsOne>
+  <RimWorldAccess.Quests.List.StarsMany>{0} Sterne</RimWorldAccess.Quests.List.StarsMany>
+  <RimWorldAccess.Quests.List.CharitySuffix>, Wohltätigkeitsquest</RimWorldAccess.Quests.List.CharitySuffix>
+  <RimWorldAccess.Quests.List.ExpiresIn>Läuft in {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"; "Quartale"-"Quartalen"} ab</RimWorldAccess.Quests.List.ExpiresIn>
+  <RimWorldAccess.Quests.List.AcceptedAgo>Angenommen vor {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"; "Quartale"-"Quartalen"}</RimWorldAccess.Quests.List.AcceptedAgo>
+  <RimWorldAccess.Quests.List.AgoOnly>Vor {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"; "Quartale"-"Quartalen"}</RimWorldAccess.Quests.List.AgoOnly>
+  <RimWorldAccess.Quests.List.RewardsSummary>Belohnungen: {0}</RimWorldAccess.Quests.List.RewardsSummary>
+
+  <!-- =================================================================
+       Detail-view content lines (BuildDetailContentLines). These take
+       the same data as the list-view phrases but use a longer "label:"
+       layout because each line stands on its own.
+       DifficultyOne/Many: {0} = star count (Many only); CharitySuffix
+       is appended in the same fashion as the list view.
+       ExpiresIn / AcceptedAgo: {0} = ToStringTicksToPeriod output.
+       Status: {0} = outcome status word (Completed/Failed/Expired).
+       Finished: {0} = ticks-since-cleanup formatted period. -->
+  <RimWorldAccess.Quests.Detail.HeaderStatus>Quest: {0} ({1})</RimWorldAccess.Quests.Detail.HeaderStatus>
+  <RimWorldAccess.Quests.Detail.DifficultyOne>Schwierigkeit: 1 Stern</RimWorldAccess.Quests.Detail.DifficultyOne>
+  <RimWorldAccess.Quests.Detail.DifficultyMany>Schwierigkeit: {0} Sterne</RimWorldAccess.Quests.Detail.DifficultyMany>
+  <RimWorldAccess.Quests.Detail.CharitySuffix> (Wohltätigkeitsquest)</RimWorldAccess.Quests.Detail.CharitySuffix>
+  <RimWorldAccess.Quests.Detail.ExpiresIn>Läuft in {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"; "Quartale"-"Quartalen"} ab</RimWorldAccess.Quests.Detail.ExpiresIn>
+  <RimWorldAccess.Quests.Detail.AcceptedAgo>Angenommen vor {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"; "Quartale"-"Quartalen"}</RimWorldAccess.Quests.Detail.AcceptedAgo>
+  <RimWorldAccess.Quests.Detail.Status>Status: {0}</RimWorldAccess.Quests.Detail.Status>
+  <RimWorldAccess.Quests.Detail.Finished>Beendet vor {replace: {0}; "Tage"-"Tagen"; "Jahre"-"Jahren"; "Quartale"-"Quartalen"}</RimWorldAccess.Quests.Detail.Finished>
+  <!-- "Choose item to inspect" lives in Common.xml as
+       RimWorldAccess.InfoCard.ChooseItemToInspect. -->
+
+
+  <!-- =================================================================
+       Detail-view button labels (PopulateQuestButtons).
+       AcceptChoice: {0} = 1-based choice index, {1} = reward description.
+       AcceptWithRewards: {0} = reward description.
+       JumpToTarget: {0} = target label (CameraJumper.CanJump returned a
+       valid label); JumpToLocation has no label and falls back. -->
+  <RimWorldAccess.Quests.Button.Accept>Quest annehmen</RimWorldAccess.Quests.Button.Accept>
+  <RimWorldAccess.Quests.Button.AcceptWithRewards>Annehmen: {0}</RimWorldAccess.Quests.Button.AcceptWithRewards>
+  <RimWorldAccess.Quests.Button.AcceptChoice>Belohnung {0} annehmen: {1}</RimWorldAccess.Quests.Button.AcceptChoice>
+  <RimWorldAccess.Quests.Button.Dismiss>Verwerfen</RimWorldAccess.Quests.Button.Dismiss>
+  <RimWorldAccess.Quests.Button.Resume>Wieder aufnehmen</RimWorldAccess.Quests.Button.Resume>
+  <RimWorldAccess.Quests.Button.Delete>Löschen</RimWorldAccess.Quests.Button.Delete>
+  <RimWorldAccess.Quests.Button.JumpToLocation>Zum Ort springen</RimWorldAccess.Quests.Button.JumpToLocation>
+  <RimWorldAccess.Quests.Button.JumpToTarget>Springe zu: {0}</RimWorldAccess.Quests.Button.JumpToTarget>
+
+  <!-- =================================================================
+       Action result announcements after the user accepts/dismisses/
+       deletes a quest. {0} = quest name (StripTags applied).
+       AcceptedWithRewards: {0} = reward description string.
+       AcceptedWithPawn: {0} = colonist's LabelShort.
+       CannotAcceptReason: {0} = QuestUtility.CanAcceptQuest's report.
+       NotAvailableToAccept: spoken when the quest moved out of
+       NotYetAccepted between the user's keypress and our handler. -->
+  <RimWorldAccess.Quests.Action.CannotAccept>Quest kann nicht angenommen werden</RimWorldAccess.Quests.Action.CannotAccept>
+  <RimWorldAccess.Quests.Action.NotAvailableToAccept>Annahme nicht möglich. Quest ist nicht mehr verfügbar</RimWorldAccess.Quests.Action.NotAvailableToAccept>
+  <RimWorldAccess.Quests.Action.CannotAcceptReason>Quest kann nicht angenommen werden. Grund: {0}</RimWorldAccess.Quests.Action.CannotAcceptReason>
+  <RimWorldAccess.Quests.Action.AcceptedQuest>Quest angenommen: {0}</RimWorldAccess.Quests.Action.AcceptedQuest>
+  <RimWorldAccess.Quests.Action.AcceptedWithRewards>Quest angenommen. Belohnungen: {0}</RimWorldAccess.Quests.Action.AcceptedWithRewards>
+  <RimWorldAccess.Quests.Action.AcceptedWithPawn>Quest mit {0} angenommen</RimWorldAccess.Quests.Action.AcceptedWithPawn>
+  <RimWorldAccess.Quests.Action.DismissedQuest>Quest verworfen: {0}</RimWorldAccess.Quests.Action.DismissedQuest>
+  <RimWorldAccess.Quests.Action.ResumedQuest>Quest wieder aufgenommen: {0}</RimWorldAccess.Quests.Action.ResumedQuest>
+  <RimWorldAccess.Quests.Action.DeletedQuest>Quest gelöscht: {0}</RimWorldAccess.Quests.Action.DeletedQuest>
+  <RimWorldAccess.Quests.Action.NoEligibleColonists>Kein Kolonist kann diese Quest annehmen</RimWorldAccess.Quests.Action.NoEligibleColonists>
+  <RimWorldAccess.Quests.Action.SelectColonist>Wähle den Kolonisten aus, der diese Quest annimmt</RimWorldAccess.Quests.Action.SelectColonist>
+  <!-- Eligible-colonist label suffix when the pawn holds royalty:
+       {0} = pawn LabelShort, {1} = title label. -->
+  <RimWorldAccess.Quests.Action.PawnWithTitle>{0} ({1})</RimWorldAccess.Quests.Action.PawnWithTitle>
+
+  <!-- =================================================================
+       Reward-choice float menu (multi-choice quests). The float menu
+       is opened by Alt+A on a quest with QuestPart_Choice and 2+
+       choices; Choose announces the prompt before WindowlessFloatMenu
+       opens. NoItemsToInspect is spoken when Alt+I is pressed but the
+       chosen reward has no inspectable Things or Factions. -->
+  <RimWorldAccess.Quests.RewardChoice.Prompt>Wähle eine Belohnung aus</RimWorldAccess.Quests.RewardChoice.Prompt>
+  <RimWorldAccess.Quests.RewardChoice.NoItemsToInspect>Keine Objekte zum Untersuchen</RimWorldAccess.Quests.RewardChoice.NoItemsToInspect>
+  <RimWorldAccess.Quests.RewardChoice.BackToList>Zurück zur Quest-Liste</RimWorldAccess.Quests.RewardChoice.BackToList>
+
+  <!-- Consolidated reward item entry when multiple stacks share a label
+       (e.g. 5 stacks of plasteel become one entry): {0} = stack count, {1} = item name. -->
+  <RimWorldAccess.Quests.RewardChoice.ItemWithCount>{0}x {1}</RimWorldAccess.Quests.RewardChoice.ItemWithCount>
+
+  <!-- =================================================================
+       Reward preferences panel (Tab in the quest list). Toggles
+       per-faction acceptance of royal-favor and goodwill rewards.
+       Status words (checked / unchecked) compose into the per-faction
+       label below; relation phrasing is also a key so translators can
+       reorder "currently {amount}, {relation}". -->
+  <RimWorldAccess.Quests.Pref.Title>Belohnungspräferenzen</RimWorldAccess.Quests.Pref.Title>
+  <RimWorldAccess.Quests.Pref.Checked>aktiviert</RimWorldAccess.Quests.Pref.Checked>
+  <RimWorldAccess.Quests.Pref.Unchecked>deaktiviert</RimWorldAccess.Quests.Pref.Unchecked>
+  <!-- Royal-favor row: {0} = faction.Name, {1} = royal favor label
+       (CapitalizeFirst), {2} = checked/unchecked. -->
+  <RimWorldAccess.Quests.Pref.RoyalFavorRow>{0}: {1} akzeptieren, {2}</RimWorldAccess.Quests.Pref.RoyalFavorRow>
+  <!-- Goodwill row: {0} = faction.Name, {1} = checked/unchecked,
+       {2} = relation phrase (built from RelationPhrase below). -->
+  <RimWorldAccess.Quests.Pref.GoodwillRow>{0}: Rufpunkte akzeptieren, {1}. {2}</RimWorldAccess.Quests.Pref.GoodwillRow>
+  <!-- Relation phrase: {0} = signed goodwill amount, {1} = relation
+       kind label cap (Ally/Neutral/Hostile/etc., from vanilla). -->
+  <RimWorldAccess.Quests.Pref.RelationPhrase>Aktueller Ruf: {0} ({1})</RimWorldAccess.Quests.Pref.RelationPhrase>
+  <!-- Pref-row position suffix: {0} = built row label,
+       {1} = position string from MenuHelper.FormatPosition. -->
+
+  <!-- =================================================================
+       Reward extraction (QuestRewardHelper). Builds the reward detail
+       lines and the compact reward description used in list views and
+       button labels. The "indent" prefix ("  ") is hard-coded in the
+       helper so each reward item line is visually grouped under its
+       header line; the indent is preserved in keys here. -->
+  <RimWorldAccess.Quests.Reward.RewardsHeader>Belohnungen:</RimWorldAccess.Quests.Reward.RewardsHeader>
+  <RimWorldAccess.Quests.Reward.ChoicesHeader>Belohnungen zur Auswahl. Wähle eine aus:</RimWorldAccess.Quests.Reward.ChoicesHeader>
+  <!-- {0} = 1-based choice index. -->
+  <RimWorldAccess.Quests.Reward.ChoiceLabel>Belohnung {0}:</RimWorldAccess.Quests.Reward.ChoiceLabel>
+
+  <!-- Item formatting for both the detail-view lines and the compact
+       summary. ItemWithCount: {0} = count, {1} = capitalized label;
+       ItemSingle: {0} = capitalized label. -->
+  <RimWorldAccess.Quests.Reward.ItemWithCount>{0}x {1}</RimWorldAccess.Quests.Reward.ItemWithCount>
+  <RimWorldAccess.Quests.Reward.ItemSingle>{0}</RimWorldAccess.Quests.Reward.ItemSingle>
+  <RimWorldAccess.Quests.Reward.ItemsFallback>Objekte</RimWorldAccess.Quests.Reward.ItemsFallback>
+  <RimWorldAccess.Quests.Reward.ItemFallback>Objekt</RimWorldAccess.Quests.Reward.ItemFallback>
+
+  <!-- Goodwill / royal-favor reward composition. {0} = signed amount
+       (ToStringWithSign), {1} = faction.Name, {2} = favor label
+       (royal favor only; CapitalizeFirst applied at callsite). -->
+  <RimWorldAccess.Quests.Reward.Goodwill>{0} Rufpunkte bei {1}</RimWorldAccess.Quests.Reward.Goodwill>
+  <RimWorldAccess.Quests.Reward.RoyalFavor>{0} {1} von der Fraktion {2}</RimWorldAccess.Quests.Reward.RoyalFavor>
+
+  <!-- Pawn reward variants. PawnHidden has no name (details are
+       hidden); PawnWithName: {0} = pawn LabelShort. -->
+  <RimWorldAccess.Quests.Reward.PawnHidden>Person (Details verborgen)</RimWorldAccess.Quests.Reward.PawnHidden>
+  <RimWorldAccess.Quests.Reward.PawnWithName>Person: {0}</RimWorldAccess.Quests.Reward.PawnWithName>
+  <RimWorldAccess.Quests.Reward.PawnGeneric>Person</RimWorldAccess.Quests.Reward.PawnGeneric>
+
+  <!-- Total market value line, appended once per reward set if the
+       sum is positive. {0} = ToStringMoney("F0") result. -->
+  <RimWorldAccess.Quests.Reward.TotalValue>Gesamtwert: {0}</RimWorldAccess.Quests.Reward.TotalValue>
+
+  <!-- Indent applied to detail-view reward item lines. Stays as a
+       key so non-English layouts can use a different prefix or none. -->
+  <RimWorldAccess.Quests.Reward.LineIndent>  </RimWorldAccess.Quests.Reward.LineIndent>
+
+  <!-- =================================================================
+       Notification menu (NotificationMenuState). List view shows all
+       active messages, letters, and alerts; detail view shows the full
+       letter content with extracted action buttons.
+       ================================================================= -->
+  <RimWorldAccess.Notifications.Menu.None>Keine Benachrichtigungen verfügbar</RimWorldAccess.Notifications.Menu.None>
+  <RimWorldAccess.Notifications.Menu.Closed>Benachrichtigungsmenü geschlossen</RimWorldAccess.Notifications.Menu.Closed>
+  <!-- No vanilla MainButtonDef backs this overlay (it isn't a real tab), so
+       there is no existing translated label to borrow for the ScreenScope
+       content region name (NotificationScope.ContentRegionName). -->
+  <RimWorldAccess.Notifications.Menu.RegionName>Benachrichtigungen</RimWorldAccess.Notifications.Menu.RegionName>
+  <RimWorldAccess.Notifications.Menu.TargetNotValid>Zielort ist ungültig</RimWorldAccess.Notifications.Menu.TargetNotValid>
+  <RimWorldAccess.Notifications.Menu.FailedToActivateButton>Schaltfläche konnte nicht aktiviert werden</RimWorldAccess.Notifications.Menu.FailedToActivateButton>
+  <RimWorldAccess.Notifications.Menu.OnlyLettersDeletable>Nur Briefe können gelöscht werden</RimWorldAccess.Notifications.Menu.OnlyLettersDeletable>
+  <RimWorldAccess.Notifications.Menu.CannotDeleteLetter>Dieser Brief kann nicht gelöscht werden</RimWorldAccess.Notifications.Menu.CannotDeleteLetter>
+
+  <!-- Type labels for notifications. Used both as the prefix of the
+       list-view announcement ("Letter: <label>") and inside the
+       detail-view header. -->
+  <RimWorldAccess.Notifications.Type.Message>Nachricht</RimWorldAccess.Notifications.Type.Message>
+  <RimWorldAccess.Notifications.Type.Letter>Brief</RimWorldAccess.Notifications.Type.Letter>
+  <RimWorldAccess.Notifications.Type.Alert>Warnmeldung</RimWorldAccess.Notifications.Type.Alert>
+  <RimWorldAccess.Notifications.Type.Unknown>Unbekannt</RimWorldAccess.Notifications.Type.Unknown>
+
+  <!-- List-view announcement composition. {0} = type label, {1} =
+       notification label, {2} = position string. -->
+  <RimWorldAccess.Notifications.List.LineWithPosition>{0}: {1}. {2}</RimWorldAccess.Notifications.List.LineWithPosition>
+  <RimWorldAccess.Notifications.List.HeaderInDetail>{0}: {1}</RimWorldAccess.Notifications.List.HeaderInDetail>
+
+  <!-- Detail navigation markers (parallel to Quests.Detail.Start /
+       EndOfDetails - separate keys so word order can vary). -->
+  <RimWorldAccess.Notifications.Detail.StartOfLetter>Anfang des Briefs</RimWorldAccess.Notifications.Detail.StartOfLetter>
+  <RimWorldAccess.Notifications.Detail.EndOfLetter>Ende des Briefs</RimWorldAccess.Notifications.Detail.EndOfLetter>
+
+  <!-- Action button labels extracted from letters and alerts. -->
+  <RimWorldAccess.Notifications.Button.OpenGrowthMoment>Wachstumsmoment öffnen</RimWorldAccess.Notifications.Button.OpenGrowthMoment>
+  <RimWorldAccess.Notifications.Button.ViewChoices>Wahlmöglichkeiten anzeigen</RimWorldAccess.Notifications.Button.ViewChoices>
+  <RimWorldAccess.Notifications.Button.Activate>Aktivieren</RimWorldAccess.Notifications.Button.Activate>
+  <!-- Single-target jump button: {0} = target description. -->
+  <RimWorldAccess.Notifications.Button.JumpTo>Springe zu: {0}</RimWorldAccess.Notifications.Button.JumpTo>
+  <!-- Multi-target jump button: {0} = target description, {1} = 1-based
+       index, {2} = total target count (capped at 5). -->
+  <RimWorldAccess.Notifications.Button.JumpToWithIndex>Springe zu: {0} ({1} von {2})</RimWorldAccess.Notifications.Button.JumpToWithIndex>
+
+  <!-- Action feedback strings spoken after a button completes. {0} =
+       button label echoed back so the user hears confirmation. -->
+  <RimWorldAccess.Notifications.Action.AlertActivated>Warnmeldung aktiviert</RimWorldAccess.Notifications.Action.AlertActivated>
+  <RimWorldAccess.Notifications.Action.ActivatedNoneRemaining>Aktiviert: {0}. Keine Benachrichtigungen mehr</RimWorldAccess.Notifications.Action.ActivatedNoneRemaining>
+  <RimWorldAccess.Notifications.Action.ActivatedBackToList>Aktiviert: {0}. Zurück zur Liste</RimWorldAccess.Notifications.Action.ActivatedBackToList>
+  <RimWorldAccess.Notifications.Action.OpeningInfoCard>Infokarte für {0} wird geöffnet</RimWorldAccess.Notifications.Action.OpeningInfoCard>
+  <!-- Delete-letter feedback. {0} = deleted letter label.
+       DeletedNoneRemaining is spoken when the deletion empties the
+       list; DeletedNextItem composes the next item announcement.
+       {1} = next type label, {2} = next item label, {3} = position. -->
+  <RimWorldAccess.Notifications.Action.DeletedNoneRemaining>Gelöscht: {0}. Keine Benachrichtigungen mehr</RimWorldAccess.Notifications.Action.DeletedNoneRemaining>
+  <RimWorldAccess.Notifications.Action.DeletedNextItem>Gelöscht: {0}. {1}: {2}. {3}</RimWorldAccess.Notifications.Action.DeletedNextItem>
+
+  <!-- Target descriptions used by Notifications.Button.JumpTo and
+       MapNavigationState.SpeakJumpedTo. Position: {0} = cell.x,
+       {1} = cell.z. -->
+  <RimWorldAccess.Notifications.Target.Generic>Zielort</RimWorldAccess.Notifications.Target.Generic>
+  <RimWorldAccess.Notifications.Target.LocationFallback>Ort</RimWorldAccess.Notifications.Target.LocationFallback>
+  <RimWorldAccess.Notifications.Target.Unknown>Unbekannter Ort</RimWorldAccess.Notifications.Target.Unknown>
+  <RimWorldAccess.Notifications.Target.WorldLocation>Ort auf der Weltkarte</RimWorldAccess.Notifications.Target.WorldLocation>
+  <RimWorldAccess.Notifications.Target.Thing>Objekt</RimWorldAccess.Notifications.Target.Thing>
+  <RimWorldAccess.Notifications.Target.Position>Feld {0}, {1}</RimWorldAccess.Notifications.Target.Position>
+
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+</LanguageData>

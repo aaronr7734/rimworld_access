@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New keys added by the migration of the What's New reader
+    (WhatsNewState/WhatsNewScope) and the Learning Helper (LearningHelperState/
+    LearningHelperScope) onto ScreenScope. Every other player-facing string
+    these two screens use is unchanged and still lives in
+    RimWorldAccess_WhatsNew.xml / RimWorldAccess_Learning.xml.
+  -->
+
+  <!-- What's New: the migrated content region's name. -->
+  <RimWorldAccess.OverlayMigration.WhatsNew.RegionName>Mitteilung</RimWorldAccess.OverlayMigration.WhatsNew.RegionName>
+
+  <!-- Learning Helper: the two migrated content regions' names. -->
+  <RimWorldAccess.OverlayMigration.Learning.LessonsRegionName>Lektionen</RimWorldAccess.OverlayMigration.Learning.LessonsRegionName>
+  <RimWorldAccess.OverlayMigration.Learning.ContentRegionName>Inhalt der Lektion</RimWorldAccess.OverlayMigration.Learning.ContentRegionName>
+
+  <!-- The Lessons region's mode row (a ComboBox; Enter opens its two-option list) — replaces the
+       retired Tab toggle. ModeActive/ModeAll double as the picker's own option labels, and are
+       also spoken as the mode-change announcement when lessons
+       remain in the new mode; ModeAllCount is the count-aware variant for All lessons ({0} = total). -->
+  <RimWorldAccess.OverlayMigration.Learning.ModeLabel>Alle Lektionen anzeigen</RimWorldAccess.OverlayMigration.Learning.ModeLabel>
+  <RimWorldAccess.OverlayMigration.Learning.ModeActive>Aktive Lektionen</RimWorldAccess.OverlayMigration.Learning.ModeActive>
+  <RimWorldAccess.OverlayMigration.Learning.ModeAllCount>Alle Lektionen, insgesamt {0}</RimWorldAccess.OverlayMigration.Learning.ModeAllCount>
+
+  <!-- Replace RimWorldAccess.Learning.NoActive / .NoActiveRemaining / .OpeningNoActive (ORPHANED
+       by this migration): those said "Press Tab to browse all lessons", which is no longer true
+       now that Tab cycles regions and the mode row (Enter opens its list) switches modes instead. -->
+  <RimWorldAccess.OverlayMigration.Learning.NoActiveShort>Keine aktiven Lektionen verfügbar.</RimWorldAccess.OverlayMigration.Learning.NoActiveShort>
+  <RimWorldAccess.OverlayMigration.Learning.NoActiveRemainingShort>Keine aktiven Lektionen mehr.</RimWorldAccess.OverlayMigration.Learning.NoActiveRemainingShort>
+  <RimWorldAccess.OverlayMigration.Learning.OpeningNoActive>Keine aktiven Lektionen. Aktiviere 'Alle Lektionen anzeigen', um auch die übrigen Lektionen durchzugehen.</RimWorldAccess.OverlayMigration.Learning.OpeningNoActive>
+</LanguageData>

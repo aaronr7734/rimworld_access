@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Archonexus module strings (src/Archonexus/). Five files contribute:
+      - ArchonexusColonyState.cs         (Screen 1: choose things for new colony)
+      - NewColonyTilePickState.cs        (Screen 3: choose new colony site)
+      - ArchonexusReformIdeoState.cs     (Screen 4: reform ideoligion)
+      - ArchonexusConvertColonistsState.cs (Screen 4 sub-dialog: assign colonists)
+
+    Guard-style messages that exactly match Common.xml values are NOT repeated
+    here — callers use those shared keys directly:
+      - "World navigation not active" -> RimWorldAccess.Guard.WorldNavigationNotActive
+      - "No valid tile selected"       -> RimWorldAccess.Guard.NoValidTileSelected
+      - "Cannot access tile picker callbacks" -> RimWorldAccess.Gravships.Destination.CannotAccessCallbacks
+
+    Vanilla keys referenced by the C# (ChooseNextColonySite, ChooseThingsForNewColonyTitle,
+    ChooseThingsForNewColonyDesc, ConfigureIdeoligion, ChooseColonistsForIdeoTitle,
+    ChooseColonistsForIdeoDesc, CreateNew, CreateFluid, LoadExistingIdeoligion,
+    AssignColonists, Next, etc.) are NOT duplicated here.
+  -->
+
+  <!-- Screen 1 — opening announcement instruction fragment
+       (ArchonexusColonyState.AnnounceOpening). Appended after the vanilla
+       dialog title and description. -->
+  <RimWorldAccess.Archonexus.Colony.OpenInstructions>Die Leertaste oder Enter wählt den Eintrag aus. Alt+S entsendet die neue Kolonie.</RimWorldAccess.Archonexus.Colony.OpenInstructions>
+
+  <!-- Screen 3 — tile pick (NewColonyTilePickState.Open).
+       OpenInstructions: appended after "ChooseNextColonySite".Translate().
+       MustChooseValid: spoken when the player presses Escape (cannot cancel).
+       ErrorSelectingTile: spoken on exception during tile confirmation. -->
+  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Die Pfeiltasten bewegen den Cursor über die Weltkarte. Bild auf und Bild ab blättern durch die Scanner-Einträge. Enter bestätigt den Koloniestandort. Du kannst nicht abbrechen. Du musst ein gültiges Feld auswählen.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
+  <RimWorldAccess.Archonexus.TilePick.MustChooseValid>Du musst ein gültiges Feld auswählen, um fortzufahren.</RimWorldAccess.Archonexus.TilePick.MustChooseValid>
+  <RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>Fehler beim Auswählen des Feldes</RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>
+
+  <!-- Screen 4 — reform ideoligion screen (ArchonexusIdeoScreenScope, in-game ideology
+       surfaces; row source in ArchonexusReformIdeoState).
+       CannotCancel: spoken on an idle Escape (the dialog cannot be cancelled).
+       AlreadyPrimary: {0} = ideoligion name; the Make-primary row's disabled reason
+         when the browsed ideoligion is already the pending primary.
+       SetAsPrimary: {0} = ideoligion name; spoken after Make/Remove-primary succeeds.
+       CurrentPrimaryFragment: appended to an ideoligion row's own text when it is
+         the current pending primary (replaces the old hardcoded ". current primary").
+       NoColonistsNeedConverting: spoken when "Assign colonists" is triggered but
+         all colonists already follow the chosen ideoligion.
+       ErrorConfirming: spoken on exception during the "Next" commit.
+       ListRegion/DetailsRegion: the two content region names. -->
+  <RimWorldAccess.Archonexus.Reform.CannotCancel>Du kannst die Reform der Ideologie nicht abbrechen. Drücke Alt+S, um die Ideologie zu bestätigen und fortzufahren.</RimWorldAccess.Archonexus.Reform.CannotCancel>
+  <RimWorldAccess.Archonexus.Reform.AlreadyPrimary>{0} ist bereits die primäre Ideologie.</RimWorldAccess.Archonexus.Reform.AlreadyPrimary>
+  <RimWorldAccess.Archonexus.Reform.SetAsPrimary>{0} ist jetzt die primäre Ideologie.</RimWorldAccess.Archonexus.Reform.SetAsPrimary>
+  <RimWorldAccess.Archonexus.Reform.CurrentPrimaryFragment>Aktuelle primäre Ideologie</RimWorldAccess.Archonexus.Reform.CurrentPrimaryFragment>
+  <RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>Alle Kolonisten folgen bereits der primären Ideologie.</RimWorldAccess.Archonexus.Reform.NoColonistsNeedConverting>
+  <RimWorldAccess.Archonexus.Reform.ErrorConfirming>Fehler beim Bestätigen der Ideologie</RimWorldAccess.Archonexus.Reform.ErrorConfirming>
+  <RimWorldAccess.Archonexus.Reform.ListRegion>Ideologien</RimWorldAccess.Archonexus.Reform.ListRegion>
+  <RimWorldAccess.Archonexus.Reform.DetailsRegion>Details</RimWorldAccess.Archonexus.Reform.DetailsRegion>
+
+  <!-- Screen 4 sub-dialog — assign colonists (ArchonexusConvertColonistsState).
+       OpenInstructions: appended after the vanilla dialog title, description,
+         and pawn count.
+       SpaceOrEnterToConvert: the keyboard hint in the opening announcement. -->
+  <RimWorldAccess.Archonexus.Convert.OpenInstructions>Die Leertaste oder Enter wählt die Person zum Bekehren aus oder ab. Escape schließt die Liste, wenn du fertig bist.</RimWorldAccess.Archonexus.Convert.OpenInstructions>
+
+  <!-- Convert-colonists checkbox: Selected/NotSelected retired (Task 8 packet F) — the
+       checked/unchecked state now rides the composer's own Checkbox state word.
+       CurrentlyFollowing is the one piece NotSelectedCurrently carried that the state
+       word alone cannot: which ideoligion an unconverted colonist keeps. {0} = ideoligion name. -->
+  <RimWorldAccess.Archonexus.Convert.CurrentlyFollowing>Aktuelle Ideologie: {0}</RimWorldAccess.Archonexus.Convert.CurrentlyFollowing>
+
+  <!-- Colony-selection section header: how many things are selected out of the
+       section's maximum ({0} = selected count, {1} = maximum). Not a cursor
+       position, so it does not reuse Menu.Position. -->
+  <RimWorldAccess.Archonexus.Colony.CountOfMax>{0} von {1}</RimWorldAccess.Archonexus.Colony.CountOfMax>
+
+</LanguageData>

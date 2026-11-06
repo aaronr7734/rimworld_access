@@ -1,0 +1,868 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Character Editor mod compatibility strings (src/Compat/CharacterEditor/).
+    The bespoke screen for the mod's editor window: a strip of prefix rows over
+    one sectioned tree. Only OUR OWN wording lives here. Everything the mod
+    itself names is read live at runtime instead: its tab labels come from
+    vanilla keys (TabLog, TabRecords) or from the mod's own eight-language
+    Label table (its Info tab), its list sources are the keys of its own
+    faction dictionary, and pawn kinds and factions are resolved def labels.
+  -->
+
+  <!-- The two typed content components, mirroring the mod's own two upper
+       zones: its pawn list, and its tab strip with the current tab's body.
+       The third component, the toolbar, is named by the shared shell. -->
+  <RimWorldAccess.CharEd.SelectionRegion>Personenauswahl</RimWorldAccess.CharEd.SelectionRegion>
+  <RimWorldAccess.CharEd.EditorRegion>Character Editor</RimWorldAccess.CharEd.EditorRegion>
+
+  <!-- Spoken once when the editor takes focus. {0} = the edited pawn, in the
+       same name, kind, faction, dead form the pawn row uses. -->
+  <RimWorldAccess.CharEd.Opened>Character Editor. Du bearbeitest {0}.</RimWorldAccess.CharEd.Opened>
+
+  <!-- Prefix row labels. The edited pawn and the list source are combo rows
+       (Enter opens a picker; Left and Right do not change a combo box); the
+       other two are checkboxes whose state the composer speaks. -->
+  <RimWorldAccess.CharEd.EditingPawn>Bearbeitete Person</RimWorldAccess.CharEd.EditingPawn>
+  <RimWorldAccess.CharEd.ListSource>Liste</RimWorldAccess.CharEd.ListSource>
+  <RimWorldAccess.CharEd.OnMapFilter>Nur Personen auf dieser Karte</RimWorldAccess.CharEd.OnMapFilter>
+  <RimWorldAccess.CharEd.CreationMode>Erstellungsmodus</RimWorldAccess.CharEd.CreationMode>
+
+  <!-- Slice S9: the world-gen-only starting-count stepper (player faction only,
+       mirrors BlockPawnList.DrawListCount's own gate). {0} = current count,
+       {1} = roster size (the mod's own "max N" ceiling). -->
+  <RimWorldAccess.CharEd.StartingCount>Anzahl Startcharaktere</RimWorldAccess.CharEd.StartingCount>
+  <!-- {0} = how many pawns beyond the count are in reserve. -->
+  <RimWorldAccess.CharEd.StartingCountReserveHint>{0} weitere in Reserve.</RimWorldAccess.CharEd.StartingCountReserveHint>
+  <!-- Appended to a pawn's spoken name wherever the edited-pawn row or its
+       picker names a starting-roster pawn beyond the count (mirrors the mod's
+       own white-instead-of-faction-color render, CEditor.cs:6870). -->
+  <RimWorldAccess.CharEd.ReserveTag>Reserve</RimWorldAccess.CharEd.ReserveTag>
+
+  <!-- Spoken after previous or next pawn is run from the Buttons region, where
+       the cursor is on a button rather than the pawn row, so the new pawn is
+       named in full. {0} = the pawn. -->
+  <RimWorldAccess.CharEd.SwitchedPawn>Du bearbeitest jetzt {0}.</RimWorldAccess.CharEd.SwitchedPawn>
+
+  <!-- Empty states: the editor holding no pawn at all, and a list source that
+       currently matches nobody. -->
+  <RimWorldAccess.CharEd.NoPawn>Keine Person ausgewählt</RimWorldAccess.CharEd.NoPawn>
+  <RimWorldAccess.CharEd.NoPawnsInList>Diese Liste enthält keine Personen.</RimWorldAccess.CharEd.NoPawnsInList>
+
+  <!-- QA session 5: data groups summarize their CONTENT instead of counting
+       control rows ("Traits, 6 items" counted Copy/Paste). SummaryMore caps
+       the list; SummaryEmpty replaces a phantom count of tool buttons.
+       QA session 6 retired the count idiom entirely (SectionWithCountOne/Many
+       deleted; drop them from the other languages in the next delta-sync). -->
+  <RimWorldAccess.CharEd.SummaryMore>und {0} weitere</RimWorldAccess.CharEd.SummaryMore>
+  <RimWorldAccess.CharEd.SummaryEmpty>leer</RimWorldAccess.CharEd.SummaryEmpty>
+
+  <!-- A read-only row pairing a name with its value: a stat, a record.
+       {0} = label, {1} = value. -->
+  <RimWorldAccess.CharEd.LabelledValue>{0}: {1}</RimWorldAccess.CharEd.LabelledValue>
+
+  <!-- Shared one-word outcome utterances, reused across sections and dialogs for the plain
+       "saved" / "removed" feedback that carries no per-call-site distinction. -->
+  <RimWorldAccess.CharEd.Saved>Gespeichert.</RimWorldAccess.CharEd.Saved>
+  <RimWorldAccess.CharEd.Removed>Entfernt.</RimWorldAccess.CharEd.Removed>
+
+  <!-- Section empty states. The Log section reuses vanilla's own
+       NoRecentEntries, so it has no key of its own. -->
+  <RimWorldAccess.CharEd.NoStats>Keine Statistiken für diese Person.</RimWorldAccess.CharEd.NoStats>
+  <RimWorldAccess.CharEd.NoRecords>Keine Aufzeichnungen für diese Person.</RimWorldAccess.CharEd.NoRecords>
+
+  <!-- The two pawn-switching commands. These are the rebindable actions'
+       labels in the key-binding list AND the Buttons region rows' labels, so
+       the command reads the same in both places. -->
+  <RimWorldAccess.Shell.Action.CharEditor.PreviousPawn>Vorherige Person</RimWorldAccess.Shell.Action.CharEditor.PreviousPawn>
+  <RimWorldAccess.Shell.Action.CharEditor.NextPawn>Nächste Person</RimWorldAccess.Shell.Action.CharEditor.NextPawn>
+
+  <!--
+    Slice S1b: the Character section (Name, Age, Backstory, Incapable of,
+    Traits, Skills) and the shared Add Trait / Change Backstory browser
+    screen. The mod's own concepts (Traits, Skills, Childhood, Adulthood,
+    Incapable of, first/nick/last name, Copy, Paste, Randomize, Remove, OK,
+    Cancel) reuse vanilla's own Keyed strings rather than re-translating
+    words RimWorld already names; only OUR OWN wording is minted here.
+  -->
+
+  <!-- The two rebindable Character-section commands. Space claims
+       cyclePassion contextually (only on a skill row); Delete claims
+       removeTrait contextually (only on a trait row). -->
+  <!-- Slice S2 widens this SAME claim to also remove an ability row under the cursor
+       (charEditor.removeTrait is reused, not re-registered under a new id), so the wording
+       now covers both. -->
+
+  <!-- Subsection names. -->
+  <RimWorldAccess.CharEd.Character.NameSection>Name</RimWorldAccess.CharEd.Character.NameSection>
+  <RimWorldAccess.CharEd.Character.AgeSection>Alter</RimWorldAccess.CharEd.Character.AgeSection>
+  <RimWorldAccess.CharEd.Character.BackstorySection>Vorgeschichte</RimWorldAccess.CharEd.Character.BackstorySection>
+
+  <!-- Name rows. Single-named creatures get one field instead of the
+       first/nick/last triple; {0} is the pawn's full resolved name after a
+       randomize or a text-edit session exits. -->
+  <RimWorldAccess.CharEd.Character.RandomizeName>Zufälliger Name</RimWorldAccess.CharEd.Character.RandomizeName>
+  <RimWorldAccess.CharEd.Character.RandomizeNameFull>Zufälliger vordefinierter Name</RimWorldAccess.CharEd.Character.RandomizeNameFull>
+  <RimWorldAccess.CharEd.Character.NameChanged>Name geändert: {0}.</RimWorldAccess.CharEd.Character.NameChanged>
+  <RimWorldAccess.CharEd.Character.NoRoyalTitle>Kein Adelstitel</RimWorldAccess.CharEd.Character.NoRoyalTitle>
+
+  <!-- Age rows. -->
+  <RimWorldAccess.CharEd.Character.AgeBiological>Biologisches Alter</RimWorldAccess.CharEd.Character.AgeBiological>
+  <RimWorldAccess.CharEd.Character.AgeChronological>Chronologisches Alter</RimWorldAccess.CharEd.Character.AgeChronological>
+
+  <!-- Backstory rows: one random-dice action per slot (the mod draws two
+       independent dice buttons, one on each row, not a single shared one). -->
+  <RimWorldAccess.CharEd.Character.RandomizeChildhood>Zufällige Kindheits-Vorgeschichte</RimWorldAccess.CharEd.Character.RandomizeChildhood>
+  <RimWorldAccess.CharEd.Character.RandomizeAdulthood>Zufällige Erwachsenen-Vorgeschichte</RimWorldAccess.CharEd.Character.RandomizeAdulthood>
+
+  <!-- Traits/Skills action rows and feedback. -->
+  <RimWorldAccess.CharEd.Character.AddTrait>Merkmal hinzufügen</RimWorldAccess.CharEd.Character.AddTrait>
+  <RimWorldAccess.CharEd.Character.NothingToPaste>Noch nichts kopiert</RimWorldAccess.CharEd.Character.NothingToPaste>
+  <RimWorldAccess.CharEd.Character.TraitsCopied>Merkmale kopiert.</RimWorldAccess.CharEd.Character.TraitsCopied>
+  <RimWorldAccess.CharEd.Character.SkillsCopied>Fertigkeiten kopiert.</RimWorldAccess.CharEd.Character.SkillsCopied>
+  <RimWorldAccess.CharEd.Character.SkillDisabled>Gesperrt</RimWorldAccess.CharEd.Character.SkillDisabled>
+
+  <!-- The colored background bar behind a skill's level, spoken as a signed
+       offset fragment. {0} = the absolute amount. -->
+  <RimWorldAccess.CharEd.Character.PlusFromBackground>Plus {0} durch Vorgeschichte, Merkmale und Gene</RimWorldAccess.CharEd.Character.PlusFromBackground>
+  <RimWorldAccess.CharEd.Character.MinusFromBackground>Minus {0} durch Vorgeschichte, Merkmale und Gene</RimWorldAccess.CharEd.Character.MinusFromBackground>
+
+  <!-- The shared Add Trait / Change Backstory browser screen
+       (CharEditorBrowserScope). -->
+  <RimWorldAccess.CharEd.Browser.FiltersRegion>Filter</RimWorldAccess.CharEd.Browser.FiltersRegion>
+  <RimWorldAccess.CharEd.Browser.ResultsRegion>Ergebnisse</RimWorldAccess.CharEd.Browser.ResultsRegion>
+  <!-- Only present for adapters that declare parameter rows (the Objects browser). -->
+  <RimWorldAccess.CharEd.Browser.ParametersRegion>Parameter</RimWorldAccess.CharEd.Browser.ParametersRegion>
+  <RimWorldAccess.CharEd.Browser.ChangesApplyOnConfirm>Änderungen gelten, sobald du bestätigst.</RimWorldAccess.CharEd.Browser.ChangesApplyOnConfirm>
+
+  <!-- QA session 5: picks are named (Enter/Space on a Results row stages the
+       mod's deferred choice); PickedAdded is reserved for an adapter whose
+       pick IS the grant (none today, see ICharEditorBrowserAdapter.
+       PickCommitsAdd). Filter changes append the live result count so a
+       filter that empties the list is heard, and confirming with nothing
+       staged says so instead of closing silently. -->
+  <RimWorldAccess.CharEd.Browser.PickedSelected>{0} ausgewählt.</RimWorldAccess.CharEd.Browser.PickedSelected>
+  <RimWorldAccess.CharEd.Browser.PickedAdded>{0} hinzugefügt.</RimWorldAccess.CharEd.Browser.PickedAdded>
+  <RimWorldAccess.CharEd.Browser.ResultCountOne>1 Ergebnis.</RimWorldAccess.CharEd.Browser.ResultCountOne>
+  <RimWorldAccess.CharEd.Browser.ResultCountMany>{0} Ergebnisse.</RimWorldAccess.CharEd.Browser.ResultCountMany>
+  <RimWorldAccess.CharEd.Browser.ResultCountNone>Keine Ergebnisse.</RimWorldAccess.CharEd.Browser.ResultCountNone>
+  <RimWorldAccess.CharEd.Browser.ConfirmedEmpty>Geschlossen. Nichts ausgewählt.</RimWorldAccess.CharEd.Browser.ConfirmedEmpty>
+  <RimWorldAccess.CharEd.Browser.ModNameFilter>Mod</RimWorldAccess.CharEd.Browser.ModNameFilter>
+  <RimWorldAccess.CharEd.Browser.StatModifierFilter>Wertänderung</RimWorldAccess.CharEd.Browser.StatModifierFilter>
+  <RimWorldAccess.CharEd.Browser.CategoryFilter>Kategorie</RimWorldAccess.CharEd.Browser.CategoryFilter>
+  <RimWorldAccess.CharEd.Browser.NoBlockingSkills>Keine deaktivierten Fertigkeiten</RimWorldAccess.CharEd.Browser.NoBlockingSkills>
+  <RimWorldAccess.CharEd.Browser.SkillGainFilter>Fertigkeitsbonus</RimWorldAccess.CharEd.Browser.SkillGainFilter>
+  <RimWorldAccess.CharEd.Browser.SumFilter>Summe</RimWorldAccess.CharEd.Browser.SumFilter>
+  <RimWorldAccess.CharEd.Browser.Randomize>Zufällig</RimWorldAccess.CharEd.Browser.Randomize>
+  <RimWorldAccess.CharEd.Browser.RemoveBackstoryUnavailable>nur bei einer Kindheits-Vorgeschichte möglich, solange die Person jünger als drei Jahre ist</RimWorldAccess.CharEd.Browser.RemoveBackstoryUnavailable>
+  <!-- Fallback only: used if the mod's own Label.ALL cannot be resolved. -->
+  <RimWorldAccess.CharEd.Browser.AllOption>Alle</RimWorldAccess.CharEd.Browser.AllOption>
+
+  <!--
+    Slice S2: Character tab completion (Abilities, Psycasts, Identity, Recruit/Enslave,
+    Training) plus five new dialogs (Add Ability, Change Race, Change Faction, Find Pawn,
+    Birthday). As before, the mod's own concepts reuse vanilla's Keyed strings wherever one
+    already exists (Faction, Master, Trainability, ViewGenes, XenotypeEditor,
+    StatsReport_Ideoligion, TrainingNeedsPrerequisite); only OUR OWN wording is minted here.
+  -->
+
+  <RimWorldAccess.CharEd.Character.Birthday>Geburtstag...</RimWorldAccess.CharEd.Character.Birthday>
+  <!-- Opens DialogChangeRace; lives in the Name subsection because that is where the mod itself
+       draws its own race-description button (BlockBio.AConfirmRaceChange, next to the name/age
+       description), not inside the Identity strip. -->
+  <RimWorldAccess.CharEd.Character.ChangeRace>Rasse ändern...</RimWorldAccess.CharEd.Character.ChangeRace>
+
+  <!-- Abilities. -->
+  <RimWorldAccess.CharEd.Character.AbilitiesSection>Fähigkeiten</RimWorldAccess.CharEd.Character.AbilitiesSection>
+  <RimWorldAccess.CharEd.Character.AddAbility>Fähigkeit hinzufügen</RimWorldAccess.CharEd.Character.AddAbility>
+  <RimWorldAccess.CharEd.Character.AbilitiesCopied>Fähigkeiten kopiert.</RimWorldAccess.CharEd.Character.AbilitiesCopied>
+
+  <!-- Psycasts. "Neural heat"/"Psyfocus" match this mod's own existing wording for the same
+       vanilla concepts (RimWorldAccess_Inspection.xml, RimWorldAccess_Abilities.xml). -->
+  <RimWorldAccess.CharEd.Character.PsycastsSection>Mentale Kräfte</RimWorldAccess.CharEd.Character.PsycastsSection>
+  <RimWorldAccess.CharEd.Character.NeuralHeat>Neuralhitze</RimWorldAccess.CharEd.Character.NeuralHeat>
+  <RimWorldAccess.CharEd.Character.Psyfocus>Psyfokus</RimWorldAccess.CharEd.Character.Psyfocus>
+  <!-- {0} = current value, {1} = maximum, both pre-formatted with one decimal place. -->
+  <RimWorldAccess.CharEd.Character.ValueOfMax>{0} von {1}</RimWorldAccess.CharEd.Character.ValueOfMax>
+
+  <!-- Identity. -->
+  <RimWorldAccess.CharEd.Character.IdentitySection>Identität</RimWorldAccess.CharEd.Character.IdentitySection>
+  <RimWorldAccess.CharEd.Character.FavoriteColor>Lieblingsfarbe</RimWorldAccess.CharEd.Character.FavoriteColor>
+  <RimWorldAccess.CharEd.Character.Mutant>Mutant</RimWorldAccess.CharEd.Character.Mutant>
+  <RimWorldAccess.CharEd.Character.RoyalTitleRow>Adelstitel</RimWorldAccess.CharEd.Character.RoyalTitleRow>
+  <!-- {0} = the ideoligion's own certainty percentage. -->
+  <RimWorldAccess.CharEd.Character.Certainty>Glaube: {0}</RimWorldAccess.CharEd.Character.Certainty>
+  <!-- Spoken once after a Mutant selection, since OnChangeMutant applies with no confirm step. -->
+  <RimWorldAccess.CharEd.Character.AppliesImmediately>Wird sofort angewendet.</RimWorldAccess.CharEd.Character.AppliesImmediately>
+
+  <!-- Recruit/Enslave: the mod applies instantly with no confirm and bypasses vanilla's
+       resistance flow entirely (dossier surprise 4); the row description says plainly what it
+       does, matching "present everything, editorialize nothing". {0} = the pawn. -->
+  <RimWorldAccess.CharEd.Character.Recruit>Rekrutieren</RimWorldAccess.CharEd.Character.Recruit>
+  <RimWorldAccess.CharEd.Character.RecruitDesc>Rekrutiert diese Person sofort in die Kolonie, ohne die üblichen Rekrutierungsversuche.</RimWorldAccess.CharEd.Character.RecruitDesc>
+  <RimWorldAccess.CharEd.Character.Recruited>{0} rekrutiert.</RimWorldAccess.CharEd.Character.Recruited>
+  <RimWorldAccess.CharEd.Character.Enslave>Versklaven</RimWorldAccess.CharEd.Character.Enslave>
+  <RimWorldAccess.CharEd.Character.EnslaveDesc>Versklavt diese Person sofort.</RimWorldAccess.CharEd.Character.EnslaveDesc>
+  <RimWorldAccess.CharEd.Character.Enslaved>{0} versklavt.</RimWorldAccess.CharEd.Character.Enslaved>
+
+  <!-- Training (trainable animals). {0} = current steps, {1} = steps needed. -->
+  <RimWorldAccess.CharEd.Character.TrainingSection>Training</RimWorldAccess.CharEd.Character.TrainingSection>
+  <RimWorldAccess.CharEd.Character.TrainingSteps>{0} von {1} Schritten</RimWorldAccess.CharEd.Character.TrainingSteps>
+
+
+  <!-- The Add Ability browser screen. -->
+  <RimWorldAccess.CharEd.Browser.LevelFilter>Stufe</RimWorldAccess.CharEd.Browser.LevelFilter>
+
+  <!-- The Change Race browser screen. -->
+  <RimWorldAccess.CharEd.Browser.ChangeRaceTitle>Rasse ändern</RimWorldAccess.CharEd.Browser.ChangeRaceTitle>
+  <RimWorldAccess.CharEd.Browser.RaceFilter>Rasse</RimWorldAccess.CharEd.Browser.RaceFilter>
+  <RimWorldAccess.CharEd.Browser.ChangeRace.RaceSpecificDress>Rassenspezifische Kleidung behalten</RimWorldAccess.CharEd.Browser.ChangeRace.RaceSpecificDress>
+  <!-- {0} = the kind's own label, {1} = the mod (or def name) it comes from, only shown when 2+ results share a label. -->
+  <RimWorldAccess.CharEd.Browser.KindFromMod>{0} aus {1}</RimWorldAccess.CharEd.Browser.KindFromMod>
+
+  <!-- The Change Faction browser screen. {0} = the pawn's current faction name (or lack of one, when the row is absent). -->
+  <RimWorldAccess.CharEd.Browser.ChangeFactionTitle>Fraktion ändern</RimWorldAccess.CharEd.Browser.ChangeFactionTitle>
+  <RimWorldAccess.CharEd.Browser.ChangeFaction.RenameRow>Fraktion umbenennen: {0}</RimWorldAccess.CharEd.Browser.ChangeFaction.RenameRow>
+  <RimWorldAccess.CharEd.Browser.ChangeFaction.RenameLabel>Fraktionsname</RimWorldAccess.CharEd.Browser.ChangeFaction.RenameLabel>
+
+  <!-- Slice S3b: the Objects browser (DialogObjects, Apparel/Weapon modes) joining the shared
+       CharEditorBrowserScope via ObjectsAdapter. The Mode row is read-only this slice (the live
+       in-dialog Object/Weapon/Apparel switcher is out of scope); other filter/parameter labels
+       are read live off the mod's own Label class (LayerLabel, QualityLabel, etc.) rather than
+       minted here. -->
+  <RimWorldAccess.CharEd.Browser.Objects.ModeFilter>Modus</RimWorldAccess.CharEd.Browser.Objects.ModeFilter>
+  <RimWorldAccess.CharEd.Browser.Objects.WeaponTypeFilter>Waffentyp</RimWorldAccess.CharEd.Browser.Objects.WeaponTypeFilter>
+  <!-- Slice S10b: placing mode (DialogObjects.APlacingMode/ARotate/ADestroy) and Buy
+       (DialogObjects.ABuy), both riding the mod's own map-click DebugTool family now that
+       DevToolTargeting bridges every armed tool to the shell's keyboard map cursor. Rotate reuses
+       the existing RimWorldAccess.CharEd.Actions.RotatedTo key; Destroy reads the mod's own live
+       Label.DESTROY string rather than minting a duplicate here. -->
+  <RimWorldAccess.CharEd.Objects.ActivatePlacingMode>Platzierungsmodus aktivieren</RimWorldAccess.CharEd.Objects.ActivatePlacingMode>
+  <!-- Placing mode arms no DebugTool by itself, so this is the one action in the family that gets
+       its own outcome phrase rather than relying on DevToolTargeting's arm mirror. -->
+  <RimWorldAccess.CharEd.Objects.PlacingModeOn>Platzierungsmodus aktiv. Wähle ein Objekt aus und bestätige die Auswahl. Danach platzierst du es am Kartencursor.</RimWorldAccess.CharEd.Objects.PlacingModeOn>
+  <RimWorldAccess.CharEd.Objects.RotatePlacing>Platzierung drehen</RimWorldAccess.CharEd.Objects.RotatePlacing>
+
+  <!-- The Find Pawn browser screen. Selection switches the edited pawn IMMEDIATELY (dossier
+       surprise 14), unlike every other browser screen here, so its entry announcement replaces
+       the shared deferred-commit notice rather than reusing it. -->
+  <RimWorldAccess.CharEd.Browser.FindPawnTitle>Person suchen</RimWorldAccess.CharEd.Browser.FindPawnTitle>
+  <RimWorldAccess.CharEd.Browser.FindPawn.SelectingSwitches>Deine Auswahl wechselt sofort die bearbeitete Person.</RimWorldAccess.CharEd.Browser.FindPawn.SelectingSwitches>
+
+  <!-- The Birthday dialog scope (CharEditorBirthdayScope), a small dedicated scope, not the
+       shared browser. -->
+  <RimWorldAccess.CharEd.Birthday.FieldsRegion>Geburtstag</RimWorldAccess.CharEd.Birthday.FieldsRegion>
+  <!-- Spoken once on Confirm only when the submitted biological year is under 18; the mod's own
+       rule (DialogChangeBirthday.DoAndClose) clears the adulthood backstory in that case. -->
+  <RimWorldAccess.CharEd.Birthday.ClearsAdulthood>Erwachsenen-Vorgeschichte entfernt. Unter 18 Jahren gibt es keine Erwachsenen-Vorgeschichte.</RimWorldAccess.CharEd.Birthday.ClearsAdulthood>
+
+  <!--
+    Slice S3a: the Appearance tree section (Hair, Head, Torso, Apparel, Weapons) and the
+    DialogColorPicker scope (CharEditorColorScope) it opens into. BlockPerson draws no zone label
+    of its own (a fixed column, never a tab), so the section header is minted rather than read live.
+    The mod's own concepts reuse vanilla's Keyed strings wherever one already exists (Beard, Apparel,
+    Randomize, None, Dead); only OUR OWN wording is minted here.
+  -->
+
+  <RimWorldAccess.CharEd.Appearance>Aussehen</RimWorldAccess.CharEd.Appearance>
+
+  <!-- Hair subsection. The hairstyle row's own label reuses RimWorldAccess.CharEd.Appearance.HairSection
+       (same "Hair" text, same plain-label role). -->
+  <RimWorldAccess.CharEd.Appearance.HairSection>Frisur</RimWorldAccess.CharEd.Appearance.HairSection>
+  <RimWorldAccess.CharEd.Appearance.HairColor>Haarfarbe</RimWorldAccess.CharEd.Appearance.HairColor>
+  <RimWorldAccess.CharEd.Appearance.HairColorA>Haarfarbe A</RimWorldAccess.CharEd.Appearance.HairColorA>
+  <!-- Only present when the Gradient Hair mod is active (dossier's corrected finding: gated by
+       Gradient Hair, not by alien race). -->
+  <RimWorldAccess.CharEd.Appearance.HairColorB>Haarfarbe B</RimWorldAccess.CharEd.Appearance.HairColorB>
+  <RimWorldAccess.CharEd.Appearance.GradientMask>Verlaufsmaske</RimWorldAccess.CharEd.Appearance.GradientMask>
+
+  <!-- Head subsection. The vanilla Head row reuses BodyPartDefOf.Head's own label instead of a key
+       here; the six Facial Stuff morph rows (only present with that mod's HeadControllerComp) and
+       the two eye-color rows it alone gates on need their own wording since the mod has no vanilla
+       key for any of them. -->
+  <RimWorldAccess.CharEd.Appearance.HeadSection>Kopf</RimWorldAccess.CharEd.Appearance.HeadSection>
+  <RimWorldAccess.CharEd.Appearance.FaceTattoo>Gesichtstattoo</RimWorldAccess.CharEd.Appearance.FaceTattoo>
+  <RimWorldAccess.CharEd.Appearance.FacialHead>Kopfform</RimWorldAccess.CharEd.Appearance.FacialHead>
+  <RimWorldAccess.CharEd.Appearance.FacialEye>Augenform</RimWorldAccess.CharEd.Appearance.FacialEye>
+  <RimWorldAccess.CharEd.Appearance.EyeColor1>Augenfarbe</RimWorldAccess.CharEd.Appearance.EyeColor1>
+  <RimWorldAccess.CharEd.Appearance.EyeColor2>Augenfarbe 2</RimWorldAccess.CharEd.Appearance.EyeColor2>
+  <RimWorldAccess.CharEd.Appearance.FacialLid>Augenlid</RimWorldAccess.CharEd.Appearance.FacialLid>
+  <RimWorldAccess.CharEd.Appearance.FacialBrow>Augenbraue</RimWorldAccess.CharEd.Appearance.FacialBrow>
+  <RimWorldAccess.CharEd.Appearance.FacialMouth>Mundform</RimWorldAccess.CharEd.Appearance.FacialMouth>
+  <RimWorldAccess.CharEd.Appearance.FacialSkin>Gesichtsform</RimWorldAccess.CharEd.Appearance.FacialSkin>
+  <!-- Slice S3b: alien-race-only (HAR body-addon system), gated on isAlien same as the mod's own
+       "bheadaddon" icon. Opens DialogChangeHeadAddons. -->
+  <RimWorldAccess.CharEd.Appearance.HeadAddons>Kopf-Addons...</RimWorldAccess.CharEd.Appearance.HeadAddons>
+
+  <!-- Torso subsection. Body and the plain "Skin color" row reuse BodyPartDefOf.Torso's own label
+       and mint one key respectively; the alien-race dual channels get their own wording. -->
+  <RimWorldAccess.CharEd.Appearance.TorsoSection>Torso</RimWorldAccess.CharEd.Appearance.TorsoSection>
+  <RimWorldAccess.CharEd.Appearance.SkinColor>Hautfarbe</RimWorldAccess.CharEd.Appearance.SkinColor>
+  <RimWorldAccess.CharEd.Appearance.SkinColorA>Hautfarbe A</RimWorldAccess.CharEd.Appearance.SkinColorA>
+  <RimWorldAccess.CharEd.Appearance.SkinColorB>Hautfarbe B</RimWorldAccess.CharEd.Appearance.SkinColorB>
+  <RimWorldAccess.CharEd.Appearance.BodyTattoo>Körpertattoo</RimWorldAccess.CharEd.Appearance.BodyTattoo>
+
+  <!-- Apparel/Weapons subsections. The section headers reuse vanilla's own "Apparel" key; Weapons
+       has no equivalent vanilla key. -->
+  <RimWorldAccess.CharEd.Appearance.WeaponsSection>Waffen</RimWorldAccess.CharEd.Appearance.WeaponsSection>
+
+  <!-- Preview subsection: the mod's own portrait-view toggles (show clothes, show hats, rotate),
+       which change what the drawn portrait shows rather than the pawn. -->
+  <RimWorldAccess.CharEd.Appearance.PreviewSection>Vorschau</RimWorldAccess.CharEd.Appearance.PreviewSection>
+
+  <!-- Apparel/Weapon drill-in menu (Enter on either row, or Alt+I from anywhere on the row). -->
+  <RimWorldAccess.CharEd.Appearance.EditColor>Farbe bearbeiten...</RimWorldAccess.CharEd.Appearance.EditColor>
+  <RimWorldAccess.CharEd.Appearance.NextKeepColor>Nächstes Kleidungsstück, Farbe behalten</RimWorldAccess.CharEd.Appearance.NextKeepColor>
+  <RimWorldAccess.CharEd.Appearance.NextRandomColor>Nächstes Kleidungsstück, zufällige Farbe</RimWorldAccess.CharEd.Appearance.NextRandomColor>
+  <RimWorldAccess.CharEd.Appearance.NextRandomAlpha>Nächstes Kleidungsstück, zufällige Farbe und Transparenz</RimWorldAccess.CharEd.Appearance.NextRandomAlpha>
+  <!-- Slice S3b: opens DialogObjects preloaded in the matching mode for the row's item, via the
+       row's own texture-button opener. -->
+  <RimWorldAccess.CharEd.Appearance.Replace>Ersetzen...</RimWorldAccess.CharEd.Appearance.Replace>
+
+  <!-- Randomize drill-in (Alt+I), creation mode only: mirrors the mod's own dice button, which
+       only draws under the same gate. Reuses RimWorldAccess.CharEd.Browser.Randomize for the
+       plain "Randomize" option since both share the same spoken role. -->
+  <RimWorldAccess.CharEd.Appearance.NoDrillIn>Hier gibt es nur im Erstellungsmodus etwas zu tun.</RimWorldAccess.CharEd.Appearance.NoDrillIn>
+  <RimWorldAccess.CharEd.Appearance.RandomizeAlpha>Zufällig, auch die Transparenz</RimWorldAccess.CharEd.Appearance.RandomizeAlpha>
+  <!-- Hair's own dice button doubles as a hair-and-color randomizer when Alt or Ctrl is held
+       (dossier 1.1); these two promote that chord to discrete options. -->
+  <RimWorldAccess.CharEd.Appearance.RandomizeAlsoColor>Frisur und Haarfarbe zufällig wählen</RimWorldAccess.CharEd.Appearance.RandomizeAlsoColor>
+  <RimWorldAccess.CharEd.Appearance.RandomizeAlsoColorAlpha>Frisur, Haarfarbe und Transparenz zufällig wählen</RimWorldAccess.CharEd.Appearance.RandomizeAlsoColorAlpha>
+
+  <!--
+    The DialogColorPicker scope (CharEditorColorScope). Serves nine modes; this campaign reaches
+    hair, skin, eye, apparel, and weapon from the Appearance tree, and favorite color from the
+    Character tab's Identity row (S2, reusing RimWorldAccess.CharEd.Character.FavoriteColor and
+    .AppliesImmediately rather than a second copy of either).
+  -->
+  <!-- Hair/Skin/Eye titles reuse RimWorldAccess.CharEd.Appearance.HairColor / .SkinColor /
+       .EyeColor1 (same spoken role, same English text). -->
+  <RimWorldAccess.CharEd.Color.ApparelTitle>Kleidungsfarbe</RimWorldAccess.CharEd.Color.ApparelTitle>
+  <RimWorldAccess.CharEd.Color.WeaponTitle>Waffenfarbe</RimWorldAccess.CharEd.Color.WeaponTitle>
+  <!-- The three Biotech gene-color modes (GeneColorHair/SkinBase/SkinOverride) are not reachable
+       from the Appearance tree this slice; their own dedicated dialogs are a later-slice item,
+       but the scope still needs a generic title since one registration serves every mode. -->
+  <RimWorldAccess.CharEd.Color.GeneTitle>Genfarbe</RimWorldAccess.CharEd.Color.GeneTitle>
+
+  <RimWorldAccess.CharEd.Color.ValuesRegion>Werte</RimWorldAccess.CharEd.Color.ValuesRegion>
+  <RimWorldAccess.CharEd.Color.PaletteRegion>Farbpalette</RimWorldAccess.CharEd.Color.PaletteRegion>
+  <RimWorldAccess.CharEd.Color.ChannelRegion>Kanal</RimWorldAccess.CharEd.Color.ChannelRegion>
+  <RimWorldAccess.CharEd.Color.GenesRegion>Gene</RimWorldAccess.CharEd.Color.GenesRegion>
+  <RimWorldAccess.CharEd.Color.ExtrasRegion>Sonstiges</RimWorldAccess.CharEd.Color.ExtrasRegion>
+
+  <RimWorldAccess.CharEd.Color.Red>Rot</RimWorldAccess.CharEd.Color.Red>
+  <RimWorldAccess.CharEd.Color.Green>Grün</RimWorldAccess.CharEd.Color.Green>
+  <RimWorldAccess.CharEd.Color.Blue>Blau</RimWorldAccess.CharEd.Color.Blue>
+  <RimWorldAccess.CharEd.Color.Alpha>Alpha</RimWorldAccess.CharEd.Color.Alpha>
+  <RimWorldAccess.CharEd.Color.MinBrightness>Mindesthelligkeit für Zufallsfarben</RimWorldAccess.CharEd.Color.MinBrightness>
+  <RimWorldAccess.CharEd.Color.MaxBrightness>Höchsthelligkeit für Zufallsfarben</RimWorldAccess.CharEd.Color.MaxBrightness>
+  <!-- Dossier surprise 7: this one slider retints the shared 52-swatch palette process-wide,
+       including in any OTHER open color picker, so present that honestly rather than silently. -->
+  <RimWorldAccess.CharEd.Color.MaxBrightnessAffectsPalette>Wirkt sich auch auf die gemeinsame Farbpalette aus.</RimWorldAccess.CharEd.Color.MaxBrightnessAffectsPalette>
+
+  <!-- {0} = the current value, "R,G,B,A" (0-255) for the RGBA row, 6 hex digits for the Hex row. -->
+  <RimWorldAccess.CharEd.Color.RgbaRow>RGBA: {0}</RimWorldAccess.CharEd.Color.RgbaRow>
+  <RimWorldAccess.CharEd.Color.HexRow>Hex: {0}</RimWorldAccess.CharEd.Color.HexRow>
+  <RimWorldAccess.CharEd.Color.RgbaFieldLabel>RGBA-Werte, Rot, Grün, Blau, Alpha, 0 bis 255, durch Kommas getrennt</RimWorldAccess.CharEd.Color.RgbaFieldLabel>
+  <RimWorldAccess.CharEd.Color.HexFieldLabel>Hex-Farbe, 6 Stellen</RimWorldAccess.CharEd.Color.HexFieldLabel>
+  <RimWorldAccess.CharEd.Color.InvalidRgba>Ungültige Eingabe. Gib vier Werte von 0 bis 255 ein, durch Kommas getrennt.</RimWorldAccess.CharEd.Color.InvalidRgba>
+  <RimWorldAccess.CharEd.Color.InvalidHex>Das ist keine gültige Hex-Farbe.</RimWorldAccess.CharEd.Color.InvalidHex>
+
+  <RimWorldAccess.CharEd.Color.ChannelA>Farbe A</RimWorldAccess.CharEd.Color.ChannelA>
+  <RimWorldAccess.CharEd.Color.ChannelB>Farbe B</RimWorldAccess.CharEd.Color.ChannelB>
+
+  <!-- Gene swatch rows (Biotech only). These are REAL gene mutations (dossier surprise 9), not
+       color previews: labeled plainly rather than as a color pick. {0} = the gene's label. -->
+  <RimWorldAccess.CharEd.Color.AdoptGene>{0}: Farbe übernehmen und Gen an die erste Stelle setzen</RimWorldAccess.CharEd.Color.AdoptGene>
+  <RimWorldAccess.CharEd.Color.AddClosestGene>Ähnlichste Farbe als neues Gen hinzufügen: {0}</RimWorldAccess.CharEd.Color.AddClosestGene>
+  <RimWorldAccess.CharEd.Color.GeneAdopted>Farbe übernommen: {0}.</RimWorldAccess.CharEd.Color.GeneAdopted>
+  <RimWorldAccess.CharEd.Color.GeneAdded>Gen hinzugefügt.</RimWorldAccess.CharEd.Color.GeneAdded>
+  <!-- Removal feedback reuses RimWorldAccess.CharEd.XenoGenes.GeneRemoved (same spoken role,
+       same English text). -->
+
+  <!--
+    Slice S3b: the DialogChangeHeadAddons scope (CharEditorHeadAddonsScope), a small dedicated
+    scope over the HAR body-addon panel, opened from the Head subsection's "Head addons..." row.
+    Row labels take {0} = the addon's own name (its texture path's file name, dossier 5.2; the
+    dialog itself has no other per-addon label to read live).
+  -->
+  <RimWorldAccess.CharEd.HeadAddons.Title>Kopf-Addons</RimWorldAccess.CharEd.HeadAddons.Title>
+  <RimWorldAccess.CharEd.HeadAddons.AddonsRegion>Addons</RimWorldAccess.CharEd.HeadAddons.AddonsRegion>
+  <RimWorldAccess.CharEd.HeadAddons.VariantRow>{0}: Variante</RimWorldAccess.CharEd.HeadAddons.VariantRow>
+  <RimWorldAccess.CharEd.HeadAddons.FemaleRow>{0}: bei Frauen anzeigen</RimWorldAccess.CharEd.HeadAddons.FemaleRow>
+  <RimWorldAccess.CharEd.HeadAddons.MaleRow>{0}: bei Männern anzeigen</RimWorldAccess.CharEd.HeadAddons.MaleRow>
+  <RimWorldAccess.CharEd.HeadAddons.DrawSizeRow>{0}: Größe</RimWorldAccess.CharEd.HeadAddons.DrawSizeRow>
+  <RimWorldAccess.CharEd.HeadAddons.RotationRow>{0}: Drehung</RimWorldAccess.CharEd.HeadAddons.RotationRow>
+
+  <!--
+    Slice S4: the Actions tree section (Creation, Presets, Utilities), placed first among the
+    sections per the plan. BlockPerson's creation toolbar, main icon row, and preset slots draw
+    no zone label of their own (fixed controls, never a tab), so the section header is minted.
+    Every modifier chord the mod's own buttons read (Alt/Shift/Control/CapsLock) is promoted to a
+    discrete option here rather than reproduced as a chord (2026-07-27 addendum: "the mod's own
+    keyboard chords are a non-goal").
+  -->
+
+  <RimWorldAccess.CharEd.Actions>Aktionen</RimWorldAccess.CharEd.Actions>
+
+  <!-- The creation strip. Its ten toolbar entries stay present while creation mode is off,
+       disabled, each carrying this hint as its spoken reason. -->
+  <RimWorldAccess.CharEd.Actions.CreationModeOffHint>Der Erstellungsmodus ist aus. Schalte ihn ein, um Personen hinzuzufügen, zu löschen, zu klonen oder zufällig neu zu erstellen.</RimWorldAccess.CharEd.Actions.CreationModeOffHint>
+  <RimWorldAccess.CharEd.Actions.AddPawn>Person hinzufügen</RimWorldAccess.CharEd.Actions.AddPawn>
+  <RimWorldAccess.CharEd.Actions.DeletePawn>Person löschen</RimWorldAccess.CharEd.Actions.DeletePawn>
+  <RimWorldAccess.CharEd.Actions.ClonePawn>Person klonen</RimWorldAccess.CharEd.Actions.ClonePawn>
+  <RimWorldAccess.CharEd.Actions.RandomizePawn>Person zufällig neu erstellen</RimWorldAccess.CharEd.Actions.RandomizePawn>
+  <RimWorldAccess.CharEd.Actions.RandomizeKeepRace>Zufällig neu erstellen, Rasse behalten...</RimWorldAccess.CharEd.Actions.RandomizeKeepRace>
+  <RimWorldAccess.CharEd.Actions.RandomizeBodyParts>Körperteile zufällig wählen...</RimWorldAccess.CharEd.Actions.RandomizeBodyParts>
+  <RimWorldAccess.CharEd.Actions.RandomizeEquipment>Ausrüstung zufällig wählen...</RimWorldAccess.CharEd.Actions.RandomizeEquipment>
+  <RimWorldAccess.CharEd.Actions.RandomizeBio>Bio zufällig neu erstellen</RimWorldAccess.CharEd.Actions.RandomizeBio>
+  <RimWorldAccess.CharEd.Actions.QuickRestore>Schnell wiederherstellen...</RimWorldAccess.CharEd.Actions.QuickRestore>
+  <RimWorldAccess.CharEd.Actions.FindPawn>Person suchen...</RimWorldAccess.CharEd.Actions.FindPawn>
+
+  <!-- Shared drill-in option labels for the modifier-chord pickers above. -->
+  <RimWorldAccess.CharEd.Actions.AnyGender>Beliebiges Geschlecht</RimWorldAccess.CharEd.Actions.AnyGender>
+  <RimWorldAccess.CharEd.Actions.ForceFemale>Weiblich</RimWorldAccess.CharEd.Actions.ForceFemale>
+  <RimWorldAccess.CharEd.Actions.ForceMale>Männlich</RimWorldAccess.CharEd.Actions.ForceMale>
+  <RimWorldAccess.CharEd.Actions.Everything>Alles</RimWorldAccess.CharEd.Actions.Everything>
+  <RimWorldAccess.CharEd.Actions.ApparelOnly>Nur Kleidung</RimWorldAccess.CharEd.Actions.ApparelOnly>
+  <RimWorldAccess.CharEd.Actions.WeaponsOnly>Nur Waffen</RimWorldAccess.CharEd.Actions.WeaponsOnly>
+  <RimWorldAccess.CharEd.Actions.RecolorApparel>Kleidung umfärben</RimWorldAccess.CharEd.Actions.RecolorApparel>
+  <RimWorldAccess.CharEd.Actions.ResurrectAndHeal>Wiedererwecken und heilen</RimWorldAccess.CharEd.Actions.ResurrectAndHeal>
+  <RimWorldAccess.CharEd.Actions.HealInjuriesRestoreLegs>Verletzungen heilen und Beine wiederherstellen</RimWorldAccess.CharEd.Actions.HealInjuriesRestoreLegs>
+  <RimWorldAccess.CharEd.Actions.Medicate>Behandeln</RimWorldAccess.CharEd.Actions.Medicate>
+  <RimWorldAccess.CharEd.Actions.Anaesthetize>Narkotisieren</RimWorldAccess.CharEd.Actions.Anaesthetize>
+  <RimWorldAccess.CharEd.Actions.DamageUntilDeath>Tödlich verletzen</RimWorldAccess.CharEd.Actions.DamageUntilDeath>
+
+  <!-- The preset-slot strip: always available, not creation-gated. Each of the three slot pickers
+       carries the occupancy summary in its own spoken title, heard right as the slot list opens.
+       {0} = the picker's name, {1} = occupied slots, {2} = total slots. -->
+  <RimWorldAccess.CharEd.Actions.SlotPickerTitle>{0}. {1} von {2} Slots belegt.</RimWorldAccess.CharEd.Actions.SlotPickerTitle>
+  <RimWorldAccess.CharEd.Actions.SaveToSlot>In Slot speichern...</RimWorldAccess.CharEd.Actions.SaveToSlot>
+  <RimWorldAccess.CharEd.Actions.LoadFromSlot>Aus Slot laden...</RimWorldAccess.CharEd.Actions.LoadFromSlot>
+  <RimWorldAccess.CharEd.Actions.ClearSlot>Slot leeren...</RimWorldAccess.CharEd.Actions.ClearSlot>
+  <RimWorldAccess.CharEd.Actions.LoadSlot>Laden</RimWorldAccess.CharEd.Actions.LoadSlot>
+  <RimWorldAccess.CharEd.Actions.ShowRequiredMods>Benötigte Mods anzeigen</RimWorldAccess.CharEd.Actions.ShowRequiredMods>
+  <RimWorldAccess.CharEd.Actions.NoOccupiedSlots>Kein Slot ist belegt.</RimWorldAccess.CharEd.Actions.NoOccupiedSlots>
+
+  <!-- The utility icon strip. Gender reads under the Character section's Identity subsection and
+       the three portrait-view toggles under Appearance's Preview subsection; the rest are toolbar
+       entries. -->
+  <RimWorldAccess.CharEd.Actions.Gender>Geschlecht</RimWorldAccess.CharEd.Actions.Gender>
+  <!-- The mod's toggle physically moves apparel to and from the pawn's inventory, a real
+       equipment change, not a cosmetic portrait-only flag (dossier_S2.md surprise 13). -->
+  <RimWorldAccess.CharEd.Actions.Nude>Nackt</RimWorldAccess.CharEd.Actions.Nude>
+  <RimWorldAccess.CharEd.Actions.NudeDesc>Verstaut die ganze Kleidung dieser Person in ihrem Inventar oder zieht die Kleidung wieder an.</RimWorldAccess.CharEd.Actions.NudeDesc>
+  <RimWorldAccess.CharEd.Actions.Hats>Kopfbedeckungen</RimWorldAccess.CharEd.Actions.Hats>
+  <RimWorldAccess.CharEd.Actions.HatsDesc>Verstaut alle Kopfbedeckungen im Inventar dieser Person oder setzt die Kopfbedeckungen wieder auf.</RimWorldAccess.CharEd.Actions.HatsDesc>
+  <RimWorldAccess.CharEd.Actions.RotatePortrait>Porträt drehen</RimWorldAccess.CharEd.Actions.RotatePortrait>
+  <!-- {0} = the new facing (vanilla Rot4.ToStringHuman: North/South/East/West). -->
+  <RimWorldAccess.CharEd.Actions.RotatedTo>Blickrichtung: {0}.</RimWorldAccess.CharEd.Actions.RotatedTo>
+  <RimWorldAccess.CharEd.Actions.JumpToPawn>Zur Person springen</RimWorldAccess.CharEd.Actions.JumpToPawn>
+  <RimWorldAccess.CharEd.Actions.JumpedToPawn>Zur Person gesprungen.</RimWorldAccess.CharEd.Actions.JumpedToPawn>
+  <!-- Slice S10b: both rows close the editor, then arm the mod's own teleport DebugTool at the
+       shell's keyboard map cursor (DevToolTargeting bridges Enter/Escape to it generically); the
+       tool's own arm/apply/cancel announcements come from that shared mirror, not from here.
+       {0} = the pawn's short name. -->
+  <RimWorldAccess.CharEd.Actions.TeleportPawn>{0} teleportieren</RimWorldAccess.CharEd.Actions.TeleportPawn>
+  <RimWorldAccess.CharEd.Actions.TeleportAnyPawn>Beliebige Person teleportieren</RimWorldAccess.CharEd.Actions.TeleportAnyPawn>
+  <RimWorldAccess.CharEd.Actions.MoveUp>In der Liste nach oben schieben</RimWorldAccess.CharEd.Actions.MoveUp>
+  <RimWorldAccess.CharEd.Actions.MoveDown>In der Liste nach unten schieben</RimWorldAccess.CharEd.Actions.MoveDown>
+  <!-- Slice S9: the fallback phrases (unreadable pawn/list) plus the normal
+       case naming the pawn's new 1-based roster position. {0} = new position,
+       {1} = roster size. -->
+  <RimWorldAccess.CharEd.Actions.MovedUp>Nach oben verschoben.</RimWorldAccess.CharEd.Actions.MovedUp>
+  <RimWorldAccess.CharEd.Actions.MovedDown>Nach unten verschoben.</RimWorldAccess.CharEd.Actions.MovedDown>
+  <RimWorldAccess.CharEd.Actions.MovedUpTo>Nach oben verschoben. Jetzt an Position {0} von {1}.</RimWorldAccess.CharEd.Actions.MovedUpTo>
+  <RimWorldAccess.CharEd.Actions.MovedDownTo>Nach unten verschoben. Jetzt an Position {0} von {1}.</RimWorldAccess.CharEd.Actions.MovedDownTo>
+
+  <!-- Slice S9: ONE Capsule row present in both branches (see
+       CharEditorCompat.OpenCapsule's own remarks for why the mod's own
+       BlockBio.ACapsuleUI vehicle works unconditionally). The mod calls
+       this window "Capsule"; the spoken label describes what it holds
+       instead (QA session 5: "give it a more meaningful name"). -->
+  <RimWorldAccess.CharEd.Actions.Capsule>Startobjekte und Tiere...</RimWorldAccess.CharEd.Actions.Capsule>
+
+  <!-- One outcome utterance per action (never the mod's own silence). -->
+  <RimWorldAccess.CharEd.Actions.PawnAdded>Person hinzugefügt.</RimWorldAccess.CharEd.Actions.PawnAdded>
+  <RimWorldAccess.CharEd.Actions.PawnDeleted>Person gelöscht.</RimWorldAccess.CharEd.Actions.PawnDeleted>
+  <RimWorldAccess.CharEd.Actions.PawnCloned>Person geklont.</RimWorldAccess.CharEd.Actions.PawnCloned>
+  <RimWorldAccess.CharEd.Actions.PawnRandomized>Person zufällig neu erstellt.</RimWorldAccess.CharEd.Actions.PawnRandomized>
+  <RimWorldAccess.CharEd.Actions.RandomizedKeepingRace>Person zufällig neu erstellt, Rasse behalten.</RimWorldAccess.CharEd.Actions.RandomizedKeepingRace>
+  <RimWorldAccess.CharEd.Actions.BodyPartsRandomized>Körperteile zufällig gewählt.</RimWorldAccess.CharEd.Actions.BodyPartsRandomized>
+  <RimWorldAccess.CharEd.Actions.EquipmentRandomized>Ausrüstung zufällig gewählt.</RimWorldAccess.CharEd.Actions.EquipmentRandomized>
+  <RimWorldAccess.CharEd.Actions.BioRandomized>Bio zufällig neu erstellt.</RimWorldAccess.CharEd.Actions.BioRandomized>
+  <RimWorldAccess.CharEd.Actions.RestoreApplied>Wiederhergestellt.</RimWorldAccess.CharEd.Actions.RestoreApplied>
+
+  <!-- Our own confirms: the mod provides none for either action (dossier_S1.md/dossier_S2.md
+       surprise 8). {0} = the pawn (Delete) or the slot's own label (Clear). -->
+  <RimWorldAccess.CharEd.Actions.ConfirmDeletePawn>Willst du '{0}' wirklich löschen? Das lässt sich nicht rückgängig machen.</RimWorldAccess.CharEd.Actions.ConfirmDeletePawn>
+  <RimWorldAccess.CharEd.Actions.ConfirmClearSlot>Willst du '{0}' wirklich leeren? Das lässt sich nicht rückgängig machen.</RimWorldAccess.CharEd.Actions.ConfirmClearSlot>
+  <RimWorldAccess.CharEd.Actions.SlotCleared>Slot geleert.</RimWorldAccess.CharEd.Actions.SlotCleared>
+  <!-- {0} = the slot's own display label ("Slot N <name>"), spoken only for the direct
+       empty-slot save. An occupied slot routes through the mod's own overwrite-confirm
+       dialog, whose outcome this closure cannot observe. -->
+  <RimWorldAccess.CharEd.Actions.SlotSaved>In {0} gespeichert.</RimWorldAccess.CharEd.Actions.SlotSaved>
+  <!-- {0} = the newly loaded pawn, in the same name/kind/faction/dead form the pawn row uses.
+       {1} = the slot's own display label ("Slot N <name>"). -->
+  <RimWorldAccess.CharEd.Actions.SlotLoadedFrom>Aus {1} geladen: {0}.</RimWorldAccess.CharEd.Actions.SlotLoadedFrom>
+  <RimWorldAccess.CharEd.Actions.SlotLoadFailed>Nichts geladen.</RimWorldAccess.CharEd.Actions.SlotLoadFailed>
+
+  <!--
+    Slice S5: the Health tree section (Summary, Conditions, Actions) and four new dialogs
+    (Add Hediff, Full Heal, Choose Part, Choose Pawn) joining the shared browser scope. The
+    mod's own concepts reuse vanilla's Keyed strings wherever one already exists (Health,
+    WholeBody, NoHealthConditions, ConfigurableSeverity, Level, Permanent, Copy, Paste,
+    Randomize); Medicate/Anaesthetize/DamageUntilDeath/HealInjuriesRestoreLegs/RestoreApplied
+    reuse the Actions section's own S4 keys since both surfaces call the identical underlying
+    operation, just through two separate mod-native entry points. Only OUR OWN wording is
+    minted here.
+  -->
+
+  <RimWorldAccess.CharEd.Health.SummarySection>Übersicht</RimWorldAccess.CharEd.Health.SummarySection>
+  <RimWorldAccess.CharEd.Health.ConditionsSection>Gesundheitszustände</RimWorldAccess.CharEd.Health.ConditionsSection>
+  <!-- The Actions subsection header reuses RimWorldAccess.CharEd.Actions (same spoken role, same
+       English text). -->
+  <RimWorldAccess.CharEd.Health.NoCapacities>Keine Körperfunktionen für diese Person.</RimWorldAccess.CharEd.Health.NoCapacities>
+
+  <RimWorldAccess.CharEd.Health.AddCondition>Gesundheitszustand hinzufügen...</RimWorldAccess.CharEd.Health.AddCondition>
+  <RimWorldAccess.CharEd.Health.ShowHidden>Verborgene Gesundheitszustände anzeigen</RimWorldAccess.CharEd.Health.ShowHidden>
+  <RimWorldAccess.CharEd.Health.FullHeal>Vollständig heilen...</RimWorldAccess.CharEd.Health.FullHeal>
+  <!-- The mod's own AHurt (random injuries) is distinct from DamageUntilDeath (the Actions
+       section's own key, reused): this is BlockHealth's own "Hurt" button. -->
+  <RimWorldAccess.CharEd.Health.Hurt>Verletzen</RimWorldAccess.CharEd.Health.Hurt>
+  <!-- Plain resurrect, no healing: distinct from the Actions section's own "Resurrect and
+       heal" quick-restore option (both are genuine, separate mod buttons). -->
+  <RimWorldAccess.CharEd.Health.Resurrect>Wiedererwecken</RimWorldAccess.CharEd.Health.Resurrect>
+
+  <!-- One outcome utterance per action (never the mod's own silence). -->
+  <RimWorldAccess.CharEd.Health.HealthCopied>Gesundheit kopiert.</RimWorldAccess.CharEd.Health.HealthCopied>
+  <RimWorldAccess.CharEd.Health.Medicated>Behandelt.</RimWorldAccess.CharEd.Health.Medicated>
+  <RimWorldAccess.CharEd.Health.Anaesthetized>Narkotisiert.</RimWorldAccess.CharEd.Health.Anaesthetized>
+  <RimWorldAccess.CharEd.Health.HurtApplied>Verletzungen zugefügt.</RimWorldAccess.CharEd.Health.HurtApplied>
+  <RimWorldAccess.CharEd.Health.DamagedUntilDeath>Schaden zugefügt.</RimWorldAccess.CharEd.Health.DamagedUntilDeath>
+  <!-- {0} = the pawn, matching Recruited/Enslaved's own form. -->
+  <RimWorldAccess.CharEd.Health.Resurrected>{0} wiedererweckt.</RimWorldAccess.CharEd.Health.Resurrected>
+
+  <!-- The Add Hediff browser screen (add and edit modes; the SAME dialog). -->
+  <RimWorldAccess.CharEd.Browser.AddHediffTitle>Gesundheitszustand hinzufügen</RimWorldAccess.CharEd.Browser.AddHediffTitle>
+  <RimWorldAccess.CharEd.Browser.EditHediffTitle>Gesundheitszustand bearbeiten</RimWorldAccess.CharEd.Browser.EditHediffTitle>
+  <RimWorldAccess.CharEd.Browser.Health.BodyPartFilter>Körperteil</RimWorldAccess.CharEd.Browser.Health.BodyPartFilter>
+  <RimWorldAccess.CharEd.Browser.Health.Override>Werte außerhalb des normalen Bereichs erlauben</RimWorldAccess.CharEd.Browser.Health.Override>
+  <RimWorldAccess.CharEd.Browser.Health.OverrideDesc>Die Schwere dieses Gesundheitszustands darf höher sein als sonst möglich.</RimWorldAccess.CharEd.Browser.Health.OverrideDesc>
+  <RimWorldAccess.CharEd.Browser.Health.LethalWarning>Tödlich bei dieser Schwere.</RimWorldAccess.CharEd.Browser.Health.LethalWarning>
+  <RimWorldAccess.CharEd.Browser.Health.Pain>Schmerz</RimWorldAccess.CharEd.Browser.Health.Pain>
+  <RimWorldAccess.CharEd.Browser.Health.PainNone>Schmerzlos</RimWorldAccess.CharEd.Browser.Health.PainNone>
+  <RimWorldAccess.CharEd.Browser.Health.PainLow>Leichter Schmerz</RimWorldAccess.CharEd.Browser.Health.PainLow>
+  <RimWorldAccess.CharEd.Browser.Health.PainMedium>Mäßiger Schmerz</RimWorldAccess.CharEd.Browser.Health.PainMedium>
+  <RimWorldAccess.CharEd.Browser.Health.PainHigh>Starker Schmerz</RimWorldAccess.CharEd.Browser.Health.PainHigh>
+  <RimWorldAccess.CharEd.Browser.Health.Duration>Dauer</RimWorldAccess.CharEd.Browser.Health.Duration>
+  <RimWorldAccess.CharEd.Browser.Health.DurationHoursPrompt>Dauer in Stunden</RimWorldAccess.CharEd.Browser.Health.DurationHoursPrompt>
+
+  <!-- The Full Heal browser screen: every current hediff as a Parameters-region checkbox row. -->
+  <RimWorldAccess.CharEd.Browser.FullhealTitle>Vollständig heilen</RimWorldAccess.CharEd.Browser.FullhealTitle>
+  <RimWorldAccess.CharEd.Browser.Health.Flip>Auswahl umkehren</RimWorldAccess.CharEd.Browser.Health.Flip>
+  <RimWorldAccess.CharEd.Browser.Health.CheckAll>Alle auswählen</RimWorldAccess.CharEd.Browser.Health.CheckAll>
+
+  <!-- The Choose Part / Choose Pawn browser screens, chained from Add Hediff's Confirm. -->
+  <RimWorldAccess.CharEd.Browser.ChoosePartTitle>Körperteil wählen</RimWorldAccess.CharEd.Browser.ChoosePartTitle>
+  <RimWorldAccess.CharEd.Browser.ChoosePawnTitle>Person wählen</RimWorldAccess.CharEd.Browser.ChoosePawnTitle>
+
+  <!--
+    Slice S6: the Needs tree section (need sliders, memories, actions) and the Social tree
+    section (mental state/inspiration, the relation-builder guided flow, direct/indirect
+    relations, opinions), plus the Add Thought browser screen (opened both unfiltered from
+    Needs and Social-preset from Social). The mod's own resolved memory labels, relation
+    labels, and vanilla concepts (Female, None, Copy, Paste) reuse the game's own keys or are
+    read live from the mod's own resolvers; only OUR OWN wording is minted here.
+  -->
+
+  <!-- No-tracker feedback reuses RimWorldAccess.CharEd.Needs.NoNeeds (same spoken role, same
+       English text). -->
+  <RimWorldAccess.CharEd.Needs.DeadPawn>Bedürfnisse werden bei einer toten Person nicht angezeigt.</RimWorldAccess.CharEd.Needs.DeadPawn>
+
+  <RimWorldAccess.CharEd.Needs.NeedsSection>Bedürfnis</RimWorldAccess.CharEd.Needs.NeedsSection>
+  <RimWorldAccess.CharEd.Needs.NoNeeds>Diese Person hat keine Bedürfnisse.</RimWorldAccess.CharEd.Needs.NoNeeds>
+  <!-- Spoken before a need's own vanilla tooltip when it is critically low (mirrors the mod's
+       own red-bar warning color, BlockNeeds.DrawNeedBars). -->
+  <RimWorldAccess.CharEd.Needs.LowWarning>Kritisch niedrig.</RimWorldAccess.CharEd.Needs.LowWarning>
+
+  <RimWorldAccess.CharEd.Needs.MemoriesSection>Erinnerungen</RimWorldAccess.CharEd.Needs.MemoriesSection>
+  <RimWorldAccess.CharEd.Needs.NoMemories>Keine Erinnerungen.</RimWorldAccess.CharEd.Needs.NoMemories>
+  <RimWorldAccess.CharEd.Needs.AddThought>Gedanken hinzufügen...</RimWorldAccess.CharEd.Needs.AddThought>
+  <!-- {0} = signed integer mood offset / opinion offset. -->
+  <RimWorldAccess.CharEd.Needs.MoodOffset>Stimmung {0}</RimWorldAccess.CharEd.Needs.MoodOffset>
+  <RimWorldAccess.CharEd.Needs.OpinionOffset>Meinung {0}</RimWorldAccess.CharEd.Needs.OpinionOffset>
+
+  <!-- The Actions subsection header reuses RimWorldAccess.CharEd.Actions (same spoken role, same
+       English text). -->
+  <RimWorldAccess.CharEd.Needs.FillAllNeeds>Alle Bedürfnisse auffüllen</RimWorldAccess.CharEd.Needs.FillAllNeeds>
+  <RimWorldAccess.CharEd.Needs.ClearAllMemories>Alle Erinnerungen löschen</RimWorldAccess.CharEd.Needs.ClearAllMemories>
+  <RimWorldAccess.CharEd.Needs.NeedsFilled>Alle Bedürfnisse aufgefüllt.</RimWorldAccess.CharEd.Needs.NeedsFilled>
+  <RimWorldAccess.CharEd.Needs.ConfirmClearMemories>Willst du wirklich alle Erinnerungen dieser Person löschen? Das lässt sich nicht rückgängig machen.</RimWorldAccess.CharEd.Needs.ConfirmClearMemories>
+  <RimWorldAccess.CharEd.Needs.MemoriesCleared>Alle Erinnerungen gelöscht.</RimWorldAccess.CharEd.Needs.MemoriesCleared>
+
+  <RimWorldAccess.CharEd.Social.NoTracker>Diese Person hat keine sozialen Beziehungen.</RimWorldAccess.CharEd.Social.NoTracker>
+
+  <RimWorldAccess.CharEd.Social.StateSection>Zustand</RimWorldAccess.CharEd.Social.StateSection>
+  <RimWorldAccess.CharEd.Social.MentalState>Geisteszustand</RimWorldAccess.CharEd.Social.MentalState>
+  <RimWorldAccess.CharEd.Social.Inspiration>Inspiration</RimWorldAccess.CharEd.Social.Inspiration>
+
+  <RimWorldAccess.CharEd.Social.RelationBuilderSection>Beziehungen erstellen</RimWorldAccess.CharEd.Social.RelationBuilderSection>
+  <RimWorldAccess.CharEd.Social.Relation>Beziehung</RimWorldAccess.CharEd.Social.Relation>
+  <!-- Slot 1's row caption when no relation is chosen yet (should not normally show, since the
+       relation combo always carries a default). -->
+  <RimWorldAccess.CharEd.Social.RelationTarget>Person</RimWorldAccess.CharEd.Social.RelationTarget>
+  <!-- The relation slot's gender toggle button (BlockSocial.AOnGenderChange2-4): drives the
+       relative's own gender, which decides Mother-vs-Father wording and which grandparent slot
+       fills. The current value is spoken separately, through vanilla's own Gender.GetLabel(). -->
+  <RimWorldAccess.CharEd.Social.RelativeGender>Geschlecht der verwandten Person</RimWorldAccess.CharEd.Social.RelativeGender>
+  <RimWorldAccess.CharEd.Social.AddRelation>Beziehung hinzufügen</RimWorldAccess.CharEd.Social.AddRelation>
+  <RimWorldAccess.CharEd.Social.RelationAdded>Beziehung hinzugefügt.</RimWorldAccess.CharEd.Social.RelationAdded>
+  <RimWorldAccess.CharEd.Social.AddThought>Gedanken hinzufügen</RimWorldAccess.CharEd.Social.AddThought>
+
+  <RimWorldAccess.CharEd.Social.DirectRelationsSection>Direkte Beziehungen</RimWorldAccess.CharEd.Social.DirectRelationsSection>
+  <RimWorldAccess.CharEd.Social.NoDirectRelations>Keine direkten Beziehungen.</RimWorldAccess.CharEd.Social.NoDirectRelations>
+  <RimWorldAccess.CharEd.Social.SwitchToPawn>Zu dieser Person wechseln</RimWorldAccess.CharEd.Social.SwitchToPawn>
+  <RimWorldAccess.CharEd.Social.Details>Details</RimWorldAccess.CharEd.Social.Details>
+
+  <RimWorldAccess.CharEd.Social.IndirectRelationsSection>Indirekte Beziehungen</RimWorldAccess.CharEd.Social.IndirectRelationsSection>
+  <RimWorldAccess.CharEd.Social.NoIndirectRelations>Keine indirekten Beziehungen.</RimWorldAccess.CharEd.Social.NoIndirectRelations>
+
+  <RimWorldAccess.CharEd.Social.OpinionsSection>Meinungen</RimWorldAccess.CharEd.Social.OpinionsSection>
+  <RimWorldAccess.CharEd.Social.NoOpinions>Keine Meinungen.</RimWorldAccess.CharEd.Social.NoOpinions>
+
+  <!-- The Add Thought browser screen, opened both unfiltered (Needs) and Social-preset (Social).
+       Its title reuses RimWorldAccess.CharEd.Social.AddThought (same spoken role, same English
+       text). -->
+  <RimWorldAccess.CharEd.Browser.TypeFilter>Typ</RimWorldAccess.CharEd.Browser.TypeFilter>
+  <RimWorldAccess.CharEd.Browser.Thought.TargetPawn>Zielperson</RimWorldAccess.CharEd.Browser.Thought.TargetPawn>
+  <RimWorldAccess.CharEd.Browser.Thought.Stage>Stufe</RimWorldAccess.CharEd.Browser.Thought.Stage>
+  <RimWorldAccess.CharEd.Browser.Thought.Mood>Stimmung</RimWorldAccess.CharEd.Browser.Thought.Mood>
+  <RimWorldAccess.CharEd.Browser.Thought.Opinion>Meinung</RimWorldAccess.CharEd.Browser.Thought.Opinion>
+  <RimWorldAccess.CharEd.Browser.Thought.MoodFixed>Dieser Gedanke legt den Wert fest. Nur bei Erinnerungen lässt sich der Wert anpassen.</RimWorldAccess.CharEd.Browser.Thought.MoodFixed>
+  <RimWorldAccess.CharEd.Browser.Thought.OpinionFixed>Dieser Gedanke legt den Wert fest. Nur bei sozialen Erinnerungen lässt sich der Wert anpassen.</RimWorldAccess.CharEd.Browser.Thought.OpinionFixed>
+
+  <!--
+    Slice S7: the Inventory tree section (Stats, Equipment, Apparel, Inventory, Actions) and the
+    Objects browser's third mode (Object: thing category/kind filters, stack count, and a
+    creature pane for gender/age/faction), joining the existing ObjectsAdapter from S3b. The mod's
+    own concepts reuse vanilla's Keyed strings wherever one already exists (Copy, Paste, Equipment,
+    Apparel, Inventory, MassCarried, ComfyTemperatureRange, OverallArmor, ArmorSharp/Blunt/Heat,
+    ApparelForcedLower, Faction, Randomize); only OUR OWN wording is minted here. BlockInventory
+    draws no zone label of its own (a fixed tab body, not a header string it names), so the section
+    header and the Actions subsection header are minted, matching Appearance's and Actions'
+    precedent.
+  -->
+
+  <RimWorldAccess.CharEd.Inventory>Inventar</RimWorldAccess.CharEd.Inventory>
+  <RimWorldAccess.CharEd.Inventory.StatsSection>Statistiken</RimWorldAccess.CharEd.Inventory.StatsSection>
+  <!-- The Actions subsection header reuses RimWorldAccess.CharEd.Actions (same spoken role, same
+       English text). -->
+
+  <!-- A thing row's hit points fragment, joined with its vanilla description. {0} = current, {1} = max. -->
+  <RimWorldAccess.CharEd.Inventory.HitPointsValue>{0} von {1} Trefferpunkten</RimWorldAccess.CharEd.Inventory.HitPointsValue>
+
+  <!-- Copy outcome utterances (never the mod's own silence); Paste rows are always present,
+       disabled with RimWorldAccess.CharEd.Character.NothingToPaste (reused) when that list's
+       clipboard is empty. -->
+  <RimWorldAccess.CharEd.Inventory.EquipmentCopied>Ausrüstung kopiert.</RimWorldAccess.CharEd.Inventory.EquipmentCopied>
+  <RimWorldAccess.CharEd.Inventory.ApparelCopied>Kleidung kopiert.</RimWorldAccess.CharEd.Inventory.ApparelCopied>
+  <RimWorldAccess.CharEd.Inventory.InventoryCopied>Inventar kopiert.</RimWorldAccess.CharEd.Inventory.InventoryCopied>
+  <RimWorldAccess.CharEd.Inventory.AllGearCopied>Ausrüstung, Kleidung und Inventar kopiert.</RimWorldAccess.CharEd.Inventory.AllGearCopied>
+  <RimWorldAccess.CharEd.Inventory.CopyAllGear>Alle Gegenstände kopieren</RimWorldAccess.CharEd.Inventory.CopyAllGear>
+  <RimWorldAccess.CharEd.Inventory.PasteAllGear>Alle Gegenstände einfügen</RimWorldAccess.CharEd.Inventory.PasteAllGear>
+
+  <!-- Actions subsection: BlockInventory's own four lower buttons and three Add buttons, verified
+       NOT creation-mode gated (DrawLowerButtons draws them unconditionally). Undress's own three-way
+       branch (Alt destroys outright; else drop in-game or move-to-inventory in world generation)
+       becomes two mutually exclusive rows plus one always-present Destroy row. -->
+  <RimWorldAccess.CharEd.Inventory.UndressDrop>Ausziehen (legt ein zufälliges Kleidungsstück auf dem Boden ab)</RimWorldAccess.CharEd.Inventory.UndressDrop>
+  <RimWorldAccess.CharEd.Inventory.UndressMoveToInventory>Ausziehen (verstaut ein zufälliges Kleidungsstück im Inventar)</RimWorldAccess.CharEd.Inventory.UndressMoveToInventory>
+  <RimWorldAccess.CharEd.Inventory.UndressDestroy>Ausziehen (zerstört ein zufälliges Kleidungsstück)</RimWorldAccess.CharEd.Inventory.UndressDestroy>
+  <RimWorldAccess.CharEd.Inventory.Redress>Neu einkleiden</RimWorldAccess.CharEd.Inventory.Redress>
+  <RimWorldAccess.CharEd.Inventory.Reequip>Neu ausrüsten</RimWorldAccess.CharEd.Inventory.Reequip>
+  <RimWorldAccess.CharEd.Inventory.Reinvent>Inventar neu füllen</RimWorldAccess.CharEd.Inventory.Reinvent>
+  <RimWorldAccess.CharEd.Inventory.AddEquipment>Ausrüstung hinzufügen...</RimWorldAccess.CharEd.Inventory.AddEquipment>
+  <RimWorldAccess.CharEd.Inventory.AddApparel>Kleidung hinzufügen...</RimWorldAccess.CharEd.Inventory.AddApparel>
+  <RimWorldAccess.CharEd.Inventory.AddItem>Objekt hinzufügen...</RimWorldAccess.CharEd.Inventory.AddItem>
+
+  <!-- A thing row's Alt+I drill-in menu: Info card is our own minted label (vanilla's own info
+       button carries no text, only an icon); Transfer/Drop/Destroy/Ingest ride
+       CharEditorCompat.Inventory's own vehicles; Randomize (creation mode only) reuses the shared
+       vanilla key. -->
+  <RimWorldAccess.CharEd.Inventory.InfoCard>Infokarte</RimWorldAccess.CharEd.Inventory.InfoCard>
+  <RimWorldAccess.CharEd.Inventory.Transfer>Übergeben</RimWorldAccess.CharEd.Inventory.Transfer>
+  <RimWorldAccess.CharEd.Inventory.Drop>Ablegen</RimWorldAccess.CharEd.Inventory.Drop>
+  <RimWorldAccess.CharEd.Inventory.Destroy>Zerstören</RimWorldAccess.CharEd.Inventory.Destroy>
+  <RimWorldAccess.CharEd.Inventory.Ingest>Konsumieren</RimWorldAccess.CharEd.Inventory.Ingest>
+
+  <!-- Delete widens charEditor.removeTrait once more to drop the Inventory thing row under the
+       cursor (in-game only); no new action id or key is needed for the claim itself since the
+       label already covers every row it reaches. -->
+
+  <!-- The Objects browser's Object mode (joining the existing ObjectsAdapter, S3b). The Category
+       filter reuses RimWorldAccess.CharEd.Browser.CategoryFilter (AddTrait's own generic label);
+       the thing-category-enum filter and the creature-pane rows are new. Gender/biological age
+       reuse RimWorldAccess.CharEd.Actions.Gender and RimWorldAccess.CharEd.Character.AgeBiological
+       so the same concept reads identically everywhere it appears in the editor. -->
+  <RimWorldAccess.CharEd.Browser.Objects.ThingCategoryFilter>Objektkategorie</RimWorldAccess.CharEd.Browser.Objects.ThingCategoryFilter>
+
+  <!--
+    Slice S8: the Biotech suite: DialogViewXenoGenes's own compact scope (CharEditorXenoGenesScope),
+    the Add Gene browser screen (DialogGenery joining the shared CharEditorBrowserScope via
+    GeneryAdapter), and the custom Xenotype creator (DialogXenoType, joining GeneDialogScopeBase, the
+    SAME base the vanilla Dialog_CreateXenotype scope rides). The mod's own concepts reuse vanilla's
+    Keyed strings wherever one already exists (Endogenes, Xenogenes, XenotypeName, LoadCustom,
+    LoadPremade, SaveAndApply, GenesAreInheritable, IgnoreRestrictions, SelectIcon); only OUR OWN
+    wording is minted here.
+  -->
+
+  <!-- The ViewXenoGenes scope's prefix-row toggle: checked = operating on xenogenes, unchecked =
+       operating on endogenes. The gene grid itself is unaffected (both groups always shown). -->
+  <RimWorldAccess.CharEd.XenoGenes.TargetXenogenes>Xenogene statt Keimbahngene bearbeiten</RimWorldAccess.CharEd.XenoGenes.TargetXenogenes>
+  <RimWorldAccess.CharEd.XenoGenes.AddGene>Gen hinzufügen...</RimWorldAccess.CharEd.XenoGenes.AddGene>
+  <RimWorldAccess.CharEd.XenoGenes.RemoveGene>Gen entfernen...</RimWorldAccess.CharEd.XenoGenes.RemoveGene>
+  <!-- {0} = the removed gene's label. -->
+  <RimWorldAccess.CharEd.XenoGenes.GeneRemoved>{0} entfernt.</RimWorldAccess.CharEd.XenoGenes.GeneRemoved>
+  <!-- Our own confirm: the mod's own "breset" button applies instantly with none, and can wipe an
+       entire gene set (CharEditorXenoGenesCompat's own class remarks). -->
+  <RimWorldAccess.CharEd.XenoGenes.Clear>Alle Gene entfernen...</RimWorldAccess.CharEd.XenoGenes.Clear>
+  <RimWorldAccess.CharEd.XenoGenes.ClearKeepHairSkin>Alle Gene außer Haar- und Hautgenen entfernen...</RimWorldAccess.CharEd.XenoGenes.ClearKeepHairSkin>
+  <RimWorldAccess.CharEd.XenoGenes.ConfirmClear>Willst du diese Gene wirklich entfernen? Das lässt sich nicht rückgängig machen.</RimWorldAccess.CharEd.XenoGenes.ConfirmClear>
+  <RimWorldAccess.CharEd.XenoGenes.Cleared>Gene entfernt.</RimWorldAccess.CharEd.XenoGenes.Cleared>
+  <RimWorldAccess.CharEd.XenoGenes.ApplyXenotype>Xenotyp anwenden...</RimWorldAccess.CharEd.XenoGenes.ApplyXenotype>
+  <!-- {0} = the applied xenotype's or custom xenotype's name. -->
+  <RimWorldAccess.CharEd.XenoGenes.XenotypeApplied>{0} angewendet.</RimWorldAccess.CharEd.XenoGenes.XenotypeApplied>
+
+  <!-- The Add Gene browser screen (GeneryAdapter). {0} = "Endogenes" or "Xenogenes", read live off
+       the dialog's own captured target, matching "present everything, editorialize nothing". -->
+  <RimWorldAccess.CharEd.Browser.AddGeneTitle>Gen hinzufügen ({0})</RimWorldAccess.CharEd.Browser.AddGeneTitle>
+
+  <!-- The custom Xenotype creator (DialogXenoType, CharEditorXenoTypeScope). -->
+  <RimWorldAccess.CharEd.XenoType.Header>Xenotyp erstellen</RimWorldAccess.CharEd.XenoType.Header>
+  <!-- A genuine third bottom button DialogXenoType has that vanilla Dialog_CreateXenotype does not:
+       saves to a file without applying to the pawn (CharEditorXenoTypeCompat's own class remarks). -->
+  <RimWorldAccess.CharEd.XenoType.Save>Speichern</RimWorldAccess.CharEd.XenoType.Save>
+  <!-- Save feedback reuses the shared RimWorldAccess.CharEd.Saved. -->
+
+  <!--
+    Slice S9: DialogCapsuleUI's own compact scope (CharEditorCapsuleScope), capsule view only.
+    The Interstellar view (Unload/Load/Lift-off, the world-restart chain) is out of scope; the
+    optional prefix row below only warns that it is not yet supported.
+  -->
+  <!-- QA session 6: "Capsule" alone was misheard as "Caps Lock" by TTS; the window announce
+       now matches the renamed opener button (RimWorldAccess.CharEd.Actions.Capsule). -->
+  <RimWorldAccess.CharEd.Capsule.Title>Startobjekte und Tiere</RimWorldAccess.CharEd.Capsule.Title>
+  <RimWorldAccess.CharEd.Capsule.InterstellarView>Interstellare Ansicht</RimWorldAccess.CharEd.Capsule.InterstellarView>
+  <RimWorldAccess.CharEd.Capsule.InterstellarNotSupported>Noch nicht unterstützt.</RimWorldAccess.CharEd.Capsule.InterstellarNotSupported>
+
+  <!-- The three scenario-part container sections. -->
+  <RimWorldAccess.CharEd.Capsule.OwnThingsSection>Eigene Objekte</RimWorldAccess.CharEd.Capsule.OwnThingsSection>
+  <RimWorldAccess.CharEd.Capsule.ScatteredSection>Auf der Karte verteilte Objekte</RimWorldAccess.CharEd.Capsule.ScatteredSection>
+  <RimWorldAccess.CharEd.Capsule.AnimalsSection>Tiere</RimWorldAccess.CharEd.Capsule.AnimalsSection>
+  <RimWorldAccess.CharEd.Capsule.ContainerEmpty>Leer.</RimWorldAccess.CharEd.Capsule.ContainerEmpty>
+
+  <!-- Delete (widening charEditor.removeTrait, no new id) and the Alt+I shift drill-in. Removal
+       feedback reuses the shared RimWorldAccess.CharEd.Removed. -->
+  <RimWorldAccess.CharEd.Capsule.ShiftToScattered>Verschieben nach: Auf der Karte verteilte Objekte</RimWorldAccess.CharEd.Capsule.ShiftToScattered>
+  <RimWorldAccess.CharEd.Capsule.ShiftToOwnThings>Verschieben nach: Eigene Objekte</RimWorldAccess.CharEd.Capsule.ShiftToOwnThings>
+  <RimWorldAccess.CharEd.Capsule.ThingShifted>Verschoben.</RimWorldAccess.CharEd.Capsule.ThingShifted>
+
+  <!-- Buttons region: Add per container (opens the existing S7 Objects browser, which already
+       routes Confirm to the capsule when opened this way), then the capsule slots. -->
+  <RimWorldAccess.CharEd.Capsule.AddOwnThing>Eigenes Objekt hinzufügen...</RimWorldAccess.CharEd.Capsule.AddOwnThing>
+  <RimWorldAccess.CharEd.Capsule.AddScatteredThing>Auf der Karte verteiltes Objekt hinzufügen...</RimWorldAccess.CharEd.Capsule.AddScatteredThing>
+  <RimWorldAccess.CharEd.Capsule.AddAnimal>Tier hinzufügen...</RimWorldAccess.CharEd.Capsule.AddAnimal>
+
+  <!-- Capsule slots (same submenu-over-numbered-slots shape as the main editor's own pawn
+       presets, S4). {0} = 1-based slot number, {1} = the mod's own stored text or "empty". -->
+  <RimWorldAccess.CharEd.Capsule.SlotLabel>Slot {0}: {1}</RimWorldAccess.CharEd.Capsule.SlotLabel>
+  <RimWorldAccess.CharEd.Capsule.SlotEmpty>leer</RimWorldAccess.CharEd.Capsule.SlotEmpty>
+  <!-- Save feedback reuses the shared RimWorldAccess.CharEd.Saved. -->
+  <RimWorldAccess.CharEd.Capsule.SlotLoaded>Geladen.</RimWorldAccess.CharEd.Capsule.SlotLoaded>
+
+  <!--
+    Slice S10a: DialogConfigurate's own bespoke scope (CharEditorConfigScope), the mod options
+    dialog. Region names.
+  -->
+  <RimWorldAccess.CharEd.Config.HotkeysRegion>Tastenkürzel</RimWorldAccess.CharEd.Config.HotkeysRegion>
+  <RimWorldAccess.CharEd.Config.NumericsRegion>Zahlenwerte</RimWorldAccess.CharEd.Config.NumericsRegion>
+  <RimWorldAccess.CharEd.Config.OptionsRegion>Optionen</RimWorldAccess.CharEd.Config.OptionsRegion>
+  <RimWorldAccess.CharEd.Config.SlotsRegion>Personen-Slots</RimWorldAccess.CharEd.Config.SlotsRegion>
+  <RimWorldAccess.CharEd.Config.CustomDataRegion>Eigene Daten</RimWorldAccess.CharEd.Config.CustomDataRegion>
+
+  <RimWorldAccess.CharEd.Config.ClearEditorHotkey>Editor-Tastenkürzel leeren</RimWorldAccess.CharEd.Config.ClearEditorHotkey>
+  <RimWorldAccess.CharEd.Config.ClearTeleportHotkey>Teleport-Tastenkürzel leeren</RimWorldAccess.CharEd.Config.ClearTeleportHotkey>
+
+  <!-- A pawn-slot or custom-data text row's Value when it holds text: the raw content (a
+       PresetPawn string or a serialized def-modification blob) is not meaningful read aloud. -->
+  <RimWorldAccess.CharEd.Config.SlotOccupied>belegt</RimWorldAccess.CharEd.Config.SlotOccupied>
+  <RimWorldAccess.CharEd.Config.CustomDataPresent>Daten vorhanden</RimWorldAccess.CharEd.Config.CustomDataPresent>
+
+  <RimWorldAccess.CharEd.Config.SaveAndClose>Speichern und schließen</RimWorldAccess.CharEd.Config.SaveAndClose>
+  <!-- The mod's own AResetAll has no confirm of its own: ours adds one (see
+       CharEditorConfigCompat's class remarks). -->
+  <RimWorldAccess.CharEd.Config.ConfirmResetAll>Willst du wirklich alle Optionen auf ihre Standardwerte zurücksetzen? Das lässt sich nicht rückgängig machen.</RimWorldAccess.CharEd.Config.ConfirmResetAll>
+  <RimWorldAccess.CharEd.Config.ResetAllDone>Alle Optionen auf Standardwerte zurückgesetzt.</RimWorldAccess.CharEd.Config.ResetAllDone>
+  <RimWorldAccess.CharEd.Config.Opened>Character Editor: Optionen.</RimWorldAccess.CharEd.Config.Opened>
+
+  <!--
+    Slice S10a, Deliverable 2: the def-editor pane (CharEditorDefEditorScope), opened via a new
+    "Def editor..." extra action on the Objects and Genery browser screens. {0} in Opened is the
+    def's own capitalized label.
+  -->
+  <RimWorldAccess.CharEd.DefEditor.OpenAction>Def-Editor...</RimWorldAccess.CharEd.DefEditor.OpenAction>
+  <RimWorldAccess.CharEd.DefEditor.Opened>Def-Editor: {0}. Änderungen wirken sofort. Sie bleiben auch in späteren Spielsitzungen erhalten.</RimWorldAccess.CharEd.DefEditor.Opened>
+  <!-- Removal feedback reuses the shared RimWorldAccess.CharEd.Removed. -->
+  <RimWorldAccess.CharEd.DefEditor.NothingToAdd>Nichts mehr hinzuzufügen.</RimWorldAccess.CharEd.DefEditor.NothingToAdd>
+  <RimWorldAccess.CharEd.DefEditor.NotSet>nicht festgelegt</RimWorldAccess.CharEd.DefEditor.NotSet>
+  <RimWorldAccess.CharEd.DefEditor.OpensColorPicker>öffnet die Farbauswahl</RimWorldAccess.CharEd.DefEditor.OpensColorPicker>
+  <!-- {0} = offset, {1} = post-factor (the capacity modifier's second, rarely-used field:
+       displayed but only the offset is directly editable this slice). -->
+  <RimWorldAccess.CharEd.DefEditor.OffsetFactor>Offset {0}, Faktor {1}</RimWorldAccess.CharEd.DefEditor.OffsetFactor>
+
+  <RimWorldAccess.CharEd.DefEditor.InfoSection>Info</RimWorldAccess.CharEd.DefEditor.InfoSection>
+  <RimWorldAccess.CharEd.DefEditor.DefName>Def-Name</RimWorldAccess.CharEd.DefEditor.DefName>
+  <RimWorldAccess.CharEd.DefEditor.GeneClass>Genklasse</RimWorldAccess.CharEd.DefEditor.GeneClass>
+  <RimWorldAccess.CharEd.DefEditor.ResourceGizmoType>Typ des Ressourcen-Gizmos</RimWorldAccess.CharEd.DefEditor.ResourceGizmoType>
+  <RimWorldAccess.CharEd.DefEditor.BiostatsSection>Biowerte</RimWorldAccess.CharEd.DefEditor.BiostatsSection>
+  <!-- The Appearance section header reuses RimWorldAccess.CharEd.Appearance (same spoken role,
+       same English text). -->
+  <RimWorldAccess.CharEd.DefEditor.BodySizeSection>Körpergröße</RimWorldAccess.CharEd.DefEditor.BodySizeSection>
+  <RimWorldAccess.CharEd.DefEditor.ChemicalHairSection>Chemikalie und Frisur</RimWorldAccess.CharEd.DefEditor.ChemicalHairSection>
+  <RimWorldAccess.CharEd.DefEditor.PassionSection>Hingabe</RimWorldAccess.CharEd.DefEditor.PassionSection>
+  <RimWorldAccess.CharEd.DefEditor.RecipeResearchSection>Benötigte Forschung zum Herstellen</RimWorldAccess.CharEd.DefEditor.RecipeResearchSection>
+  <RimWorldAccess.CharEd.DefEditor.SaveModifications>Änderungen speichern</RimWorldAccess.CharEd.DefEditor.SaveModifications>
+  <RimWorldAccess.CharEd.DefEditor.ModificationsSaved>Änderungen gespeichert. Sie werden bei jedem Spielstart erneut angewendet.</RimWorldAccess.CharEd.DefEditor.ModificationsSaved>
+  <RimWorldAccess.CharEd.DefEditor.ResetDef>Def zurücksetzen</RimWorldAccess.CharEd.DefEditor.ResetDef>
+  <RimWorldAccess.CharEd.DefEditor.DefReset>Def auf Standardwerte zurückgesetzt.</RimWorldAccess.CharEd.DefEditor.DefReset>
+  <RimWorldAccess.CharEd.DefEditor.ResetAllDefs>Alle geänderten Defs zurücksetzen</RimWorldAccess.CharEd.DefEditor.ResetAllDefs>
+  <RimWorldAccess.CharEd.DefEditor.AllDefsReset>Alle Def-Änderungen zurückgesetzt.</RimWorldAccess.CharEd.DefEditor.AllDefsReset>
+
+  <!--
+    Slice S10b': promotes the fields S10a deferred (ThingDef ballistics/ammo/sound cluster, both
+    defs' tag lists, GeneDef's raw float/bool sliders, both defs' label fields) to fully editable
+    via the mod's own PresetObject/PresetGene apply pipeline. New keys here are minted ONLY where
+    the mod's own draw code passes no label text at all (DrawLabel, the bullet picker, the three
+    "showGizmo*" checkboxes) or has no widget at all (minMelanin, painFactor/painOffset use vanilla
+    "Pain".Translate() with no distinguishing suffix in the mod's own UI).
+  -->
+  <RimWorldAccess.CharEd.DefEditor.WriteFailed>Änderung abgelehnt.</RimWorldAccess.CharEd.DefEditor.WriteFailed>
+  <RimWorldAccess.CharEd.DefEditor.EnterNewTag>Neues Schlagwort eingeben...</RimWorldAccess.CharEd.DefEditor.EnterNewTag>
+  <RimWorldAccess.CharEd.DefEditor.GeneralSection>Allgemein</RimWorldAccess.CharEd.DefEditor.GeneralSection>
+  <RimWorldAccess.CharEd.DefEditor.ChancesSection>Chancen und Faktoren</RimWorldAccess.CharEd.DefEditor.ChancesSection>
+  <RimWorldAccess.CharEd.DefEditor.BehaviorSection>Verhalten</RimWorldAccess.CharEd.DefEditor.BehaviorSection>
+  <RimWorldAccess.CharEd.DefEditor.SoundsSection>Geräusche</RimWorldAccess.CharEd.DefEditor.SoundsSection>
+  <RimWorldAccess.CharEd.DefEditor.BallisticsSection>Ballistik</RimWorldAccess.CharEd.DefEditor.BallisticsSection>
+  <RimWorldAccess.CharEd.DefEditor.LabelField>Bezeichnung</RimWorldAccess.CharEd.DefEditor.LabelField>
+  <RimWorldAccess.CharEd.DefEditor.DefaultProjectile>Standardprojektil</RimWorldAccess.CharEd.DefEditor.DefaultProjectile>
+  <RimWorldAccess.CharEd.DefEditor.CausedNeed>Verursachtes Bedürfnis (nicht bearbeitbar, da Änderungen beim Laden verloren gehen)</RimWorldAccess.CharEd.DefEditor.CausedNeed>
+  <RimWorldAccess.CharEd.DefEditor.PainFactor>Schmerzfaktor</RimWorldAccess.CharEd.DefEditor.PainFactor>
+  <RimWorldAccess.CharEd.DefEditor.PainOffset>Schmerzoffset</RimWorldAccess.CharEd.DefEditor.PainOffset>
+  <RimWorldAccess.CharEd.DefEditor.MinMelanin>Mindestmelanin</RimWorldAccess.CharEd.DefEditor.MinMelanin>
+  <RimWorldAccess.CharEd.DefEditor.MissingRomanceChance>Umwerbungschance bei Leuten ohne das Gen (Faktor)</RimWorldAccess.CharEd.DefEditor.MissingRomanceChance>
+  <RimWorldAccess.CharEd.DefEditor.ShowGizmoOnWorldView>Gizmo auf der Weltkarte anzeigen</RimWorldAccess.CharEd.DefEditor.ShowGizmoOnWorldView>
+  <RimWorldAccess.CharEd.DefEditor.ShowGizmoWhenDrafted>Gizmo im Kampfmodus anzeigen</RimWorldAccess.CharEd.DefEditor.ShowGizmoWhenDrafted>
+  <RimWorldAccess.CharEd.DefEditor.ShowGizmoOnMultiSelect>Gizmo bei Mehrfachauswahl anzeigen</RimWorldAccess.CharEd.DefEditor.ShowGizmoOnMultiSelect>
+
+</LanguageData>

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <RimWorldAccess.TextInput.LabelDefault>Textfeld</RimWorldAccess.TextInput.LabelDefault>
+  <RimWorldAccess.TextInput.LabelFaction>Fraktionsname</RimWorldAccess.TextInput.LabelFaction>
+  <RimWorldAccess.TextInput.LabelSettlement>Siedlungsname</RimWorldAccess.TextInput.LabelSettlement>
+  <RimWorldAccess.TextInput.LabelZone>Zonenname</RimWorldAccess.TextInput.LabelZone>
+  <RimWorldAccess.TextInput.LabelPlan>Planname</RimWorldAccess.TextInput.LabelPlan>
+  <RimWorldAccess.TextInput.LabelStorage>Name der Lagergruppe</RimWorldAccess.TextInput.LabelStorage>
+  <RimWorldAccess.TextInput.LabelPen>Gehegename</RimWorldAccess.TextInput.LabelPen>
+  <RimWorldAccess.TextInput.LabelScenarioTitle>Szenario-Titel</RimWorldAccess.TextInput.LabelScenarioTitle>
+  <RimWorldAccess.TextInput.LabelScenarioSummary>Szenario-Zusammenfassung</RimWorldAccess.TextInput.LabelScenarioSummary>
+  <RimWorldAccess.TextInput.LabelScenarioDescription>Szenario-Beschreibung</RimWorldAccess.TextInput.LabelScenarioDescription>
+  <RimWorldAccess.TextInput.LabelFilename>Dateiname</RimWorldAccess.TextInput.LabelFilename>
+  <RimWorldAccess.TextInput.LabelXenotype>Name des Xenotyps</RimWorldAccess.TextInput.LabelXenotype>
+  <RimWorldAccess.TextInput.LabelXenogerm>Name des Xenokeims</RimWorldAccess.TextInput.LabelXenogerm>
+  <RimWorldAccess.TextInput.LabelWorldSeed>Seed</RimWorldAccess.TextInput.LabelWorldSeed>
+
+  <RimWorldAccess.TextInput.EditingField>{0} bearbeiten. Aktueller Wert: {1}. Tippe den neuen Text ein. Enter übernimmt den Text. Escape bricht die Bearbeitung ab.</RimWorldAccess.TextInput.EditingField>
+  <RimWorldAccess.TextInput.EditingMultiLineField>{0} bearbeiten. Du kannst mehrere Zeilen schreiben. Aktueller Wert: {1}. Tippe den neuen Text ein. Umschalt+Enter fügt eine neue Zeile ein. Pfeil nach oben und Pfeil nach unten wechseln die Zeile. Enter übernimmt den Text. Escape bricht die Bearbeitung ab.</RimWorldAccess.TextInput.EditingMultiLineField>
+  <RimWorldAccess.TextInput.BrowsingField>{0}, schreibgeschützt. Text: {1}.</RimWorldAccess.TextInput.BrowsingField>
+  <RimWorldAccess.TextInput.ReadOnlyField>Dieser Text ist schreibgeschützt</RimWorldAccess.TextInput.ReadOnlyField>
+  <RimWorldAccess.TextInput.Empty>leer</RimWorldAccess.TextInput.Empty>
+  <RimWorldAccess.TextInput.Deleted>{0} gelöscht</RimWorldAccess.TextInput.Deleted>
+  <RimWorldAccess.TextInput.FieldSet>{0} ist jetzt {1}</RimWorldAccess.TextInput.FieldSet>
+  <RimWorldAccess.TextInput.FieldUnchanged>{0} unverändert</RimWorldAccess.TextInput.FieldUnchanged>
+  <RimWorldAccess.TextInput.NewLine>Neue Zeile</RimWorldAccess.TextInput.NewLine>
+  <RimWorldAccess.TextInput.BlankLine>Leerzeile</RimWorldAccess.TextInput.BlankLine>
+
+  <RimWorldAccess.TextInput.Copied>Kopiert</RimWorldAccess.TextInput.Copied>
+  <RimWorldAccess.TextInput.Cut>Ausgeschnitten</RimWorldAccess.TextInput.Cut>
+  <RimWorldAccess.TextInput.SelectedAll>Alles ausgewählt: {0}</RimWorldAccess.TextInput.SelectedAll>
+  <RimWorldAccess.TextInput.SelectedAllLong>Alles ausgewählt. {0} Zeichen.</RimWorldAccess.TextInput.SelectedAllLong>
+  <RimWorldAccess.TextInput.ClipboardEmpty>Die Zwischenablage ist leer.</RimWorldAccess.TextInput.ClipboardEmpty>
+  <RimWorldAccess.TextInput.PastedShort>Eingefügt: {0}</RimWorldAccess.TextInput.PastedShort>
+  <RimWorldAccess.TextInput.PastedWords>{0} Wörter eingefügt</RimWorldAccess.TextInput.PastedWords>
+  <RimWorldAccess.TextInput.PastedLines>{0} Zeilen und {1} Wörter eingefügt</RimWorldAccess.TextInput.PastedLines>
+
+  <RimWorldAccess.TextInput.RejectedEmpty>Der Wert darf nicht leer sein.</RimWorldAccess.TextInput.RejectedEmpty>
+  <RimWorldAccess.TextInput.RejectedTooLong>Einfügen nicht möglich. Maximal {0} Zeichen erlaubt.</RimWorldAccess.TextInput.RejectedTooLong>
+  <RimWorldAccess.TextInput.RejectedTooShort>Einfügen nicht möglich. Mindestens {0} Zeichen nötig.</RimWorldAccess.TextInput.RejectedTooShort>
+  <RimWorldAccess.TextInput.RejectedDisallowed>Einfügen nicht möglich. Nicht erlaubte Zeichen: {0}</RimWorldAccess.TextInput.RejectedDisallowed>
+  <RimWorldAccess.TextInput.RejectedSpecial>Einfügen nicht möglich. Der Text enthält nicht erlaubte Sonderzeichen.</RimWorldAccess.TextInput.RejectedSpecial>
+  <RimWorldAccess.TextInput.RejectedFilename>Einfügen nicht möglich. Der Text enthält Zeichen, die in Dateinamen nicht erlaubt sind.</RimWorldAccess.TextInput.RejectedFilename>
+  <RimWorldAccess.TextInput.RejectedCustom>Ungültiger Wert. {0}</RimWorldAccess.TextInput.RejectedCustom>
+</LanguageData>

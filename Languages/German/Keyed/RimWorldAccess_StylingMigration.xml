@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Styling station ScreenScope migration.
+       src/Shell/Screens/StylingStationScope.Game.cs. The two new dev-only Body type/Head
+       type tabs share vanilla's own skin-color picker; this is its title, spoken the same
+       way RimWorldAccess.Styling.HairColorTitle/ApparelColorTitle are for the other two
+       color pickers (see RimWorldAccess_Styling.xml, owned by an earlier packet). -->
+  <RimWorldAccess.Styling.SkinColorTitle>Hautfarbe</RimWorldAccess.Styling.SkinColorTitle>
+</LanguageData>

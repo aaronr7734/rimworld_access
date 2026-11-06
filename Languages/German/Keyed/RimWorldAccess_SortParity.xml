@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- GetWorkInfo: "+N more" line for a pawn's disabled work-type list past the
+       first 10, matching the existing GetSocialInfo.OpinionsMore pattern so long
+       lists are never silently dropped. -->
+
+</LanguageData>

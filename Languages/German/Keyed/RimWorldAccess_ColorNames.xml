@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+
+  <!-- Descriptive color naming (ColorNameHelper): spoken names for colors that are not an
+       exact named ColorDef. A band template wraps a hue word via {0}; translators reorder the
+       template freely. Hue words are pure hue — never light/dark — because the color-picker
+       family preserves hue and saturation through a save while brightness changes. -->
+
+  <RimWorldAccess.Color.Hue.Red>rot</RimWorldAccess.Color.Hue.Red>
+  <RimWorldAccess.Color.Hue.Orange>orange</RimWorldAccess.Color.Hue.Orange>
+  <RimWorldAccess.Color.Hue.Amber>bernsteinfarben</RimWorldAccess.Color.Hue.Amber>
+  <RimWorldAccess.Color.Hue.Yellow>gelb</RimWorldAccess.Color.Hue.Yellow>
+  <RimWorldAccess.Color.Hue.Lime>gelbgrün</RimWorldAccess.Color.Hue.Lime>
+  <RimWorldAccess.Color.Hue.Green>grün</RimWorldAccess.Color.Hue.Green>
+  <RimWorldAccess.Color.Hue.Teal>türkis</RimWorldAccess.Color.Hue.Teal>
+  <RimWorldAccess.Color.Hue.Cyan>cyan</RimWorldAccess.Color.Hue.Cyan>
+  <RimWorldAccess.Color.Hue.Azure>azurblau</RimWorldAccess.Color.Hue.Azure>
+  <RimWorldAccess.Color.Hue.Blue>blau</RimWorldAccess.Color.Hue.Blue>
+  <RimWorldAccess.Color.Hue.Indigo>indigo</RimWorldAccess.Color.Hue.Indigo>
+  <RimWorldAccess.Color.Hue.Violet>violett</RimWorldAccess.Color.Hue.Violet>
+  <RimWorldAccess.Color.Hue.Purple>lila</RimWorldAccess.Color.Hue.Purple>
+  <RimWorldAccess.Color.Hue.Magenta>magenta</RimWorldAccess.Color.Hue.Magenta>
+  <RimWorldAccess.Color.Hue.Pink>pink</RimWorldAccess.Color.Hue.Pink>
+  <RimWorldAccess.Color.Hue.Rose>rosenrot</RimWorldAccess.Color.Hue.Rose>
+
+  <RimWorldAccess.Color.MidVivid>{0}</RimWorldAccess.Color.MidVivid>
+  <RimWorldAccess.Color.MidMuted>{0}, gedämpft</RimWorldAccess.Color.MidMuted>
+  <RimWorldAccess.Color.MidPale>{0}, blass</RimWorldAccess.Color.MidPale>
+  <RimWorldAccess.Color.DarkVivid>{0}, dunkel</RimWorldAccess.Color.DarkVivid>
+  <RimWorldAccess.Color.DarkMuted>{0}, dunkel und gedämpft</RimWorldAccess.Color.DarkMuted>
+  <RimWorldAccess.Color.DarkPale>{0}, dunkel und blass</RimWorldAccess.Color.DarkPale>
+  <RimWorldAccess.Color.LightVivid>{0}, hell</RimWorldAccess.Color.LightVivid>
+  <RimWorldAccess.Color.LightMuted>{0}, hell und gedämpft</RimWorldAccess.Color.LightMuted>
+  <RimWorldAccess.Color.LightPale>{0}, blass</RimWorldAccess.Color.LightPale>
+
+  <RimWorldAccess.Color.Black>schwarz</RimWorldAccess.Color.Black>
+  <RimWorldAccess.Color.White>weiß</RimWorldAccess.Color.White>
+  <RimWorldAccess.Color.Gray>grau</RimWorldAccess.Color.Gray>
+  <RimWorldAccess.Color.GrayDark>dunkelgrau</RimWorldAccess.Color.GrayDark>
+  <RimWorldAccess.Color.GrayLight>hellgrau</RimWorldAccess.Color.GrayLight>
+
+</LanguageData>
