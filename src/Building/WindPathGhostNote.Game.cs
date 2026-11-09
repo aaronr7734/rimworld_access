@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
@@ -6,27 +7,41 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Speaks what a wind-driven building's ghost outlines at the placement cursor: which of its
-    /// wind cells are obstructed, by what, and the output share those obstructions cost. The ghost
-    /// draws only the outline; a sighted player reads the trees, walls and roofs inside it.
-    /// Shared by the vanilla wind turbine and any modded building built on the same wind rule.
+    /// What a wind-driven building's ghost outlines: which of its wind cells are obstructed, by
+    /// what, and the output share those obstructions cost. The ghost draws only the outline; a
+    /// sighted player reads the trees, walls and roofs inside it. One calculation serves both the
+    /// placement cursor's note and the placement-spot rating, so the two always agree. Shared by
+    /// the vanilla wind turbine and any modded building built on the same wind rule.
     /// </summary>
     internal static class WindPathGhostNote
     {
         /// <param name="windCells">The cells the building's own ghost outlines.</param>
         /// <param name="reductionPerObstacle">The owning comp's output cut per obstructed cell.</param>
-        public static void Collect(IEnumerable<IntVec3> windCells, float reductionPerObstacle)
+        /// <param name="stopsInVacuum">Whether the owning comp produces nothing on a vacuum map.</param>
+        public static void Collect(IEnumerable<IntVec3> windCells, float reductionPerObstacle, bool stopsInVacuum)
         {
             if (!PlacementHelpSpeech.CollectingOutlines)
                 return;
             Map map = Find.CurrentMap;
             if (map == null)
                 return;
-            PlacementHelpSpeech.CollectOutline(Describe(map, windCells, reductionPerObstacle));
+            PlacementHelpSpeech.CollectOutline(Rate(map, windCells, reductionPerObstacle, stopsInVacuum).Phrase);
         }
 
-        private static string Describe(Map map, IEnumerable<IntVec3> windCells, float reductionPerObstacle)
+        /// <summary>A placement-spot rating factory for a building whose wind cells come from <paramref name="windCells"/>.</summary>
+        public static Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> RatingFactory(
+            Func<IntVec3, Rot4, IntVec2, IEnumerable<IntVec3>> windCells, float reductionPerObstacle, bool stopsInVacuum)
         {
+            return (def, map) => (cell, rotation) =>
+                Rate(map, windCells(cell, rotation, def.size), reductionPerObstacle, stopsInVacuum);
+        }
+
+        /// <summary>The share of full output left after obstructions, and the phrase naming them.</summary>
+        public static PlacementQuality Rate(Map map, IEnumerable<IntVec3> windCells, float reductionPerObstacle, bool stopsInVacuum)
+        {
+            if (stopsInVacuum && map.Biome.inVacuum)
+                return new PlacementQuality(0f, "RimWorldAccess.Building.Place.WindNoneInVacuum".Translate());
+
             var countByBlocker = new Dictionary<string, int>();
             var blockerOrder = new List<string>();
             int blocked = 0;
@@ -51,7 +66,7 @@ namespace RimWorldAccess
             }
 
             if (blocked == 0)
-                return "RimWorldAccess.Building.Place.WindPathClear".Translate();
+                return new PlacementQuality(PlacementSpotRanking.FullQuality, "RimWorldAccess.Building.Place.WindPathClear".Translate());
 
             var blockers = new List<string>(blockerOrder.Count);
             foreach (string blocker in blockerOrder)
@@ -65,8 +80,9 @@ namespace RimWorldAccess
 
             float reduction = Mathf.Min(1f, blocked * reductionPerObstacle);
             return reduction >= 1f
-                ? "RimWorldAccess.Building.Place.WindPathBlockedNoOutput".Translate(blockerList)
-                : "RimWorldAccess.Building.Place.WindPathBlocked".Translate(blockerList, reduction.ToStringPercent());
+                ? new PlacementQuality(0f, "RimWorldAccess.Building.Place.WindPathBlockedNoOutput".Translate(blockerList))
+                : new PlacementQuality(1f - reduction,
+                    "RimWorldAccess.Building.Place.WindPathBlocked".Translate(blockerList, reduction.ToStringPercent()));
         }
 
         /// <summary>
@@ -83,7 +99,7 @@ namespace RimWorldAccess
             for (int i = 0; i < things.Count; i++)
             {
                 if (things[i].def.blockWind)
-                    return things[i].LabelNoCount;
+                    return GenLabel.ThingLabel(things[i].def, things[i].Stuff);
             }
             return null;
         }

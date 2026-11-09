@@ -284,6 +284,19 @@
   <RimWorldAccess.Building.Place.SpotScannerCategory>{0}放置点</RimWorldAccess.Building.Place.SpotScannerCategory>
   <RimWorldAccess.Building.Place.SpotScannerItemLabel>位置</RimWorldAccess.Building.Place.SpotScannerItemLabel>
   <RimWorldAccess.Building.Place.SpotFacing>朝向 {0}</RimWorldAccess.Building.Place.SpotFacing>
+  <!-- How well a solar generator would work at a placement spot whose footprint is partly
+       under a roof (src/Building/SolarPlacementQuality.Game.cs). {0} = roofed cells, {1} = all
+       cells of the footprint, {2} = the share of full output left, as a percentage. -->
+  <RimWorldAccess.Building.Place.SolarPartlyRoofed>{1} 格中 {0} 格有屋顶，输出 {2}</RimWorldAccess.Building.Place.SolarPartlyRoofed>
+  <!-- The deep resources a deep drill would bring up at a placement spot, from the cells around
+       it the drill draws from (src/Building/DeepDrillPlacementQuality.Game.cs). {0} = one or more
+       DrillReachAmount entries joined as a list. In DrillReachAmount, {0} = resource name,
+       {1} = how much of it is left in those cells. -->
+  <RimWorldAccess.Building.Place.DrillReach>钻井范围内有 {0}</RimWorldAccess.Building.Place.DrillReach>
+  <RimWorldAccess.Building.Place.DrillReachAmount>{1} {0}</RimWorldAccess.Building.Place.DrillReachAmount>
+  <!-- A deep drill placement spot with no deposit in reach, where the drill only brings up the
+       ground's own rock. {0} = that rock's chunks, pluralized, e.g. "granite chunks". -->
+  <RimWorldAccess.Building.Place.DrillRockOnly>范围内无矿藏，仅有 {0}</RimWorldAccess.Building.Place.DrillRockOnly>
   <RimWorldAccess.Building.Place.SpacingInRange>相距 {0} 格，间距正确</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>相距 {0} 格，间距错误</RimWorldAccess.Building.Place.SpacingOutOfRange>
 
@@ -294,6 +307,8 @@
   <RimWorldAccess.Building.Place.WindPathClear>风路畅通</RimWorldAccess.Building.Place.WindPathClear>
   <RimWorldAccess.Building.Place.WindPathBlocked>风路被 {0} 阻挡，输出降低 {1}</RimWorldAccess.Building.Place.WindPathBlocked>
   <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>风路被 {0} 阻挡，无输出</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- A wind turbine on a map with no air, where it never turns. -->
+  <RimWorldAccess.Building.Place.WindNoneInVacuum>真空中无风，无输出</RimWorldAccess.Building.Place.WindNoneInVacuum>
   <!-- {0} = blocker label, {1} = how many wind cells it blocks (always 2 or more). -->
   <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>所需区域，{0} 乘 {1}，{3} {2} 格，合适</RimWorldAccess.Building.Place.OutlineOkAt>

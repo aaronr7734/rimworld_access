@@ -1,12 +1,12 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace RimWorldAccess
 {
     /// <summary>
-    /// One legal position for the building being placed: its map coordinates, its distance from
-    /// the cursor at sweep time, and the facing the building must be turned to for it to fit
-    /// there (null when the rotation the player is already holding fits).
-    /// Facings are <c>Rot4.AsInt</c> values so this carrier stays free of game types.
+    /// One legal position for the building being placed: map coordinates, distance from the cursor
+    /// at sweep time, the facing it must be turned to (null when the held rotation is best), and
+    /// how well it would work there. Facings are <c>Rot4.AsInt</c> values, free of game types.
     /// </summary>
     public readonly struct PlacementSpot
     {
@@ -15,97 +15,130 @@ namespace RimWorldAccess
         public readonly float Distance;
         public readonly int? RequiredFacing;
 
+        public readonly float Quality;
+
+        public readonly string QualityPhrase;
+
         public PlacementSpot(int x, int z, float distance, int? requiredFacing)
+            : this(x, z, distance, requiredFacing, PlacementSpotRanking.FullQuality, null)
+        {
+        }
+
+        public PlacementSpot(int x, int z, float distance, int? requiredFacing, float quality, string qualityPhrase)
         {
             X = x;
             Z = z;
             Distance = distance;
             RequiredFacing = requiredFacing;
+            Quality = quality;
+            QualityPhrase = qualityPhrase;
+        }
+    }
+
+    /// <summary>One facing a building fits at, with how well it would work facing that way.</summary>
+    public readonly struct FacingRating
+    {
+        public readonly int Facing;
+        public readonly float Quality;
+        public readonly string Phrase;
+
+        public FacingRating(int facing, float quality, string phrase)
+        {
+            Facing = facing;
+            Quality = quality;
+            Phrase = phrase;
         }
     }
 
     /// <summary>
-    /// The cap, the ordering and the facing choice behind the placement-spot scanner category.
-    /// Free of game types so the rules are unit-tested; the map sweep that feeds it lives in
-    /// PlacementSpotScanner.Game.cs.
+    /// The cap, ordering, stop rule and facing choice behind the placement-spot scanner category,
+    /// free of game types so they are unit-tested; the map sweep lives in PlacementSpotScanner.Game.cs.
     /// </summary>
     public static class PlacementSpotRanking
     {
         /// <summary>How many positions the category lists. The one place to revisit the cap.</summary>
         public const int MaxSpots = 25;
 
+        /// <summary>The quality of a spot nothing can beat, and of every spot no rule rates.</summary>
+        public const float FullQuality = 1f;
+
+        /// <summary>A last resort's score: listed, but worse than any real option.</summary>
+        public const float FallbackQuality = 0.01f;
+
+        /// <summary>Working spots a rated sweep gathers before it stops looking for better ones;
+        /// bounds the cost where perfect spots are rare, as each rated cell tries every facing.</summary>
+        public const int MaxRatedCandidates = MaxSpots * 4;
+
         /// <summary>
-        /// How far from the cursor the sweep looks before giving up. Radial cells arrive
-        /// nearest-first, so the sweep normally stops at <see cref="MaxSpots"/> long before this;
-        /// the radius only bounds the hopeless case where almost nothing fits. Must stay under
-        /// GenRadial.MaxRadialPatternRadius (~79 with the 20,000-cell pattern) or the sweep
-        /// silently truncates.
+        /// How far from the cursor the sweep looks; it only bounds the hopeless case where almost
+        /// nothing fits. Must stay under GenRadial.MaxRadialPatternRadius (~79 with the
+        /// 20,000-cell pattern) or the sweep silently truncates.
         /// </summary>
         public const float SearchRadius = 60f;
 
-        /// <summary>
-        /// How far the cursor may drift from the last sweep's origin before the category is
-        /// re-swept from the new position. Half the radius keeps the listed spots relevant
-        /// wherever the player wanders without paying for a sweep on every step.
-        /// </summary>
+        /// <summary>How far the cursor may drift from the last sweep's origin before the category
+        /// is re-swept, keeping spots relevant without a sweep on every step.</summary>
         public const float ResweepDistance = SearchRadius / 2f;
 
         /// <summary>
-        /// Orders candidates nearest-first and cuts the list to <see cref="MaxSpots"/>.
-        /// The sort is stable, so candidates at equal distance keep the sweep's own radial order.
+        /// Best first, then nearest, capped at <see cref="MaxSpots"/>; spots rated 0 or below would
+        /// not work and are dropped. Stable, so equal spots keep the sweep's radial order.
         /// </summary>
         public static List<PlacementSpot> Select(IEnumerable<PlacementSpot> candidates)
         {
-            var ordered = new List<PlacementSpot>();
             if (candidates == null)
-                return ordered;
+                return new List<PlacementSpot>();
 
-            ordered.AddRange(candidates);
-            StableSortByDistance(ordered);
+            return candidates
+                .Where(spot => spot.Quality > 0f)
+                .OrderByDescending(spot => spot.Quality)
+                .ThenBy(spot => spot.Distance)
+                .Take(MaxSpots)
+                .ToList();
+        }
 
-            if (ordered.Count > MaxSpots)
-                ordered.RemoveRange(MaxSpots, ordered.Count - MaxSpots);
+        /// <summary>Whether a nearest-first sweep can stop: no later cell outranks <see cref="MaxSpots"/>
+        /// full-quality spots, which for an unrated building is the plain cap.</summary>
+        public static bool SweepComplete(int fullQualitySpots, int workingSpots)
+        {
+            return fullQualitySpots >= MaxSpots || workingSpots >= MaxRatedCandidates;
+        }
 
-            return ordered;
+        /// <summary>Last resorts never fill <see cref="MaxRatedCandidates"/>, so they cannot end the sweep early.</summary>
+        public static bool CountsAsWorking(float quality)
+        {
+            return quality > FallbackQuality;
         }
 
         /// <summary>
-        /// Decides what facing a cell needs, given every facing the building fits at there.
-        /// Returns false when nothing fits — the cell is not a placement spot at all.
-        /// <paramref name="requiredFacing"/> stays null when the current facing is among the
-        /// fitting ones, so a spot that already works is announced without a facing fragment.
+        /// The best-working facing that fits, false when none works (rated 0 or below). The held
+        /// facing wins a tie, leaving <paramref name="requiredFacing"/> null, so turning is only
+        /// asked for when it works better; otherwise the first in the list wins.
         /// </summary>
-        public static bool TryChooseFacing(int currentFacing, IReadOnlyList<int> fittingFacings, out int? requiredFacing)
+        public static bool TryChooseFacing(int currentFacing, IReadOnlyList<FacingRating> ratings, out FacingRating best, out int? requiredFacing)
         {
+            best = default(FacingRating);
             requiredFacing = null;
-            if (fittingFacings == null || fittingFacings.Count == 0)
+            if (ratings == null)
                 return false;
 
-            for (int i = 0; i < fittingFacings.Count; i++)
+            bool found = false;
+            for (int i = 0; i < ratings.Count; i++)
             {
-                if (fittingFacings[i] == currentFacing)
-                    return true;
-            }
-
-            requiredFacing = fittingFacings[0];
-            return true;
-        }
-
-        // List<T>.Sort is unstable, and equal-distance ties must keep the radial order the sweep
-        // produced (which is already nearest-first and deterministic).
-        private static void StableSortByDistance(List<PlacementSpot> spots)
-        {
-            for (int i = 1; i < spots.Count; i++)
-            {
-                PlacementSpot spot = spots[i];
-                int j = i - 1;
-                while (j >= 0 && spots[j].Distance > spot.Distance)
+                FacingRating rating = ratings[i];
+                if (rating.Quality <= 0f)
+                    continue;
+                if (!found || rating.Quality > best.Quality
+                    || (rating.Quality == best.Quality && rating.Facing == currentFacing))
                 {
-                    spots[j + 1] = spots[j];
-                    j--;
+                    best = rating;
+                    found = true;
                 }
-                spots[j + 1] = spot;
             }
+
+            if (found && best.Facing != currentFacing)
+                requiredFacing = best.Facing;
+            return found;
         }
     }
 }

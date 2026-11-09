@@ -5,23 +5,24 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Rules for buildings that vanilla's own placement gate accepts at a cell where they would
-    /// not actually work, because the deciding rule lives only in a place worker's ghost draw (the
-    /// water mill's overlap with other mills is the vanilla case). Consulted by
-    /// <see cref="PlacementSpotScanner"/> in addition to <c>CanDesignateCell</c>, so recommended
-    /// spots are cells the building would work at. Manual placement never consults it: a cell
-    /// vanilla allows stays placeable.
+    /// Rules for how well a building would work at a cell vanilla's own placement gate accepts.
+    /// Some buildings would not work at all there, because the deciding rule lives only in a place
+    /// worker's ghost draw (the water mill's overlap with other mills); others work in proportion to
+    /// something about the cell (a wind turbine's clear wind path, a solar panel's open sky).
+    /// <see cref="PlacementSpotScanner"/> drops spots rated 0 and lists the rest best first. Manual
+    /// placement never consults it: a cell vanilla allows stays placeable.
     ///
-    /// A registrant supplies a def filter and a per-sweep factory, so whatever the test needs from
+    /// A registrant supplies a def filter and a per-sweep factory, so whatever the rating needs from
     /// the map (the existing buildings it must not overlap, a mod's grid) is gathered once per
-    /// sweep rather than once per candidate cell.
+    /// sweep rather than once per candidate cell. A rule that describes something the placement
+    /// cursor also speaks must build its phrase from the same calculation, so the two never differ.
     /// </summary>
     internal static class PlacementUsefulnessRegistry
     {
         private struct Entry
         {
             public Predicate<ThingDef> AppliesTo;
-            public Func<ThingDef, Map, Func<IntVec3, Rot4, bool>> MakeTest;
+            public Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> MakeRating;
         }
 
         private static readonly List<Entry> entries = new List<Entry>
@@ -29,40 +30,88 @@ namespace RimWorldAccess
             new Entry
             {
                 AppliesTo = WatermillPlacementUsefulness.AppliesTo,
-                MakeTest = WatermillPlacementUsefulness.MakeTest,
+                MakeRating = WatermillPlacementUsefulness.MakeRating,
+            },
+            new Entry
+            {
+                AppliesTo = WindTurbineGhostNotePatch.AppliesTo,
+                MakeRating = WindTurbineGhostNotePatch.MakeRating,
+            },
+            new Entry
+            {
+                AppliesTo = SolarPlacementQuality.AppliesTo,
+                MakeRating = SolarPlacementQuality.MakeRating,
+            },
+            new Entry
+            {
+                AppliesTo = DeepDrillPlacementQuality.AppliesTo,
+                MakeRating = DeepDrillPlacementQuality.MakeRating,
             },
         };
 
         /// <param name="appliesTo">Which defs the rule covers; asked once per sweep.</param>
-        /// <param name="makeTest">Builds the sweep's cell test, true when the building would work at
-        /// that cell and rotation. May return null when the rule has nothing to check on this map.</param>
-        public static void Register(Predicate<ThingDef> appliesTo, Func<ThingDef, Map, Func<IntVec3, Rot4, bool>> makeTest)
+        /// <param name="makeRating">Builds the sweep's rating of a cell and rotation. May return null
+        /// when the rule has nothing to judge on this map.</param>
+        public static void Register(Predicate<ThingDef> appliesTo, Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> makeRating)
         {
-            if (appliesTo == null || makeTest == null)
+            if (appliesTo == null || makeRating == null)
                 return;
-            entries.Add(new Entry { AppliesTo = appliesTo, MakeTest = makeTest });
+            entries.Add(new Entry { AppliesTo = appliesTo, MakeRating = makeRating });
         }
 
-        /// <summary>The cell tests that apply to <paramref name="def"/> on this map, built once for one sweep.</summary>
-        public static List<Func<IntVec3, Rot4, bool>> TestsFor(ThingDef def, Map map)
+        /// <summary>
+        /// The combined rating of every rule that applies to <paramref name="def"/> on this map, built
+        /// once for one sweep, or null when none does. Scores multiply, as each rule judges an
+        /// independent reason the building would work less well; phrases join in registration order.
+        /// A rule at full quality says nothing in the list, so silence means nothing is lost there.
+        /// </summary>
+        public static Func<IntVec3, Rot4, PlacementQuality> RatingFor(ThingDef def, Map map)
         {
-            var tests = new List<Func<IntVec3, Rot4, bool>>();
+            var ratings = new List<Func<IntVec3, Rot4, PlacementQuality>>();
             foreach (Entry entry in entries)
             {
                 try
                 {
                     if (!entry.AppliesTo(def))
                         continue;
-                    Func<IntVec3, Rot4, bool> test = entry.MakeTest(def, map);
-                    if (test != null)
-                        tests.Add(test);
+                    Func<IntVec3, Rot4, PlacementQuality> rating = entry.MakeRating(def, map);
+                    if (rating != null)
+                        ratings.Add(rating);
                 }
                 catch (Exception ex)
                 {
                     ModLogger.LimitedError("Placement usefulness rule error", ex);
                 }
             }
-            return tests;
+
+            if (ratings.Count == 0)
+                return null;
+            return (cell, rotation) => Combine(ratings, cell, rotation);
+        }
+
+        private static PlacementQuality Combine(List<Func<IntVec3, Rot4, PlacementQuality>> ratings, IntVec3 cell, Rot4 rotation)
+        {
+            float score = PlacementSpotRanking.FullQuality;
+            List<string> phrases = null;
+            for (int i = 0; i < ratings.Count; i++)
+            {
+                PlacementQuality quality;
+                try
+                {
+                    quality = ratings[i](cell, rotation);
+                }
+                catch (Exception ex)
+                {
+                    // A throwing rule must not empty the whole list, so it counts as no objection.
+                    ModLogger.LimitedError("Placement usefulness rule error", ex);
+                    continue;
+                }
+
+                score *= quality.Score;
+                if (quality.Score < PlacementSpotRanking.FullQuality && !string.IsNullOrEmpty(quality.Phrase))
+                    (phrases ?? (phrases = new List<string>())).Add(quality.Phrase);
+            }
+            return new PlacementQuality(score, phrases?.ToCommaList());
         }
     }
 }

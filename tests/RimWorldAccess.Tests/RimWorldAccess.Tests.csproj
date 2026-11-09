@@ -124,7 +124,7 @@
              LinkBase="UnderTest\Building" />
     <Compile Include="..\..\src\Building\PlacementFootprintNames.cs"
              LinkBase="UnderTest\Building" />
-    <!-- The placement-spot scanner's cap, ordering and facing choice. The map sweep that feeds
+    <!-- The placement-spot scanner's cap, quality ordering, stop rule and facing choice. The map sweep that feeds
          it is PlacementSpotScanner.Game.cs and stays out. -->
     <Compile Include="..\..\src\Building\PlacementSpotRanking.cs"
              LinkBase="UnderTest\Building" />

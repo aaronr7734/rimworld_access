@@ -73,18 +73,114 @@ namespace RimWorldAccess.Tests.Shell
         }
 
         [Fact]
+        public void SelectPutsBetterSpotsFirstThenNearer()
+        {
+            var selected = PlacementSpotRanking.Select(new List<PlacementSpot>
+            {
+                Rated(1f, 0.5f),
+                Rated(2f, 1f),
+                Rated(3f, 0.8f),
+                Rated(4f, 1f),
+                Rated(5f, 0.5f),
+            });
+
+            Assert.Equal(new[] { 2f, 4f, 3f, 1f, 5f }, selected.ConvertAll(s => s.Distance).ToArray());
+        }
+
+        [Fact]
+        public void SelectKeepsTheSweepOrderForEqualQualityAndDistance()
+        {
+            var selected = PlacementSpotRanking.Select(new List<PlacementSpot>
+            {
+                new PlacementSpot(5, 0, 3f, null, 0.5f, "a"),
+                new PlacementSpot(-5, 0, 3f, null, 0.5f, "b"),
+                new PlacementSpot(0, 3, 3f, null, 0.5f, "c"),
+            });
+
+            Assert.Equal(new[] { "a", "b", "c" }, selected.ConvertAll(s => s.QualityPhrase).ToArray());
+        }
+
+        [Fact]
+        public void SelectDropsSpotsThatWouldNotWork()
+        {
+            var selected = PlacementSpotRanking.Select(new List<PlacementSpot>
+            {
+                Rated(1f, 0f),
+                Rated(2f, 0.1f),
+                Rated(3f, -1f),
+            });
+
+            Assert.Single(selected);
+            Assert.Equal(2f, selected[0].Distance);
+        }
+
+        [Fact]
+        public void UnratedSpotsAreAtFullQuality()
+        {
+            PlacementSpot spot = Spot(4f);
+
+            Assert.Equal(PlacementSpotRanking.FullQuality, spot.Quality);
+            Assert.Null(spot.QualityPhrase);
+        }
+
+        [Fact]
+        public void TheCapKeepsTheBestWhenItBites()
+        {
+            var candidates = new List<PlacementSpot>();
+            for (int i = 0; i < PlacementSpotRanking.MaxSpots * 2; i++)
+                candidates.Add(Rated(i, 0.5f));
+            candidates.Add(Rated(1000f, 1f));
+
+            var selected = PlacementSpotRanking.Select(candidates);
+
+            Assert.Equal(PlacementSpotRanking.MaxSpots, selected.Count);
+            Assert.Equal(1000f, selected[0].Distance);
+        }
+
+        [Fact]
+        public void TheSweepStopsOnceTheCapIsFilledAtFullQuality()
+        {
+            Assert.False(PlacementSpotRanking.SweepComplete(PlacementSpotRanking.MaxSpots - 1, PlacementSpotRanking.MaxSpots - 1));
+            Assert.True(PlacementSpotRanking.SweepComplete(PlacementSpotRanking.MaxSpots, PlacementSpotRanking.MaxSpots));
+        }
+
+        [Fact]
+        public void ImperfectSpotsKeepTheSweepLookingUntilThePoolIsFull()
+        {
+            Assert.False(PlacementSpotRanking.SweepComplete(0, PlacementSpotRanking.MaxSpots));
+            Assert.False(PlacementSpotRanking.SweepComplete(3, PlacementSpotRanking.MaxRatedCandidates - 1));
+            Assert.True(PlacementSpotRanking.SweepComplete(3, PlacementSpotRanking.MaxRatedCandidates));
+        }
+
+        [Fact]
+        public void LastResortsAreListedBelowRealOptionsButNeverFillThePool()
+        {
+            Assert.False(PlacementSpotRanking.CountsAsWorking(PlacementSpotRanking.FallbackQuality));
+            Assert.True(PlacementSpotRanking.CountsAsWorking(PlacementSpotRanking.FallbackQuality + 0.001f));
+
+            var selected = PlacementSpotRanking.Select(new List<PlacementSpot>
+            {
+                Rated(1f, PlacementSpotRanking.FallbackQuality),
+                Rated(9f, 0.02f),
+            });
+
+            Assert.Equal(new[] { 9f, 1f }, selected.ConvertAll(s => s.Distance).ToArray());
+        }
+
+        [Fact]
         public void ACellThatFitsAtTheCurrentRotationNeedsNoFacing()
         {
-            bool isSpot = PlacementSpotRanking.TryChooseFacing(East, new[] { East }, out int? required);
+            bool isSpot = PlacementSpotRanking.TryChooseFacing(East, Facings(East), out FacingRating best, out int? required);
 
             Assert.True(isSpot);
+            Assert.Equal(East, best.Facing);
             Assert.Null(required);
         }
 
         [Fact]
         public void TheCurrentRotationWinsEvenWhenOthersAlsoFit()
         {
-            bool isSpot = PlacementSpotRanking.TryChooseFacing(South, new[] { North, South, West }, out int? required);
+            bool isSpot = PlacementSpotRanking.TryChooseFacing(South, Facings(North, South, West), out _, out int? required);
 
             Assert.True(isSpot);
             Assert.Null(required);
@@ -93,20 +189,80 @@ namespace RimWorldAccess.Tests.Shell
         [Fact]
         public void ACellThatFitsOnlySidewaysReportsThatFacing()
         {
-            bool isSpot = PlacementSpotRanking.TryChooseFacing(North, new[] { West, East }, out int? required);
+            bool isSpot = PlacementSpotRanking.TryChooseFacing(North, Facings(West, East), out _, out int? required);
 
             Assert.True(isSpot);
             Assert.Equal(West, required);
         }
 
         [Fact]
+        public void ABetterWorkingFacingBeatsTheCurrentOne()
+        {
+            var ratings = new[]
+            {
+                new FacingRating(North, 0.6f, "north"),
+                new FacingRating(East, 1f, "east"),
+                new FacingRating(South, 0.8f, "south"),
+            };
+
+            bool isSpot = PlacementSpotRanking.TryChooseFacing(North, ratings, out FacingRating best, out int? required);
+
+            Assert.True(isSpot);
+            Assert.Equal(East, required);
+            Assert.Equal("east", best.Phrase);
+        }
+
+        [Fact]
+        public void TheCurrentRotationWinsATieOnQuality()
+        {
+            var ratings = new[]
+            {
+                new FacingRating(West, 0.6f, null),
+                new FacingRating(South, 0.6f, null),
+            };
+
+            PlacementSpotRanking.TryChooseFacing(South, ratings, out FacingRating best, out int? required);
+
+            Assert.Equal(South, best.Facing);
+            Assert.Null(required);
+        }
+
+        [Fact]
+        public void FacingsThatWouldNotWorkDoNotCount()
+        {
+            var ratings = new[]
+            {
+                new FacingRating(North, 0f, null),
+                new FacingRating(East, 0.2f, null),
+            };
+
+            bool isSpot = PlacementSpotRanking.TryChooseFacing(North, ratings, out _, out int? required);
+
+            Assert.True(isSpot);
+            Assert.Equal(East, required);
+
+            Assert.False(PlacementSpotRanking.TryChooseFacing(North, new[] { new FacingRating(North, 0f, null) }, out _, out required));
+            Assert.Null(required);
+        }
+
+        [Fact]
         public void ACellNothingFitsInIsNotASpot()
         {
-            Assert.False(PlacementSpotRanking.TryChooseFacing(North, new int[0], out int? required));
+            Assert.False(PlacementSpotRanking.TryChooseFacing(North, new FacingRating[0], out _, out int? required));
             Assert.Null(required);
 
-            Assert.False(PlacementSpotRanking.TryChooseFacing(North, null, out required));
+            Assert.False(PlacementSpotRanking.TryChooseFacing(North, null, out _, out required));
             Assert.Null(required);
+        }
+
+        private static PlacementSpot Rated(float distance, float quality)
+        {
+            return new PlacementSpot(0, (int)distance, distance, null, quality, null);
+        }
+
+        private static FacingRating[] Facings(params int[] facings)
+        {
+            return System.Array.ConvertAll(facings, f => new FacingRating(f, PlacementSpotRanking.FullQuality, null));
         }
     }
 }

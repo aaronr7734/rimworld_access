@@ -285,6 +285,19 @@
   <RimWorldAccess.Building.Place.SpotScannerCategory>Locais de colocação de {0}</RimWorldAccess.Building.Place.SpotScannerCategory>
   <RimWorldAccess.Building.Place.SpotScannerItemLabel>Local</RimWorldAccess.Building.Place.SpotScannerItemLabel>
   <RimWorldAccess.Building.Place.SpotFacing>voltado para {0}</RimWorldAccess.Building.Place.SpotFacing>
+  <!-- How well a solar generator would work at a placement spot whose footprint is partly
+       under a roof (src/Building/SolarPlacementQuality.Game.cs). {0} = roofed cells, {1} = all
+       cells of the footprint, {2} = the share of full output left, as a percentage. -->
+  <RimWorldAccess.Building.Place.SolarPartlyRoofed>{0} de {1} células com telhado, produção {2}</RimWorldAccess.Building.Place.SolarPartlyRoofed>
+  <!-- The deep resources a deep drill would bring up at a placement spot, from the cells around
+       it the drill draws from (src/Building/DeepDrillPlacementQuality.Game.cs). {0} = one or more
+       DrillReachAmount entries joined as a list. In DrillReachAmount, {0} = resource name,
+       {1} = how much of it is left in those cells. -->
+  <RimWorldAccess.Building.Place.DrillReach>{0} ao alcance da broca</RimWorldAccess.Building.Place.DrillReach>
+  <RimWorldAccess.Building.Place.DrillReachAmount>{1} {0}</RimWorldAccess.Building.Place.DrillReachAmount>
+  <!-- A deep drill placement spot with no deposit in reach, where the drill only brings up the
+       ground's own rock. {0} = that rock's chunks, pluralized, e.g. "granite chunks". -->
+  <RimWorldAccess.Building.Place.DrillRockOnly>sem jazidas ao alcance, apenas {0}</RimWorldAccess.Building.Place.DrillRockOnly>
   <RimWorldAccess.Building.Place.SpacingInRange>{0} células de distância, espaçamento correcto</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>{0} células de distância, espaçamento incorrecto</RimWorldAccess.Building.Place.SpacingOutOfRange>
 
@@ -295,6 +308,8 @@
   <RimWorldAccess.Building.Place.WindPathClear>Trajecto do vento livre</RimWorldAccess.Building.Place.WindPathClear>
   <RimWorldAccess.Building.Place.WindPathBlocked>Trajecto do vento bloqueado por {0}, produção reduzida em {1}</RimWorldAccess.Building.Place.WindPathBlocked>
   <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Trajecto do vento bloqueado por {0}, sem produção</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- A wind turbine on a map with no air, where it never turns. -->
+  <RimWorldAccess.Building.Place.WindNoneInVacuum>Sem vento no vácuo, sem produção</RimWorldAccess.Building.Place.WindNoneInVacuum>
   <!-- {0} = blocker label, {1} = how many wind cells it blocks (always 2 or more). -->
   <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
 

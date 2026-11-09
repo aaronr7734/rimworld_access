@@ -25,6 +25,9 @@ namespace RimWorldAccess
         private readonly FieldInfo waterGrid;
         private readonly FieldInfo deepWaterGrid;
         private readonly FieldInfo iceGrid;
+        private readonly FieldInfo waterUserGrid;
+        private readonly FieldInfo deepUserGrid;
+        private readonly FieldInfo iceUserGrid;
         private readonly FieldInfo sewageGrid;
         private readonly FieldInfo irrigationGrid;
         private readonly FieldInfo fertilizerGrid;
@@ -43,6 +46,9 @@ namespace RimWorldAccess
             waterGrid = surface.Field(hygieneType, "WaterGrid");
             deepWaterGrid = surface.Field(hygieneType, "DeepWaterGrid");
             iceGrid = surface.Field(hygieneType, "IceGrid");
+            waterUserGrid = surface.Field(hygieneType, "WaterUserGrid");
+            deepUserGrid = surface.Field(hygieneType, "DeepUserGrid");
+            iceUserGrid = surface.Field(hygieneType, "IceUserGrid");
             sewageGrid = surface.Field(hygieneType, "SewageGrid");
             irrigationGrid = surface.Field(hygieneType, "IrrigationGrid");
             fertilizerGrid = surface.Field(hygieneType, "FertilizerGrid");
@@ -63,7 +69,10 @@ namespace RimWorldAccess
             public float ValueAt(Map map, IntVec3 cell) => Values[map.cellIndices.CellToIndex(cell)];
 
             /// <summary>The place workers' presence test: <c>GridLayer.ValueAt</c> truncates to int before comparing.</summary>
-            public bool HasAt(Map map, IntVec3 cell) => (int)ValueAt(map, cell) > 0;
+            public bool HasAt(Map map, IntVec3 cell) => IntAt(map, cell) > 0;
+
+            /// <summary><c>GridLayer.ValueAt</c>'s int-truncated reading, which the wells' capacity math uses.</summary>
+            public int IntAt(Map map, IntVec3 cell) => (int)ValueAt(map, cell);
 
             public bool TintedAt(Map map, IntVec3 cell) => ValueAt(map, cell) > 0f;
 
@@ -78,6 +87,11 @@ namespace RimWorldAccess
         public Grid DeepWater(Map map) => Read(map, deepWaterGrid);
         public Grid Ice(Map map) => Read(map, iceGrid);
         public Grid Sewage(Map map) => Read(map, sewageGrid);
+
+        /// <summary>How many built wells draw on each cell of the matching water layer.</summary>
+        public Grid WaterUsers(Map map) => Read(map, waterUserGrid);
+        public Grid DeepWaterUsers(Map map) => Read(map, deepUserGrid);
+        public Grid IceUsers(Map map) => Read(map, iceUserGrid);
 
         private Grid Read(Map map, FieldInfo gridField)
         {

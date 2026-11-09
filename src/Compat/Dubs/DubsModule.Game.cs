@@ -19,7 +19,13 @@ namespace RimWorldAccess
             {
                 TileResourceReadouts.Register(groundwater.TileReadout);
                 ScannerCellLayerRegistry.Register(groundwater.ScannerLayer());
-                DubsPlacementGhostNotes.Register(harmony, groundwater);
+                var wellCapacity = new DubsWellCapacity(groundwater);
+                DubsPlacementGhostNotes.Register(harmony, groundwater, wellCapacity);
+                if (wellCapacity.Ready)
+                {
+                    PlacementUsefulnessRegistry.Register(wellCapacity.AppliesTo, wellCapacity.MakeRating);
+                    DubsSurfaceWaterCapacity.Register(harmony, wellCapacity);
+                }
             }
         }
     }

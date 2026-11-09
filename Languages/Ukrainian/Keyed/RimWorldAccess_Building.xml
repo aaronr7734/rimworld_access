@@ -284,11 +284,26 @@
   <RimWorldAccess.Building.Place.SpotScannerCategory>Місця розміщення: {0}</RimWorldAccess.Building.Place.SpotScannerCategory>
   <RimWorldAccess.Building.Place.SpotScannerItemLabel>Місце</RimWorldAccess.Building.Place.SpotScannerItemLabel>
   <RimWorldAccess.Building.Place.SpotFacing>обличчям до {0}</RimWorldAccess.Building.Place.SpotFacing>
+  <!-- How well a solar generator would work at a placement spot whose footprint is partly
+       under a roof (src/Building/SolarPlacementQuality.Game.cs). {0} = roofed cells, {1} = all
+       cells of the footprint, {2} = the share of full output left, as a percentage. -->
+  <RimWorldAccess.Building.Place.SolarPartlyRoofed>{0} з {1} квадратів під дахом, вихід {2}</RimWorldAccess.Building.Place.SolarPartlyRoofed>
+  <!-- The deep resources a deep drill would bring up at a placement spot, from the cells around
+       it the drill draws from (src/Building/DeepDrillPlacementQuality.Game.cs). {0} = one or more
+       DrillReachAmount entries joined as a list. In DrillReachAmount, {0} = resource name,
+       {1} = how much of it is left in those cells. -->
+  <RimWorldAccess.Building.Place.DrillReach>{0} у зоні дії установки</RimWorldAccess.Building.Place.DrillReach>
+  <RimWorldAccess.Building.Place.DrillReachAmount>{1} {0}</RimWorldAccess.Building.Place.DrillReachAmount>
+  <!-- A deep drill placement spot with no deposit in reach, where the drill only brings up the
+       ground's own rock. {0} = that rock's chunks, pluralized, e.g. "granite chunks". -->
+  <RimWorldAccess.Building.Place.DrillRockOnly>покладів у зоні дії немає, лише {0}</RimWorldAccess.Building.Place.DrillRockOnly>
   <RimWorldAccess.Building.Place.SpacingInRange>{0} клітинок одне від одного, інтервал правильний</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>{0} клітинок одне від одного, інтервал неправильний</RimWorldAccess.Building.Place.SpacingOutOfRange>
   <RimWorldAccess.Building.Place.WindPathClear>Шлях вітру вільний</RimWorldAccess.Building.Place.WindPathClear>
   <RimWorldAccess.Building.Place.WindPathBlocked>Шлях вітру заблоковано: {0}, вихід знижено на {1}</RimWorldAccess.Building.Place.WindPathBlocked>
   <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Шлях вітру заблоковано: {0}, виходу немає</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- A wind turbine on a map with no air, where it never turns. -->
+  <RimWorldAccess.Building.Place.WindNoneInVacuum>У вакуумі вітру немає, виходу немає</RimWorldAccess.Building.Place.WindNoneInVacuum>
   <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>Необхідна область, {0} на {1}, {2} клітинок {3}, придатна</RimWorldAccess.Building.Place.OutlineOkAt>
   <RimWorldAccess.Building.Place.OutlineOkHere>Необхідна область, {0} на {1}, під курсором, придатна</RimWorldAccess.Building.Place.OutlineOkHere>

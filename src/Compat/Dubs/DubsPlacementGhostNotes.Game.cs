@@ -3,7 +3,6 @@ using System.Globalization;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
-using RimWorldAccess.Shell;
 using UnityEngine;
 using Verse;
 
@@ -13,7 +12,9 @@ namespace RimWorldAccess
     /// Speaks what Bad Hygiene's well ghosts show at the placement cursor: the water-table, ice and
     /// sewage overlays its grid place workers switch on (as the level under the cursor), and the capacity label its
     /// user-grid place workers float beside it. Both arrive through the placement-help outline
-    /// harvest, which runs the ghost draw at the keyboard cursor and keeps a note per cell.
+    /// harvest, which runs the ghost draw at the keyboard cursor and keeps a note per cell. A new
+    /// well's capacity comes from <see cref="DubsWellCapacity"/>, the calculation its placement-spot
+    /// rating uses.
     /// </summary>
     internal static class DubsPlacementGhostNotes
     {
@@ -23,10 +24,11 @@ namespace RimWorldAccess
         };
 
         private static DubsGroundwater groundwater;
+        private static DubsWellCapacity wellCapacity;
         private static FieldInfo wellCapacityText;
         private static FieldInfo iceCapacityText;
 
-        public static void Register(Harmony harmony, DubsGroundwater source)
+        public static void Register(Harmony harmony, DubsGroundwater source, DubsWellCapacity capacity)
         {
             var surface = new ReflectionSurface("DubsPlacementGhostNotes");
             Type waterWorker = surface.Type("DubsBadHygiene.PlaceWorker_WaterGrid");
@@ -47,6 +49,7 @@ namespace RimWorldAccess
                 return;
 
             groundwater = source;
+            wellCapacity = capacity.Ready ? capacity : null;
             wellCapacityText = wellText;
             iceCapacityText = iceText;
             harmony.Patch(waterGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(WaterPostfix)));
@@ -93,14 +96,14 @@ namespace RimWorldAccess
             }
         }
 
-        internal static void WellCapacityPostfix()
+        internal static void WellCapacityPostfix([HarmonyArgument(0)] ThingDef def, [HarmonyArgument(1)] IntVec3 center, [HarmonyArgument(4)] Thing thing)
         {
-            CollectCapacity(wellCapacityText);
+            CollectCapacity(def, center, thing, wellCapacityText);
         }
 
-        internal static void IceCapacityPostfix()
+        internal static void IceCapacityPostfix([HarmonyArgument(0)] ThingDef def, [HarmonyArgument(1)] IntVec3 center, [HarmonyArgument(4)] Thing thing)
         {
-            CollectCapacity(iceCapacityText);
+            CollectCapacity(def, center, thing, iceCapacityText);
         }
 
         private static void CollectLevel(IntVec3 center, Func<Map, DubsGroundwater.Grid> grid, string levelKey, string noneKey)
@@ -118,14 +121,19 @@ namespace RimWorldAccess
             }
         }
 
-        private static void CollectCapacity(FieldInfo ghostText)
+        // A reinstalled well (thing set) takes DrawGhost's other branch, which nets out the well's own
+        // draw against the pointer's reach, so only its label carries that figure.
+        private static void CollectCapacity(ThingDef def, IntVec3 center, Thing thing, FieldInfo ghostText)
         {
             try
             {
                 // Lite mode returns from DrawGhost before the label is written, leaving a stale one.
-                if (!PlacementHelpSpeech.CollectingOutlines || !groundwater.Water(Find.CurrentMap).IsValid)
+                Map map = Find.CurrentMap;
+                if (!PlacementHelpSpeech.CollectingOutlines || !groundwater.Water(map).IsValid)
                     return;
-                PlacementHelpSpeech.CollectOutline(CapacityPhrase(ghostText.GetValue(null) as string));
+                PlacementHelpSpeech.CollectOutline(thing == null && wellCapacity != null
+                    ? wellCapacity.PhraseAt(def, map, center)
+                    : CapacityPhrase(ghostText.GetValue(null) as string));
             }
             catch (Exception ex)
             {
@@ -149,7 +157,7 @@ namespace RimWorldAccess
                 number = number.Substring(colon + 1);
             number = number.Trim().TrimEnd('L').Trim();
             return float.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out float liters)
-                ? CompatText.ModArgs("GroundCapacity", liters.ToString("0"))
+                ? DubsWellCapacity.Phrase(liters)
                 : label;
         }
     }

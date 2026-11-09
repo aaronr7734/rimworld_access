@@ -279,13 +279,29 @@
   <RimWorldAccess.Building.Place.SizeWxH>Size: {0}x{1}</RimWorldAccess.Building.Place.SizeWxH>
 
   <!-- The temporary scanner category offered while a building is being placed, listing the
-       nearest positions it actually fits in (src/Building/PlacementSpotScanner.Game.cs).
+       positions it actually fits in, best first (src/Building/PlacementSpotScanner.Game.cs).
        {0} on the category = the building being placed. SpotFacing is appended after the
-       entry's distance and direction when the building only fits there turned a particular
-       way, so the entry reads "Spot, 3 tiles north, facing east"; {0} = compass direction. -->
+       entry's distance and direction when the building only fits there, or works better,
+       turned a particular way, so the entry reads "Spot, 3 tiles north, facing east"; {0} =
+       compass direction. How well the building would work there follows, in the same words the
+       placement cursor uses (the wind path, ground capacity and the keys below), but only
+       where the spot is not at full quality: silence means nothing is lost there. -->
   <RimWorldAccess.Building.Place.SpotScannerCategory>{0} placement spots</RimWorldAccess.Building.Place.SpotScannerCategory>
   <RimWorldAccess.Building.Place.SpotScannerItemLabel>Spot</RimWorldAccess.Building.Place.SpotScannerItemLabel>
   <RimWorldAccess.Building.Place.SpotFacing>facing {0}</RimWorldAccess.Building.Place.SpotFacing>
+  <!-- How well a solar generator would work at a placement spot whose footprint is partly
+       under a roof (src/Building/SolarPlacementQuality.Game.cs). {0} = roofed cells, {1} = all
+       cells of the footprint, {2} = the share of full output left, as a percentage. -->
+  <RimWorldAccess.Building.Place.SolarPartlyRoofed>{0} of {1} cells roofed, output {2}</RimWorldAccess.Building.Place.SolarPartlyRoofed>
+  <!-- The deep resources a deep drill would bring up at a placement spot, from the cells around
+       it the drill draws from (src/Building/DeepDrillPlacementQuality.Game.cs). {0} = one or more
+       DrillReachAmount entries joined as a list. In DrillReachAmount, {0} = resource name,
+       {1} = how much of it is left in those cells. -->
+  <RimWorldAccess.Building.Place.DrillReach>{0} within the drill's reach</RimWorldAccess.Building.Place.DrillReach>
+  <RimWorldAccess.Building.Place.DrillReachAmount>{1} {0}</RimWorldAccess.Building.Place.DrillReachAmount>
+  <!-- A deep drill placement spot with no deposit in reach, where the drill only brings up the
+       ground's own rock. {0} = that rock's chunks, pluralized, e.g. "granite chunks". -->
+  <RimWorldAccess.Building.Place.DrillRockOnly>no deposits in reach, only {0}</RimWorldAccess.Building.Place.DrillRockOnly>
 
   <!-- Spacing numbers the game draws between this building and others of its def during
        placement (src/Building/PlacementHelpSpeech.Game.cs). {0} = distance in tiles. The game
@@ -305,6 +321,8 @@
   <RimWorldAccess.Building.Place.WindPathClear>Wind path clear</RimWorldAccess.Building.Place.WindPathClear>
   <RimWorldAccess.Building.Place.WindPathBlocked>Wind path blocked by {0}, output down {1}</RimWorldAccess.Building.Place.WindPathBlocked>
   <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Wind path blocked by {0}, no output</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- A wind turbine on a map with no air, where it never turns. -->
+  <RimWorldAccess.Building.Place.WindNoneInVacuum>No wind in a vacuum, no output</RimWorldAccess.Building.Place.WindNoneInVacuum>
   <!-- {0} = blocker label, {1} = how many wind cells it blocks (always 2 or more). -->
   <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
 

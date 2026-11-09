@@ -7,13 +7,19 @@ using Verse;
 
 namespace RimWorldAccess
 {
-    /// <summary>The wind pump ghost's obstructions, through <see cref="WindPathGhostNote"/>, from the pump's own wind cells and penalty.</summary>
+    /// <summary>
+    /// The wind pump ghost's obstructions, through <see cref="WindPathGhostNote"/>, from the pump's
+    /// own wind cells and penalty, and the same reading as the pump's placement-spot rating.
+    /// </summary>
     internal static class DubsWindPumpGhostNote
     {
         private static readonly Type[] DrawGhostParams =
         {
             typeof(ThingDef), typeof(IntVec3), typeof(Rot4), typeof(Color), typeof(Thing),
         };
+
+        // CompWindPump has no vacuum rule of its own, unlike the vanilla turbine.
+        private const bool StopsInVacuum = false;
 
         private static Func<IntVec3, Rot4, IntVec2, IEnumerable<IntVec3>> windCells;
         private static float reductionPerObstacle;
@@ -33,6 +39,9 @@ namespace RimWorldAccess
                 typeof(Func<IntVec3, Rot4, IntVec2, IEnumerable<IntVec3>>), cells);
             reductionPerObstacle = (float)reduction.GetRawConstantValue();
             harmony.Patch(ghost, postfix: new HarmonyMethod(typeof(DubsWindPumpGhostNote), nameof(Postfix)));
+            PlacementUsefulnessRegistry.Register(
+                def => def.placeWorkers != null && def.placeWorkers.Contains(pumpWorker),
+                WindPathGhostNote.RatingFactory(windCells, reductionPerObstacle, StopsInVacuum));
         }
 
         // Positional binding: the DrawGhost override is free to rename its parameters.
@@ -41,7 +50,7 @@ namespace RimWorldAccess
             try
             {
                 if (PlacementHelpSpeech.CollectingOutlines)
-                    WindPathGhostNote.Collect(windCells(center, rot, def.size), reductionPerObstacle);
+                    WindPathGhostNote.Collect(windCells(center, rot, def.size), reductionPerObstacle, StopsInVacuum);
             }
             catch (Exception ex)
             {
