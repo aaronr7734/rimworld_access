@@ -210,9 +210,9 @@
        OverLimit: {0} = max, {1} = current, {2} = to-slaughter count.
        Boolean columns phrase the allowed/not-allowed state as a whole
        sentence so languages can vary phrasing freely. -->
-  <RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited>ilimitado. População atual: {0}</RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited>
-  <RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit>{0}. População atual: {1}</RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit>
-  <RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit>{0}. População atual: {1}. {2} para abate</RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited>ilimitado. População actual: {0}</RimWorldAccess.Animals.AutoSlaughter.Value.Unlimited>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit>{0}. População actual: {1}</RimWorldAccess.Animals.AutoSlaughter.Value.WithinLimit>
+  <RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit>{0}. População actual: {1}. {2} para abate</RimWorldAccess.Animals.AutoSlaughter.Value.OverLimit>
   <RimWorldAccess.Animals.AutoSlaughter.Value.PregnantAllowed>{0} grávidas, abate permitido</RimWorldAccess.Animals.AutoSlaughter.Value.PregnantAllowed>
   <RimWorldAccess.Animals.AutoSlaughter.Value.PregnantNotAllowed>{0} grávidas, abate não permitido</RimWorldAccess.Animals.AutoSlaughter.Value.PregnantNotAllowed>
   <RimWorldAccess.Animals.AutoSlaughter.Value.BondedAllowed>{0} vinculados, abate permitido</RimWorldAccess.Animals.AutoSlaughter.Value.BondedAllowed>

@@ -13,11 +13,11 @@
 
   <!-- Role words -->
   <RimWorldAccess.Shell.Role.Button>botão</RimWorldAccess.Shell.Role.Button>
-  <RimWorldAccess.Shell.Role.Checkbox>caixa de seleção</RimWorldAccess.Shell.Role.Checkbox>
+  <RimWorldAccess.Shell.Role.Checkbox>caixa de selecção</RimWorldAccess.Shell.Role.Checkbox>
   <RimWorldAccess.Shell.Role.RadioButton>botão de opção</RimWorldAccess.Shell.Role.RadioButton>
   <RimWorldAccess.Shell.Role.ComboBox>caixa de combinação</RimWorldAccess.Shell.Role.ComboBox>
   <RimWorldAccess.Shell.Role.Slider>controlo deslizante</RimWorldAccess.Shell.Role.Slider>
-  <RimWorldAccess.Shell.Role.Stepper>caixa de seleção numérica</RimWorldAccess.Shell.Role.Stepper>
+  <RimWorldAccess.Shell.Role.Stepper>caixa de selecção numérica</RimWorldAccess.Shell.Role.Stepper>
   <RimWorldAccess.Shell.Role.TextField>campo de texto</RimWorldAccess.Shell.Role.TextField>
   <RimWorldAccess.Shell.Role.Tab>aba</RimWorldAccess.Shell.Role.Tab>
   <RimWorldAccess.Shell.Role.Map>mapa</RimWorldAccess.Shell.Role.Map>
@@ -74,7 +74,7 @@
        control. PressingDefault is spoken BEFORE the button fires because the player
        chose not to look the button up first; {0} is that button's label. -->
   <RimWorldAccess.Shell.Screen.PressingDefault>A pressionar {0}.</RimWorldAccess.Shell.Screen.PressingDefault>
-  <RimWorldAccess.Shell.Screen.NoDefaultButton>Este ecrã não tem um botão padrão.</RimWorldAccess.Shell.Screen.NoDefaultButton>
+  <RimWorldAccess.Shell.Screen.NoDefaultButton>Este ecrã não tem um botão predefinido.</RimWorldAccess.Shell.Screen.NoDefaultButton>
 
   <!-- Shared reorder grammar (SharedMenuGrammar.ReorderUp/Down/Left/Right,
        ScreenScope's Ctrl+Up/Down seam): the mod-wide keyboard equivalent of
@@ -99,7 +99,7 @@
   <RimWorldAccess.Shell.Table.ColumnPosition>coluna {0} de {1}</RimWorldAccess.Shell.Table.ColumnPosition>
   <RimWorldAccess.Shell.Table.Dimensions>tabela, {0} colunas, {1} linhas</RimWorldAccess.Shell.Table.Dimensions>
   <RimWorldAccess.Shell.Table.SortedBy>Ordenado por {0}, {1}</RimWorldAccess.Shell.Table.SortedBy>
-  <RimWorldAccess.Shell.Table.SortCleared>Ordenação removida, ordem padrão</RimWorldAccess.Shell.Table.SortCleared>
+  <RimWorldAccess.Shell.Table.SortCleared>Ordenação removida, ordem predefinida</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Esta coluna não pode ser ordenada</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter ordena</RimWorldAccess.Shell.Table.SortHint>
   <RimWorldAccess.Shell.Table.CellReadOnly>{0}, apenas leitura</RimWorldAccess.Shell.Table.CellReadOnly>
@@ -188,8 +188,8 @@
   <RimWorldAccess.Shell.Key.Home>Home</RimWorldAccess.Shell.Key.Home>
   <RimWorldAccess.Shell.Key.End>End</RimWorldAccess.Shell.Key.End>
   <RimWorldAccess.Shell.Key.BackQuote>Acento Grave</RimWorldAccess.Shell.Key.BackQuote>
-  <RimWorldAccess.Shell.Key.LeftBracket>Colchete Esquerdo</RimWorldAccess.Shell.Key.LeftBracket>
-  <RimWorldAccess.Shell.Key.RightBracket>Colchete Direito</RimWorldAccess.Shell.Key.RightBracket>
+  <RimWorldAccess.Shell.Key.LeftBracket>Parêntese Recto Esquerdo</RimWorldAccess.Shell.Key.LeftBracket>
+  <RimWorldAccess.Shell.Key.RightBracket>Parêntese Recto Direito</RimWorldAccess.Shell.Key.RightBracket>
   <RimWorldAccess.Shell.Key.Comma>Vírgula</RimWorldAccess.Shell.Key.Comma>
   <RimWorldAccess.Shell.Key.Period>Ponto</RimWorldAccess.Shell.Key.Period>
   <RimWorldAccess.Shell.Key.Slash>Barra</RimWorldAccess.Shell.Key.Slash>
@@ -231,7 +231,7 @@
 
   <RimWorldAccess.Shell.ColorPicker.PaletteRegion>Paleta de cores</RimWorldAccess.Shell.ColorPicker.PaletteRegion>
   <RimWorldAccess.Shell.ColorPicker.AdjustRegion>Ajuste fino</RimWorldAccess.Shell.ColorPicker.AdjustRegion>
-  <RimWorldAccess.Shell.ColorPicker.ReadbackRegion>Seleção atual</RimWorldAccess.Shell.ColorPicker.ReadbackRegion>
+  <RimWorldAccess.Shell.ColorPicker.ReadbackRegion>Selecção actual</RimWorldAccess.Shell.ColorPicker.ReadbackRegion>
   <RimWorldAccess.Shell.SelectXenogerm.RegionName>Xenogerminadores</RimWorldAccess.Shell.SelectXenogerm.RegionName>
   <RimWorldAccess.Shell.SelectXenogerm.MoreGenes>e mais {0} genes</RimWorldAccess.Shell.SelectXenogerm.MoreGenes>
 

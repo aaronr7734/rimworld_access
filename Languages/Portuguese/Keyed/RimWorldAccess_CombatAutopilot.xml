@@ -58,7 +58,7 @@
   <RimWorldAccess.Autopilot.Policy.StaySafe>Manter-se em segurança</RimWorldAccess.Autopilot.Policy.StaySafe>
 
   <RimWorldAccess.Autopilot.HuntPolicyTitle>Políticas de caça</RimWorldAccess.Autopilot.HuntPolicyTitle>
-  <RimWorldAccess.Autopilot.HuntPolicyTip>Cria e gere modelos que controlam que animais as personagens recrutadas podem caçar: uma lista de espécies permitidas, um intervalo de risco de vingança e a proteção dos animais venerados. A caça em si liga-se por personagem com o botão Caçar animais. Enquanto a personagem estiver recrutada, estas regras têm prioridade sobre as marcas de caça.</RimWorldAccess.Autopilot.HuntPolicyTip>
+  <RimWorldAccess.Autopilot.HuntPolicyTip>Cria e gere modelos que controlam que animais as personagens recrutadas podem caçar: uma lista de espécies permitidas, um intervalo de risco de vingança e a protecção dos animais venerados. A caça em si liga-se por personagem com o botão Caçar animais. Enquanto a personagem estiver recrutada, estas regras têm prioridade sobre as marcas de caça.</RimWorldAccess.Autopilot.HuntPolicyTip>
   <RimWorldAccess.Autopilot.HuntPolicyName>Política de caça</RimWorldAccess.Autopilot.HuntPolicyName>
   <RimWorldAccess.Autopilot.ManageHuntPolicies>Gerir políticas de caça</RimWorldAccess.Autopilot.ManageHuntPolicies>
   <RimWorldAccess.Autopilot.HuntPolicyInUse>Política de caça em uso por {0}.</RimWorldAccess.Autopilot.HuntPolicyInUse>

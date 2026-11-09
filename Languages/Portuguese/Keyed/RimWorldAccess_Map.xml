@@ -268,8 +268,8 @@
   <RimWorldAccess.Map.Jump.Mode.Unknown>Modo de salto: desconhecido</RimWorldAccess.Map.Jump.Mode.Unknown>
   <RimWorldAccess.Map.Jump.Boundary>Limite do mapa</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>Bloqueado</RimWorldAccess.Map.Jump.Blocked>
-  <RimWorldAccess.Map.Jump.NoTerrainChange>Nenhuma alteração de terreno nessa direção</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>Nenhuma estrutura nessa direção</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoTerrainChange>Nenhuma alteração de terreno nessa direcção</RimWorldAccess.Map.Jump.NoTerrainChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>Nenhuma estrutura nessa direcção</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 célula</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} células</RimWorldAccess.Map.Jump.Moved.Many>
 
@@ -485,7 +485,7 @@
   <RimWorldAccess.Map.BuildingCell.Foot>pé</RimWorldAccess.Map.BuildingCell.Foot>
   <RimWorldAccess.Map.BuildingCell.FuelPort>porta de abastecimento {0}</RimWorldAccess.Map.BuildingCell.FuelPort>
   <RimWorldAccess.Map.BuildingCell.Cooler>a arrefecer {0}, a aquecer {1}</RimWorldAccess.Map.BuildingCell.Cooler>
-  <RimWorldAccess.Map.BuildingCell.Vent>conecta {0} a {1}</RimWorldAccess.Map.BuildingCell.Vent>
+  <RimWorldAccess.Map.BuildingCell.Vent>liga {0} a {1}</RimWorldAccess.Map.BuildingCell.Vent>
   <RimWorldAccess.Map.BuildingCell.HopperAdjacent>funis em qualquer célula adjacente</RimWorldAccess.Map.BuildingCell.HopperAdjacent>
   <RimWorldAccess.Map.BuildingCell.MechCharger>mecanoide posicionado {0}</RimWorldAccess.Map.BuildingCell.MechCharger>
   <RimWorldAccess.Map.BuildingCell.Bookcase>acesso a partir de {0}</RimWorldAccess.Map.BuildingCell.Bookcase>
@@ -531,7 +531,7 @@
   <RimWorldAccess.Map.Tile.Coords>{0}, {1}</RimWorldAccess.Map.Tile.Coords>
   <!-- Plan marker on the cursor tile. {0} = color name, {1} = plan name (e.g. "purple Potato farm"). -->
   <RimWorldAccess.Map.Tile.Plan>{0} {1}</RimWorldAccess.Map.Tile.Plan>
-  <RimWorldAccess.Map.Tile.CantLand>impossível pousar</RimWorldAccess.Map.Tile.CantLand>
+  <RimWorldAccess.Map.Tile.CantLand>impossível aterrar</RimWorldAccess.Map.Tile.CantLand>
   <RimWorldAccess.Map.Tile.NotVisible>não visível</RimWorldAccess.Map.Tile.NotVisible>
 
   <!-- Frame qualifier fragments. AnnouncementBuilder owns separators. -->
@@ -601,7 +601,7 @@
 
   <!-- Power hotkey (key 6). -->
   <RimWorldAccess.Map.Tile.Power.NoBuildings>nenhuma construção</RimWorldAccess.Map.Tile.Power.NoBuildings>
-  <RimWorldAccess.Map.Tile.Power.NoneConnected>nenhuma construção conectada à energia</RimWorldAccess.Map.Tile.Power.NoneConnected>
+  <RimWorldAccess.Map.Tile.Power.NoneConnected>nenhuma construção ligada à energia</RimWorldAccess.Map.Tile.Power.NoneConnected>
   <!-- {0} = building label, {1} = power info. AnnouncementBuilder owns
        the period between multiple powered buildings. -->
   <RimWorldAccess.Map.Tile.Power.Line>{0}: {1}</RimWorldAccess.Map.Tile.Power.Line>
@@ -666,7 +666,7 @@
 
   <!-- Transport pod fueling. -->
   <RimWorldAccess.Map.Tile.TransportPod.Fueled>abastecido ({0} de combustível químico)</RimWorldAccess.Map.Tile.TransportPod.Fueled>
-  <RimWorldAccess.Map.Tile.TransportPod.NotConnected>não conectado ao combustível</RimWorldAccess.Map.Tile.TransportPod.NotConnected>
+  <RimWorldAccess.Map.Tile.TransportPod.NotConnected>não ligado ao combustível</RimWorldAccess.Map.Tile.TransportPod.NotConnected>
   <RimWorldAccess.Map.Tile.TransportPod.AdjacentToLauncher>adjacente ao lançador</RimWorldAccess.Map.Tile.TransportPod.AdjacentToLauncher>
   <RimWorldAccess.Map.Tile.TransportPod.LauncherWithFuelPort>{0} de combustível químico, porta de abastecimento em {1}, {2}</RimWorldAccess.Map.Tile.TransportPod.LauncherWithFuelPort>
   <RimWorldAccess.Map.Tile.TransportPod.LauncherFallback>lançador de cápsulas</RimWorldAccess.Map.Tile.TransportPod.LauncherFallback>

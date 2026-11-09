@@ -42,7 +42,7 @@
        {0} = formatted fuel/capacity value, {1} = 1-based index, {2} = total. -->
   <RimWorldAccess.TransportPods.Pod.Selected>SELECCIONADO</RimWorldAccess.TransportPods.Pod.Selected>
   <RimWorldAccess.TransportPods.Pod.FuelLevel>combustível {0}</RimWorldAccess.TransportPods.Pod.FuelLevel>
-  <RimWorldAccess.TransportPods.Pod.NotConnectedToFuel>não conectado ao combustível</RimWorldAccess.TransportPods.Pod.NotConnectedToFuel>
+  <RimWorldAccess.TransportPods.Pod.NotConnectedToFuel>não ligado ao combustível</RimWorldAccess.TransportPods.Pod.NotConnectedToFuel>
   <RimWorldAccess.TransportPods.Pod.Capacity>capacidade de {0} kg</RimWorldAccess.TransportPods.Pod.Capacity>
   <RimWorldAccess.TransportPods.Pod.PositionInList>{0} de {1}</RimWorldAccess.TransportPods.Pod.PositionInList>
 
@@ -69,7 +69,7 @@
   <RimWorldAccess.TransportPods.Gizmo.GroupAllDesc>Selecciona todas as {0} cápsulas de transporte disponíveis e abre o diálogo de carregamento.</RimWorldAccess.TransportPods.Gizmo.GroupAllDesc>
   <RimWorldAccess.TransportPods.Gizmo.SelectPodsLabel>Seleccionar cápsulas para agrupar</RimWorldAccess.TransportPods.Gizmo.SelectPodsLabel>
   <RimWorldAccess.TransportPods.Gizmo.SelectPodsDesc>Entra no modo de selecção de cápsulas para escolheres quais cápsulas de transporte agrupar para o carregamento.</RimWorldAccess.TransportPods.Gizmo.SelectPodsDesc>
-  <RimWorldAccess.TransportPods.Gizmo.NoGroupable>Nenhuma outra cápsula de transporte com lançador conectado para agrupar.</RimWorldAccess.TransportPods.Gizmo.NoGroupable>
+  <RimWorldAccess.TransportPods.Gizmo.NoGroupable>Nenhuma outra cápsula de transporte com lançador ligado para agrupar.</RimWorldAccess.TransportPods.Gizmo.NoGroupable>
 
   <!-- Gizmo action results. {0} = pod count being grouped. -->
   <RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing>Não foi possível encontrar o comando de carregamento</RimWorldAccess.TransportPods.Gizmo.LoadCommandMissing>
@@ -88,7 +88,7 @@
 
   <!-- Landing-spot targeting announcement (Targeter_BeginTargeting_Announce_Patch).
        Spoken once when the drop-pod landing targeter activates. -->
-  <RimWorldAccess.TransportPods.Landing.SelectLandingSpot>Selecciona o local de pouso. Usa as setas para navegar, Espaço para confirmar.</RimWorldAccess.TransportPods.Landing.SelectLandingSpot>
+  <RimWorldAccess.TransportPods.Landing.SelectLandingSpot>Selecciona o local de aterragem. Usa as setas para navegar, Espaço para confirmar.</RimWorldAccess.TransportPods.Landing.SelectLandingSpot>
 
   <!-- =========================================================
        TransportPodSelectionState.cs - pod grouping selection mode.

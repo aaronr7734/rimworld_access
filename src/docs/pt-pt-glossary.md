@@ -321,3 +321,31 @@ as a fixed idiom that this wave does not extend to "moinho"), and uses "partilha
 | placement spot (scanner category/item) | Locais de colocação de {0} / Local | Mirrors `Abilities.Plant.ScannerCategory`/`ScannerItemLabel` ("Locais de plantação de {0}" / "Local plantável") |
 | facing {0} (trailing fragment) | voltado para {0} | Mirrors `Building.ArchitectPlace.GravshipFacing` ("Gravinave voltada para {0}") |
 | read only (BrowsingField) | apenas leitura | Reuses `Shell.State.ReadOnly`'s established EU-PT term (not Biotech's stray BR-ism "somente leitura") |
+
+## Rulings from the legacy BR-leak sweep (2026-11-09)
+
+Mod strings that had slipped through in Brazilian wording or untranslated English now follow these EU-PT terms; keep them in later waves.
+
+| English | Português (EU) | Not |
+|---|---|---|
+| search (noun/verb) | pesquisa / pesquisar | busca, buscar |
+| status | estado | status |
+| delete (our own UI) | apagar (corpus: `CommandDeleteZoneLabel`) | excluir |
+| room | divisão (corpus: `BuildARoom`) | cômodo |
+| gender | género | gênero |
+| default (setting) | predefinido / valor predefinido | padrão (keep "padrão" only for visual patterns) |
+| land / landing spot | aterrar / local de aterragem | pousar, pouso |
+| connected (physical link) | ligado | conectado |
+| in progress | em curso | em andamento |
+| download (noun) | transferência | download |
+| target selection (targeting) | escolha de alvo / apontar | direcionamento / direcionar |
+| staff (cash register shifts) | pessoal | equipe |
+| percentage | percentagem | percentual |
+| probability (hit chance) | probabilidade | chance |
+| square bracket (key) | parêntese recto | colchete |
+| record / log | registo | registro |
+| sideburns / hair lock | patilhas / madeixa | costeletas / mecha |
+| in a / in an | num / numa | em um / em uma |
+| around | em redor de | ao redor de |
+
+Pre-AO90 spellings applied across Keyed: activo, actual, acção, selecção, direcção, directo, afectar, eléctrico, objecto, protecção, correcção, óptimo, selector, leccionar, recto.

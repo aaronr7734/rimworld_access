@@ -52,19 +52,19 @@
        sighted player reads, independent of which VPE build/translation is
        actually loaded. -->
   <RimWorldAccess.Compat.Vpe.Psycasts>Psycasts</RimWorldAccess.Compat.Vpe.Psycasts>
-  <RimWorldAccess.Compat.Vpe.PsyLevel>Psycaster level: {0}</RimWorldAccess.Compat.Vpe.PsyLevel>
-  <RimWorldAccess.Compat.Vpe.EarnXP>Earn psycaster experience by meditating.</RimWorldAccess.Compat.Vpe.EarnXP>
+  <RimWorldAccess.Compat.Vpe.PsyLevel>Nível de psycaster: {0}</RimWorldAccess.Compat.Vpe.PsyLevel>
+  <RimWorldAccess.Compat.Vpe.EarnXP>Ganha experiência de psycaster ao meditar.</RimWorldAccess.Compat.Vpe.EarnXP>
   <RimWorldAccess.Compat.Vpe.XpProgress>XP: {0} / {1}</RimWorldAccess.Compat.Vpe.XpProgress>
   <RimWorldAccess.Compat.Vpe.PointsAvailable>Pontos disponíveis: {0}</RimWorldAccess.Compat.Vpe.PointsAvailable>
-  <RimWorldAccess.Compat.Vpe.SpendPoints>Spend points on unlocking new paths, unlocking psycasts, unlocking meditation foci, improving stats, and more.</RimWorldAccess.Compat.Vpe.SpendPoints>
-  <RimWorldAccess.Compat.Vpe.PsycasterStats>Psycaster stats</RimWorldAccess.Compat.Vpe.PsycasterStats>
-  <RimWorldAccess.Compat.Vpe.UpgradeAction>Upgrade</RimWorldAccess.Compat.Vpe.UpgradeAction>
-  <RimWorldAccess.Compat.Vpe.NotEnoughPoints>Not enough points available</RimWorldAccess.Compat.Vpe.NotEnoughPoints>
-  <RimWorldAccess.Compat.Vpe.FocusTypes>Meditation focus types</RimWorldAccess.Compat.Vpe.FocusTypes>
-  <RimWorldAccess.Compat.Vpe.PsysetCustomize>Customize psysets</RimWorldAccess.Compat.Vpe.PsysetCustomize>
-  <RimWorldAccess.Compat.Vpe.PsysetDesc>Psysets let you group learned psycasts and cycle between them in game.</RimWorldAccess.Compat.Vpe.PsysetDesc>
-  <RimWorldAccess.Compat.Vpe.Locked>Locked</RimWorldAccess.Compat.Vpe.Locked>
-  <RimWorldAccess.Compat.Vpe.AbilitiesList>Psycasts included</RimWorldAccess.Compat.Vpe.AbilitiesList>
+  <RimWorldAccess.Compat.Vpe.SpendPoints>Gasta pontos para desbloquear novos caminhos, psycasts e focos de meditação, melhorar estatísticas e muito mais.</RimWorldAccess.Compat.Vpe.SpendPoints>
+  <RimWorldAccess.Compat.Vpe.PsycasterStats>Estatísticas de psycaster</RimWorldAccess.Compat.Vpe.PsycasterStats>
+  <RimWorldAccess.Compat.Vpe.UpgradeAction>Melhorar por 1 ponto</RimWorldAccess.Compat.Vpe.UpgradeAction>
+  <RimWorldAccess.Compat.Vpe.NotEnoughPoints>Pontos disponíveis insuficientes</RimWorldAccess.Compat.Vpe.NotEnoughPoints>
+  <RimWorldAccess.Compat.Vpe.FocusTypes>Tipos de foco de meditação</RimWorldAccess.Compat.Vpe.FocusTypes>
+  <RimWorldAccess.Compat.Vpe.PsysetCustomize>Personalizar psysets</RimWorldAccess.Compat.Vpe.PsysetCustomize>
+  <RimWorldAccess.Compat.Vpe.PsysetDesc>Os psysets permitem agrupar psycasts aprendidos e alternar entre eles durante o jogo.</RimWorldAccess.Compat.Vpe.PsysetDesc>
+  <RimWorldAccess.Compat.Vpe.Locked>Bloqueado</RimWorldAccess.Compat.Vpe.Locked>
+  <RimWorldAccess.Compat.Vpe.AbilitiesList>Psycasts incluídos</RimWorldAccess.Compat.Vpe.AbilitiesList>
   <RimWorldAccess.Compat.Vpe.StateUnlocked>: desbloqueado</RimWorldAccess.Compat.Vpe.StateUnlocked>
   <RimWorldAccess.Compat.Vpe.StateCanUnlock>: disponível para desbloquear por 1 ponto</RimWorldAccess.Compat.Vpe.StateCanUnlock>
   <RimWorldAccess.Compat.Vpe.StateLocked>: trancado</RimWorldAccess.Compat.Vpe.StateLocked>
@@ -110,14 +110,14 @@
   <RimWorldAccess.Compat.Vae.AspirationsProgress>Aspirações: {0} de {1} concluídas</RimWorldAccess.Compat.Vae.AspirationsProgress>
   <RimWorldAccess.Compat.Vae.StateCompleted>: concluída</RimWorldAccess.Compat.Vae.StateCompleted>
   <RimWorldAccess.Compat.Vae.ChooseAspirations>Escolhe {0} de {1} aspirações</RimWorldAccess.Compat.Vae.ChooseAspirations>
-  <RimWorldAccess.Compat.Vae.AspirationDesc>Aspirations are goals that {0} will want to achieve in their life. Achieving them will increase their mental break threshold, and if all aspirations are fulfilled, {0} will undergo another growth moment.</RimWorldAccess.Compat.Vae.AspirationDesc>
-  <RimWorldAccess.Compat.Vae.SelectAspirationSingular>Select an aspiration.</RimWorldAccess.Compat.Vae.SelectAspirationSingular>
-  <RimWorldAccess.Compat.Vae.SelectAspirationsPlural>Select {0} aspirations.</RimWorldAccess.Compat.Vae.SelectAspirationsPlural>
+  <RimWorldAccess.Compat.Vae.AspirationDesc>As aspirações são metas que {0} vai querer alcançar na vida. Alcançá-las aumenta o limiar de quebra mental e, se todas as aspirações forem cumpridas, {0} passará por outro momento de crescimento.</RimWorldAccess.Compat.Vae.AspirationDesc>
+  <RimWorldAccess.Compat.Vae.SelectAspirationSingular>Selecciona uma aspiração.</RimWorldAccess.Compat.Vae.SelectAspirationSingular>
+  <RimWorldAccess.Compat.Vae.SelectAspirationsPlural>Selecciona {0} aspirações.</RimWorldAccess.Compat.Vae.SelectAspirationsPlural>
   <RimWorldAccess.Compat.Vae.AspirationSelectedFeedback>{0} seleccionada. {1} de {2} aspirações escolhidas</RimWorldAccess.Compat.Vae.AspirationSelectedFeedback>
   <RimWorldAccess.Compat.Vae.AspirationDeselectedFeedback>{0} desmarcada. {1} de {2} aspirações escolhidas</RimWorldAccess.Compat.Vae.AspirationDeselectedFeedback>
-  <RimWorldAccess.Compat.Vae.AspirationLimitReached>Já foram escolhidas {0} de {0} aspirações. Desmarque uma primeiro</RimWorldAccess.Compat.Vae.AspirationLimitReached>
-  <RimWorldAccess.Compat.Vae.ArchiveSingular>Aspiration {0} was gained.</RimWorldAccess.Compat.Vae.ArchiveSingular>
-  <RimWorldAccess.Compat.Vae.ArchivePlural>Aspirations were gained: {0}.</RimWorldAccess.Compat.Vae.ArchivePlural>
+  <RimWorldAccess.Compat.Vae.AspirationLimitReached>Já foram escolhidas {0} de {0} aspirações. Desmarca uma primeiro</RimWorldAccess.Compat.Vae.AspirationLimitReached>
+  <RimWorldAccess.Compat.Vae.ArchiveSingular>Aspiração {0} obtida.</RimWorldAccess.Compat.Vae.ArchiveSingular>
+  <RimWorldAccess.Compat.Vae.ArchivePlural>Aspirações obtidas: {0}.</RimWorldAccess.Compat.Vae.ArchivePlural>
 
   <!-- VseExpertiseCompat: surfaces Vanilla Skills Expanded's Expertise feature. Owned
        expertises are read under their matching skill in the Skills tab (ExpertiseRow),
@@ -163,21 +163,21 @@
        seats. {0}"), reused for both the Messages.Message mirror (so the on-screen message log
        reads the same) and the spoken announcement, so the two channels never diverge. -->
   <RimWorldAccess.Compat.Vf.SeatsOpen>Atribuição de assentos para {0}. {1} sem atribuição, {2} funções.</RimWorldAccess.Compat.Vf.SeatsOpen>
-  <RimWorldAccess.Compat.Vf.SeatsColonistsRegion>Colonists</RimWorldAccess.Compat.Vf.SeatsColonistsRegion>
+  <RimWorldAccess.Compat.Vf.SeatsColonistsRegion>Colonos</RimWorldAccess.Compat.Vf.SeatsColonistsRegion>
   <RimWorldAccess.Compat.Vf.SeatsRoleNeeds>, precisa de mais {0} para operar</RimWorldAccess.Compat.Vf.SeatsRoleNeeds>
   <RimWorldAccess.Compat.Vf.SeatsRoleFull>, completo</RimWorldAccess.Compat.Vf.SeatsRoleFull>
-  <RimWorldAccess.Compat.Vf.SeatsAlreadyAboard>, já a bordo, saia pelo veículo</RimWorldAccess.Compat.Vf.SeatsAlreadyAboard>
+  <RimWorldAccess.Compat.Vf.SeatsAlreadyAboard>, já a bordo, sai pelo veículo</RimWorldAccess.Compat.Vf.SeatsAlreadyAboard>
   <RimWorldAccess.Compat.Vf.SeatsAddToRoleOption>Adicionar a uma função automaticamente</RimWorldAccess.Compat.Vf.SeatsAddToRoleOption>
   <RimWorldAccess.Compat.Vf.SeatsAssignTo>Atribuir a {0}, {1} restantes</RimWorldAccess.Compat.Vf.SeatsAssignTo>
   <RimWorldAccess.Compat.Vf.SeatsAssignedRemaining>{0} atribuído a {1}. Restam {2} assentos.</RimWorldAccess.Compat.Vf.SeatsAssignedRemaining>
   <RimWorldAccess.Compat.Vf.SeatsRemovedRemaining>{0} removido de {1}. Restam {2} assentos.</RimWorldAccess.Compat.Vf.SeatsRemovedRemaining>
-  <RimWorldAccess.Compat.Vf.SeatsIncapableForRole>{0} is incapable of fulfilling this role.</RimWorldAccess.Compat.Vf.SeatsIncapableForRole>
+  <RimWorldAccess.Compat.Vf.SeatsIncapableForRole>{0} não consegue desempenhar esta função.</RimWorldAccess.Compat.Vf.SeatsIncapableForRole>
   <RimWorldAccess.Compat.Vf.SeatsNoRoleAvailable>Nenhuma função disponível para atribuir.</RimWorldAccess.Compat.Vf.SeatsNoRoleAvailable>
-  <RimWorldAccess.Compat.Vf.SeatsAutoAssignButton>Autofill</RimWorldAccess.Compat.Vf.SeatsAutoAssignButton>
+  <RimWorldAccess.Compat.Vf.SeatsAutoAssignButton>Preencher automaticamente</RimWorldAccess.Compat.Vf.SeatsAutoAssignButton>
   <RimWorldAccess.Compat.Vf.SeatsAutoAssigned>Atribuição automática concluída. {0} personagens agora sentados.</RimWorldAccess.Compat.Vf.SeatsAutoAssigned>
-  <RimWorldAccess.Compat.Vf.SeatsClearSeatsButton>Clear</RimWorldAccess.Compat.Vf.SeatsClearSeatsButton>
+  <RimWorldAccess.Compat.Vf.SeatsClearSeatsButton>Limpar</RimWorldAccess.Compat.Vf.SeatsClearSeatsButton>
   <RimWorldAccess.Compat.Vf.SeatsCleared>Todas as atribuições de assento foram removidas.</RimWorldAccess.Compat.Vf.SeatsCleared>
-  <RimWorldAccess.Compat.Vf.SeatsAssignFailureMessage>Failed to assign seats. {0}</RimWorldAccess.Compat.Vf.SeatsAssignFailureMessage>
+  <RimWorldAccess.Compat.Vf.SeatsAssignFailureMessage>Falha ao atribuir assentos. {0}</RimWorldAccess.Compat.Vf.SeatsAssignFailureMessage>
   <RimWorldAccess.Compat.Vf.SeatsConfirmed>Assentos confirmados para {0}.</RimWorldAccess.Compat.Vf.SeatsConfirmed>
   <RimWorldAccess.Compat.Vf.SeatsDiscarded>As atribuições de assento não foram guardadas. Abre Atribuir Assentos novamente e pressiona Confirmar para as manteres.</RimWorldAccess.Compat.Vf.SeatsDiscarded>
 
@@ -185,7 +185,7 @@
        header buttons (Gizmo_RefuelableFuelTravel.DrawHeader). Same fake-key ratchet
        rationale as above; wording mirrors VF's own Keyed Labels.xml. -->
   <RimWorldAccess.Compat.Vf.ChargingToggle>A carregar {0}</RimWorldAccess.Compat.Vf.ChargingToggle>
-  <RimWorldAccess.Compat.Vf.NoPowerNet>Nenhuma rede elétrica disponível</RimWorldAccess.Compat.Vf.NoPowerNet>
+  <RimWorldAccess.Compat.Vf.NoPowerNet>Nenhuma rede eléctrica disponível</RimWorldAccess.Compat.Vf.NoPowerNet>
   <RimWorldAccess.Compat.Vf.HintAutoRefuelToggleArrows>. Pressiona Enter para alternar o reabastecimento automático, setas esquerda e direita para ajustar o nível de combustível alvo</RimWorldAccess.Compat.Vf.HintAutoRefuelToggleArrows>
   <RimWorldAccess.Compat.Vf.RefuelFromCargo>Reabastecer do inventário</RimWorldAccess.Compat.Vf.RefuelFromCargo>
   <RimWorldAccess.Compat.Vf.RefuelFromInventoryCount>Reabastecer {0}x {1}</RimWorldAccess.Compat.Vf.RefuelFromInventoryCount>
@@ -199,11 +199,11 @@
        (VF_ImpassableBiome and friends) are NOT mirrored here: they are runtime strings read off
        VF's own installed language files at Translate() time, not literals in our source, so the
        fake-key ratchet never sees them. -->
-  <RimWorldAccess.Compat.Vf.RegionName>Vehicles</RimWorldAccess.Compat.Vf.RegionName>
+  <RimWorldAccess.Compat.Vf.RegionName>Veículos</RimWorldAccess.Compat.Vf.RegionName>
   <RimWorldAccess.Compat.Vf.ColSelected>Seleccionado</RimWorldAccess.Compat.Vf.ColSelected>
   <RimWorldAccess.Compat.Vf.CellSelected>seleccionado</RimWorldAccess.Compat.Vf.CellSelected>
   <RimWorldAccess.Compat.Vf.CellNotSelected>não seleccionado</RimWorldAccess.Compat.Vf.CellNotSelected>
-  <RimWorldAccess.Compat.Vf.TipMoveSpeed>Amount of tiles traveled in 1 day.</RimWorldAccess.Compat.Vf.TipMoveSpeed>
+  <RimWorldAccess.Compat.Vf.TipMoveSpeed>Quantidade de ladrilhos percorridos em 1 dia.</RimWorldAccess.Compat.Vf.TipMoveSpeed>
   <RimWorldAccess.Compat.Vf.VehicleSelected>{0} seleccionado para a caravana.</RimWorldAccess.Compat.Vf.VehicleSelected>
   <RimWorldAccess.Compat.Vf.VehicleDeselected>{0} removido da caravana. As atribuições de assento foram removidas.</RimWorldAccess.Compat.Vf.VehicleDeselected>
   <RimWorldAccess.Compat.Vf.PawnSeatLocked>Atribuído a um assento em {0}. Altera isso na linha do veículo, na secção Vehicles.</RimWorldAccess.Compat.Vf.PawnSeatLocked>
@@ -217,9 +217,9 @@
        XML. SeatsRoleFull (defined above) is reused verbatim for the role-full suffix. PassengersCargo
        is a bare noun with no VF equivalent, needed only to fill the destination slot of
        PassengersMoved when a pawn is moved into cargo rather than a role. -->
-  <RimWorldAccess.Compat.Vf.PassengersTab>Pawns</RimWorldAccess.Compat.Vf.PassengersTab>
+  <RimWorldAccess.Compat.Vf.PassengersTab>Personagens</RimWorldAccess.Compat.Vf.PassengersTab>
   <RimWorldAccess.Compat.Vf.PassengersRoleSection>{0}, {1} de {2} a bordo</RimWorldAccess.Compat.Vf.PassengersRoleSection>
-  <RimWorldAccess.Compat.Vf.PassengersCargoSection>Cargo, {0}</RimWorldAccess.Compat.Vf.PassengersCargoSection>
+  <RimWorldAccess.Compat.Vf.PassengersCargoSection>Carga, {0}</RimWorldAccess.Compat.Vf.PassengersCargoSection>
   <RimWorldAccess.Compat.Vf.PassengersCargo>carga</RimWorldAccess.Compat.Vf.PassengersCargo>
   <RimWorldAccess.Compat.Vf.PassengersNoneAboard>Ninguém a bordo.</RimWorldAccess.Compat.Vf.PassengersNoneAboard>
   <RimWorldAccess.Compat.Vf.PassengersDowned>{0}, abatido</RimWorldAccess.Compat.Vf.PassengersDowned>
@@ -244,10 +244,10 @@
        VF_MissingPrerequisiteUpgrade, verified against the mod's own Languages/English/Keyed/
        Upgrades.xml) into keys this ratchet can verify instead. -->
   <RimWorldAccess.Compat.Vf.UpgradesTab>Personalizar</RimWorldAccess.Compat.Vf.UpgradesTab>
-  <RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>Melhoria em andamento: {0}.</RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>
+  <RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>Melhoria em curso: {0}.</RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>
   <RimWorldAccess.Compat.Vf.UpgradeNodeSection>{0}, {1}</RimWorldAccess.Compat.Vf.UpgradeNodeSection>
-  <RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>melhoria em andamento</RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>
-  <RimWorldAccess.Compat.Vf.UpgradeStateRemovalInProgress>remoção em andamento</RimWorldAccess.Compat.Vf.UpgradeStateRemovalInProgress>
+  <RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>melhoria em curso</RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>
+  <RimWorldAccess.Compat.Vf.UpgradeStateRemovalInProgress>remoção em curso</RimWorldAccess.Compat.Vf.UpgradeStateRemovalInProgress>
   <RimWorldAccess.Compat.Vf.UpgradeStateUnlocked>desbloqueado</RimWorldAccess.Compat.Vf.UpgradeStateUnlocked>
   <RimWorldAccess.Compat.Vf.UpgradeStateDisabledBy>desactivado por {0}</RimWorldAccess.Compat.Vf.UpgradeStateDisabledBy>
   <RimWorldAccess.Compat.Vf.UpgradeStateRequires>requer {0}</RimWorldAccess.Compat.Vf.UpgradeStateRequires>
@@ -262,10 +262,10 @@
   <RimWorldAccess.Compat.Vf.UpgradeRemovalQueued>Remoção de {0} na fila.</RimWorldAccess.Compat.Vf.UpgradeRemovalQueued>
   <RimWorldAccess.Compat.Vf.UpgradeCompletedInstant>Melhoria de {0} concluída.</RimWorldAccess.Compat.Vf.UpgradeCompletedInstant>
   <RimWorldAccess.Compat.Vf.UpgradeRemovedInstant>Melhoria de {0} removida.</RimWorldAccess.Compat.Vf.UpgradeRemovedInstant>
-  <RimWorldAccess.Compat.Vf.UpgradeActionLabel>Upgrade</RimWorldAccess.Compat.Vf.UpgradeActionLabel>
-  <RimWorldAccess.Compat.Vf.RemoveUpgradeActionLabel>Remove</RimWorldAccess.Compat.Vf.RemoveUpgradeActionLabel>
-  <RimWorldAccess.Compat.Vf.UpgradeDisabledMessage>Inaccessible, disabled from other upgrade.</RimWorldAccess.Compat.Vf.UpgradeDisabledMessage>
-  <RimWorldAccess.Compat.Vf.UpgradeMissingPrerequisiteMessage>Missing prerequisites.</RimWorldAccess.Compat.Vf.UpgradeMissingPrerequisiteMessage>
+  <RimWorldAccess.Compat.Vf.UpgradeActionLabel>Melhorar</RimWorldAccess.Compat.Vf.UpgradeActionLabel>
+  <RimWorldAccess.Compat.Vf.RemoveUpgradeActionLabel>Remover</RimWorldAccess.Compat.Vf.RemoveUpgradeActionLabel>
+  <RimWorldAccess.Compat.Vf.UpgradeDisabledMessage>Inacessível, desactivada por outra melhoria.</RimWorldAccess.Compat.Vf.UpgradeDisabledMessage>
+  <RimWorldAccess.Compat.Vf.UpgradeMissingPrerequisiteMessage>Pré-requisitos em falta.</RimWorldAccess.Compat.Vf.UpgradeMissingPrerequisiteMessage>
 
   <!-- VfTurretGizmoHandler / VfTurretTargeterCompat: text for Vehicle Framework's
        turret gizmo (Command_CooldownAction and its Command_TargeterCooldownAction
@@ -291,7 +291,7 @@
   <RimWorldAccess.Compat.Vf.TurretHalted>Alvo removido.</RimWorldAccess.Compat.Vf.TurretHalted>
   <RimWorldAccess.Compat.Vf.TurretUnloadOption>Descarregar {0}</RimWorldAccess.Compat.Vf.TurretUnloadOption>
   <RimWorldAccess.Compat.Vf.TurretUnloaded>{0} descarregado.</RimWorldAccess.Compat.Vf.TurretUnloaded>
-  <RimWorldAccess.Compat.Vf.TurretReloadOption>Reload</RimWorldAccess.Compat.Vf.TurretReloadOption>
+  <RimWorldAccess.Compat.Vf.TurretReloadOption>Recarregar</RimWorldAccess.Compat.Vf.TurretReloadOption>
   <RimWorldAccess.Compat.Vf.TurretReloaded>Recarregado. {0} de {1}.</RimWorldAccess.Compat.Vf.TurretReloaded>
   <RimWorldAccess.Compat.Vf.TurretFireModeOption>Modo de disparo: {0}</RimWorldAccess.Compat.Vf.TurretFireModeOption>
   <RimWorldAccess.Compat.Vf.TurretFireModeChanged>Modo de disparo: {0}.</RimWorldAccess.Compat.Vf.TurretFireModeChanged>
@@ -299,13 +299,13 @@
   <RimWorldAccess.Compat.Vf.TurretAutoTargetChanged>Alvo automático {0}.</RimWorldAccess.Compat.Vf.TurretAutoTargetChanged>
   <RimWorldAccess.Compat.Vf.TurretSetQuotaOption>Definir meta de recarregamento automático</RimWorldAccess.Compat.Vf.TurretSetQuotaOption>
   <RimWorldAccess.Compat.Vf.TurretSetQuotaLabel>Definir nível de recarregamento automático para {0}.</RimWorldAccess.Compat.Vf.TurretSetQuotaLabel>
-  <RimWorldAccess.Compat.Vf.TurretTargetingStarted>Direcionamento de {0}. Alcance {1}. Move o cursor do mapa e pressiona Enter para disparares. Esc para cancelar.</RimWorldAccess.Compat.Vf.TurretTargetingStarted>
+  <RimWorldAccess.Compat.Vf.TurretTargetingStarted>Escolha de alvo de {0}. Alcance {1}. Move o cursor do mapa e pressiona Enter para disparares. Esc para cancelar.</RimWorldAccess.Compat.Vf.TurretTargetingStarted>
   <RimWorldAccess.Compat.Vf.TurretRangeMax>até {0}</RimWorldAccess.Compat.Vf.TurretRangeMax>
   <RimWorldAccess.Compat.Vf.TurretRangeMinMax>{0} a {1}</RimWorldAccess.Compat.Vf.TurretRangeMinMax>
   <RimWorldAccess.Compat.Vf.TurretRangeUnlimited>alcance ilimitado</RimWorldAccess.Compat.Vf.TurretRangeUnlimited>
   <RimWorldAccess.Compat.Vf.TurretTargetConfirmed>A disparar em {0}.</RimWorldAccess.Compat.Vf.TurretTargetConfirmed>
-  <RimWorldAccess.Compat.Vf.TurretTargetInvalid>Não é possível direcionar para essa posição.</RimWorldAccess.Compat.Vf.TurretTargetInvalid>
-  <RimWorldAccess.Compat.Vf.TurretTargetingCancelled>Direcionamento cancelado.</RimWorldAccess.Compat.Vf.TurretTargetingCancelled>
+  <RimWorldAccess.Compat.Vf.TurretTargetInvalid>Não é possível apontar para essa posição.</RimWorldAccess.Compat.Vf.TurretTargetInvalid>
+  <RimWorldAccess.Compat.Vf.TurretTargetingCancelled>Escolha de alvo cancelada.</RimWorldAccess.Compat.Vf.TurretTargetingCancelled>
 
   <!-- VfHaulTargeterCompat: text for Vehicle Framework's HaulTargeter keyboard support
        (the vehicle "Load Pawn" gizmo's multi-pick targeting session). -->
@@ -320,14 +320,14 @@
        fuel-cost clauses are spoken, never re-derived: the tooltip text comes straight
        from the targeter's own CanTarget check, the same reason a sighted player reads
        at the mouse. -->
-  <RimWorldAccess.Compat.Vf.WorldTargetingStarted>Direcionamento no mundo iniciado. Move-te no mapa do mundo e pressiona Enter para definires o destino, depois Enter novamente para lançares. Pressiona Backspace para removeres um ponto de rota e Esc para cancelares.</RimWorldAccess.Compat.Vf.WorldTargetingStarted>
-  <RimWorldAccess.Compat.Vf.WorldTargetingCancelled>Direcionamento no mundo cancelado.</RimWorldAccess.Compat.Vf.WorldTargetingCancelled>
-  <RimWorldAccess.Compat.Vf.WorldTargetingEnded>Direcionamento no mundo encerrado.</RimWorldAccess.Compat.Vf.WorldTargetingEnded>
+  <RimWorldAccess.Compat.Vf.WorldTargetingStarted>Escolha de alvo no mundo iniciada. Move-te no mapa do mundo e pressiona Enter para definires o destino, depois Enter novamente para lançares. Pressiona Backspace para removeres um ponto de rota e Esc para cancelares.</RimWorldAccess.Compat.Vf.WorldTargetingStarted>
+  <RimWorldAccess.Compat.Vf.WorldTargetingCancelled>Escolha de alvo no mundo cancelada.</RimWorldAccess.Compat.Vf.WorldTargetingCancelled>
+  <RimWorldAccess.Compat.Vf.WorldTargetingEnded>Escolha de alvo no mundo encerrada.</RimWorldAccess.Compat.Vf.WorldTargetingEnded>
   <RimWorldAccess.Compat.Vf.WorldWaypointSet>Destino definido. Pressiona Enter novamente para lançares.</RimWorldAccess.Compat.Vf.WorldWaypointSet>
   <RimWorldAccess.Compat.Vf.WorldWaypointSetWithFuel>Destino definido. Custo de combustível {0}. Pressiona Enter novamente para lançares.</RimWorldAccess.Compat.Vf.WorldWaypointSetWithFuel>
   <RimWorldAccess.Compat.Vf.WorldWaypointRemoved>Ponto de rota removido.</RimWorldAccess.Compat.Vf.WorldWaypointRemoved>
   <RimWorldAccess.Compat.Vf.WorldNoWaypoint>Nenhum ponto de rota para remover.</RimWorldAccess.Compat.Vf.WorldNoWaypoint>
-  <RimWorldAccess.Compat.Vf.WorldTargetInvalid>Não é possível direcionar para esse local.</RimWorldAccess.Compat.Vf.WorldTargetInvalid>
+  <RimWorldAccess.Compat.Vf.WorldTargetInvalid>Não é possível apontar para esse local.</RimWorldAccess.Compat.Vf.WorldTargetInvalid>
   <RimWorldAccess.Compat.Vf.WorldTargetLaunched>Destino confirmado.</RimWorldAccess.Compat.Vf.WorldTargetLaunched>
   <RimWorldAccess.Compat.Vf.WorldFuelCost>Custo de combustível: {0}.</RimWorldAccess.Compat.Vf.WorldFuelCost>
   <RimWorldAccess.Compat.Vf.WorldNoDestinationInfo>Nenhuma informação de destino aqui.</RimWorldAccess.Compat.Vf.WorldNoDestinationInfo>
@@ -338,13 +338,13 @@
        landings out of fuel). Validity is spoken from the same GetPosState gate the
        mouse click uses; the obstructed variant matches the orange ghost color a
        sighted player sees when landing on a spot that crushes things beneath it. -->
-  <RimWorldAccess.Compat.Vf.LandingTargetingStarted>Escolhe um local de pouso para {0}. Move o cursor do mapa e pressiona Enter para pousares. Pressiona Esc para cancelares.</RimWorldAccess.Compat.Vf.LandingTargetingStarted>
-  <RimWorldAccess.Compat.Vf.LandingTargetingStartedRotatable>Escolhe um local de pouso para {0}. Move o cursor do mapa e pressiona Enter para pousares. Pressiona Q e E para girares. Pressiona Esc para cancelares.</RimWorldAccess.Compat.Vf.LandingTargetingStartedRotatable>
-  <RimWorldAccess.Compat.Vf.LandingSpotInvalid>Não é possível pousar aqui.</RimWorldAccess.Compat.Vf.LandingSpotInvalid>
-  <RimWorldAccess.Compat.Vf.LandingConfirmed>A pousar em {0}.</RimWorldAccess.Compat.Vf.LandingConfirmed>
-  <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>A pousar em {0}. O local está obstruído e os objectos abaixo serão destruídos.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
+  <RimWorldAccess.Compat.Vf.LandingTargetingStarted>Escolhe um local de aterragem para {0}. Move o cursor do mapa e pressiona Enter para aterrares. Pressiona Esc para cancelares.</RimWorldAccess.Compat.Vf.LandingTargetingStarted>
+  <RimWorldAccess.Compat.Vf.LandingTargetingStartedRotatable>Escolhe um local de aterragem para {0}. Move o cursor do mapa e pressiona Enter para aterrares. Pressiona Q e E para girares. Pressiona Esc para cancelares.</RimWorldAccess.Compat.Vf.LandingTargetingStartedRotatable>
+  <RimWorldAccess.Compat.Vf.LandingSpotInvalid>Não é possível aterrar aqui.</RimWorldAccess.Compat.Vf.LandingSpotInvalid>
+  <RimWorldAccess.Compat.Vf.LandingConfirmed>A aterrar em {0}.</RimWorldAccess.Compat.Vf.LandingConfirmed>
+  <RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>A aterrar em {0}. O local está obstruído e os objectos abaixo serão destruídos.</RimWorldAccess.Compat.Vf.LandingConfirmedObstructed>
   <RimWorldAccess.Compat.Vf.LandingRotationChanged>Voltado para {0}.</RimWorldAccess.Compat.Vf.LandingRotationChanged>
-  <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Direcionamento de pouso encerrado.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
+  <RimWorldAccess.Compat.Vf.LandingTargetingEnded>Escolha do local de aterragem encerrada.</RimWorldAccess.Compat.Vf.LandingTargetingEnded>
   <RimWorldAccess.Compat.Vf.OrientTitle>Direcção à chegada para {0}</RimWorldAccess.Compat.Vf.OrientTitle>
   <RimWorldAccess.Compat.Vf.OrientCurrentFacing>{0}, direcção actual</RimWorldAccess.Compat.Vf.OrientCurrentFacing>
   <RimWorldAccess.Compat.Vf.OrientConfirmed>Voltado para {0} à chegada.</RimWorldAccess.Compat.Vf.OrientConfirmed>
@@ -362,14 +362,14 @@
        Core/DLC Keyed XML tree the ratchet scans, so calling them would either go
        unchecked (without a game dir) or be flagged as fake (with one), exactly like
        VfStashDialogAdapter's documented rationale. -->
-  <RimWorldAccess.Compat.Vf.HealthTab>Health</RimWorldAccess.Compat.Vf.HealthTab>
+  <RimWorldAccess.Compat.Vf.HealthTab>Saúde</RimWorldAccess.Compat.Vf.HealthTab>
   <RimWorldAccess.Compat.Vf.HealthProducedLine>Produzido: {0}.</RimWorldAccess.Compat.Vf.HealthProducedLine>
   <RimWorldAccess.Compat.Vf.HealthComponentsSection>Componentes</RimWorldAccess.Compat.Vf.HealthComponentsSection>
   <RimWorldAccess.Compat.Vf.HealthStatLine>{0}: {1}</RimWorldAccess.Compat.Vf.HealthStatLine>
   <RimWorldAccess.Compat.Vf.HealthStatBaseLine>Valor base: {0}.</RimWorldAccess.Compat.Vf.HealthStatBaseLine>
   <RimWorldAccess.Compat.Vf.HealthComponentSection>{0}: {1} de saúde</RimWorldAccess.Compat.Vf.HealthComponentSection>
   <RimWorldAccess.Compat.Vf.HealthComponentHealthLine>Saúde: {0} de {1}.</RimWorldAccess.Compat.Vf.HealthComponentHealthLine>
-  <RimWorldAccess.Compat.Vf.HealthComponentEfficiencyLine>Eficiência: {0}. Afeta {1}.</RimWorldAccess.Compat.Vf.HealthComponentEfficiencyLine>
+  <RimWorldAccess.Compat.Vf.HealthComponentEfficiencyLine>Eficiência: {0}. Afecta {1}.</RimWorldAccess.Compat.Vf.HealthComponentEfficiencyLine>
   <RimWorldAccess.Compat.Vf.HealthComponentEfficiencyNone>Eficiência: não aplicável.</RimWorldAccess.Compat.Vf.HealthComponentEfficiencyNone>
   <RimWorldAccess.Compat.Vf.HealthComponentArmorLine>{0}: {1}.</RimWorldAccess.Compat.Vf.HealthComponentArmorLine>
   <RimWorldAccess.Compat.Vf.HealthComponentArmorUpgradedLine>{0}: {1}. Classificação de blindagem base: {2}.</RimWorldAccess.Compat.Vf.HealthComponentArmorUpgradedLine>
@@ -399,8 +399,8 @@
        Keyed XML tree the ratchet scans, so calling them would either go unchecked
        (without a game dir) or be flagged as fake (with one), exactly like
        VfStashDialogAdapter's documented rationale. -->
-  <RimWorldAccess.Compat.Vf.CargoTab>Cargo</RimWorldAccess.Compat.Vf.CargoTab>
-  <RimWorldAccess.Compat.Vf.CargoDropAllAction>Ejetar todos</RimWorldAccess.Compat.Vf.CargoDropAllAction>
+  <RimWorldAccess.Compat.Vf.CargoTab>Carga</RimWorldAccess.Compat.Vf.CargoTab>
+  <RimWorldAccess.Compat.Vf.CargoDropAllAction>Largar tudo</RimWorldAccess.Compat.Vf.CargoDropAllAction>
   <RimWorldAccess.Compat.Vf.CargoMarketValueLine>{0}: {1}.</RimWorldAccess.Compat.Vf.CargoMarketValueLine>
   <RimWorldAccess.Compat.Vf.CargoMassLine>Massa: {0}.</RimWorldAccess.Compat.Vf.CargoMassLine>
   <RimWorldAccess.Compat.Vf.CargoHitPointsLine>Pontos de vida: {0} de {1}.</RimWorldAccess.Compat.Vf.CargoHitPointsLine>
@@ -418,8 +418,8 @@
   <RimWorldAccess.Compat.Vf.RecolorCategory>Repintar</RimWorldAccess.Compat.Vf.RecolorCategory>
   <RimWorldAccess.Compat.Vf.RecolorUnavailable>Repintura não disponível para este veículo.</RimWorldAccess.Compat.Vf.RecolorUnavailable>
   <RimWorldAccess.Compat.Vf.VehicleActionFailed>Acção falhou.</RimWorldAccess.Compat.Vf.VehicleActionFailed>
-  <RimWorldAccess.Compat.Vf.RenameOkFallback>Okay</RimWorldAccess.Compat.Vf.RenameOkFallback>
-  <RimWorldAccess.Compat.Vf.RenameRemoveFallback>Remove name</RimWorldAccess.Compat.Vf.RenameRemoveFallback>
+  <RimWorldAccess.Compat.Vf.RenameOkFallback>OK</RimWorldAccess.Compat.Vf.RenameOkFallback>
+  <RimWorldAccess.Compat.Vf.RenameRemoveFallback>Remover nome</RimWorldAccess.Compat.Vf.RenameRemoveFallback>
 
   <!-- VfPainterScope / VfPainterCompat: Vehicle Framework's Dialog_VehiclePainter (opened by
        the "VF Recolor" inspection action): color slots, hue/saturation/brightness and hex
@@ -457,16 +457,16 @@
        route planner's own RimWorldAccess.Route.* keys wherever the phrasing fits (no speed-source
        argument, since VF has no single "caravan whose speed" concept); these VF-specific keys
        cover only the ETA phrasing that would otherwise need one. -->
-  <RimWorldAccess.Compat.Vf.RoutePlannerOpenerInstructions>Planejador de rota de veículos activo. Espaço para adicionar ponto de rota, Shift+Espaço para remover o ponto de rota no cursor, E para tempo de viagem, Esc para sair.</RimWorldAccess.Compat.Vf.RoutePlannerOpenerInstructions>
-  <RimWorldAccess.Compat.Vf.RoutePlannerWaypointAddedWithEta>Ponto de rota {0} adicionado. {1} dias até o destino.</RimWorldAccess.Compat.Vf.RoutePlannerWaypointAddedWithEta>
-  <RimWorldAccess.Compat.Vf.RoutePlannerWaypointRemovedWithEta>Ponto de rota {0} removido. Restam {1} pontos de rota. {2} dias até o destino.</RimWorldAccess.Compat.Vf.RoutePlannerWaypointRemovedWithEta>
+  <RimWorldAccess.Compat.Vf.RoutePlannerOpenerInstructions>Planeador de rota de veículos activo. Espaço para adicionar ponto de rota, Shift+Espaço para remover o ponto de rota no cursor, E para tempo de viagem, Esc para sair.</RimWorldAccess.Compat.Vf.RoutePlannerOpenerInstructions>
+  <RimWorldAccess.Compat.Vf.RoutePlannerWaypointAddedWithEta>Ponto de rota {0} adicionado. {1} dias até ao destino.</RimWorldAccess.Compat.Vf.RoutePlannerWaypointAddedWithEta>
+  <RimWorldAccess.Compat.Vf.RoutePlannerWaypointRemovedWithEta>Ponto de rota {0} removido. Restam {1} pontos de rota. {2} dias até ao destino.</RimWorldAccess.Compat.Vf.RoutePlannerWaypointRemovedWithEta>
   <RimWorldAccess.Compat.Vf.RoutePlannerEta>Tempo estimado de viagem: {0} dias.</RimWorldAccess.Compat.Vf.RoutePlannerEta>
   <RimWorldAccess.Compat.Vf.RoutePlannerSummary>{0} pontos de rota. {1}</RimWorldAccess.Compat.Vf.RoutePlannerSummary>
 
   <!-- VfVehicleSelectorCompat / VfVehicleSelectorScope: Vehicle Framework's
        Dialog_VehicleSelector, the vehicle picker the route planner's world-map button opens. -->
   <RimWorldAccess.Compat.Vf.SelectorRegionMode>Modo de selecção</RimWorldAccess.Compat.Vf.SelectorRegionMode>
-  <RimWorldAccess.Compat.Vf.SelectorRegionVehicles>Vehicles</RimWorldAccess.Compat.Vf.SelectorRegionVehicles>
+  <RimWorldAccess.Compat.Vf.SelectorRegionVehicles>Veículos</RimWorldAccess.Compat.Vf.SelectorRegionVehicles>
   <RimWorldAccess.Compat.Vf.SelectorModeDefs>A seleccionar tipos de veículo</RimWorldAccess.Compat.Vf.SelectorModeDefs>
   <RimWorldAccess.Compat.Vf.SelectorModeVehicles>A seleccionar veículos no mapa</RimWorldAccess.Compat.Vf.SelectorModeVehicles>
   <RimWorldAccess.Compat.Vf.SelectorModeSwitched>{0}. {1} disponíveis.</RimWorldAccess.Compat.Vf.SelectorModeSwitched>
@@ -487,36 +487,36 @@
        (Forever, and the BillRepeatModeDef labels arriving through
        RepeatLabel/RepeatInfoText as live game data) come through unmodified, not
        literal Translate calls of our own. -->
-  <RimWorldAccess.Compat.Vef.ProcessorTab>Processes</RimWorldAccess.Compat.Vef.ProcessorTab>
-  <RimWorldAccess.Compat.Vef.ProcessorAddProcessAction>Add process</RimWorldAccess.Compat.Vef.ProcessorAddProcessAction>
+  <RimWorldAccess.Compat.Vef.ProcessorTab>Processos</RimWorldAccess.Compat.Vef.ProcessorTab>
+  <RimWorldAccess.Compat.Vef.ProcessorAddProcessAction>Adicionar processo</RimWorldAccess.Compat.Vef.ProcessorAddProcessAction>
   <RimWorldAccess.Compat.Vef.ProcessorSettingsAction>Definições</RimWorldAccess.Compat.Vef.ProcessorSettingsAction>
-  <RimWorldAccess.Compat.Vef.ProcessorCopyAction>Copy processes</RimWorldAccess.Compat.Vef.ProcessorCopyAction>
-  <RimWorldAccess.Compat.Vef.ProcessorPasteAction>Paste processes</RimWorldAccess.Compat.Vef.ProcessorPasteAction>
+  <RimWorldAccess.Compat.Vef.ProcessorCopyAction>Copiar processos</RimWorldAccess.Compat.Vef.ProcessorCopyAction>
+  <RimWorldAccess.Compat.Vef.ProcessorPasteAction>Colar processos</RimWorldAccess.Compat.Vef.ProcessorPasteAction>
   <RimWorldAccess.Compat.Vef.ProcessorCopied>Processos copiados.</RimWorldAccess.Compat.Vef.ProcessorCopied>
   <RimWorldAccess.Compat.Vef.ProcessorPasted>Processos colados.</RimWorldAccess.Compat.Vef.ProcessorPasted>
   <RimWorldAccess.Compat.Vef.ProcessorNothingToPaste>Nada para colar nesta construção.</RimWorldAccess.Compat.Vef.ProcessorNothingToPaste>
-  <RimWorldAccess.Compat.Vef.ProcessorCurrentLine>Processo atual: {0}, {1} concluído.</RimWorldAccess.Compat.Vef.ProcessorCurrentLine>
-  <RimWorldAccess.Compat.Vef.ProcessorNoProcess>No current process.</RimWorldAccess.Compat.Vef.ProcessorNoProcess>
-  <RimWorldAccess.Compat.Vef.ProcessorCancelCurrentAction>Cancelar processo atual</RimWorldAccess.Compat.Vef.ProcessorCancelCurrentAction>
+  <RimWorldAccess.Compat.Vef.ProcessorCurrentLine>Processo actual: {0}, {1} concluído.</RimWorldAccess.Compat.Vef.ProcessorCurrentLine>
+  <RimWorldAccess.Compat.Vef.ProcessorNoProcess>Nenhum processo actual.</RimWorldAccess.Compat.Vef.ProcessorNoProcess>
+  <RimWorldAccess.Compat.Vef.ProcessorCancelCurrentAction>Cancelar processo actual</RimWorldAccess.Compat.Vef.ProcessorCancelCurrentAction>
   <RimWorldAccess.Compat.Vef.ProcessorCancelled>Processo cancelado.</RimWorldAccess.Compat.Vef.ProcessorCancelled>
   <RimWorldAccess.Compat.Vef.ProcessorRepeatLine>{0}: {1}.</RimWorldAccess.Compat.Vef.ProcessorRepeatLine>
   <RimWorldAccess.Compat.Vef.ProcessorSuspendedClause>suspenso</RimWorldAccess.Compat.Vef.ProcessorSuspendedClause>
-  <RimWorldAccess.Compat.Vef.ProcessorInactiveClause>inativo</RimWorldAccess.Compat.Vef.ProcessorInactiveClause>
+  <RimWorldAccess.Compat.Vef.ProcessorInactiveClause>inactivo</RimWorldAccess.Compat.Vef.ProcessorInactiveClause>
   <RimWorldAccess.Compat.Vef.ProcessorMissingIngredientsClause>faltam ingredientes</RimWorldAccess.Compat.Vef.ProcessorMissingIngredientsClause>
   <RimWorldAccess.Compat.Vef.ProcessorIncreaseAction>Aumentar quantidade</RimWorldAccess.Compat.Vef.ProcessorIncreaseAction>
   <RimWorldAccess.Compat.Vef.ProcessorDecreaseAction>Diminuir quantidade</RimWorldAccess.Compat.Vef.ProcessorDecreaseAction>
   <RimWorldAccess.Compat.Vef.ProcessorCountSet>Repetição definida para {0}.</RimWorldAccess.Compat.Vef.ProcessorCountSet>
   <RimWorldAccess.Compat.Vef.ProcessorQualityAction>Seleccionar qualidade</RimWorldAccess.Compat.Vef.ProcessorQualityAction>
-  <RimWorldAccess.Compat.Vef.ProcessorSuspendAction>Suspend</RimWorldAccess.Compat.Vef.ProcessorSuspendAction>
-  <RimWorldAccess.Compat.Vef.ProcessorUnsuspendAction>Unsuspend</RimWorldAccess.Compat.Vef.ProcessorUnsuspendAction>
+  <RimWorldAccess.Compat.Vef.ProcessorSuspendAction>Suspender</RimWorldAccess.Compat.Vef.ProcessorSuspendAction>
+  <RimWorldAccess.Compat.Vef.ProcessorUnsuspendAction>Retomar</RimWorldAccess.Compat.Vef.ProcessorUnsuspendAction>
   <RimWorldAccess.Compat.Vef.ProcessorSuspended>Processo suspenso.</RimWorldAccess.Compat.Vef.ProcessorSuspended>
   <RimWorldAccess.Compat.Vef.ProcessorResumed>Processo retomado.</RimWorldAccess.Compat.Vef.ProcessorResumed>
-  <RimWorldAccess.Compat.Vef.ProcessorMoveUpAction>Move up</RimWorldAccess.Compat.Vef.ProcessorMoveUpAction>
-  <RimWorldAccess.Compat.Vef.ProcessorMoveDownAction>Move down</RimWorldAccess.Compat.Vef.ProcessorMoveDownAction>
+  <RimWorldAccess.Compat.Vef.ProcessorMoveUpAction>Mover para cima</RimWorldAccess.Compat.Vef.ProcessorMoveUpAction>
+  <RimWorldAccess.Compat.Vef.ProcessorMoveDownAction>Mover para baixo</RimWorldAccess.Compat.Vef.ProcessorMoveDownAction>
   <RimWorldAccess.Compat.Vef.ProcessorMovedUp>Movido para cima.</RimWorldAccess.Compat.Vef.ProcessorMovedUp>
   <RimWorldAccess.Compat.Vef.ProcessorMovedDown>Movido para baixo.</RimWorldAccess.Compat.Vef.ProcessorMovedDown>
-  <RimWorldAccess.Compat.Vef.ProcessorDeleteAction>Delete process</RimWorldAccess.Compat.Vef.ProcessorDeleteAction>
-  <RimWorldAccess.Compat.Vef.ProcessorDeleted>Processo excluído.</RimWorldAccess.Compat.Vef.ProcessorDeleted>
+  <RimWorldAccess.Compat.Vef.ProcessorDeleteAction>Apagar processo</RimWorldAccess.Compat.Vef.ProcessorDeleteAction>
+  <RimWorldAccess.Compat.Vef.ProcessorDeleted>Processo apagado.</RimWorldAccess.Compat.Vef.ProcessorDeleted>
   <RimWorldAccess.Compat.Vef.ProcessorActionFailed>Acção falhou.</RimWorldAccess.Compat.Vef.ProcessorActionFailed>
 
   <!-- VefHireCompat / VefHireScope: text for Vanilla Expanded Framework's mercenary-hiring
@@ -553,7 +553,7 @@
   <RimWorldAccess.Compat.Vef.ContractsFrom>de {0}</RimWorldAccess.Compat.Vef.ContractsFrom>
   <RimWorldAccess.Compat.Vef.ContractsRewards>Recompensas: {0}</RimWorldAccess.Compat.Vef.ContractsRewards>
   <RimWorldAccess.Compat.Vef.ContractsCost>Custo: {0}</RimWorldAccess.Compat.Vef.ContractsCost>
-  <RimWorldAccess.Compat.Vef.ContractsRequirement>Requisito não atendido: {0}</RimWorldAccess.Compat.Vef.ContractsRequirement>
+  <RimWorldAccess.Compat.Vef.ContractsRequirement>Requisito não cumprido: {0}</RimWorldAccess.Compat.Vef.ContractsRequirement>
   <RimWorldAccess.Compat.Vef.ContractsInfoCardHint>Pressiona Enter para a ficha de inspecção.</RimWorldAccess.Compat.Vef.ContractsInfoCardHint>
   <RimWorldAccess.Compat.Vef.ContractsCannotAccept>Este contrato não pode ser aceito agora.</RimWorldAccess.Compat.Vef.ContractsCannotAccept>
 
@@ -581,7 +581,7 @@
   <RimWorldAccess.Compat.Hospitality.BedRentalFeeTitle>Taxa de aluguer</RimWorldAccess.Compat.Hospitality.BedRentalFeeTitle>
   <RimWorldAccess.Compat.Hospitality.VendingPriceTitle>Preço</RimWorldAccess.Compat.Hospitality.VendingPriceTitle>
   <RimWorldAccess.Compat.Hospitality.VendingThresholdTitle>Limite de esvaziamento</RimWorldAccess.Compat.Hospitality.VendingThresholdTitle>
-  <RimWorldAccess.Compat.Hospitality.ResetRentalFee>Redefinir taxa de aluguer para o padrão</RimWorldAccess.Compat.Hospitality.ResetRentalFee>
+  <RimWorldAccess.Compat.Hospitality.ResetRentalFee>Repor a taxa de aluguer predefinida</RimWorldAccess.Compat.Hospitality.ResetRentalFee>
   <RimWorldAccess.Compat.Hospitality.SetAutoPrice>Definir para preço automático</RimWorldAccess.Compat.Hospitality.SetAutoPrice>
   <RimWorldAccess.Compat.Hospitality.SetThresholdAuto>Definir limite para dez vezes o preço</RimWorldAccess.Compat.Hospitality.SetThresholdAuto>
   <!-- One title in the guest bed's royal title box. {0} = title, {1} = the factions that grant it. -->
@@ -592,9 +592,9 @@
 
   <!-- CashRegisterCompat: CashRegister's register-radius gizmo (Gizmo_Radius), served
        by the same ModifyNumberGizmoHandler as the Hospitality keys above. -->
-  <RimWorldAccess.Compat.CashRegister.RadiusStatus>Raio: {0}. Incluir cômodo: {1}.</RimWorldAccess.Compat.CashRegister.RadiusStatus>
+  <RimWorldAccess.Compat.CashRegister.RadiusStatus>Raio: {0}. Incluir divisão: {1}.</RimWorldAccess.Compat.CashRegister.RadiusStatus>
   <RimWorldAccess.Compat.CashRegister.RadiusTitle>Raio</RimWorldAccess.Compat.CashRegister.RadiusTitle>
-  <RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>Alternar incluir cômodo</RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>
+  <RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>Alternar incluir divisão</RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>
 
   <!-- CashRegisterShiftsAdapter: the Shifts tab's staff/hour scheduling grid,
        served as a structured tree instead of the tab's own invisible bare
@@ -602,23 +602,23 @@
        English strings ("TabRegisterShifts" = "Shifts", "TabRegisterShiftsEmpty"
        = "No one") since those keys cannot be called via Translate() from our
        C# — see the adapter's class remarks. -->
-  <RimWorldAccess.Compat.CashRegisterShifts.TabName>Shifts</RimWorldAccess.Compat.CashRegisterShifts.TabName>
+  <RimWorldAccess.Compat.CashRegisterShifts.TabName>Turnos</RimWorldAccess.Compat.CashRegisterShifts.TabName>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Turno {0}, de serviço agora. {1}. Horas: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Turno {0}, fora de serviço agora. {1}. Horas: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
   <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (indisponível)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
   <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Hora {0}: {1}, hora actual</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
-  <RimWorldAccess.Compat.CashRegisterShifts.NoOne>No one</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
+  <RimWorldAccess.Compat.CashRegisterShifts.NoOne>Ninguém</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>nenhum</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>o dia todo</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
   <RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>{0} a {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>
   <RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>{0}</RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>
   <RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>Atribuído: {0}.</RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>
-  <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>Atribuir equipe</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>
-  <RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>Excluir turno</RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>
+  <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>Atribuir pessoal</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>
+  <RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>Apagar turno</RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>
   <RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>Adicionar turno</RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>
   <RimWorldAccess.Compat.CashRegisterShifts.HourRow>Hora {0}: {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRow>
   <RimWorldAccess.Compat.CashRegisterShifts.HourToggled>{0}.</RimWorldAccess.Compat.CashRegisterShifts.HourToggled>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>Turno excluído.</RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>Turno apagado.</RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>Turno adicionado.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>Este caixa já tem o máximo de {0} turnos.</RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>
   <RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>Acção falhou.</RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>
@@ -651,11 +651,11 @@
   <RimWorldAccess.Compat.Rwom.AbilityPointsRow>Pontos de habilidade disponíveis: {0}.</RimWorldAccess.Compat.Rwom.AbilityPointsRow>
   <RimWorldAccess.Compat.Rwom.ManaGainRow>Ganho de mana por 5 segundos: {0}.</RimWorldAccess.Compat.Rwom.ManaGainRow>
   <RimWorldAccess.Compat.Rwom.ManaBaseGain>Ganho base de mana: {0}.</RimWorldAccess.Compat.Rwom.ManaBaseGain>
-  <RimWorldAccess.Compat.Rwom.ManaBaseRegen>Bônus de regeneração de mana: {0}.</RimWorldAccess.Compat.Rwom.ManaBaseRegen>
+  <RimWorldAccess.Compat.Rwom.ManaBaseRegen>Bónus de regeneração de mana: {0}.</RimWorldAccess.Compat.Rwom.ManaBaseRegen>
   <RimWorldAccess.Compat.Rwom.ManaSurge>Surto de mana: +{0}.</RimWorldAccess.Compat.Rwom.ManaSurge>
-  <RimWorldAccess.Compat.Rwom.ManaSyrrium>Bônus de syrrium: +{0}.</RimWorldAccess.Compat.Rwom.ManaSyrrium>
+  <RimWorldAccess.Compat.Rwom.ManaSyrrium>Bónus de syrrium: +{0}.</RimWorldAccess.Compat.Rwom.ManaSyrrium>
   <RimWorldAccess.Compat.Rwom.ManaModifiedGain>Ganho de mana modificado: {0}.</RimWorldAccess.Compat.Rwom.ManaModifiedGain>
-  <RimWorldAccess.Compat.Rwom.ManaRegenBonus>Bônus de regeneração de energia: +{0}.</RimWorldAccess.Compat.Rwom.ManaRegenBonus>
+  <RimWorldAccess.Compat.Rwom.ManaRegenBonus>Bónus de regeneração de energia: +{0}.</RimWorldAccess.Compat.Rwom.ManaRegenBonus>
   <RimWorldAccess.Compat.Rwom.ManaWeakness>Fraqueza de mana: -{0}.</RimWorldAccess.Compat.Rwom.ManaWeakness>
   <RimWorldAccess.Compat.Rwom.ManaMinionCost>Custo de lacaio: -{0}.</RimWorldAccess.Compat.Rwom.ManaMinionCost>
   <RimWorldAccess.Compat.Rwom.ManaSpriteCost>Custo de sprite: -{0}.</RimWorldAccess.Compat.Rwom.ManaSpriteCost>
@@ -727,9 +727,9 @@
   <RimWorldAccess.Compat.Rwom.GolemUseAbilitiesWhenDormant>Usar habilidades enquanto dormente</RimWorldAccess.Compat.Rwom.GolemUseAbilitiesWhenDormant>
   <RimWorldAccess.Compat.Rwom.GolemToggleAnnounce>{0}: {1}.</RimWorldAccess.Compat.Rwom.GolemToggleAnnounce>
   <RimWorldAccess.Compat.Rwom.GolemThreatRange>Alcance de resposta a ameaças</RimWorldAccess.Compat.Rwom.GolemThreatRange>
-  <RimWorldAccess.Compat.Rwom.GolemMinEnergyForAbilities>Percentual mínimo de energia para habilidades</RimWorldAccess.Compat.Rwom.GolemMinEnergyForAbilities>
-  <RimWorldAccess.Compat.Rwom.GolemRestAt>Descansar no percentual de energia</RimWorldAccess.Compat.Rwom.GolemRestAt>
-  <RimWorldAccess.Compat.Rwom.GolemWakeAt>Despertar no percentual de energia</RimWorldAccess.Compat.Rwom.GolemWakeAt>
+  <RimWorldAccess.Compat.Rwom.GolemMinEnergyForAbilities>Percentagem mínima de energia para habilidades</RimWorldAccess.Compat.Rwom.GolemMinEnergyForAbilities>
+  <RimWorldAccess.Compat.Rwom.GolemRestAt>Descansar na percentagem de energia</RimWorldAccess.Compat.Rwom.GolemRestAt>
+  <RimWorldAccess.Compat.Rwom.GolemWakeAt>Despertar na percentagem de energia</RimWorldAccess.Compat.Rwom.GolemWakeAt>
   <RimWorldAccess.Compat.Rwom.GolemSliderSet>{0} definido para {1}.</RimWorldAccess.Compat.Rwom.GolemSliderSet>
   <RimWorldAccess.Compat.Rwom.GolemUpgradesSection>Melhorias</RimWorldAccess.Compat.Rwom.GolemUpgradesSection>
   <RimWorldAccess.Compat.Rwom.GolemUpgradeRow>{0}: nível {1} de {2}.</RimWorldAccess.Compat.Rwom.GolemUpgradeRow>
@@ -743,10 +743,10 @@
   <RimWorldAccess.Compat.Rwom.GolemEnergyCell>{0} por cento</RimWorldAccess.Compat.Rwom.GolemEnergyCell>
   <RimWorldAccess.Compat.Rwom.GolemThreatRangeCell>{0}</RimWorldAccess.Compat.Rwom.GolemThreatRangeCell>
   <RimWorldAccess.Compat.Rwom.GolemPercentCell>{0} por cento</RimWorldAccess.Compat.Rwom.GolemPercentCell>
-  <RimWorldAccess.Compat.Rwom.EnergyStatusLabel>Status de energia</RimWorldAccess.Compat.Rwom.EnergyStatusLabel>
+  <RimWorldAccess.Compat.Rwom.EnergyStatusLabel>Estado de energia</RimWorldAccess.Compat.Rwom.EnergyStatusLabel>
   <RimWorldAccess.Compat.Rwom.EnergyBarFragment>{0}: {1} de {2}.</RimWorldAccess.Compat.Rwom.EnergyBarFragment>
   <RimWorldAccess.Compat.Rwom.EnergyBarCustomClass>Energia de classe</RimWorldAccess.Compat.Rwom.EnergyBarCustomClass>
-  <RimWorldAccess.Compat.Rwom.EnergyBarPsionic>Energia psiônica</RimWorldAccess.Compat.Rwom.EnergyBarPsionic>
+  <RimWorldAccess.Compat.Rwom.EnergyBarPsionic>Energia psiónica</RimWorldAccess.Compat.Rwom.EnergyBarPsionic>
   <RimWorldAccess.Compat.Rwom.EnergyBarHate>Ódio</RimWorldAccess.Compat.Rwom.EnergyBarHate>
   <RimWorldAccess.Compat.Rwom.EnergyBarChi>Chi</RimWorldAccess.Compat.Rwom.EnergyBarChi>
   <RimWorldAccess.Compat.Rwom.EnergyBarStamina>Vigor</RimWorldAccess.Compat.Rwom.EnergyBarStamina>
@@ -792,8 +792,8 @@
        not authored prose fragments. -->
   <RimWorldAccess.Compat.RimTalk.CustomDialogue.Opened>{0} a falar com {1}.</RimWorldAccess.Compat.RimTalk.CustomDialogue.Opened>
   <RimWorldAccess.Compat.RimTalk.CustomDialogue.MessageField>Mensagem</RimWorldAccess.Compat.RimTalk.CustomDialogue.MessageField>
-  <RimWorldAccess.Compat.RimTalk.CustomDialogue.SendFallback>Send</RimWorldAccess.Compat.RimTalk.CustomDialogue.SendFallback>
-  <RimWorldAccess.Compat.RimTalk.CustomDialogue.CancelFallback>Cancel</RimWorldAccess.Compat.RimTalk.CustomDialogue.CancelFallback>
+  <RimWorldAccess.Compat.RimTalk.CustomDialogue.SendFallback>Enviar</RimWorldAccess.Compat.RimTalk.CustomDialogue.SendFallback>
+  <RimWorldAccess.Compat.RimTalk.CustomDialogue.CancelFallback>Cancelar</RimWorldAccess.Compat.RimTalk.CustomDialogue.CancelFallback>
 
   <!-- RimTalkNarrativeCompat: the vanilla "Rim Talk Debug" main button opens
        RimTalk.UI.OverlayTabLauncher, whose PostOpen silently toggles the overlay setting and
@@ -817,22 +817,22 @@
        views, filters, a details panel, stats, and bottom actions), speech mods campaign S8. -->
   <RimWorldAccess.Compat.RimTalk.Debug.Opened>Janela de depuração do RimTalk.</RimWorldAccess.Compat.RimTalk.Debug.Opened>
   <RimWorldAccess.Compat.RimTalk.Debug.FiltersRegionName>Filtros</RimWorldAccess.Compat.RimTalk.Debug.FiltersRegionName>
-  <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsRegionName>Solicitações de personagens</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsRegionName>
+  <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsRegionName>Pedidos de personagens</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsRegionName>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailsRegionName>Detalhes</RimWorldAccess.Compat.RimTalk.Debug.DetailsRegionName>
   <RimWorldAccess.Compat.RimTalk.Debug.StatsRegionName>Estatísticas</RimWorldAccess.Compat.RimTalk.Debug.StatsRegionName>
   <RimWorldAccess.Compat.RimTalk.Debug.PawnFilterLabel>Filtro de personagem</RimWorldAccess.Compat.RimTalk.Debug.PawnFilterLabel>
-  <RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>Busca de texto</RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>
-  <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>Solicitações de {0}</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>Pesquisa de texto</RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>
+  <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>Pedidos de {0}</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>{0}, tick {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>{0}, tick {1}, {2} para {3}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>Directiva: {0}. Trauma: {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>{0} para {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>{0}, {1}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>
-  <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>Enable RimTalk</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
-  <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>Mod Settings</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
-  <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>Export Logs</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
-  <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>Reset Logs</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>
+  <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>Activar RimTalk</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
+  <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>Definições do mod</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
+  <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>Exportar registos</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
+  <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>Repor registos</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>Escolher modelo de voz, voz actual {0}</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>
 
   <!-- RimTalkTtsVoiceSelectionScope: the TTS addon's per-pawn voice picker (VoiceSelectionWindow),
@@ -840,8 +840,8 @@
   <RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>ID do modelo: {0}</RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>Voz de {0}. {1}</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>Idioma personalizado</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>Save</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>Cancel</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>Guardar</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>Cancelar</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>
 
   <!-- RimTalkTtsVoiceLibraryScope: the TTS addon's Azure/Edge voice reference browser
        (VoiceLibraryWindow), speech mods campaign S10. -->
@@ -850,11 +850,11 @@
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>Vozes</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>{0} ({1} vozes)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>Nome da voz</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>Gênero</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>Género</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>Idioma</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnPersonality>Personalidade</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnPersonality>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnCategory>Categoria</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnCategory>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.SearchLabel>Busca</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.SearchLabel>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.SearchLabel>Pesquisa</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.SearchLabel>
 
   <!-- RimTalkMemoryMainTabScope: ExpandMemory's "Mind Stream" main tab (per-pawn
        four-layer memory timeline), speech mods campaign S12. -->
@@ -874,7 +874,7 @@
   <RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>
   <RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>
   <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>nenhuma personagem seleccionada</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.StatsValue>activas {0}, situacionais {1}, registro de eventos {2}, arquivo {3}</RimWorldAccess.Compat.RimTalk.Memory.StatsValue>
+  <RimWorldAccess.Compat.RimTalk.Memory.StatsValue>activas {0}, situacionais {1}, registo de eventos {2}, arquivo {3}</RimWorldAccess.Compat.RimTalk.Memory.StatsValue>
   <RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>
   <RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>Personagem: {0}</RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>
 
@@ -888,12 +888,12 @@
 
   <!-- RimTalkCommonKnowledgeScope: ExpandMemory's colony-wide Common Knowledge
        library (Dialog_CommonKnowledge), speech mods campaign S12. -->
-  <RimWorldAccess.Compat.RimTalk.Knowledge.Opened>Common Knowledge.</RimWorldAccess.Compat.RimTalk.Knowledge.Opened>
-  <RimWorldAccess.Compat.RimTalk.Knowledge.SearchRegionName>Busca</RimWorldAccess.Compat.RimTalk.Knowledge.SearchRegionName>
+  <RimWorldAccess.Compat.RimTalk.Knowledge.Opened>Conhecimento comum.</RimWorldAccess.Compat.RimTalk.Knowledge.Opened>
+  <RimWorldAccess.Compat.RimTalk.Knowledge.SearchRegionName>Pesquisa</RimWorldAccess.Compat.RimTalk.Knowledge.SearchRegionName>
   <RimWorldAccess.Compat.RimTalk.Knowledge.CategoriesRegionName>Categorias</RimWorldAccess.Compat.RimTalk.Knowledge.CategoriesRegionName>
   <RimWorldAccess.Compat.RimTalk.Knowledge.EntriesRegionName>Entradas</RimWorldAccess.Compat.RimTalk.Knowledge.EntriesRegionName>
   <RimWorldAccess.Compat.RimTalk.Knowledge.DetailRegionName>Detalhe</RimWorldAccess.Compat.RimTalk.Knowledge.DetailRegionName>
-  <RimWorldAccess.Compat.RimTalk.Knowledge.ColumnTag>Tag</RimWorldAccess.Compat.RimTalk.Knowledge.ColumnTag>
+  <RimWorldAccess.Compat.RimTalk.Knowledge.ColumnTag>Etiqueta</RimWorldAccess.Compat.RimTalk.Knowledge.ColumnTag>
   <RimWorldAccess.Compat.RimTalk.Knowledge.ColumnContent>Conteúdo</RimWorldAccess.Compat.RimTalk.Knowledge.ColumnContent>
   <RimWorldAccess.Compat.RimTalk.Knowledge.ColumnImportance>Importância</RimWorldAccess.Compat.RimTalk.Knowledge.ColumnImportance>
   <RimWorldAccess.Compat.RimTalk.Knowledge.ColumnEnabled>Activado</RimWorldAccess.Compat.RimTalk.Knowledge.ColumnEnabled>
@@ -902,13 +902,13 @@
   <RimWorldAccess.Compat.RimTalk.Knowledge.ColumnMatch>Pode ser combinado</RimWorldAccess.Compat.RimTalk.Knowledge.ColumnMatch>
   <RimWorldAccess.Compat.RimTalk.Knowledge.Yes>sim</RimWorldAccess.Compat.RimTalk.Knowledge.Yes>
   <RimWorldAccess.Compat.RimTalk.Knowledge.No>não</RimWorldAccess.Compat.RimTalk.Knowledge.No>
-  <RimWorldAccess.Compat.RimTalk.Knowledge.SearchLabel>Busca</RimWorldAccess.Compat.RimTalk.Knowledge.SearchLabel>
+  <RimWorldAccess.Compat.RimTalk.Knowledge.SearchLabel>Pesquisa</RimWorldAccess.Compat.RimTalk.Knowledge.SearchLabel>
   <RimWorldAccess.Compat.RimTalk.Knowledge.CategoryRow>{0} ({1})</RimWorldAccess.Compat.RimTalk.Knowledge.CategoryRow>
   <RimWorldAccess.Compat.RimTalk.Knowledge.DetailEmpty>Selecciona uma entrada ou cria uma</RimWorldAccess.Compat.RimTalk.Knowledge.DetailEmpty>
-  <RimWorldAccess.Compat.RimTalk.Knowledge.DetailTag>Tag</RimWorldAccess.Compat.RimTalk.Knowledge.DetailTag>
+  <RimWorldAccess.Compat.RimTalk.Knowledge.DetailTag>Etiqueta</RimWorldAccess.Compat.RimTalk.Knowledge.DetailTag>
   <RimWorldAccess.Compat.RimTalk.Knowledge.DetailCategoryExtra>Categoria: {0}</RimWorldAccess.Compat.RimTalk.Knowledge.DetailCategoryExtra>
   <RimWorldAccess.Compat.RimTalk.Knowledge.DetailImportance>Importância</RimWorldAccess.Compat.RimTalk.Knowledge.DetailImportance>
-  <RimWorldAccess.Compat.RimTalk.Knowledge.DetailStatus>Status</RimWorldAccess.Compat.RimTalk.Knowledge.DetailStatus>
+  <RimWorldAccess.Compat.RimTalk.Knowledge.DetailStatus>Estado</RimWorldAccess.Compat.RimTalk.Knowledge.DetailStatus>
   <RimWorldAccess.Compat.RimTalk.Knowledge.StatusEnabled>Activado</RimWorldAccess.Compat.RimTalk.Knowledge.StatusEnabled>
   <RimWorldAccess.Compat.RimTalk.Knowledge.StatusDisabled>Desactivado</RimWorldAccess.Compat.RimTalk.Knowledge.StatusDisabled>
   <RimWorldAccess.Compat.RimTalk.Knowledge.DetailVisibility>Visibilidade</RimWorldAccess.Compat.RimTalk.Knowledge.DetailVisibility>
@@ -923,12 +923,12 @@
        opener, RimTalkPersonaScope's three extra buttons, and Window_BatchDirector's table,
        speech mods campaign S13. Most labels reuse PersonaDirector's OWN translate keys
        directly (RPD_*, vehicle A); these are only the RWA-native strings it has none of. -->
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenNotesFallback>Director Notes</RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenNotesFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenBatchFallback>Batch Director</RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenBatchFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenSettingsFallback>Persona Director Settings</RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenSettingsFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.TextFieldsRegionName>Notas e busca</RimWorldAccess.Compat.RimTalk.PersonaDirector.TextFieldsRegionName>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenNotesFallback>Notas do director</RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenNotesFallback>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenBatchFallback>Director de lote</RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenBatchFallback>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenSettingsFallback>Definições do Persona Director</RimWorldAccess.Compat.RimTalk.PersonaDirector.F12OpenSettingsFallback>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.TextFieldsRegionName>Notas e pesquisa</RimWorldAccess.Compat.RimTalk.PersonaDirector.TextFieldsRegionName>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.PawnsRegionName>Personagens</RimWorldAccess.Compat.RimTalk.PersonaDirector.PawnsRegionName>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SearchLabel>Busca</RimWorldAccess.Compat.RimTalk.PersonaDirector.SearchLabel>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SearchLabel>Pesquisa</RimWorldAccess.Compat.RimTalk.PersonaDirector.SearchLabel>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>Seleccionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>seleccionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>não seleccionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
@@ -941,13 +941,13 @@
        reading, Custom Areas) and its color-picker swatch grid, speech mods campaign S14.
        Most labels reuse the mod's OWN translate keys directly (RTE_*, vehicle A); these are
        only the RWA-native strings it has none of. -->
-  <RimWorldAccess.Compat.PromptEnhance.Opened>Colony Status.</RimWorldAccess.Compat.PromptEnhance.Opened>
+  <RimWorldAccess.Compat.PromptEnhance.Opened>Estado da colónia.</RimWorldAccess.Compat.PromptEnhance.Opened>
   <RimWorldAccess.Compat.PromptEnhance.OverviewRegionName>Visão geral</RimWorldAccess.Compat.PromptEnhance.OverviewRegionName>
   <RimWorldAccess.Compat.PromptEnhance.TasksRegionName>Tarefas</RimWorldAccess.Compat.PromptEnhance.TasksRegionName>
-  <RimWorldAccess.Compat.PromptEnhance.OverviewLabel>Visão geral da colônia</RimWorldAccess.Compat.PromptEnhance.OverviewLabel>
+  <RimWorldAccess.Compat.PromptEnhance.OverviewLabel>Visão geral da colónia</RimWorldAccess.Compat.PromptEnhance.OverviewLabel>
   <RimWorldAccess.Compat.PromptEnhance.CategoryAll>Todas as categorias</RimWorldAccess.Compat.PromptEnhance.CategoryAll>
   <RimWorldAccess.Compat.PromptEnhance.ColumnInfo>Informações</RimWorldAccess.Compat.PromptEnhance.ColumnInfo>
-  <RimWorldAccess.Compat.PromptEnhance.ColumnStatusCycle>Ciclo de status</RimWorldAccess.Compat.PromptEnhance.ColumnStatusCycle>
+  <RimWorldAccess.Compat.PromptEnhance.ColumnStatusCycle>Ciclo de estado</RimWorldAccess.Compat.PromptEnhance.ColumnStatusCycle>
   <RimWorldAccess.Compat.PromptEnhance.TaskHeader>{0}. {1}, prioridade {2}, {3}.</RimWorldAccess.Compat.PromptEnhance.TaskHeader>
   <RimWorldAccess.Compat.PromptEnhance.TaskProgress>Progresso {0}.</RimWorldAccess.Compat.PromptEnhance.TaskProgress>
   <RimWorldAccess.Compat.PromptEnhance.TaskAssigned>Atribuído a {0}.</RimWorldAccess.Compat.PromptEnhance.TaskAssigned>
@@ -956,7 +956,7 @@
   <RimWorldAccess.Compat.PromptEnhance.AreaStatusEnabled>{0} células, activado.</RimWorldAccess.Compat.PromptEnhance.AreaStatusEnabled>
   <RimWorldAccess.Compat.PromptEnhance.AreaStatusDisabled>{0} células, desactivado.</RimWorldAccess.Compat.PromptEnhance.AreaStatusDisabled>
   <RimWorldAccess.Compat.PromptEnhance.ColorPickerRegionName>Cores</RimWorldAccess.Compat.PromptEnhance.ColorPickerRegionName>
-  <RimWorldAccess.Compat.PromptEnhance.ColorPickerOpened>Escolha uma cor.</RimWorldAccess.Compat.PromptEnhance.ColorPickerOpened>
+  <RimWorldAccess.Compat.PromptEnhance.ColorPickerOpened>Escolhe uma cor.</RimWorldAccess.Compat.PromptEnhance.ColorPickerOpened>
 
   <!-- RimTalkLiteratureCompat: the Literature extension's three settings-page debug buttons
        (Clear Book Cache / Clear Art Cache / Rescan Art/Books) give only Log.Message feedback in
@@ -964,7 +964,7 @@
        campaign S15. -->
   <RimWorldAccess.Compat.Literature.BookCacheCleared>Removidas {0} sinopses de livros em cache.</RimWorldAccess.Compat.Literature.BookCacheCleared>
   <RimWorldAccess.Compat.Literature.ArtCacheCleared>Removidas {0} descrições de arte em cache.</RimWorldAccess.Compat.Literature.ArtCacheCleared>
-  <RimWorldAccess.Compat.Literature.RescanRequested>Nova varredura solicitada para {0} mapas.</RimWorldAccess.Compat.Literature.RescanRequested>
+  <RimWorldAccess.Compat.Literature.RescanRequested>Nova análise pedida para {0} mapas.</RimWorldAccess.Compat.Literature.RescanRequested>
 
   <!-- RimworldTogetherChatScope: the multiplayer chat panel (DLG_Chat). -->
   <RimWorldAccess.Compat.RimworldTogether.Chat.Opened>Chat.</RimWorldAccess.Compat.RimworldTogether.Chat.Opened>
@@ -989,21 +989,21 @@
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Guild>Guilda</RimWorldAccess.Compat.RimworldTogether.Toolbar.Guild>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>Classificação</RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>Mercado</RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>
-  <RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>Busca de assentamentos</RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>
+  <RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>Pesquisa de assentamentos</RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>Reverter jogo guardado</RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>Painel administrativo</RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>Ping: {0} milissegundos</RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>
 
   <!-- RimworldTogetherBlankButtonCompat: the mod's blank click-handler buttons, named after
        what a sighted player reads at each spot (a cosmetic twin or the covered vanilla slot). -->
-  <RimWorldAccess.Compat.RimworldTogether.Blank.QuickConnect>Conexão rápida</RimWorldAccess.Compat.RimworldTogether.Blank.QuickConnect>
-  <RimWorldAccess.Compat.RimworldTogether.Blank.Disconnect>Desconectar</RimWorldAccess.Compat.RimworldTogether.Blank.Disconnect>
-  <RimWorldAccess.Compat.RimworldTogether.Blank.HostWorld>Hospedar mundo</RimWorldAccess.Compat.RimworldTogether.Blank.HostWorld>
+  <RimWorldAccess.Compat.RimworldTogether.Blank.QuickConnect>Ligação rápida</RimWorldAccess.Compat.RimworldTogether.Blank.QuickConnect>
+  <RimWorldAccess.Compat.RimworldTogether.Blank.Disconnect>Desligar</RimWorldAccess.Compat.RimworldTogether.Blank.Disconnect>
+  <RimWorldAccess.Compat.RimworldTogether.Blank.HostWorld>Alojar mundo</RimWorldAccess.Compat.RimworldTogether.Blank.HostWorld>
 
   <!-- VefPreceptOptionsScope: VEF's searchable picker window, substituted for a plain float
        menu on long precept lists. Every other line this screen speaks reuses the shared
        float-menu and search keys. -->
-  <RimWorldAccess.Compat.Vef.PreceptOptions.Opened>Seletor de opções. {0} para escolher.</RimWorldAccess.Compat.Vef.PreceptOptions.Opened>
+  <RimWorldAccess.Compat.Vef.PreceptOptions.Opened>Selector de opções. {0} para escolher.</RimWorldAccess.Compat.Vef.PreceptOptions.Opened>
 
   <!-- AllowToolRectDesignationHandler: spoken only when the mod's own area tool emitted no
        message of its own, so these never double up on the mod's success/failure text. -->
@@ -1015,8 +1015,8 @@
   <RimWorldAccess.Compat.Kau.StripMine.VerticalSpacing>Espaçamento vertical</RimWorldAccess.Compat.Kau.StripMine.VerticalSpacing>
   <RimWorldAccess.Compat.Kau.StripMine.HorizontalOffset>Deslocamento horizontal</RimWorldAccess.Compat.Kau.StripMine.HorizontalOffset>
   <RimWorldAccess.Compat.Kau.StripMine.VerticalOffset>Deslocamento vertical</RimWorldAccess.Compat.Kau.StripMine.VerticalOffset>
-  <RimWorldAccess.Compat.Kau.StripMine.Increase>Aumentar {0}, atualmente {1}</RimWorldAccess.Compat.Kau.StripMine.Increase>
-  <RimWorldAccess.Compat.Kau.StripMine.Decrease>Diminuir {0}, atualmente {1}</RimWorldAccess.Compat.Kau.StripMine.Decrease>
+  <RimWorldAccess.Compat.Kau.StripMine.Increase>Aumentar {0}, actualmente {1}</RimWorldAccess.Compat.Kau.StripMine.Increase>
+  <RimWorldAccess.Compat.Kau.StripMine.Decrease>Diminuir {0}, actualmente {1}</RimWorldAccess.Compat.Kau.StripMine.Decrease>
   <RimWorldAccess.Compat.Kau.StripMine.ValueNow>{0} {1}.</RimWorldAccess.Compat.Kau.StripMine.ValueNow>
 
   <RimWorldAccess.Compat.Isekai.XpLine>XP {0} de {1}</RimWorldAccess.Compat.Isekai.XpLine>
@@ -1024,7 +1024,7 @@
   <RimWorldAccess.Compat.Isekai.TitleLine>Título: {0}</RimWorldAccess.Compat.Isekai.TitleLine>
   <RimWorldAccess.Compat.Isekai.PointsAvailable>{0} pontos de atributo disponíveis</RimWorldAccess.Compat.Isekai.PointsAvailable>
   <RimWorldAccess.Compat.Isekai.AuraRow>Exibição da aura</RimWorldAccess.Compat.Isekai.AuraRow>
-  <RimWorldAccess.Compat.Isekai.NoClass>Nenhuma classe atribuída. Alcance o rank D no nível 11 para escolher uma.</RimWorldAccess.Compat.Isekai.NoClass>
+  <RimWorldAccess.Compat.Isekai.NoClass>Nenhuma classe atribuída. Alcança o rank D no nível 11 para escolheres uma.</RimWorldAccess.Compat.Isekai.NoClass>
   <RimWorldAccess.Compat.Isekai.GimmickNotUnlocked>{0}, não desbloqueado</RimWorldAccess.Compat.Isekai.GimmickNotUnlocked>
   <RimWorldAccess.Compat.Isekai.GimmickLine>{0}, nível {1} de 4, {2}</RimWorldAccess.Compat.Isekai.GimmickLine>
   <RimWorldAccess.Compat.Isekai.NoWeaponEquipped>Nenhuma arma equipada</RimWorldAccess.Compat.Isekai.NoWeaponEquipped>
@@ -1034,7 +1034,7 @@
   <RimWorldAccess.Compat.Isekai.DevAddLevel>Adicionar 1 nível (modo deus)</RimWorldAccess.Compat.Isekai.DevAddLevel>
   <RimWorldAccess.Compat.Isekai.Elite>Elite</RimWorldAccess.Compat.Isekai.Elite>
   <RimWorldAccess.Compat.Isekai.StatsRegion>Atributos</RimWorldAccess.Compat.Isekai.StatsRegion>
-  <RimWorldAccess.Compat.Isekai.AffectedRegion>Estatísticas afetadas</RimWorldAccess.Compat.Isekai.AffectedRegion>
+  <RimWorldAccess.Compat.Isekai.AffectedRegion>Estatísticas afectadas</RimWorldAccess.Compat.Isekai.AffectedRegion>
   <RimWorldAccess.Compat.Isekai.PointsToApply>{0} pontos por aplicar</RimWorldAccess.Compat.Isekai.PointsToApply>
   <RimWorldAccess.Compat.Isekai.PendingValue>{0}, mais {1} pendentes</RimWorldAccess.Compat.Isekai.PendingValue>
   <RimWorldAccess.Compat.Isekai.NothingToApply>Ainda sem pontos atribuídos</RimWorldAccess.Compat.Isekai.NothingToApply>
@@ -1053,7 +1053,7 @@
   <RimWorldAccess.Compat.Isekai.TreeWindowOpen>Constelação de {0}. Classe {1}. {2} pontos disponíveis.</RimWorldAccess.Compat.Isekai.TreeWindowOpen>
   <RimWorldAccess.Compat.Isekai.MasteredRegion>Armas dominadas, {0}</RimWorldAccess.Compat.Isekai.MasteredRegion>
   <RimWorldAccess.Compat.Isekai.UnmasteredRegion>Armas por dominar, {0}</RimWorldAccess.Compat.Isekai.UnmasteredRegion>
-  <RimWorldAccess.Compat.Isekai.UnmasteredRow>Ainda sem mestria. Equipe e combata para ganhar XP. {0}</RimWorldAccess.Compat.Isekai.UnmasteredRow>
+  <RimWorldAccess.Compat.Isekai.UnmasteredRow>Ainda sem mestria. Equipa e combate para ganhares XP. {0}</RimWorldAccess.Compat.Isekai.UnmasteredRow>
   <RimWorldAccess.Compat.Isekai.Equipped>equipada</RimWorldAccess.Compat.Isekai.Equipped>
   <RimWorldAccess.Compat.Isekai.MasteredRowMax>{0}, {1} XP, nível máximo</RimWorldAccess.Compat.Isekai.MasteredRowMax>
   <RimWorldAccess.Compat.Isekai.MasteredRow>{0}, {1} de {2} XP</RimWorldAccess.Compat.Isekai.MasteredRow>
@@ -1065,7 +1065,7 @@
   <RimWorldAccess.Compat.Isekai.MasteryOpen>Mestria de armas de {0}. {1}</RimWorldAccess.Compat.Isekai.MasteryOpen>
   <RimWorldAccess.Compat.Isekai.EquipmentRegion>Equipamento</RimWorldAccess.Compat.Isekai.EquipmentRegion>
   <RimWorldAccess.Compat.Isekai.DetailsRegion>Detalhes</RimWorldAccess.Compat.Isekai.DetailsRegion>
-  <RimWorldAccess.Compat.Isekai.ActionsRegion>Ações</RimWorldAccess.Compat.Isekai.ActionsRegion>
+  <RimWorldAccess.Compat.Isekai.ActionsRegion>Acções</RimWorldAccess.Compat.Isekai.ActionsRegion>
   <RimWorldAccess.Compat.Isekai.CostLine>{0} vezes {1}, {2} disponíveis</RimWorldAccess.Compat.Isekai.CostLine>
   <RimWorldAccess.Compat.Isekai.ItemOwnedBy>transportado por {0}</RimWorldAccess.Compat.Isekai.ItemOwnedBy>
   <RimWorldAccess.Compat.Isekai.ForgeOpen>{0}. {1} itens.</RimWorldAccess.Compat.Isekai.ForgeOpen>
@@ -1093,8 +1093,8 @@
   <RimWorldAccess.Compat.SimpleSidearms.StatusPrefRanged>Prefere à distância</RimWorldAccess.Compat.SimpleSidearms.StatusPrefRanged>
   <RimWorldAccess.Compat.SimpleSidearms.StatusPrefMelee>Prefere corpo a corpo</RimWorldAccess.Compat.SimpleSidearms.StatusPrefMelee>
   <RimWorldAccess.Compat.SimpleSidearms.StatusPrefGenerated>Prefere como gerado</RimWorldAccess.Compat.SimpleSidearms.StatusPrefGenerated>
-  <RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillRanged>Prefere conforme a perícia, atualmente à distância</RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillRanged>
-  <RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillMelee>Prefere conforme a perícia, atualmente corpo a corpo</RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillMelee>
+  <RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillRanged>Prefere conforme a perícia, actualmente à distância</RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillRanged>
+  <RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillMelee>Prefere conforme a perícia, actualmente corpo a corpo</RimWorldAccess.Compat.SimpleSidearms.StatusPrefSkillMelee>
   <RimWorldAccess.Compat.SimpleSidearms.DescCarriedRanged>À distância: {0}</RimWorldAccess.Compat.SimpleSidearms.DescCarriedRanged>
   <RimWorldAccess.Compat.SimpleSidearms.DescCarriedMelee>Corpo a corpo: {0}</RimWorldAccess.Compat.SimpleSidearms.DescCarriedMelee>
   <RimWorldAccess.Compat.SimpleSidearms.DescMissing>Em falta: {0}</RimWorldAccess.Compat.SimpleSidearms.DescMissing>
@@ -1103,7 +1103,7 @@
   <RimWorldAccess.Compat.SimpleSidearms.MarkOffhand>mão secundária</RimWorldAccess.Compat.SimpleSidearms.MarkOffhand>
   <RimWorldAccess.Compat.SimpleSidearms.MarkForced>forçada</RimWorldAccess.Compat.SimpleSidearms.MarkForced>
   <RimWorldAccess.Compat.SimpleSidearms.MarkForcedDrafted>forçada durante o recrutamento</RimWorldAccess.Compat.SimpleSidearms.MarkForcedDrafted>
-  <RimWorldAccess.Compat.SimpleSidearms.MarkDefaultRanged>padrão</RimWorldAccess.Compat.SimpleSidearms.MarkDefaultRanged>
+  <RimWorldAccess.Compat.SimpleSidearms.MarkDefaultRanged>predefinida</RimWorldAccess.Compat.SimpleSidearms.MarkDefaultRanged>
   <RimWorldAccess.Compat.SimpleSidearms.MarkPreferredMelee>preferida</RimWorldAccess.Compat.SimpleSidearms.MarkPreferredMelee>
   <RimWorldAccess.Compat.SimpleSidearms.MarkTool>ferramenta</RimWorldAccess.Compat.SimpleSidearms.MarkTool>
   <RimWorldAccess.Compat.SimpleSidearms.MarkManualUse>apenas uso manual</RimWorldAccess.Compat.SimpleSidearms.MarkManualUse>
@@ -1113,17 +1113,17 @@
   <RimWorldAccess.Compat.SimpleSidearms.DescUnarmedPreferred>Desarmado preferido</RimWorldAccess.Compat.SimpleSidearms.DescUnarmedPreferred>
   <RimWorldAccess.Compat.SimpleSidearms.DescUnarmedForced>Desarmado forçado</RimWorldAccess.Compat.SimpleSidearms.DescUnarmedForced>
   <RimWorldAccess.Compat.SimpleSidearms.DescUnarmedForcedDrafted>Desarmado forçado durante o recrutamento</RimWorldAccess.Compat.SimpleSidearms.DescUnarmedForcedDrafted>
-  <RimWorldAccess.Compat.SimpleSidearms.CurrentSuffix>{0}, atual</RimWorldAccess.Compat.SimpleSidearms.CurrentSuffix>
+  <RimWorldAccess.Compat.SimpleSidearms.CurrentSuffix>{0}, actual</RimWorldAccess.Compat.SimpleSidearms.CurrentSuffix>
   <RimWorldAccess.Compat.SimpleSidearms.OptPreferRanged>Preferir armas à distância</RimWorldAccess.Compat.SimpleSidearms.OptPreferRanged>
   <RimWorldAccess.Compat.SimpleSidearms.OptPreferSkill>Preferir armas conforme a perícia</RimWorldAccess.Compat.SimpleSidearms.OptPreferSkill>
   <RimWorldAccess.Compat.SimpleSidearms.OptPreferMelee>Preferir armas corpo a corpo</RimWorldAccess.Compat.SimpleSidearms.OptPreferMelee>
   <RimWorldAccess.Compat.SimpleSidearms.OptForce>Forçar o uso de {0}</RimWorldAccess.Compat.SimpleSidearms.OptForce>
   <RimWorldAccess.Compat.SimpleSidearms.OptForceDrafted>Forçar o uso de {0} até ao fim do combate</RimWorldAccess.Compat.SimpleSidearms.OptForceDrafted>
   <RimWorldAccess.Compat.SimpleSidearms.OptRemember>Memorizar {0} como arma secundária</RimWorldAccess.Compat.SimpleSidearms.OptRemember>
-  <RimWorldAccess.Compat.SimpleSidearms.OptSetDefaultRanged>Definir {0} como arma à distância padrão</RimWorldAccess.Compat.SimpleSidearms.OptSetDefaultRanged>
+  <RimWorldAccess.Compat.SimpleSidearms.OptSetDefaultRanged>Definir {0} como arma à distância predefinida</RimWorldAccess.Compat.SimpleSidearms.OptSetDefaultRanged>
   <RimWorldAccess.Compat.SimpleSidearms.OptSetPreferredMelee>Definir {0} como arma corpo a corpo preferida</RimWorldAccess.Compat.SimpleSidearms.OptSetPreferredMelee>
   <RimWorldAccess.Compat.SimpleSidearms.OptStopForcing>Deixar de forçar {0}</RimWorldAccess.Compat.SimpleSidearms.OptStopForcing>
-  <RimWorldAccess.Compat.SimpleSidearms.OptUnsetDefaultRanged>Remover {0} como arma à distância padrão</RimWorldAccess.Compat.SimpleSidearms.OptUnsetDefaultRanged>
+  <RimWorldAccess.Compat.SimpleSidearms.OptUnsetDefaultRanged>Remover {0} como arma à distância predefinida</RimWorldAccess.Compat.SimpleSidearms.OptUnsetDefaultRanged>
   <RimWorldAccess.Compat.SimpleSidearms.OptUnsetPreferredMelee>Remover {0} como arma corpo a corpo preferida</RimWorldAccess.Compat.SimpleSidearms.OptUnsetPreferredMelee>
   <RimWorldAccess.Compat.SimpleSidearms.OptDrop>Largar {0}</RimWorldAccess.Compat.SimpleSidearms.OptDrop>
   <RimWorldAccess.Compat.SimpleSidearms.OptDropForget>Largar e esquecer {0}</RimWorldAccess.Compat.SimpleSidearms.OptDropForget>
@@ -1137,7 +1137,7 @@
   <RimWorldAccess.Compat.SimpleSidearms.OptUnequipOffhand>Desequipar a arma secundária {0}</RimWorldAccess.Compat.SimpleSidearms.OptUnequipOffhand>
   <RimWorldAccess.Compat.SimpleSidearms.OptOpenSettings>Abrir as definições do Simple Sidearms</RimWorldAccess.Compat.SimpleSidearms.OptOpenSettings>
   <RimWorldAccess.Compat.SimpleSidearms.CurveRow>Curva de probabilidade de recuperação após largar a arma, {0} pontos</RimWorldAccess.Compat.SimpleSidearms.CurveRow>
-  <RimWorldAccess.Compat.SimpleSidearms.OptCurveSet>Ajustar o ponto em {0}, atualmente {1} por cento</RimWorldAccess.Compat.SimpleSidearms.OptCurveSet>
+  <RimWorldAccess.Compat.SimpleSidearms.OptCurveSet>Ajustar o ponto em {0}, actualmente {1} por cento</RimWorldAccess.Compat.SimpleSidearms.OptCurveSet>
   <RimWorldAccess.Compat.SimpleSidearms.OptCurveRemove>Remover o ponto em {0}, {1} por cento</RimWorldAccess.Compat.SimpleSidearms.OptCurveRemove>
   <RimWorldAccess.Compat.SimpleSidearms.OptCurveAdd>Adicionar um ponto</RimWorldAccess.Compat.SimpleSidearms.OptCurveAdd>
   <RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>Posição do ponto: {0}</RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>
@@ -1145,7 +1145,7 @@
   <RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>Conversa</RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>Vozes</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>
   <RimWorldAccess.Compat.Vfet.EthosLockRow>Bloqueio do ethos</RimWorldAccess.Compat.Vfet.EthosLockRow>
-  <RimWorldAccess.Compat.Vfet.EthosEditHint>Pressione Enter para editar.</RimWorldAccess.Compat.Vfet.EthosEditHint>
+  <RimWorldAccess.Compat.Vfet.EthosEditHint>Pressiona Enter para editar.</RimWorldAccess.Compat.Vfet.EthosEditHint>
   <RimWorldAccess.Compat.Vfet.Unlocked>desbloqueado</RimWorldAccess.Compat.Vfet.Unlocked>
   <RimWorldAccess.Compat.Vfet.Locked>bloqueado</RimWorldAccess.Compat.Vfet.Locked>
   <RimWorldAccess.Compat.Vfet.NoPoints>Sem pontos de pedra angular disponíveis.</RimWorldAccess.Compat.Vfet.NoPoints>
@@ -1154,7 +1154,7 @@
   <RimWorldAccess.Compat.Pe.RoleRegion>{0}, {1} de {2} atribuídos</RimWorldAccess.Compat.Pe.RoleRegion>
   <RimWorldAccess.Compat.Pe.AssignedElsewhere>atribuído como {0}</RimWorldAccess.Compat.Pe.AssignedElsewhere>
   <RimWorldAccess.Compat.Pe.CannotAssign>Não é possível atribuir {0} como {1}.</RimWorldAccess.Compat.Pe.CannotAssign>
-  <RimWorldAccess.Compat.Pe.TeacherFragment>lecionada por {0}</RimWorldAccess.Compat.Pe.TeacherFragment>
+  <RimWorldAccess.Compat.Pe.TeacherFragment>leccionada por {0}</RimWorldAccess.Compat.Pe.TeacherFragment>
   <RimWorldAccess.Compat.Pe.ClassSpeedFragment>velocidade da aula {0}</RimWorldAccess.Compat.Pe.ClassSpeedFragment>
   <RimWorldAccess.Compat.Pe.ClassroomColorFragment>cor {0}</RimWorldAccess.Compat.Pe.ClassroomColorFragment>
   <RimWorldAccess.Compat.Pe.JumpToTeacher>Ir para o professor {0}</RimWorldAccess.Compat.Pe.JumpToTeacher>
@@ -1163,7 +1163,7 @@
   <RimWorldAccess.Compat.Wq.PointsProgress>{0} de {1} pontos de personagem</RimWorldAccess.Compat.Wq.PointsProgress>
   <RimWorldAccess.Compat.Wq.RewardsRegion>Recompensas</RimWorldAccess.Compat.Wq.RewardsRegion>
   <RimWorldAccess.Compat.Wq.InfoRegion>Informações</RimWorldAccess.Compat.Wq.InfoRegion>
-  <RimWorldAccess.Compat.Wq.PawnRowHint>Pressione Enter para ver seus desejos.</RimWorldAccess.Compat.Wq.PawnRowHint>
+  <RimWorldAccess.Compat.Wq.PawnRowHint>Pressiona Enter para ver os desejos.</RimWorldAccess.Compat.Wq.PawnRowHint>
   <RimWorldAccess.Compat.Wq.DismissWant>Descartar desejo</RimWorldAccess.Compat.Wq.DismissWant>
   <RimWorldAccess.Compat.Wq.RemoveQuirk>Remover peculiaridade</RimWorldAccess.Compat.Wq.RemoveQuirk>
   <RimWorldAccess.Compat.Wq.NoQuirks>Nenhuma peculiaridade ainda.</RimWorldAccess.Compat.Wq.NoQuirks>

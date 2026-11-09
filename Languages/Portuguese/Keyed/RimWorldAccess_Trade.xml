@@ -121,14 +121,14 @@
   <!-- Price quality words (GetPriceQuality). Buying = lower=better,
        Selling = higher=better; the four PriceType buckets get separate
        words for each direction. -->
-  <RimWorldAccess.Trade.Quality.Buy.VeryCheap>ótimo negócio</RimWorldAccess.Trade.Quality.Buy.VeryCheap>
+  <RimWorldAccess.Trade.Quality.Buy.VeryCheap>óptimo negócio</RimWorldAccess.Trade.Quality.Buy.VeryCheap>
   <RimWorldAccess.Trade.Quality.Buy.Cheap>bom negócio</RimWorldAccess.Trade.Quality.Buy.Cheap>
   <RimWorldAccess.Trade.Quality.Buy.Expensive>caro</RimWorldAccess.Trade.Quality.Buy.Expensive>
   <RimWorldAccess.Trade.Quality.Buy.Exorbitant>muito caro</RimWorldAccess.Trade.Quality.Buy.Exorbitant>
   <RimWorldAccess.Trade.Quality.Sell.VeryCheap>má oferta</RimWorldAccess.Trade.Quality.Sell.VeryCheap>
   <RimWorldAccess.Trade.Quality.Sell.Cheap>oferta baixa</RimWorldAccess.Trade.Quality.Sell.Cheap>
   <RimWorldAccess.Trade.Quality.Sell.Expensive>boa oferta</RimWorldAccess.Trade.Quality.Sell.Expensive>
-  <RimWorldAccess.Trade.Quality.Sell.Exorbitant>ótima oferta</RimWorldAccess.Trade.Quality.Sell.Exorbitant>
+  <RimWorldAccess.Trade.Quality.Sell.Exorbitant>óptima oferta</RimWorldAccess.Trade.Quality.Sell.Exorbitant>
 
   <!-- =================================================================
        Quantity adjustment mode.
@@ -247,8 +247,8 @@
   <RimWorldAccess.Trade.Column.TradeAmount>Quantidade trocada</RimWorldAccess.Trade.Column.TradeAmount>
 
   <!-- Trade classic view (TradeClassicScope, TradeViewOpener). -->
-  <RimWorldAccess.Trade.Tab.YourItems>Os teus objetos</RimWorldAccess.Trade.Tab.YourItems>
-  <RimWorldAccess.Trade.Tab.TraderItems>Objetos de {0}</RimWorldAccess.Trade.Tab.TraderItems>
+  <RimWorldAccess.Trade.Tab.YourItems>Os teus objectos</RimWorldAccess.Trade.Tab.YourItems>
+  <RimWorldAccess.Trade.Tab.TraderItems>Objectos de {0}</RimWorldAccess.Trade.Tab.TraderItems>
   <RimWorldAccess.Trade.Tab.TradeSummary>Resumo da troca</RimWorldAccess.Trade.Tab.TradeSummary>
   <RimWorldAccess.Trade.Currency.YouHave>Tens {0}</RimWorldAccess.Trade.Currency.YouHave>
   <RimWorldAccess.Trade.Currency.TraderHas>O comerciante tem {0}</RimWorldAccess.Trade.Currency.TraderHas>

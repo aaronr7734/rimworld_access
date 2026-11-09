@@ -21,6 +21,6 @@
        exactly one of the per-tab variants is appended after it. -->
   <RimWorldAccess.History.Overlay.BaseInstructions>Tab/Shift+Tab: Alternar abas | Cima/Baixo: Navegar | Enter: Detalhes</RimWorldAccess.History.Overlay.BaseInstructions>
   <RimWorldAccess.History.Overlay.MessagesInstructions>Alt+L: Alternar cartas | Alt+M: Alternar mensagens | Alt+P: Fixar | Alt+J: Saltar</RimWorldAccess.History.Overlay.MessagesInstructions>
-  <RimWorldAccess.History.Overlay.GraphInstructions>Alt+G: Seleccionar gráfico | Alt+D: Alternar intervalo de datas | Digita para buscar | Home/End: Primeiro/Último</RimWorldAccess.History.Overlay.GraphInstructions>
-  <RimWorldAccess.History.Overlay.StatisticsInstructions>Digita para buscar | Home/End: Primeiro/Último</RimWorldAccess.History.Overlay.StatisticsInstructions>
+  <RimWorldAccess.History.Overlay.GraphInstructions>Alt+G: Seleccionar gráfico | Alt+D: Alternar intervalo de datas | Digita para pesquisar | Home/End: Primeiro/Último</RimWorldAccess.History.Overlay.GraphInstructions>
+  <RimWorldAccess.History.Overlay.StatisticsInstructions>Digita para pesquisar | Home/End: Primeiro/Último</RimWorldAccess.History.Overlay.StatisticsInstructions>
 </LanguageData>

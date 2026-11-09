@@ -368,7 +368,7 @@
        ================================================================= -->
   <RimWorldAccess.Inspection.Fishing.NotAvailable>Definições de zona de pesca não disponíveis - o DLC Odyssey pode não estar instalado</RimWorldAccess.Inspection.Fishing.NotAvailable>
 
-  <RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>Status da zona</RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>
+  <RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>Estado da zona</RimWorldAccess.Inspection.Fishing.SearchLabel.ZoneStatus>
   <RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing>Permitir pesca</RimWorldAccess.Inspection.Fishing.SearchLabel.AllowFishing>
   <RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode>Modo de repetição</RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatMode>
   <RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount>Contagem de repetição</RimWorldAccess.Inspection.Fishing.SearchLabel.RepeatCount>
@@ -489,7 +489,7 @@
   <RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable>Este campo não pode ser ajustado</RimWorldAccess.Inspection.BillConfig.Action.FieldNotAdjustable>
   <RimWorldAccess.Inspection.BillConfig.Action.RenamedTo>Tarefa renomeada para {0}</RimWorldAccess.Inspection.BillConfig.Action.RenamedTo>
   <RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled>Renomeação cancelada</RimWorldAccess.Inspection.BillConfig.Action.RenameCancelled>
-  <RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>Tarefa excluída: {0}</RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>
+  <RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>Tarefa apagada: {0}</RimWorldAccess.Inspection.BillConfig.Action.DeletedBill>
 
 
   <!-- IngredientFilter window title (passed to ThingFilterMenuState.Open). -->
@@ -602,7 +602,7 @@
        began life as string-concatenation suffixes; the announcement builder
        now strips that leading run and supplies its own separator, so a
        translation may keep or drop the opening punctuation either way. -->
-  <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>. Pressiona Colchete Direito para mais opções</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
+  <RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>. Pressiona Parêntese Recto Direito para mais opções</RimWorldAccess.Inspection.Gizmo.HintRightClickOptions>
   <RimWorldAccess.Inspection.Gizmo.HintArrowsToAdjust>. Setas esquerda e direita para ajustar, Shift para passos maiores</RimWorldAccess.Inspection.Gizmo.HintArrowsToAdjust>
   <RimWorldAccess.Inspection.Gizmo.HintPsychicEntropyArrows>. Pressiona Enter para alternar o limitador, setas esquerda e direita para ajustar o alvo de concentração psíquica</RimWorldAccess.Inspection.Gizmo.HintPsychicEntropyArrows>
   <!-- GeneGizmo_ResourceHemogen mirrors PsychicEntropy: Enter toggles hemogen packs allowed, arrows adjust the target. -->
@@ -655,7 +655,7 @@
        deathrester's bed; there is no vanilla key for a textual label. -->
   <RimWorldAccess.Inspection.Gizmo.DeathrestBoundBuildings>Construções vinculadas: {0}</RimWorldAccess.Inspection.Gizmo.DeathrestBoundBuildings>
   <RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback>Estatísticas do cómodo</RimWorldAccess.Inspection.Gizmo.Type.RoomStatsFallback>
-  <RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>Exibição de status</RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>
+  <RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>Exibição de estado</RimWorldAccess.Inspection.Gizmo.Type.StatusDisplayFallback>
 
   <RimWorldAccess.Inspection.Gizmo.Type.EnergyShield>Escudo de energia</RimWorldAccess.Inspection.Gizmo.Type.EnergyShield>
   <RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel>Escudo: {0}</RimWorldAccess.Inspection.Gizmo.Type.ShieldApparel>
@@ -865,8 +865,8 @@
        ================================================================= -->
   <RimWorldAccess.Inspection.Plant.Growth>Crescimento: {0}</RimWorldAccess.Inspection.Plant.Growth>
   <RimWorldAccess.Inspection.Plant.Lifespan>Tempo de vida: {0} / {1} dias</RimWorldAccess.Inspection.Plant.Lifespan>
-  <RimWorldAccess.Inspection.Plant.StatusBlighted>Status: Com praga</RimWorldAccess.Inspection.Plant.StatusBlighted>
-  <RimWorldAccess.Inspection.Plant.StatusDying>Status: A morrer</RimWorldAccess.Inspection.Plant.StatusDying>
+  <RimWorldAccess.Inspection.Plant.StatusBlighted>Estado: Com praga</RimWorldAccess.Inspection.Plant.StatusBlighted>
+  <RimWorldAccess.Inspection.Plant.StatusDying>Estado: A morrer</RimWorldAccess.Inspection.Plant.StatusDying>
   <RimWorldAccess.Inspection.Plant.ReadyHarvest>Pronto para colher!</RimWorldAccess.Inspection.Plant.ReadyHarvest>
 
   <!-- =================================================================
@@ -909,14 +909,14 @@
        new position (MovedUp / MovedDown only). Each verb gets its own
        whole-phrase key so word order can vary per language. -->
   <RimWorldAccess.Inspection.Bills.OptionNotAvailable>Opção não disponível</RimWorldAccess.Inspection.Bills.OptionNotAvailable>
-  <RimWorldAccess.Inspection.Bills.CannotDelete>Impossível excluir este item</RimWorldAccess.Inspection.Bills.CannotDelete>
+  <RimWorldAccess.Inspection.Bills.CannotDelete>Impossível apagar este item</RimWorldAccess.Inspection.Bills.CannotDelete>
   <RimWorldAccess.Inspection.Bills.CannotReorder>Impossível reordenar este item</RimWorldAccess.Inspection.Bills.CannotReorder>
   <RimWorldAccess.Inspection.Bills.CannotCopy>Impossível copiar este item</RimWorldAccess.Inspection.Bills.CannotCopy>
   <RimWorldAccess.Inspection.Bills.CannotAddBills>Impossível adicionar tarefas a este objecto</RimWorldAccess.Inspection.Bills.CannotAddBills>
   <RimWorldAccess.Inspection.Bills.NoRecipes>Nenhuma receita disponível</RimWorldAccess.Inspection.Bills.NoRecipes>
   <RimWorldAccess.Inspection.Bills.NoBillSelected>Nenhuma tarefa seleccionada</RimWorldAccess.Inspection.Bills.NoBillSelected>
   <RimWorldAccess.Inspection.Bills.ClipboardEmpty>Área de transferência vazia</RimWorldAccess.Inspection.Bills.ClipboardEmpty>
-  <RimWorldAccess.Inspection.Bills.Deleted>Excluído: {0}</RimWorldAccess.Inspection.Bills.Deleted>
+  <RimWorldAccess.Inspection.Bills.Deleted>Apagado: {0}</RimWorldAccess.Inspection.Bills.Deleted>
   <RimWorldAccess.Inspection.Bills.MovedUp>Movido para cima: {0}, agora na posição {1}</RimWorldAccess.Inspection.Bills.MovedUp>
   <RimWorldAccess.Inspection.Bills.MovedDown>Movido para baixo: {0}, agora na posição {1}</RimWorldAccess.Inspection.Bills.MovedDown>
   <RimWorldAccess.Inspection.Bills.CopiedToClipboard>Copiado para a área de transferência: {0}</RimWorldAccess.Inspection.Bills.CopiedToClipboard>
@@ -1175,7 +1175,7 @@
   <RimWorldAccess.Inspection.Tree.PenCutNowLabel>{0}{1}</RimWorldAccess.Inspection.Tree.PenCutNowLabel>
   <RimWorldAccess.Inspection.Tree.PenPlantFilter>Filtro de plantas</RimWorldAccess.Inspection.Tree.PenPlantFilter>
   <RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle>Corte automático de plantas do curral</RimWorldAccess.Inspection.Tree.PenAutoCutMenuTitle>
-  <RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>{0} - o curral precisa estar totalmente cercado para funcionar</RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>
+  <RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>{0} - o curral precisa de estar totalmente cercado para funcionar</RimWorldAccess.Inspection.Tree.PenNotEnclosedDescription>
 
   <RimWorldAccess.Inspection.Tree.PenExamplesHeader>Animais de exemplo</RimWorldAccess.Inspection.Tree.PenExamplesHeader>
   <RimWorldAccess.Inspection.Tree.PenAddExamplesHeader>Adicionar animal de exemplo</RimWorldAccess.Inspection.Tree.PenAddExamplesHeader>
@@ -1479,7 +1479,7 @@
   <RimWorldAccess.Inspection.CategoryName.GrowthInfo>Informações de crescimento</RimWorldAccess.Inspection.CategoryName.GrowthInfo>
   <RimWorldAccess.Inspection.CategoryName.PlantInfo>Informações da planta</RimWorldAccess.Inspection.CategoryName.PlantInfo>
   <RimWorldAccess.Inspection.CategoryName.PowerControl>Controlo de energia</RimWorldAccess.Inspection.CategoryName.PowerControl>
-  <RimWorldAccess.Inspection.CategoryName.BreakdownStatus>Status de avaria</RimWorldAccess.Inspection.CategoryName.BreakdownStatus>
+  <RimWorldAccess.Inspection.CategoryName.BreakdownStatus>Estado de avaria</RimWorldAccess.Inspection.CategoryName.BreakdownStatus>
   <RimWorldAccess.Inspection.CategoryName.DoorControls>Controlos da porta</RimWorldAccess.Inspection.CategoryName.DoorControls>
   <RimWorldAccess.Inspection.CategoryName.ForbidControls>Controlos de proibição</RimWorldAccess.Inspection.CategoryName.ForbidControls>
   <RimWorldAccess.Inspection.CategoryName.Unknown>Desconhecido</RimWorldAccess.Inspection.CategoryName.Unknown>

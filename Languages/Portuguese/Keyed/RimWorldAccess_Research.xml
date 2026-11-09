@@ -140,9 +140,9 @@
   <RimWorldAccess.Research.Desc.TechLevel>Nível de tecnologia: {0}.</RimWorldAccess.Research.Desc.TechLevel>
   <RimWorldAccess.Research.Desc.ProgressDetail>Progresso: {0} de {1}, {2}.</RimWorldAccess.Research.Desc.ProgressDetail>
   <RimWorldAccess.Research.Desc.StatusInProgress>A ser pesquisado actualmente.</RimWorldAccess.Research.Desc.StatusInProgress>
-  <RimWorldAccess.Research.Desc.StatusCompleted>Status: Concluído</RimWorldAccess.Research.Desc.StatusCompleted>
-  <RimWorldAccess.Research.Desc.StatusAvailable>Status: Disponível para pesquisa</RimWorldAccess.Research.Desc.StatusAvailable>
-  <RimWorldAccess.Research.Desc.StatusLocked>Status: Bloqueado</RimWorldAccess.Research.Desc.StatusLocked>
+  <RimWorldAccess.Research.Desc.StatusCompleted>Estado: Concluído</RimWorldAccess.Research.Desc.StatusCompleted>
+  <RimWorldAccess.Research.Desc.StatusAvailable>Estado: Disponível para pesquisa</RimWorldAccess.Research.Desc.StatusAvailable>
+  <RimWorldAccess.Research.Desc.StatusLocked>Estado: Bloqueado</RimWorldAccess.Research.Desc.StatusLocked>
   <RimWorldAccess.Research.Desc.RequiredBench>Bancada necessária: {0}</RimWorldAccess.Research.Desc.RequiredBench>
   <RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix>Instalações necessárias: </RimWorldAccess.Research.Desc.RequiredFacilitiesPrefix>
 

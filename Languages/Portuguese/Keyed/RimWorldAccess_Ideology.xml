@@ -127,7 +127,7 @@
 
   <!-- Label for the read-only validation/impact row at the end of the editor region (mirrors
        Page_ConfigureIdeo.DoWindowContents' bottom-right warning/impact readout). -->
-  <RimWorldAccess.Ideology.Builder.StatusLabel>Status</RimWorldAccess.Ideology.Builder.StatusLabel>
+  <RimWorldAccess.Ideology.Builder.StatusLabel>Estado</RimWorldAccess.Ideology.Builder.StatusLabel>
 
   <!-- StyleItemsDialogScope (focus-ring census wave 3, slice W3-9). A category row's aggregate frequency when its
        items disagree — vanilla's own RadioButSemiOn semi-selected mark has no text label of its

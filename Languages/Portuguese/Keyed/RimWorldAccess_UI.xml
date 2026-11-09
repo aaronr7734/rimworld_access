@@ -112,7 +112,7 @@
        key for these). WorkMenuView is a two-value enum: Label names the row,
        Focused/Table are the value words spoken as the current value, and the
        *Desc keys are the tooltip read after the value. -->
-  <RimWorldAccess.UI.Options.WorkMenuView.Label>Visualização Padrão do Menu de Trabalho (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
+  <RimWorldAccess.UI.Options.WorkMenuView.Label>Visualização Predefinida do Menu de Trabalho (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
   <RimWorldAccess.UI.Options.WorkMenuView.Focused>Focado</RimWorldAccess.UI.Options.WorkMenuView.Focused>
   <RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>Uma personagem de cada vez, com os tipos de trabalho agrupados por prioridade.</RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>
   <RimWorldAccess.UI.Options.WorkMenuView.Table>Tabela</RimWorldAccess.UI.Options.WorkMenuView.Table>
@@ -244,7 +244,7 @@
   <!-- Confirmation phrasing for the DEV controls embedded in normal screens
        (research instant-finish/techprint, entity codex discover). The button
        labels themselves are vanilla dev-tool literals presented verbatim. -->
-  <RimWorldAccess.Dev.NoActions>Nenhuma acção de desenvolvedor disponível.</RimWorldAccess.Dev.NoActions>
+  <RimWorldAccess.Dev.NoActions>Nenhuma acção de programador disponível.</RimWorldAccess.Dev.NoActions>
   <RimWorldAccess.Dev.ResearchFinished>{0} concluído.</RimWorldAccess.Dev.ResearchFinished>
   <RimWorldAccess.Dev.ResearchTechprintApplied>Projecto técnico aplicado a {0}.</RimWorldAccess.Dev.ResearchTechprintApplied>
   <RimWorldAccess.Dev.CodexDiscovered>{0} descoberto.</RimWorldAccess.Dev.CodexDiscovered>
@@ -326,10 +326,10 @@
        biological ticks per tick, {3} = growth, {4} = age reversal demand deadline
        ticks, {5} = life stage, {6} = sterile); and the world tile debug ID
        ({0} = tile id and layer). -->
-  <RimWorldAccess.Dev.Info.Hediff>Informações de desenvolvedor: {0}.</RimWorldAccess.Dev.Info.Hediff>
-  <RimWorldAccess.Dev.Info.SocialRelation>Informações de desenvolvedor: compatibilidade {0}. Factor de chance de romance {1}.</RimWorldAccess.Dev.Info.SocialRelation>
-  <RimWorldAccess.Dev.Info.Age>Informações de desenvolvedor: ticks de idade biológica {0}. Ticks absolutos de nascimento {1}. Ticks biológicos por tick {2}. Crescimento {3}. Ticks de prazo para reversão de idade {4}. Fase de vida {5}. Estéril {6}.</RimWorldAccess.Dev.Info.Age>
-  <RimWorldAccess.Dev.Info.WorldTileId>Informações de desenvolvedor: ID do ladrilho do mundo {0}.</RimWorldAccess.Dev.Info.WorldTileId>
+  <RimWorldAccess.Dev.Info.Hediff>Informações de programador: {0}.</RimWorldAccess.Dev.Info.Hediff>
+  <RimWorldAccess.Dev.Info.SocialRelation>Informações de programador: compatibilidade {0}. Factor de probabilidade de romance {1}.</RimWorldAccess.Dev.Info.SocialRelation>
+  <RimWorldAccess.Dev.Info.Age>Informações de programador: ticks de idade biológica {0}. Ticks absolutos de nascimento {1}. Ticks biológicos por tick {2}. Crescimento {3}. Ticks de prazo para reversão de idade {4}. Fase de vida {5}. Estéril {6}.</RimWorldAccess.Dev.Info.Age>
+  <RimWorldAccess.Dev.Info.WorldTileId>Informações de programador: ID do ladrilho do mundo {0}.</RimWorldAccess.Dev.Info.WorldTileId>
 
 
   <!-- =================================================================
@@ -475,12 +475,12 @@
   <RimWorldAccess.UI.GenericWindow.ColorWheel>Roda de cores</RimWorldAccess.UI.GenericWindow.ColorWheel>
 
   <!-- Trade view setting (OptionsRwaCategory). -->
-  <RimWorldAccess.UI.Options.TradeView.Label>Visualização Padrão do Comércio</RimWorldAccess.UI.Options.TradeView.Label>
+  <RimWorldAccess.UI.Options.TradeView.Label>Visualização Predefinida do Comércio</RimWorldAccess.UI.Options.TradeView.Label>
   <RimWorldAccess.UI.Options.TradeView.Classic>Clássica</RimWorldAccess.UI.Options.TradeView.Classic>
   <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Três listas separadas: os bens do comerciante, a troca em curso e o respectivo saldo, e os teus bens. Usa as setas esquerda e direita para mudares entre elas.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
   <RimWorldAccess.UI.Options.TradeView.Table>Tabela</RimWorldAccess.UI.Options.TradeView.Table>
   <RimWorldAccess.UI.Options.TradeView.TableDesc>Tudo numa única tabela ordenável, igual à janela de comércio no ecrã.</RimWorldAccess.UI.Options.TradeView.TableDesc>
-  <RimWorldAccess.UI.Options.TransferView.Label>Visualização Padrão de Caravanas e Cápsulas de Transporte</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.Label>Visualização Predefinida de Caravanas e Cápsulas de Transporte</RimWorldAccess.UI.Options.TransferView.Label>
   <RimWorldAccess.UI.Options.TransferView.ClassicDesc>Uma lista por aba para formar caravanas, dividir caravanas e carregar cápsulas de transporte. Muda de aba com as setas esquerda e direita, e prime Tab para o resumo e os botões.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
   <RimWorldAccess.UI.Options.TransferView.TableDesc>Cada aba como uma tabela ordenável, igual à janela no ecrã.</RimWorldAccess.UI.Options.TransferView.TableDesc>
 </LanguageData>

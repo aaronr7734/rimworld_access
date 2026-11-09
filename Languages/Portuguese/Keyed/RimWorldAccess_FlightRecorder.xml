@@ -15,5 +15,5 @@
   <RimWorldAccess.FlightRecorder.DontShowAgain>Não mostrar este diálogo novamente</RimWorldAccess.FlightRecorder.DontShowAgain>
   <RimWorldAccess.FlightRecorder.OpenFolder>Abrir pasta</RimWorldAccess.FlightRecorder.OpenFolder>
   <RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Label>Mostrar um diálogo quando uma gravação de voo for guardada</RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Label>
-  <RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Desc>Quando uma sessão do gravador de voo termina ({0}), abre um diálogo com a localização do ficheiro guardado. Quando desativado, a localização é anunciada por voz.</RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Desc>
+  <RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Desc>Quando uma sessão do gravador de voo termina ({0}), abre um diálogo com a localização do ficheiro guardado. Quando desactivado, a localização é anunciada por voz.</RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Desc>
 </LanguageData>

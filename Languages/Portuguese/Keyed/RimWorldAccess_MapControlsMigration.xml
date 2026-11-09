@@ -7,10 +7,10 @@
     touched by this packet). Placeholders follow string.Format ({0}, {1}, ...).
   -->
 
-  <RimWorldAccess.Building.Door.DetailedStatusRowLabel>Status detalhado</RimWorldAccess.Building.Door.DetailedStatusRowLabel>
+  <RimWorldAccess.Building.Door.DetailedStatusRowLabel>Estado detalhado</RimWorldAccess.Building.Door.DetailedStatusRowLabel>
 
   <RimWorldAccess.Building.Forbid.CheckboxLabel>Proibido</RimWorldAccess.Building.Forbid.CheckboxLabel>
-  <RimWorldAccess.Building.Forbid.DetailedStatusRowLabel>Status detalhado</RimWorldAccess.Building.Forbid.DetailedStatusRowLabel>
+  <RimWorldAccess.Building.Forbid.DetailedStatusRowLabel>Estado detalhado</RimWorldAccess.Building.Forbid.DetailedStatusRowLabel>
 
   <RimWorldAccess.Building.PlantSelect.NoneSelected>Nenhum</RimWorldAccess.Building.PlantSelect.NoneSelected>
 

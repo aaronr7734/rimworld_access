@@ -288,7 +288,7 @@
   <RimWorldAccess.Pawns.AssignMenu.PolicyCreated>Criada: {0}</RimWorldAccess.Pawns.AssignMenu.PolicyCreated>
   <RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated>Duplicada: {0}</RimWorldAccess.Pawns.AssignMenu.PolicyDuplicated>
   <RimWorldAccess.Pawns.AssignMenu.PolicyDeleted>Política apagada</RimWorldAccess.Pawns.AssignMenu.PolicyDeleted>
-  <RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>{0} definida como padrão</RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>
+  <RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>{0} definida como predefinida</RimWorldAccess.Pawns.AssignMenu.PolicySetAsDefault>
 
   <!-- =================================================================
        Assign menu state (AssignMenuState).
@@ -569,7 +569,7 @@
   <RimWorldAccess.Pawns.TrainingInfo.LineLearned>{0}: Aprendido</RimWorldAccess.Pawns.TrainingInfo.LineLearned>
   <RimWorldAccess.Pawns.TrainingInfo.LineInProgress>{0}: Em Progresso</RimWorldAccess.Pawns.TrainingInfo.LineInProgress>
   <RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>{0} treinados</RimWorldAccess.Pawns.TrainingInfo.TrainedHeader>
-  <RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>{0} em andamento</RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
+  <RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>{0} em curso</RimWorldAccess.Pawns.TrainingInfo.InProgressHeader>
   <RimWorldAccess.Pawns.TrainingInfo.NoSkills>Nenhuma habilidade treinável</RimWorldAccess.Pawns.TrainingInfo.NoSkills>
 
   <!-- Character (traits, backstory, top skills). -->

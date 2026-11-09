@@ -22,7 +22,7 @@
   <!-- Settings (Main Menu > Options > RimWorld Access), src/Shell/Screens/OptionsRwaCategory.Game.cs. -->
   <RimWorldAccess.Narrative.Settings.AnnouncePawnDialogue.Label>Anunciar os diálogos gerados dos colonos</RimWorldAccess.Narrative.Settings.AnnouncePawnDialogue.Label>
   <RimWorldAccess.Narrative.Settings.AnnouncePawnDialogue.Desc>Lê as falas escritas por mods narrativos como o RimTalk.</RimWorldAccess.Narrative.Settings.AnnouncePawnDialogue.Desc>
-  <RimWorldAccess.Narrative.Settings.AnnounceVanillaInteractionBubbles.Label>Anunciar balões de interacção padrão</RimWorldAccess.Narrative.Settings.AnnounceVanillaInteractionBubbles.Label>
+  <RimWorldAccess.Narrative.Settings.AnnounceVanillaInteractionBubbles.Label>Anunciar balões de interacção do jogo base</RimWorldAccess.Narrative.Settings.AnnounceVanillaInteractionBubbles.Label>
   <RimWorldAccess.Narrative.Settings.AnnounceVanillaInteractionBubbles.Desc>Lê as conversas sociais do próprio jogo. Requer o mod Interaction Bubbles de Jaxe.</RimWorldAccess.Narrative.Settings.AnnounceVanillaInteractionBubbles.Desc>
   <RimWorldAccess.Narrative.Settings.TtsAnnounceAnyway.Label>Anunciar diálogo mesmo quando o TTS do RimTalk já estiver a falar</RimWorldAccess.Narrative.Settings.TtsAnnounceAnyway.Label>
   <RimWorldAccess.Narrative.Settings.TtsAnnounceAnyway.Desc>Quando desactivado, o leitor de ecrã fica em silêncio durante uma linha enquanto o complemento de TTS do RimTalk a diz em voz alta; o Registo de Diálogo continua a registá-la.</RimWorldAccess.Narrative.Settings.TtsAnnounceAnyway.Desc>

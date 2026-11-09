@@ -28,7 +28,7 @@
 
   <RimWorldAccess.AnnounceConfig.Example.Label>por exemplo: Permitir cadáveres frescos</RimWorldAccess.AnnounceConfig.Example.Label>
   <RimWorldAccess.AnnounceConfig.Example.Hotkey>por exemplo: Alt+C</RimWorldAccess.AnnounceConfig.Example.Hotkey>
-  <RimWorldAccess.AnnounceConfig.Example.Role>por exemplo: caixa de seleção</RimWorldAccess.AnnounceConfig.Example.Role>
+  <RimWorldAccess.AnnounceConfig.Example.Role>por exemplo: caixa de selecção</RimWorldAccess.AnnounceConfig.Example.Role>
   <RimWorldAccess.AnnounceConfig.Example.State>por exemplo: marcado</RimWorldAccess.AnnounceConfig.Example.State>
   <RimWorldAccess.AnnounceConfig.Example.Level>por exemplo: nível 2</RimWorldAccess.AnnounceConfig.Example.Level>
   <RimWorldAccess.AnnounceConfig.Example.Position>por exemplo: 4 de 13</RimWorldAccess.AnnounceConfig.Example.Position>
@@ -57,5 +57,5 @@
 
   <!-- Spoken once when the Restore defaults button or its chord runs. The button's own caption
        reuses Core's RestoreToDefaultSettings, the same way Save and Cancel reuse Core's. -->
-  <RimWorldAccess.AnnounceConfig.ResetToDefaults.Done>Definições de anúncio restauradas para os padrões.</RimWorldAccess.AnnounceConfig.ResetToDefaults.Done>
+  <RimWorldAccess.AnnounceConfig.ResetToDefaults.Done>Definições de anúncio restauradas para os valores predefinidos.</RimWorldAccess.AnnounceConfig.ResetToDefaults.Done>
 </LanguageData>

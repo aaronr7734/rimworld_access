@@ -21,9 +21,9 @@
        Read-only view describing CompBreakdownable status. Composed via
        AnnouncementBuilder; vanilla "BrokenDown" supplies the broken-status
        noun. -->
-  <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>A construção não pode quebrar</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
-  <RimWorldAccess.Building.Breakdown.StatusBrokenDown>Status: Quebrado</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
-  <RimWorldAccess.Building.Breakdown.StatusOperational>Status: Operacional</RimWorldAccess.Building.Breakdown.StatusOperational>
+  <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>A construção não pode avariar</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
+  <RimWorldAccess.Building.Breakdown.StatusBrokenDown>Estado: Avariado</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
+  <RimWorldAccess.Building.Breakdown.StatusOperational>Estado: Operacional</RimWorldAccess.Building.Breakdown.StatusOperational>
 
   <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
        Toggles CompForbiddable. Status-row keys compose with the building
@@ -32,11 +32,11 @@
   <RimWorldAccess.Building.Forbid.NoForbidComponent>O item não pode ser proibido</RimWorldAccess.Building.Forbid.NoForbidComponent>
   <RimWorldAccess.Building.Forbid.StatusForbidden>Proibido</RimWorldAccess.Building.Forbid.StatusForbidden>
   <RimWorldAccess.Building.Forbid.StatusAllowed>Permitido</RimWorldAccess.Building.Forbid.StatusAllowed>
-  <RimWorldAccess.Building.Forbid.LabelStatus>{0} - Status: {1}</RimWorldAccess.Building.Forbid.LabelStatus>
-  <RimWorldAccess.Building.Forbid.DetailStatusForbidden>Status: Proibido</RimWorldAccess.Building.Forbid.DetailStatusForbidden>
+  <RimWorldAccess.Building.Forbid.LabelStatus>{0} - Estado: {1}</RimWorldAccess.Building.Forbid.LabelStatus>
+  <RimWorldAccess.Building.Forbid.DetailStatusForbidden>Estado: Proibido</RimWorldAccess.Building.Forbid.DetailStatusForbidden>
   <RimWorldAccess.Building.Forbid.DetailNoInteract>Os colonos não vão interagir com este item</RimWorldAccess.Building.Forbid.DetailNoInteract>
   <RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>Eles não vão transportá-lo, usá-lo ou equipá-lo</RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>
-  <RimWorldAccess.Building.Forbid.DetailStatusAllowed>Status: Permitido</RimWorldAccess.Building.Forbid.DetailStatusAllowed>
+  <RimWorldAccess.Building.Forbid.DetailStatusAllowed>Estado: Permitido</RimWorldAccess.Building.Forbid.DetailStatusAllowed>
   <RimWorldAccess.Building.Forbid.DetailCanInteract>Os colonos podem interagir normalmente com este item</RimWorldAccess.Building.Forbid.DetailCanInteract>
 
   <!-- Door controls (src/Building/DoorControlState.cs).
@@ -53,9 +53,9 @@
   <RimWorldAccess.Building.Door.LabelStatusOpenness>{0} - {1} {2}</RimWorldAccess.Building.Door.LabelStatusOpenness>
   <RimWorldAccess.Building.Door.DetailStateOpen>Actualmente: Aberta</RimWorldAccess.Building.Door.DetailStateOpen>
   <RimWorldAccess.Building.Door.DetailStateClosed>Actualmente: Fechada</RimWorldAccess.Building.Door.DetailStateClosed>
-  <RimWorldAccess.Building.Door.DetailPoweredFast>Status: Com energia - abre mais rápido</RimWorldAccess.Building.Door.DetailPoweredFast>
-  <RimWorldAccess.Building.Door.DetailNoPowerSlow>Status: Sem energia - abre mais lento</RimWorldAccess.Building.Door.DetailNoPowerSlow>
-  <RimWorldAccess.Building.Door.DetailManual>Status: Porta manual (não requer energia)</RimWorldAccess.Building.Door.DetailManual>
+  <RimWorldAccess.Building.Door.DetailPoweredFast>Estado: Com energia - abre mais rápido</RimWorldAccess.Building.Door.DetailPoweredFast>
+  <RimWorldAccess.Building.Door.DetailNoPowerSlow>Estado: Sem energia - abre mais lento</RimWorldAccess.Building.Door.DetailNoPowerSlow>
+  <RimWorldAccess.Building.Door.DetailManual>Estado: Porta manual (não requer energia)</RimWorldAccess.Building.Door.DetailManual>
 
   <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
        Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
@@ -67,7 +67,7 @@
        words; the "_X power" / "_off" wording is the announcement suffix.
        LabelTarget: {0} = building label, {1} = formatted target temperature,
        {2} = power mode suffix (may be empty). -->
-  <RimWorldAccess.Building.Temp.NoTempComponent>A construção não tem controle de temperatura</RimWorldAccess.Building.Temp.NoTempComponent>
+  <RimWorldAccess.Building.Temp.NoTempComponent>A construção não tem controlo de temperatura</RimWorldAccess.Building.Temp.NoTempComponent>
   <RimWorldAccess.Building.Temp.LabelTarget>{0} - Alvo: {1}{2}</RimWorldAccess.Building.Temp.LabelTarget>
   <RimWorldAccess.Building.Temp.PowerModeOffSuffix> - Desligado</RimWorldAccess.Building.Temp.PowerModeOffSuffix>
   <RimWorldAccess.Building.Temp.PowerModeHighSuffix> - Energia alta</RimWorldAccess.Building.Temp.PowerModeHighSuffix>
@@ -86,7 +86,7 @@
        {2} = capacity. RemainingTimeSuffix: {0} = formatted time period.
        OutOfFuelSuffix: {0} = the def's outOfFuelMessage. -->
   <RimWorldAccess.Building.Refuel.NoFuelComponent>A construção não tem sistema de combustível</RimWorldAccess.Building.Refuel.NoFuelComponent>
-  <RimWorldAccess.Building.Refuel.OptionViewStatus>Ver status detalhado do combustível</RimWorldAccess.Building.Refuel.OptionViewStatus>
+  <RimWorldAccess.Building.Refuel.OptionViewStatus>Ver estado detalhado do combustível</RimWorldAccess.Building.Refuel.OptionViewStatus>
   <RimWorldAccess.Building.Refuel.AutoRefuelOn>Reabastecimento automático: activado</RimWorldAccess.Building.Refuel.AutoRefuelOn>
   <RimWorldAccess.Building.Refuel.AutoRefuelOff>Reabastecimento automático: desactivado</RimWorldAccess.Building.Refuel.AutoRefuelOff>
   <RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>Nível de combustível alvo: {0} / {1}</RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>
@@ -161,7 +161,7 @@
   <RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>Não é possível remover a célula original da zona durante a expansão</RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>
   <RimWorldAccess.Building.Zone.NowExpanding>A expandir {0}</RimWorldAccess.Building.Zone.NowExpanding>
   <RimWorldAccess.Building.Zone.AdjacentZonesAmbiguous>Há várias zonas adjacentes. Prime Espaço numa célula da zona que queres expandir</RimWorldAccess.Building.Zone.AdjacentZonesAmbiguous>
-  <RimWorldAccess.Building.Zone.WouldDisconnect>Não é possível remover a célula, isso desconectaria a zona</RimWorldAccess.Building.Zone.WouldDisconnect>
+  <RimWorldAccess.Building.Zone.WouldDisconnect>Não é possível remover a célula, isso desligaria a zona</RimWorldAccess.Building.Zone.WouldDisconnect>
   <RimWorldAccess.Building.Zone.CellAlreadyInThisZone>A célula já está nesta zona</RimWorldAccess.Building.Zone.CellAlreadyInThisZone>
   <RimWorldAccess.Building.Zone.CellInOtherZone>A célula está em {0}</RimWorldAccess.Building.Zone.CellInOtherZone>
   <RimWorldAccess.Building.Zone.CellNotPartOfOriginal>A célula não fazia parte da zona original</RimWorldAccess.Building.Zone.CellNotPartOfOriginal>
@@ -349,7 +349,7 @@
        GetZoneTypeName covers the 5 zone-type lowercased nouns plus the
        "zone" fallback (this is a different fallback than
        Building.Zone.FallbackName, which is for zone.label being null). -->
-  <RimWorldAccess.Building.Create.CannotRemoveDisconnect>Não é possível remover, isso desconectaria a selecção</RimWorldAccess.Building.Create.CannotRemoveDisconnect>
+  <RimWorldAccess.Building.Create.CannotRemoveDisconnect>Não é possível remover, isso desligaria a selecção</RimWorldAccess.Building.Create.CannotRemoveDisconnect>
   <RimWorldAccess.Building.Create.CellAlreadyInZone>A célula já está em {0}</RimWorldAccess.Building.Create.CellAlreadyInZone>
   <RimWorldAccess.Building.Create.MustBeAdjacentToSelection>A célula deve ser adjacente à selecção</RimWorldAccess.Building.Create.MustBeAdjacentToSelection>
   <RimWorldAccess.Building.Create.ErrorCreatingZone>Erro ao criar zona: {0}</RimWorldAccess.Building.Create.ErrorCreatingZone>
@@ -830,7 +830,7 @@
   <RimWorldAccess.Building.Facility.Adjacent>adjacente</RimWorldAccess.Building.Facility.Adjacent>
   <RimWorldAccess.Building.Facility.WithinTiles>dentro de {0} células</RimWorldAccess.Building.Facility.WithinTiles>
   <RimWorldAccess.Building.Facility.BoostsStats>Instalação: aumenta {0}, {1}</RimWorldAccess.Building.Facility.BoostsStats>
-  <RimWorldAccess.Building.Facility.LinksToBuildings>Instalação: conecta-se às construções {0}</RimWorldAccess.Building.Facility.LinksToBuildings>
+  <RimWorldAccess.Building.Facility.LinksToBuildings>Instalação: liga-se às construções {0}</RimWorldAccess.Building.Facility.LinksToBuildings>
   <RimWorldAccess.Building.Facility.MaxPerBuilding>máximo de {0} por construção</RimWorldAccess.Building.Facility.MaxPerBuilding>
   <RimWorldAccess.Building.Facility.AndNMore>{0} e mais {1}</RimWorldAccess.Building.Facility.AndNMore>
   <RimWorldAccess.Building.Facility.AcceptsFacilities>Aceita instalações: {0}</RimWorldAccess.Building.Facility.AcceptsFacilities>
@@ -950,7 +950,7 @@
 
   <!-- Architect tree: right-click options hint and material availability
        suffixes (composed after the designator / material label). -->
-  <RimWorldAccess.Building.Architect.MoreOptionsHint>(colchete direito para mais opções)</RimWorldAccess.Building.Architect.MoreOptionsHint>
+  <RimWorldAccess.Building.Architect.MoreOptionsHint>(parêntese recto direito para mais opções)</RimWorldAccess.Building.Architect.MoreOptionsHint>
   <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} disponível)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
   <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(indisponível)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
 

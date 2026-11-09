@@ -16,9 +16,9 @@
   -->
   <RimWorldAccess.WorldParams.Population.Sparse>Escassa</RimWorldAccess.WorldParams.Population.Sparse>
   <RimWorldAccess.WorldParams.Population.MoreSparse>Um Pouco Mais Escassa</RimWorldAccess.WorldParams.Population.MoreSparse>
-  <RimWorldAccess.WorldParams.Population.SlightSparse>Levemente Escassa</RimWorldAccess.WorldParams.Population.SlightSparse>
+  <RimWorldAccess.WorldParams.Population.SlightSparse>Ligeiramente Escassa</RimWorldAccess.WorldParams.Population.SlightSparse>
   <RimWorldAccess.WorldParams.Population.Normal>Normal</RimWorldAccess.WorldParams.Population.Normal>
-  <RimWorldAccess.WorldParams.Population.SlightCrowded>Levemente Lotada</RimWorldAccess.WorldParams.Population.SlightCrowded>
+  <RimWorldAccess.WorldParams.Population.SlightCrowded>Ligeiramente Lotada</RimWorldAccess.WorldParams.Population.SlightCrowded>
   <RimWorldAccess.WorldParams.Population.MoreCrowded>Um Pouco Mais Lotada</RimWorldAccess.WorldParams.Population.MoreCrowded>
   <RimWorldAccess.WorldParams.Population.Crowded>Lotada</RimWorldAccess.WorldParams.Population.Crowded>
 </LanguageData>

@@ -33,7 +33,7 @@
        key, {1} = name-list, {2} = status (drafted/undrafted, lowercase). -->
   <RimWorldAccess.Input.Drafting.EveryoneStatus>{0} {1}</RimWorldAccess.Input.Drafting.EveryoneStatus>
   <RimWorldAccess.Input.Drafting.EveryoneExceptStatus>{0} excepto {1} {2}</RimWorldAccess.Input.Drafting.EveryoneExceptStatus>
-  <RimWorldAccess.Input.Drafting.OnlyStatus>Somente {0}: {1}</RimWorldAccess.Input.Drafting.OnlyStatus>
+  <RimWorldAccess.Input.Drafting.OnlyStatus>Apenas {0}: {1}</RimWorldAccess.Input.Drafting.OnlyStatus>
 
   <!-- Multi-select action feedback for right-bracket / left-bracket order
        menus. Whole phrases so translators can reorder subject/verb/object.
@@ -43,7 +43,7 @@
   <RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>{0} {1}</RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>
   <RimWorldAccess.Input.MultiSelectOrder.NoOneCould>Ninguém pôde {0}</RimWorldAccess.Input.MultiSelectOrder.NoOneCould>
   <RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>{0} excepto {1} {2}</RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>
-  <RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>Somente {0} {1}</RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>
+  <RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>Apenas {0} {1}</RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>
 
   <!-- Multi-select guards (Alt+Space group management, reorder). -->
   <RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>Nenhum colono neste mapa</RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>
@@ -109,7 +109,7 @@
   <RimWorldAccess.Input.Map.PrefixFirstPoint>Primeiro ponto, {0}</RimWorldAccess.Input.Map.PrefixFirstPoint>
   <RimWorldAccess.Input.Map.PrefixSecondPoint>Segundo ponto, {0}</RimWorldAccess.Input.Map.PrefixSecondPoint>
   <RimWorldAccess.Input.Map.PrefixInArea>Na área, {0}</RimWorldAccess.Input.Map.PrefixInArea>
-  <RimWorldAccess.Input.Map.PrefixDisconnected>Desconectado, {0}</RimWorldAccess.Input.Map.PrefixDisconnected>
+  <RimWorldAccess.Input.Map.PrefixDisconnected>Desligado, {0}</RimWorldAccess.Input.Map.PrefixDisconnected>
 
   <!-- Schedule editor visual overlay (src/Input/UnifiedKeyboardPatch.cs). -->
 </LanguageData>

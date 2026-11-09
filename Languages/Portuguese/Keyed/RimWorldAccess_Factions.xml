@@ -61,7 +61,7 @@
        EntryMaxSuffix: {0} = situation label, {1} = max goodwill cap with sign.
        OngoingSummary: {0} = comma-joined entries. -->
   <RimWorldAccess.Factions.Ongoing.EntryMaxSuffix>{0}: máximo {1}</RimWorldAccess.Factions.Ongoing.EntryMaxSuffix>
-  <RimWorldAccess.Factions.Ongoing.Summary>Em andamento: {0}</RimWorldAccess.Factions.Ongoing.Summary>
+  <RimWorldAccess.Factions.Ongoing.Summary>Em curso: {0}</RimWorldAccess.Factions.Ongoing.Summary>
 
   <!-- Recent goodwill events (HistoryEventsManager, ~60 in-game days).
        EntryCountSuffix: {0} = event label, {1} = occurrence count (>=2).

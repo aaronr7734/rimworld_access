@@ -149,7 +149,7 @@
   <RimWorldAccess.Cmr.ImportExport.FilesRegion>Ficheiros guardados</RimWorldAccess.Cmr.ImportExport.FilesRegion>
   <RimWorldAccess.Cmr.ImportExport.ExportRegion>Exportação</RimWorldAccess.Cmr.ImportExport.ExportRegion>
   <RimWorldAccess.Cmr.ImportExport.DeleteRow>Eliminar {0}</RimWorldAccess.Cmr.ImportExport.DeleteRow>
-  <RimWorldAccess.Cmr.ImportExport.SetDefaultRow>Definir {0} como modelo padrão</RimWorldAccess.Cmr.ImportExport.SetDefaultRow>
+  <RimWorldAccess.Cmr.ImportExport.SetDefaultRow>Definir {0} como modelo predefinido</RimWorldAccess.Cmr.ImportExport.SetDefaultRow>
   <RimWorldAccess.Cmr.ImportExport.FileNameRow>Nome do ficheiro</RimWorldAccess.Cmr.ImportExport.FileNameRow>
   <RimWorldAccess.Cmr.ImportExport.ExportNeedsSelection>Selecciona pelo menos um trabalho primeiro.</RimWorldAccess.Cmr.ImportExport.ExportNeedsSelection>
 

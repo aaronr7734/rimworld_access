@@ -312,6 +312,6 @@
        so it can exceed the total plantable area count). -->
   <RimWorldAccess.Abilities.Plant.SubcatAll>Todos os locais de plantação</RimWorldAccess.Abilities.Plant.SubcatAll>
   <RimWorldAccess.Abilities.Plant.SubcatClear>Livre de construções</RimWorldAccess.Abilities.Plant.SubcatClear>
-  <RimWorldAccess.Abilities.Plant.StartClearSuffix>A lista livre de construções tem {0} áreas onde a força de conexão não será reduzida; pressiona Shift+Page Down para alternares para ela.</RimWorldAccess.Abilities.Plant.StartClearSuffix>
-  <RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>Aviso: todos os locais plantáveis estão perto de construções artificiais, então plantar em qualquer lugar reduzirá a força de conexão.</RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>
+  <RimWorldAccess.Abilities.Plant.StartClearSuffix>A lista livre de construções tem {0} áreas onde a força de ligação não será reduzida; pressiona Shift+Page Down para alternares para ela.</RimWorldAccess.Abilities.Plant.StartClearSuffix>
+  <RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>Aviso: todos os locais plantáveis estão perto de construções artificiais, então plantar em qualquer lugar reduzirá a força de ligação.</RimWorldAccess.Abilities.Plant.StartNoneClearSuffix>
 </LanguageData>

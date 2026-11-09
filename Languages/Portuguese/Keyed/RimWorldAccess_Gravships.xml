@@ -60,25 +60,25 @@
        these appear as bare number+noun. {0} = count of components.
        The "Requires: ..." suffix uses the vanilla Requires key plus a
        comma-joined list of component labels from the game. -->
-  <RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>{0} componente conectado</RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>
-  <RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>{0} componentes conectados</RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>
+  <RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>{0} componente ligado</RimWorldAccess.Gravships.Engine.ComponentsConnectedOne>
+  <RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>{0} componentes ligados</RimWorldAccess.Gravships.Engine.ComponentsConnectedMany>
 
   <!-- Engine launch readiness (GravshipHelper.GetLaunchReadiness).
        NotReadyMissing: prepended to a comma-joined list of missing-component
        labels.
        AllConnected: spoken when no components are missing. -->
   <RimWorldAccess.Gravships.Engine.NotReadyMissing>Não pronto: em falta</RimWorldAccess.Gravships.Engine.NotReadyMissing>
-  <RimWorldAccess.Gravships.Engine.AllConnected>Todos os componentes conectados</RimWorldAccess.Gravships.Engine.AllConnected>
+  <RimWorldAccess.Gravships.Engine.AllConnected>Todos os componentes ligados</RimWorldAccess.Gravships.Engine.AllConnected>
 
   <!-- Landing-marker spawn guidance (GravshipPatch.GravshipLandingMarker_SpawnSetup_Patch).
        Spoken once when the marker first appears (not on save load). -->
-  <RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>Zona de pouso da gravinave posicionada num local padrão válido. Navega até ao marcador de pouso e pressiona G para confirmar o pouso, ou usa o comando Mover Zona de Pouso para reposicionar primeiro.</RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>
+  <RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>Zona de aterragem da gravinave posicionada num local predefinido válido. Navega até ao marcador de aterragem e pressiona G para confirmar a aterragem, ou usa o comando Mover Zona de Aterragem para reposicionar primeiro.</RimWorldAccess.Gravships.Landing.MarkerPlacedGuidance>
 
   <!-- Disconnected-substructure scanner category (SubstructureOverlayState).
        CategoryLabel is the scanner category title. ItemLabel is the per-region
        label spoken when the user navigates onto a disconnected cluster. -->
-  <RimWorldAccess.Gravships.Substructure.CategoryLabel>Subestrutura desconectada</RimWorldAccess.Gravships.Substructure.CategoryLabel>
-  <RimWorldAccess.Gravships.Substructure.ItemLabel>Subestrutura desconectada</RimWorldAccess.Gravships.Substructure.ItemLabel>
+  <RimWorldAccess.Gravships.Substructure.CategoryLabel>Subestrutura desligada</RimWorldAccess.Gravships.Substructure.CategoryLabel>
+  <RimWorldAccess.Gravships.Substructure.ItemLabel>Subestrutura desligada</RimWorldAccess.Gravships.Substructure.ItemLabel>
 
   <!-- Gravship rename gizmo description (vanilla has none). -->
   <RimWorldAccess.Gravships.Engine.RenameDesc>Renomeia esta gravinave.</RimWorldAccess.Gravships.Engine.RenameDesc>

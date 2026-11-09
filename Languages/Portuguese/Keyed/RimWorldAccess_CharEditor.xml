@@ -802,8 +802,8 @@
   <RimWorldAccess.CharEd.Config.SaveAndClose>Guardar e fechar</RimWorldAccess.CharEd.Config.SaveAndClose>
   <!-- The mod's own AResetAll has no confirm of its own: ours adds one (see
        CharEditorConfigCompat's class remarks). -->
-  <RimWorldAccess.CharEd.Config.ConfirmResetAll>Redefinir todas as opções para o padrão? Isto não pode ser desfeito.</RimWorldAccess.CharEd.Config.ConfirmResetAll>
-  <RimWorldAccess.CharEd.Config.ResetAllDone>Todas as opções redefinidas para o padrão.</RimWorldAccess.CharEd.Config.ResetAllDone>
+  <RimWorldAccess.CharEd.Config.ConfirmResetAll>Redefinir todas as opções para os valores predefinidos? Isto não pode ser desfeito.</RimWorldAccess.CharEd.Config.ConfirmResetAll>
+  <RimWorldAccess.CharEd.Config.ResetAllDone>Todas as opções redefinidas para os valores predefinidos.</RimWorldAccess.CharEd.Config.ResetAllDone>
   <RimWorldAccess.CharEd.Config.Opened>Opções do Character Editor.</RimWorldAccess.CharEd.Config.Opened>
 
   <!--
@@ -835,7 +835,7 @@
   <RimWorldAccess.CharEd.DefEditor.SaveModifications>Guardar modificações</RimWorldAccess.CharEd.DefEditor.SaveModifications>
   <RimWorldAccess.CharEd.DefEditor.ModificationsSaved>Modificações guardadas. Serão reaplicadas a cada início de jogo.</RimWorldAccess.CharEd.DefEditor.ModificationsSaved>
   <RimWorldAccess.CharEd.DefEditor.ResetDef>Redefinir este def</RimWorldAccess.CharEd.DefEditor.ResetDef>
-  <RimWorldAccess.CharEd.DefEditor.DefReset>Def redefinido para o padrão.</RimWorldAccess.CharEd.DefEditor.DefReset>
+  <RimWorldAccess.CharEd.DefEditor.DefReset>Def redefinido para o valor predefinido.</RimWorldAccess.CharEd.DefEditor.DefReset>
   <RimWorldAccess.CharEd.DefEditor.ResetAllDefs>Redefinir todos os defs modificados</RimWorldAccess.CharEd.DefEditor.ResetAllDefs>
   <RimWorldAccess.CharEd.DefEditor.AllDefsReset>Todas as modificações de defs foram redefinidas.</RimWorldAccess.CharEd.DefEditor.AllDefsReset>
 
@@ -855,7 +855,7 @@
   <RimWorldAccess.CharEd.DefEditor.SoundsSection>Sons</RimWorldAccess.CharEd.DefEditor.SoundsSection>
   <RimWorldAccess.CharEd.DefEditor.BallisticsSection>Balística</RimWorldAccess.CharEd.DefEditor.BallisticsSection>
   <RimWorldAccess.CharEd.DefEditor.LabelField>Rótulo</RimWorldAccess.CharEd.DefEditor.LabelField>
-  <RimWorldAccess.CharEd.DefEditor.DefaultProjectile>Projéctil padrão</RimWorldAccess.CharEd.DefEditor.DefaultProjectile>
+  <RimWorldAccess.CharEd.DefEditor.DefaultProjectile>Projéctil predefinido</RimWorldAccess.CharEd.DefEditor.DefaultProjectile>
   <RimWorldAccess.CharEd.DefEditor.CausedNeed>Necessidade causada (não editável: o mod nunca reaplica este campo após guardar ou recarregar)</RimWorldAccess.CharEd.DefEditor.CausedNeed>
   <RimWorldAccess.CharEd.DefEditor.PainFactor>Factor de dor</RimWorldAccess.CharEd.DefEditor.PainFactor>
   <RimWorldAccess.CharEd.DefEditor.PainOffset>Deslocamento de dor</RimWorldAccess.CharEd.DefEditor.PainOffset>

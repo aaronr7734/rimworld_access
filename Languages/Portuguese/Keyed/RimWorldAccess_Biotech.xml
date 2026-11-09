@@ -140,7 +140,7 @@
   <RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected>Nenhum traço seleccionado</RimWorldAccess.Biotech.GrowthMoment.NoTraitSelected>
 
   <!-- Archive view announcement. -->
-  <RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>Visualização de arquivo, somente leitura</RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>
+  <RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>Visualização de arquivo, apenas leitura</RimWorldAccess.Biotech.GrowthMoment.ArchiveReadOnly>
 
   <!-- Opening announcement and navigation hints.
        {0} = tab count, {1} = passion count, {2} = passion total. -->
@@ -173,7 +173,7 @@
   <!-- Recharge range editor. {0} = min%, {1} = max%, {2} = current label. -->
   <RimWorldAccess.Biotech.Mech.RangeSaved>Intervalo de recarga guardado: {0} a {1}</RimWorldAccess.Biotech.Mech.RangeSaved>
   <RimWorldAccess.Biotech.Mech.RangeCancelled>Edição do intervalo de recarga cancelada</RimWorldAccess.Biotech.Mech.RangeCancelled>
-  <RimWorldAccess.Biotech.Mech.RangeReset>Redefinido para o padrão: {0} a {1}</RimWorldAccess.Biotech.Mech.RangeReset>
+  <RimWorldAccess.Biotech.Mech.RangeReset>Redefinido para o valor predefinido: {0} a {1}</RimWorldAccess.Biotech.Mech.RangeReset>
   <RimWorldAccess.Biotech.Mech.RangeMinimum>Mínimo</RimWorldAccess.Biotech.Mech.RangeMinimum>
   <RimWorldAccess.Biotech.Mech.RangeMaximum>Máximo</RimWorldAccess.Biotech.Mech.RangeMaximum>
   <!-- RangeSelection retired (element-uniformity campaign, packet D): the focused bound is
@@ -266,7 +266,7 @@
   <!-- Gene conflict status, mirroring Dialog_CreateXenotype's own gene tooltip.
        {0} = the gene that applies / the genes chosen between. -->
   <RimWorldAccess.Biotech.XenotypeEditor.GeneSuppressedBy>suprimido por {0}</RimWorldAccess.Biotech.XenotypeEditor.GeneSuppressedBy>
-  <RimWorldAccess.Biotech.XenotypeEditor.GeneRandomlyChosen>um destes genes será ativo aleatoriamente: {0}</RimWorldAccess.Biotech.XenotypeEditor.GeneRandomlyChosen>
+  <RimWorldAccess.Biotech.XenotypeEditor.GeneRandomlyChosen>um destes genes será activo aleatoriamente: {0}</RimWorldAccess.Biotech.XenotypeEditor.GeneRandomlyChosen>
   <RimWorldAccess.Biotech.XenotypeEditor.YesValue>Sim</RimWorldAccess.Biotech.XenotypeEditor.YesValue>
   <RimWorldAccess.Biotech.XenotypeEditor.NoValue>Não</RimWorldAccess.Biotech.XenotypeEditor.NoValue>
 

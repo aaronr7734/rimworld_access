@@ -81,8 +81,8 @@
   <RimWorldAccess.ModList.OpeningFolderFor>Abrindo a pasta de {0}</RimWorldAccess.ModList.OpeningFolderFor>
   <RimWorldAccess.ModList.OpeningWorkshop>Abrindo a página do Steam Workshop</RimWorldAccess.ModList.OpeningWorkshop>
   <RimWorldAccess.ModList.OpeningForum>Abrindo a página de mods do Fórum da Ludeon</RimWorldAccess.ModList.OpeningForum>
-  <RimWorldAccess.ModList.UnsubscribedFrom>Inscrição cancelada: {0}</RimWorldAccess.ModList.UnsubscribedFrom>
-  <RimWorldAccess.ModList.UnsubscribedFromDownloading>Inscrição cancelada no item em download.</RimWorldAccess.ModList.UnsubscribedFromDownloading>
+  <RimWorldAccess.ModList.UnsubscribedFrom>Subscrição cancelada: {0}</RimWorldAccess.ModList.UnsubscribedFrom>
+  <RimWorldAccess.ModList.UnsubscribedFromDownloading>Subscrição cancelada no item em transferência.</RimWorldAccess.ModList.UnsubscribedFromDownloading>
   <RimWorldAccess.ModList.CouldNotEnableMod>Não foi possível activar o mod. Pode já haver um mod activo com o mesmo ID de pacote.</RimWorldAccess.ModList.CouldNotEnableMod>
   <RimWorldAccess.ModList.ActionEnabled>activado</RimWorldAccess.ModList.ActionEnabled>
   <RimWorldAccess.ModList.ActionDisabled>desactivado</RimWorldAccess.ModList.ActionDisabled>
@@ -100,7 +100,7 @@
   <!-- Region-grammar rework: the Details region's label, and the
        refusal spoken when Enter/Space tries to toggle a still-downloading row. -->
   <RimWorldAccess.ModList.DetailsRegion>Detalhes</RimWorldAccess.ModList.DetailsRegion>
-  <RimWorldAccess.ModList.CannotToggleDownloading>Ainda em download. Ainda não pode ser alternado.</RimWorldAccess.ModList.CannotToggleDownloading>
+  <RimWorldAccess.ModList.CannotToggleDownloading>Ainda a ser transferido. Ainda não pode ser alternado.</RimWorldAccess.ModList.CannotToggleDownloading>
   <!-- More mod-list composition strings (ModListState).
        {0} = mod name, {1} = author, {2} = next mod info, {3} = column name. -->
   <RimWorldAccess.ModList.ContainsErrors>contém erros</RimWorldAccess.ModList.ContainsErrors>
@@ -156,7 +156,7 @@
   <RimWorldAccess.ScenarioSelect.PermanentGameCondition>Condição de jogo permanente</RimWorldAccess.ScenarioSelect.PermanentGameCondition>
   <!-- "]" context-menu completion messages. -->
   <RimWorldAccess.ScenarioSelect.Deleted>Eliminado: {0}</RimWorldAccess.ScenarioSelect.Deleted>
-  <RimWorldAccess.ScenarioSelect.UnsubscribedFrom>Inscrição cancelada: {0}</RimWorldAccess.ScenarioSelect.UnsubscribedFrom>
+  <RimWorldAccess.ScenarioSelect.UnsubscribedFrom>Subscrição cancelada: {0}</RimWorldAccess.ScenarioSelect.UnsubscribedFrom>
   <!-- Steam Workshop opens an external browser window with no on-screen
        feedback of its own. -->
   <RimWorldAccess.ScenarioSelect.OpenedSteamWorkshop>O Steam Workshop foi aberto no teu navegador.</RimWorldAccess.ScenarioSelect.OpenedSteamWorkshop>
@@ -299,7 +299,7 @@
        ================================================================= -->
   <RimWorldAccess.WorldParams.SeedRandomized>Semente do mundo: {0} (Randomizada)</RimWorldAccess.WorldParams.SeedRandomized>
   <RimWorldAccess.WorldParams.WarningPrefix>. {0}</RimWorldAccess.WorldParams.WarningPrefix>
-  <RimWorldAccess.WorldParams.ResetAllDone>Todos os parâmetros do mundo redefinidos para o padrão.</RimWorldAccess.WorldParams.ResetAllDone>
+  <RimWorldAccess.WorldParams.ResetAllDone>Todos os parâmetros do mundo redefinidos para os valores predefinidos.</RimWorldAccess.WorldParams.ResetAllDone>
   <RimWorldAccess.WorldParams.PlanetRegion>Planeta</RimWorldAccess.WorldParams.PlanetRegion>
   <RimWorldAccess.WorldParams.AddFactionsRow>Adicionar facções</RimWorldAccess.WorldParams.AddFactionsRow>
 
@@ -322,9 +322,9 @@
   <RimWorldAccess.WorldParams.Temperature.VeryHot>Muito quente</RimWorldAccess.WorldParams.Temperature.VeryHot>
   <RimWorldAccess.WorldParams.LandmarkDensity.Sparse>Esparsa</RimWorldAccess.WorldParams.LandmarkDensity.Sparse>
   <RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>Um pouco mais esparsa</RimWorldAccess.WorldParams.LandmarkDensity.MoreSparse>
-  <RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>Levemente esparsa</RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>Ligeiramente esparsa</RimWorldAccess.WorldParams.LandmarkDensity.SlightSparse>
   <RimWorldAccess.WorldParams.LandmarkDensity.Normal>Normal</RimWorldAccess.WorldParams.LandmarkDensity.Normal>
-  <RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>Levemente densa</RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>
+  <RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>Ligeiramente densa</RimWorldAccess.WorldParams.LandmarkDensity.SlightCrowded>
   <RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>Um pouco mais densa</RimWorldAccess.WorldParams.LandmarkDensity.MoreCrowded>
   <RimWorldAccess.WorldParams.LandmarkDensity.Crowded>Densa</RimWorldAccess.WorldParams.LandmarkDensity.Crowded>
 
@@ -439,7 +439,7 @@
   <RimWorldAccess.StartingPawn.ExtraFactionLabel>{0}: {1}</RimWorldAccess.StartingPawn.ExtraFactionLabel>
   <RimWorldAccess.StartingPawn.ChipFactionsTabLater>Isto abre a aba Facções, que só fica disponível após o início do jogo.</RimWorldAccess.StartingPawn.ChipFactionsTabLater>
   <RimWorldAccess.StartingPawn.ChipSocialTabLater>Isto abre a aba Social, que só fica disponível após o início do jogo.</RimWorldAccess.StartingPawn.ChipSocialTabLater>
-  <RimWorldAccess.Reroll.SearchingAttempts>Procurando, {0} tentativas...</RimWorldAccess.Reroll.SearchingAttempts>
+  <RimWorldAccess.Reroll.SearchingAttempts>A procurar, {0} tentativas...</RimWorldAccess.Reroll.SearchingAttempts>
 
   <!-- =================================================================
        Factions navigation (FactionsNavigationState + FactionLandingState).
@@ -469,7 +469,7 @@
   <RimWorldAccess.Factions.WarningMissingInsect>Aviso: a ausência de insectos pode reduzir a variedade de missões.</RimWorldAccess.Factions.WarningMissingInsect>
   <RimWorldAccess.Factions.WarningMissingMechanoidOdyssey>Aviso: a ausência de mecanoides tornará impossível concluir as principais missões de Odyssey.</RimWorldAccess.Factions.WarningMissingMechanoidOdyssey>
   <RimWorldAccess.Factions.WarningMissingInsectOdyssey>Aviso: a ausência de insectos tornará impossível concluir as principais missões de Odyssey.</RimWorldAccess.Factions.WarningMissingInsectOdyssey>
-  <RimWorldAccess.Factions.ResetDone>Facções redefinidas para as quantidades padrão.</RimWorldAccess.Factions.ResetDone>
+  <RimWorldAccess.Factions.ResetDone>Facções redefinidas para as quantidades predefinidas.</RimWorldAccess.Factions.ResetDone>
   <RimWorldAccess.Factions.LockedSuffix> (bloqueada pelo cenário)</RimWorldAccess.Factions.LockedSuffix>
   <!-- Add-faction menu row detail (Task 8 packet I): count-in-list and the disabled
        reason now ride the composer's Extras fragment, description too; the disabled
@@ -557,7 +557,7 @@
   <RimWorldAccess.ScenarioBuilder.Field.Material>Material</RimWorldAccess.ScenarioBuilder.Field.Material>
   <RimWorldAccess.ScenarioBuilder.Field.Quality>Qualidade</RimWorldAccess.ScenarioBuilder.Field.Quality>
   <RimWorldAccess.ScenarioBuilder.Field.Count>Quantidade</RimWorldAccess.ScenarioBuilder.Field.Count>
-  <RimWorldAccess.ScenarioBuilder.Field.Chance>Chance</RimWorldAccess.ScenarioBuilder.Field.Chance>
+  <RimWorldAccess.ScenarioBuilder.Field.Chance>Probabilidade</RimWorldAccess.ScenarioBuilder.Field.Chance>
   <RimWorldAccess.ScenarioBuilder.Field.Condition>Condição</RimWorldAccess.ScenarioBuilder.Field.Condition>
   <RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>Severidade mínima</RimWorldAccess.ScenarioBuilder.Field.MinimumSeverity>
   <RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>Severidade máxima</RimWorldAccess.ScenarioBuilder.Field.MaximumSeverity>
@@ -574,7 +574,7 @@
   <RimWorldAccess.ScenarioBuilder.Field.MinimumAge>Idade mínima</RimWorldAccess.ScenarioBuilder.Field.MinimumAge>
   <RimWorldAccess.ScenarioBuilder.Field.MaximumAge>Idade máxima</RimWorldAccess.ScenarioBuilder.Field.MaximumAge>
   <RimWorldAccess.ScenarioBuilder.Field.MechType>Tipo de mecanoide</RimWorldAccess.ScenarioBuilder.Field.MechType>
-  <RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>Chance de supervisão do mecanizador</RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>
+  <RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>Probabilidade de supervisão do mecanizador</RimWorldAccess.ScenarioBuilder.Field.MechanitorOversightChance>
   <RimWorldAccess.ScenarioBuilder.Field.DialogText>Texto do diálogo</RimWorldAccess.ScenarioBuilder.Field.DialogText>
   <RimWorldAccess.ScenarioBuilder.Field.Stat>Estatística</RimWorldAccess.ScenarioBuilder.Field.Stat>
   <RimWorldAccess.ScenarioBuilder.Field.Factor>Factor</RimWorldAccess.ScenarioBuilder.Field.Factor>
@@ -625,7 +625,7 @@
   <!-- Mod-list detail nav + requirement status (src/MainMenu/ModListState.cs). -->
   <RimWorldAccess.ModList.ReqSatisfied>satisfeito</RimWorldAccess.ModList.ReqSatisfied>
   <RimWorldAccess.ModList.ReqNotSatisfied>não satisfeito</RimWorldAccess.ModList.ReqNotSatisfied>
-  <RimWorldAccess.ModList.ReqEnterToOpenPage>Pressiona Enter para abrir a página de download dele.</RimWorldAccess.ModList.ReqEnterToOpenPage>
+  <RimWorldAccess.ModList.ReqEnterToOpenPage>Pressiona Enter para abrir a página de transferência dele.</RimWorldAccess.ModList.ReqEnterToOpenPage>
   <RimWorldAccess.ModList.ReqEnterToSelect>Pressiona Enter para o seleccionares na lista de mods.</RimWorldAccess.ModList.ReqEnterToSelect>
   <!-- Difficulty reset preset tooltip fallback (src/MainMenu/DifficultySettingsHelper.cs). -->
   <RimWorldAccess.CustomDifficulty.ResetTooltip>Redefine todas as definições de dificuldade personalizada para este predefinido</RimWorldAccess.CustomDifficulty.ResetTooltip>

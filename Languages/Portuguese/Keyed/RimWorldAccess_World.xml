@@ -344,7 +344,7 @@
        {2} = speed source noun, {3} = error/limit message,
        {4} = destination name.
        ================================================================= -->
-  <RimWorldAccess.Route.WorldNavMustBeActive>A navegação do mundo precisa estar activa</RimWorldAccess.Route.WorldNavMustBeActive>
+  <RimWorldAccess.Route.WorldNavMustBeActive>A navegação do mundo precisa de estar activa</RimWorldAccess.Route.WorldNavMustBeActive>
   <RimWorldAccess.Route.PlannerNotAvailable>Planeador de rota não disponível</RimWorldAccess.Route.PlannerNotAvailable>
   <RimWorldAccess.Route.NoCaravanDialog>Nenhum diálogo de caravana</RimWorldAccess.Route.NoCaravanDialog>
   <RimWorldAccess.Route.PlannerNotActive>Planeador de rota não está activo</RimWorldAccess.Route.PlannerNotActive>
@@ -368,7 +368,7 @@
   <RimWorldAccess.Route.AlreadySent>Caravana já enviada. Planeador de rota fechado.</RimWorldAccess.Route.AlreadySent>
   <!-- Route path tracing (GetRouteAnnouncement). HeadSegment: {0} = localized compass direction, {1} = waypoint number. HeadDirections wraps the comma-joined list of HeadSegment phrases. -->
   <RimWorldAccess.Route.AtDestination>Destino.</RimWorldAccess.Route.AtDestination>
-  <RimWorldAccess.Route.HeadSegment>{0} até o waypoint {1}</RimWorldAccess.Route.HeadSegment>
+  <RimWorldAccess.Route.HeadSegment>{0} até ao waypoint {1}</RimWorldAccess.Route.HeadSegment>
   <RimWorldAccess.Route.HeadDirections>Segue {0}.</RimWorldAccess.Route.HeadDirections>
 
   <!-- =================================================================
@@ -642,8 +642,8 @@
   <RimWorldAccess.WorldScanner.DirectionDistanceTiles>{1} ladrilhos, {0}</RimWorldAccess.WorldScanner.DirectionDistanceTiles>
   <RimWorldAccess.WorldScanner.DirectionOverTiles>{0}, ao longo de {1} ladrilhos</RimWorldAccess.WorldScanner.DirectionOverTiles>
   <!-- Center-jump cue: {0} = tile count, {1} = compass direction. -->
-  <RimWorldAccess.WorldScanner.JumpedTilesToCenter>Saltou {0} ladrilhos {1} até o centro</RimWorldAccess.WorldScanner.JumpedTilesToCenter>
-  <RimWorldAccess.WorldScanner.JumpedToCenter>Saltou até o centro</RimWorldAccess.WorldScanner.JumpedToCenter>
+  <RimWorldAccess.WorldScanner.JumpedTilesToCenter>Saltou {0} ladrilhos {1} até ao centro</RimWorldAccess.WorldScanner.JumpedTilesToCenter>
+  <RimWorldAccess.WorldScanner.JumpedToCenter>Saltou até ao centro</RimWorldAccess.WorldScanner.JumpedToCenter>
   <RimWorldAccess.WorldScanner.Sub.Player>Jogador</RimWorldAccess.WorldScanner.Sub.Player>
   <RimWorldAccess.WorldScanner.Sub.Allied>Aliado</RimWorldAccess.WorldScanner.Sub.Allied>
   <RimWorldAccess.WorldScanner.Sub.Neutral>Neutro</RimWorldAccess.WorldScanner.Sub.Neutral>

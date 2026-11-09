@@ -68,7 +68,7 @@
        Headline: {0} = target label, {1} = total hit-chance percent.
        HeadlineGeneric is the fallback for miss-radius weapons (e.g. grenades)
        whose readout does not lead with a single hit-chance figure. -->
-  <RimWorldAccess.Combat.ShotReport.Headline>{0}, {1} de chance de acerto</RimWorldAccess.Combat.ShotReport.Headline>
+  <RimWorldAccess.Combat.ShotReport.Headline>{0}, {1} de probabilidade de acerto</RimWorldAccess.Combat.ShotReport.Headline>
   <RimWorldAccess.Combat.ShotReport.HeadlineGeneric>{0}</RimWorldAccess.Combat.ShotReport.HeadlineGeneric>
   <RimWorldAccess.Combat.ShotReport.CannotHit>{0}: impossível acertar</RimWorldAccess.Combat.ShotReport.CannotHit>
 
