@@ -135,9 +135,9 @@ namespace RimWorldAccess.Shell
     /// not block the re-entrant call. <see cref="OwnsAccept"/> is TRUE: Enter already does the
     /// per-element thing via injection, so vanilla's deferred Accept re-test must not also fire.
     ///
-    /// <b>Known gaps.</b> A captionless ButtonInvisible with nothing proving it is a control is
-    /// dropped as an orphan (a hotspot-first card whose caption was written inside it is fused from
-    /// that enclosed text — <see cref="FindEnclosedLabelAhead"/>). Label/control fusion is a
+    /// <b>Known gaps.</b> A captionless ButtonInvisible with nothing proving it is a control (no
+    /// tooltip names it, no caption is written inside it: <see cref="FindEnclosedLabelAhead"/>) is
+    /// dropped as an orphan. Label/control fusion is a
     /// screen-space heuristic under a two-tier clip rule: same clip context compares raw screen
     /// rects, a cross-clip pair fuses only when both VISIBLE rects are non-empty and overlap, so a
     /// scrolled-out row can never fuse with or steal the tooltip of an unrelated widget (see
@@ -188,6 +188,8 @@ namespace RimWorldAccess.Shell
         /// Bounded by the window's row count; stale entries are never looked up again.
         /// </summary>
         private readonly Dictionary<string, MultiCheckboxState> readOnlyCheckboxLatch = new Dictionary<string, MultiCheckboxState>();
+
+        private readonly HashSet<string> highlightToggleLabels = new HashSet<string>();
 
         /// <summary>
         /// Snapshot of the acted-on row's comparable state at request time, armed by

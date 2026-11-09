@@ -200,12 +200,9 @@ namespace RimWorldAccess.Shell
                 return new RimTalkDebugScope(w);
             });
 
-            // the CTRL variant of RimTalk's own PlaySettings toggle
-            // icon (TogglePatch.Postfix's ctrl branch opens a bare `new DebugWindow()`,
-            // decompiled-verified) -- registered generically so DialogueLogScope's button row
-            // can offer it. Until now nothing in this mod ever CONSTRUCTED the window (this
-            // scope only reads it once something else opens it), so this is a genuinely new
-            // keyboard opener, not a reroute of an existing one.
+            // The CTRL variant of RimTalk's own PlaySettings toggle icon (TogglePatch.Postfix's
+            // ctrl branch opens a bare `new DebugWindow()`), registered generically so
+            // DialogueLogScope's button row can offer it.
             ToolbarModifierRegistry.Register("rimtalk.toggle",
                 "RimWorldAccess.Narrative.DialogueLog.OpenDebugWindow",
                 ActivateOpenDebugWindow);
@@ -250,9 +247,139 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        // ------------------------------------------------------------------
+        // The MemoryLog view, on its own gate so a RimTalk build without it keeps the other three.
+
+        private static readonly LazyReflectionGate memoryLogGate =
+            new LazyReflectionGate("RimTalk debug window compat (memory log)", ResolveMemoryLog);
+
+        private static FieldInfo cachedMemoryLogsField;
+        private static FieldInfo selectedMemoryLogField;
+        private static PropertyInfo mlTimestampProp;
+        private static PropertyInfo mlTickProp;
+        private static PropertyInfo mlSourceNameProp;
+        private static PropertyInfo mlSourceIdProp;
+        private static PropertyInfo mlTargetNameProp;
+        private static PropertyInfo mlTargetIdProp;
+        private static PropertyInfo mlChangeTypeProp;
+        private static PropertyInfo mlEventKeyProp;
+        private static PropertyInfo mlNoteProp;
+        private static PropertyInfo mlOldWeightProp;
+        private static PropertyInfo mlNewWeightProp;
+        private static PropertyInfo mlIsDirectiveProp;
+        private static PropertyInfo mlIsCoreTraumaProp;
+        private static PropertyInfo mlDetailsProp;
+        private static MethodInfo stripBoilerplateMethod;
+        private static MethodInfo resolvePawnMethod;
+
+        private static bool ResolveMemoryLog(ReflectionSurface surface)
+        {
+            Type window = surface.Supplied("RimTalk.UI.DebugWindow", dialogType);
+            Type entry = surface.Type("RimTalk.PawnMemory.MemoryLogEntry");
+            Type tracker = surface.Type("RimTalk.PawnMemory.PawnMemoryTracker");
+            FieldInfo cached = surface.Field(window, "_cachedMemoryLogs");
+            FieldInfo selected = surface.Field(window, "_selectedMemoryLog");
+            PropertyInfo timestamp = surface.Property(entry, "Timestamp");
+            PropertyInfo tick = surface.Property(entry, "Tick");
+            PropertyInfo sourceName = surface.Property(entry, "SourcePawnName");
+            PropertyInfo sourceId = surface.Property(entry, "SourcePawnId");
+            PropertyInfo targetName = surface.Property(entry, "TargetPawnName");
+            PropertyInfo targetId = surface.Property(entry, "TargetPawnId");
+            PropertyInfo changeType = surface.Property(entry, "ChangeType");
+            PropertyInfo eventKey = surface.Property(entry, "EventKey");
+            PropertyInfo note = surface.Property(entry, "Note");
+            PropertyInfo oldWeight = surface.Property(entry, "OldWeight");
+            PropertyInfo newWeight = surface.Property(entry, "NewWeight");
+            PropertyInfo isDirective = surface.Property(entry, "IsDirective");
+            PropertyInfo isCoreTrauma = surface.Property(entry, "IsCoreTrauma");
+            PropertyInfo details = surface.Property(entry, "Details");
+            MethodInfo strip = surface.Method(tracker, "StripBoilerplate", new[] { typeof(string) });
+            MethodInfo resolvePawn = surface.Method(window, "ResolvePawn", new[] { typeof(string), typeof(int) });
+            if (!surface.Ready)
+            {
+                return false;
+            }
+            cachedMemoryLogsField = cached;
+            selectedMemoryLogField = selected;
+            mlTimestampProp = timestamp;
+            mlTickProp = tick;
+            mlSourceNameProp = sourceName;
+            mlSourceIdProp = sourceId;
+            mlTargetNameProp = targetName;
+            mlTargetIdProp = targetId;
+            mlChangeTypeProp = changeType;
+            mlEventKeyProp = eventKey;
+            mlNoteProp = note;
+            mlOldWeightProp = oldWeight;
+            mlNewWeightProp = newWeight;
+            mlIsDirectiveProp = isDirective;
+            mlIsCoreTraumaProp = isCoreTrauma;
+            mlDetailsProp = details;
+            stripBoilerplateMethod = strip;
+            resolvePawnMethod = resolvePawn;
+            return true;
+        }
+
+        internal static bool MemoryLogReady => ready && memoryLogGate.Ensure();
+
+        internal static IList GetMemoryLogs(Window w) => MemoryLogReady ? cachedMemoryLogsField.GetValue(w) as IList : null;
+        internal static object GetSelectedMemoryLog(Window w) => MemoryLogReady ? selectedMemoryLogField.GetValue(w) : null;
+
+        /// <summary>MUTATION-C: mirrors DrawMemoryLogRow's row-click assignment (`_selectedMemoryLog = entry`), a bare private field behind a ButtonInvisible the virtualized table draws only for rows in view.</summary>
+        internal static void SelectMemoryLog(Window w, object entry)
+        {
+            selectedMemoryLogField.SetValue(w, entry);  // MUTATION-C: see summary.
+        }
+
+        internal static DateTime MemoryLogTimestamp(object e) => (DateTime)mlTimestampProp.GetValue(e);
+        internal static int MemoryLogTick(object e) => (int)mlTickProp.GetValue(e);
+        internal static string MemoryLogEventKey(object e) => mlEventKeyProp.GetValue(e) as string ?? "";
+        internal static bool MemoryLogIsDirective(object e) => (bool)mlIsDirectiveProp.GetValue(e);
+        internal static bool MemoryLogIsCoreTrauma(object e) => (bool)mlIsCoreTraumaProp.GetValue(e);
+        internal static string MemoryLogDetails(object e) => mlDetailsProp.GetValue(e) as string ?? "";
+
+        internal static string MemoryLogPawnName(object e, bool target)
+        {
+            string name = (target ? mlTargetNameProp : mlSourceNameProp).GetValue(e) as string;
+            return string.IsNullOrEmpty(name) ? "-" : name;
+        }
+
+        internal static Pawn MemoryLogPawn(object e, bool target)
+        {
+            int id = (int)(target ? mlTargetIdProp : mlSourceIdProp).GetValue(e);
+            return resolvePawnMethod.Invoke(null, new object[] { MemoryLogPawnName(e, target), id }) as Pawn;
+        }
+
+        internal static string MemoryLogChangeTypeLabel(object e)
+        {
+            return Translator.Translate("RimTalk.DebugWindow.MemoryType" + mlChangeTypeProp.GetValue(e)).Resolve();
+        }
+
+        internal static string MemoryLogWeight(object e, string format)
+        {
+            string newWeight = ((float)mlNewWeightProp.GetValue(e)).ToString(format);
+            return mlChangeTypeProp.GetValue(e).ToString() == "Updated"
+                ? "RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange".Translate(((float)mlOldWeightProp.GetValue(e)).ToString(format), newWeight).Resolve()
+                : newWeight;
+        }
+
+        internal static string MemoryLogNote(object e)
+        {
+            return stripBoilerplateMethod.Invoke(null, new[] { mlNoteProp.GetValue(e) as string }) as string ?? "";
+        }
+
+        /// <summary>DrawMemoryLogRow's note cell, built as it builds it.</summary>
+        internal static string MemoryLogSummary(object e)
+        {
+            string note = MemoryLogNote(e);
+            string key = MemoryLogEventKey(e);
+            if (!string.IsNullOrEmpty(note))
+            {
+                return "[" + key + "] " + note;
+            }
+            return string.IsNullOrEmpty(key) ? MemoryLogDetails(e) : key;
+        }
+
         // DebugWindow field access.
-        // ------------------------------------------------------------------
 
         internal static string GetViewMode(Window w) => viewModeField?.GetValue(w)?.ToString();
         internal static string GetPawnFilter(Window w) => pawnFilterField?.GetValue(w) as string ?? "";

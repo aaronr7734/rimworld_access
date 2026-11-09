@@ -22,8 +22,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorBrowserCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorBrowserCompat", Resolve);
 
         private static Type dialogAddTraitType;
         private static Type dialogChangeBackstoryType;
@@ -105,51 +104,44 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return ready;
+                return gate.Ensure();
             }
         }
 
         public static Type AddTraitDialogType
         {
-            get { EnsureInit(); return dialogAddTraitType; }
+            get { gate.Ensure(); return dialogAddTraitType; }
         }
 
         public static Type ChangeBackstoryDialogType
         {
-            get { EnsureInit(); return dialogChangeBackstoryType; }
+            get { gate.Ensure(); return dialogChangeBackstoryType; }
         }
 
         public static Type AddAbilityDialogType
         {
-            get { EnsureInit(); return dialogAddAbilityType; }
+            get { gate.Ensure(); return dialogAddAbilityType; }
         }
 
         public static Type ChangeRaceDialogType
         {
-            get { EnsureInit(); return dialogChangeRaceType; }
+            get { gate.Ensure(); return dialogChangeRaceType; }
         }
 
         public static Type ChangeFactionDialogType
         {
-            get { EnsureInit(); return dialogChangeFactionType; }
+            get { gate.Ensure(); return dialogChangeFactionType; }
         }
 
         public static Type FindPawnDialogType
         {
-            get { EnsureInit(); return dialogFindPawnType; }
+            get { gate.Ensure(); return dialogFindPawnType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorBrowserCompat");
+                return false;
 
             dialogAddTraitType = surface.Type("CharacterEditor.DialogAddTrait");
             dialogChangeBackstoryType = surface.Type("CharacterEditor.DialogChangeBackstory");
@@ -216,7 +208,7 @@ namespace RimWorldAccess
             findPawnCtor = surface.Constructor(dialogFindPawnType, Type.EmptyTypes);
             findPawnSelectPawnMethod = surface.Method(dialogFindPawnType, "ASelectPawn", new[] { typeof(Pawn) });
 
-            ready = surface.Ready && CharEditorCompat.Search.Ready;
+            return surface.Ready && CharEditorCompat.Search.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

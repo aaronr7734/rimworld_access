@@ -4,10 +4,8 @@ namespace RimWorldAccess.Tests;
 
 /// <summary>
 /// Tests for <see cref="CmrSubsetToggle"/>, the tri-state arithmetic behind Colony Manager Redux's
-/// group shortcuts. The interesting cases are the two the mod's own <c>All(...)</c> predicates
-/// produce and a hand-written "checked when allowed == count" would get wrong: a partially allowed
-/// subset fills up rather than emptying, and an EMPTY subset reads as fully checked (a ticked
-/// "Predators" box on a map with no predators, whose click does nothing).
+/// shortcut rows: a partially allowed subset fills up rather than emptying, and an EMPTY subset
+/// reads as unchecked, as the mod's own <c>Utilities.ToggleState</c> reports it.
 /// </summary>
 public class CmrSubsetToggleTests
 {
@@ -34,9 +32,9 @@ public class CmrSubsetToggleTests
     }
 
     [Fact]
-    public void EmptySubsetReadsAsCheckedAndClicksToNothing()
+    public void EmptySubsetReadsAsUnchecked()
     {
-        Assert.Equal(CheckState.Checked, CmrSubsetToggle.StateOf(0, 0));
-        Assert.False(CmrSubsetToggle.ValueForNextClick(0, 0));
+        Assert.Equal(CheckState.Unchecked, CmrSubsetToggle.StateOf(0, 0));
+        Assert.True(CmrSubsetToggle.ValueForNextClick(0, 0));
     }
 }

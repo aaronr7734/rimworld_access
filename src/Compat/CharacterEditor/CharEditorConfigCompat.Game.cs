@@ -37,8 +37,7 @@ namespace RimWorldAccess
         private const BindingFlags InstanceFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance;
         private const BindingFlags StaticFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorConfigCompat", Resolve);
 
         private static Type modOptionsType;
         private static Type dialogType;
@@ -83,28 +82,23 @@ namespace RimWorldAccess
 
         public static bool ModPresent
         {
-            get { EnsureInit(); return CharEditorCompat.ModPresent; }
+            get { gate.Ensure(); return CharEditorCompat.ModPresent; }
         }
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { return gate.Ensure(); }
         }
 
         /// <summary>The private nested DialogConfigurate window type, for the ScopeForWindow registration.</summary>
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized) return;
-            initialized = true;
-
-            if (!CharEditorCompat.ModPresent) return;
-
-            var surface = new ReflectionSurface("CharEditorConfigCompat");
+            if (!CharEditorCompat.ModPresent) return false;
 
             Type ceditorType = surface.Supplied("CharacterEditor.CEditor", CharEditorCompat.EditorCore.CEditorType);
             modOptionsType = surface.Supplied("CEditor.ModOptions", ceditorType?.GetNestedType("ModOptions", NestedFlags));
@@ -120,8 +114,7 @@ namespace RimWorldAccess
                 || sDataType == null || optionBType == null || optionIType == null || optionSType == null
                 || CharEditorCompat.Labels.LabelType == null)
             {
-                ready = surface.Ready && CharEditorCompat.Labels.Ready;
-                return;
+                return surface.Ready && CharEditorCompat.Labels.Ready;
             }
 
             moField = surface.Field(dialogType, "mo");
@@ -168,7 +161,7 @@ namespace RimWorldAccess
 
             // The hotkey descriptions fall back to empty strings, so a miss must not fail here.
 
-            ready = surface.Ready && CharEditorCompat.Labels.Ready;
+            return surface.Ready && CharEditorCompat.Labels.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

@@ -90,6 +90,13 @@ namespace RimWorldAccess
             private static readonly FieldInfo trainingField;
             private static readonly FieldInfo trainYoungField;
             private static readonly FieldInfo unassignTrainingField;
+            private static readonly FieldInfo limitAnimalsField;
+            private static readonly FieldInfo animalLimitField;
+            private static readonly FieldInfo trainingPriorityField;
+            private static readonly FieldInfo prioritizeNamedField;
+            private static readonly FieldInfo prioritizeBondedField;
+            private static readonly FieldInfo ignoreNearingEndOfLifeField;
+            private static readonly FieldInfo endOfLifeThresholdField;
             private static readonly MethodInfo anyEnabledGetter;
             private static readonly MethodInfo trainingWantedGetter;
             private static readonly MethodInfo trainingWantedSetter;
@@ -197,6 +204,13 @@ namespace RimWorldAccess
                 trainingField = surface.Field(jobType, "Training");
                 trainYoungField = surface.Field(trackerType, "TrainYoung");
                 unassignTrainingField = surface.Field(trackerType, "UnassignTraining");
+                limitAnimalsField = surface.Field(trackerType, "LimitAnimals");
+                animalLimitField = surface.Field(trackerType, "AnimalLimit");
+                trainingPriorityField = surface.Field(trackerType, "Priority");
+                prioritizeNamedField = surface.Field(trackerType, "PrioritizeNamed");
+                prioritizeBondedField = surface.Field(trackerType, "PrioritizeBonded");
+                ignoreNearingEndOfLifeField = surface.Field(trackerType, "IgnoreNearingEndOfLife");
+                endOfLifeThresholdField = surface.Field(trackerType, "EndOfLifeThreshold");
                 anyEnabledGetter = Getter(surface.Property(trackerType, "AnyEnabled"));
                 // The tracker's per-def flag is an indexer; its accessors are bound by their own
                 // method names because AccessTools.Property cannot express the index parameter.
@@ -1079,6 +1093,86 @@ namespace RimWorldAccess
             public static void SetUnassignTraining(object job, bool value)
             {
                 SetField(unassignTrainingField, Training(job), value, "SetUnassignTraining");
+            }
+
+            public static bool LimitTrainedAnimals(object job)
+            {
+                return FieldFlag(limitAnimalsField, Training(job), "LimitTrainedAnimals");
+            }
+
+            public static void SetLimitTrainedAnimals(object job, bool value)
+            {
+                SetField(limitAnimalsField, Training(job), value, "SetLimitTrainedAnimals");
+            }
+
+            public static int TrainedAnimalLimit(object job)
+            {
+                return FieldValue(animalLimitField, Training(job), "TrainedAnimalLimit") is int limit ? limit : 0;
+            }
+
+            public static void SetTrainedAnimalLimit(object job, int value)
+            {
+                SetField(animalLimitField, Training(job), value, "SetTrainedAnimalLimit");
+            }
+
+            public static List<object> TrainingPriorityValues()
+            {
+                var values = new List<object>();
+                if (ready && trainingPriorityField != null)
+                {
+                    values.AddRange(EnumValues(trainingPriorityField.FieldType));
+                }
+                return values;
+            }
+
+            public static object TrainingPriority(object job)
+            {
+                return FieldValue(trainingPriorityField, Training(job), "TrainingPriority");
+            }
+
+            public static void SetTrainingPriority(object job, object priority)
+            {
+                SetField(trainingPriorityField, Training(job), priority, "SetTrainingPriority");
+            }
+
+            public static bool PrioritizeNamed(object job)
+            {
+                return FieldFlag(prioritizeNamedField, Training(job), "PrioritizeNamed");
+            }
+
+            public static void SetPrioritizeNamed(object job, bool value)
+            {
+                SetField(prioritizeNamedField, Training(job), value, "SetPrioritizeNamed");
+            }
+
+            public static bool PrioritizeBonded(object job)
+            {
+                return FieldFlag(prioritizeBondedField, Training(job), "PrioritizeBonded");
+            }
+
+            public static void SetPrioritizeBonded(object job, bool value)
+            {
+                SetField(prioritizeBondedField, Training(job), value, "SetPrioritizeBonded");
+            }
+
+            public static bool IgnoreNearingEndOfLife(object job)
+            {
+                return FieldFlag(ignoreNearingEndOfLifeField, Training(job), "IgnoreNearingEndOfLife");
+            }
+
+            public static void SetIgnoreNearingEndOfLife(object job, bool value)
+            {
+                SetField(ignoreNearingEndOfLifeField, Training(job), value, "SetIgnoreNearingEndOfLife");
+            }
+
+            public static float EndOfLifeThreshold(object job)
+            {
+                return FieldFloat(endOfLifeThresholdField, Training(job), "EndOfLifeThreshold");
+            }
+
+            public static void SetEndOfLifeThreshold(object job, float value)
+            {
+                SetField(endOfLifeThresholdField, Training(job), value, "SetEndOfLifeThreshold");
             }
 
             /// <summary>The mod's own answer for whether a pawnkind can be taught a trainable: accepted,

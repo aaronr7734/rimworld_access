@@ -43,6 +43,7 @@ namespace RimWorldAccess
             private static readonly FieldInfo syncField;
             private static readonly FieldInfo unforbidCorpsesField;
             private static readonly FieldInfo unforbidAllCorpsesField;
+            private static readonly FieldInfo unforbidHumanCorpsesField;
 
             private static readonly MethodInfo animalsLockedGetter;
             private static readonly MethodInfo animalsLockedSetter;
@@ -97,10 +98,11 @@ namespace RimWorldAccess
                 filterToAllowedSync = surface.Required("SyncDirection.FilterToAllowed",
                     EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed"));
 
-                // Backing fields for two ref-bool toggles — the storage the mod's own DrawToggle
+                // Backing fields for three ref-bool toggles — the storage the mod's own DrawToggle
                 // writes through. See the class remarks.
                 unforbidCorpsesField = surface.Field(jobType, "_unforbidCorpses");
                 unforbidAllCorpsesField = surface.Field(jobType, "_unforbidAllCorpses");
+                unforbidHumanCorpsesField = surface.Field(jobType, "_unforbidHumanCorpses");
 
                 PropertyInfo animalsLockedProperty = surface.Property(jobType, "AnimalsLockedToMap");
                 animalsLockedGetter = Getter(animalsLockedProperty);
@@ -342,6 +344,16 @@ namespace RimWorldAccess
             public static void SetUnforbidAllCorpses(object job, bool value)
             {
                 SetField(unforbidAllCorpsesField, job, value, "SetUnforbidAllCorpses");
+            }
+
+            public static bool UnforbidHumanCorpses(object job)
+            {
+                return FieldFlag(unforbidHumanCorpsesField, job, "UnforbidHumanCorpses");
+            }
+
+            public static void SetUnforbidHumanCorpses(object job, bool value)
+            {
+                SetField(unforbidHumanCorpsesField, job, value, "SetUnforbidHumanCorpses");
             }
 
             public static Area HuntingGrounds(object job)

@@ -984,7 +984,7 @@ namespace RimWorldAccess
                 if (skill.TotallyDisabled)
                     label += $" ({"DisabledLower".Translate()})";
 
-                string tooltip = BuildSkillTooltip(pawn, skill);
+                string tooltip = BuildSkillTooltip(skill);
 
                 skillsNode.Children.Add(MakeLeaf(
                     label, 3, PawnCategoryType.Skills, ptd.PawnIndex, skillsNode,
@@ -1219,17 +1219,9 @@ namespace RimWorldAccess
             return string.Join(". ", parts);
         }
 
-        public static string BuildSkillTooltip(Pawn pawn, SkillRecord skill)
+        public static string BuildSkillTooltip(SkillRecord skill)
         {
-            var sb = new StringBuilder();
-            sb.Append(skill.def.description);
-
-            if (!skill.TotallyDisabled)
-            {
-                sb.Append(". " + skill.LevelDescriptor);
-            }
-
-            return sb.ToString().TrimEnd();
+            return RimWorldAccess.Shell.SpeechFlatten.ToSentences(string.Join("\n", PawnSkillsAdapter.TooltipLines(skill)));
         }
 
         /// <summary>A collapsed category node's summary, or null where none is appropriate (Skills).</summary>

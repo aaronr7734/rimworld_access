@@ -548,7 +548,7 @@ namespace RimWorldAccess.Shell
                     CloseDialog,
                     SharedMenuGrammar.Cancel));
                 actions.Add(new ScreenAction(
-                    "AcceptButton".Translate().ToString(),
+                    adapter?.AcceptLabel ?? "AcceptButton".Translate().ToString(),
                     Accept,
                     "transportPodLoading.accept"));
                 if (Prefs.DevMode && adapter is LoadTransportersAdapter loadAdapter)

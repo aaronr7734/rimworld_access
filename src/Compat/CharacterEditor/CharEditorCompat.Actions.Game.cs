@@ -51,8 +51,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool actionsInitialized;
-        private static bool actionsReady;
+        private static readonly LazyReflectionGate actionsGate = new LazyReflectionGate("CharEditorCompat actions", ResolveActions);
 
         private static Type presetPawnType;
         private static Type messageToolType;
@@ -113,19 +112,17 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return actionsReady;
+                gate.Ensure();
+                return actionsGate.Ensure();
             }
         }
 
         /// <summary>Runs after <see cref="BindAppearance"/>, reusing the types it bound and the shared label table.</summary>
-        private static void BindActions()
+        private static bool ResolveActions(ReflectionSurface surface)
         {
-            if (actionsInitialized)
-                return;
-            actionsInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat actions");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
             surface.Supplied("EditorUI.BlockPerson", blockPersonType);
             surface.Supplied("CharacterEditor.EType", eTypeType);
@@ -182,7 +179,7 @@ namespace RimWorldAccess
             colorToolType = surface.Type("CharacterEditor.ColorTool");
             colorToolRandomAlphaColorGetter = surface.Property(colorToolType, "RandomAlphaColor")?.GetGetMethod(true);
 
-            actionsReady = surface.Ready && EditorCore.Ready && Labels.Ready;
+            return surface.Ready && EditorCore.Ready && Labels.Ready;
         }
 
         // Simulated-modifier invocation, scoped to this slice's own readiness — deliberately not

@@ -1,75 +1,77 @@
 using System.Collections;
 using System.Collections.Generic;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess.Shell
 {
     /// <summary>
-    /// Keyboard support for ExpandMemory's "Mind Stream" main tab,
-    /// <c>RimTalk.Memory.UI.MainTabWindow_Memory</c>. A small hand-modeled content surface plus a
-    /// large free-riding captured-extras surface: the window draws nothing but real
-    /// <c>Widgets</c> calls EXCEPT the memory-card timeline, which is raw
-    /// <c>Event.current.mousePosition</c> hit-testing against a cached Y-position table in
-    /// DoWindowContents' end-of-frame click handler, never a <c>Widgets.ButtonInvisible</c>. That
-    /// timeline is the one surface the captured-extras engine cannot see at all.
+    /// Keyboard support for ExpandMemory's memory main tab,
+    /// <c>RimTalk.Memory.UI.TabWindow.MemoryTabWindowBridge</c>. The tab is four elements over one
+    /// shared <c>MemoryTabWindow.Context</c>: a header of plain buttons, a chronicle strip of the
+    /// archive layer on a zoomable time axis, a virtualized timeline of the other three layers,
+    /// and a details pane for the focused memory, with a selection bar under them while anything
+    /// is selected.
     ///
-    /// RIDES CAPTURED-EXTRAS FOR FREE, no code here: the pawn-selector button and its FloatMenu,
-    /// the "Show All Humanlikes" checkbox, the four colored layer checkboxes, the batch-action
-    /// buttons (their labels already carry the live selected-vs-all counts, and their GUI.enabled
-    /// state presents generically as a disabled row), the global actions, and the top-bar buttons.
-    ///
-    /// HAND-MODELED, and why:
+    /// HAND-MODELED, because the draw cannot carry them:
     /// <list type="bullet">
-    /// <item>Filters region (0): the Type filter is a 3-state exclusive picker a sighted player
-    /// reads via <c>GUI.color</c> tint on the active button. Tint carries no state the generic
-    /// plain-Button capture would surface, so it is rebuilt as three RadioButton rows with real
-    /// <c>Selected</c> state. Plus a read-only Stats row, since those counts are plain top-bar
-    /// text with no adjacent widget and captured-extras only sees INTERACTIVE widgets.</item>
-    /// <item>Timeline region (1): the virtualized memory-card list. Each card's full
-    /// content/importance/activity, hover-tooltip-only for a sighted player, is ALWAYS present as
-    /// row content rather than gated behind a tooltip lookup.</item>
-    /// <item>DeclaredActions: the four "add memory to this layer" actions, each invoking the mod's
-    /// own private <c>ShowCreateMemoryMenu(MemoryLayer)</c> (vehicle A). That FloatMenu opens only
-    /// on a mouse RIGHT-click, which <c>DrawColoredCheckbox</c> hides behind
-    /// <c>Event.current.button == 1</c> with only a hover tooltip advertising it, and a right-click
-    /// has no keyboard analogue -- so these are its keyboard door, reachable from the automatic
-    /// Buttons region rather than a new hotkey.</item>
+    /// <item>Timeline (0): the context's own <c>TreatedTimelineMemories</c>, in its own order,
+    /// already filtered by the header's layer and type pickers. The timeline only draws the
+    /// cards scrolled into view, so the captured pass never holds the whole list.</item>
+    /// <item>Chronicle (1): the archive layer, oldest first, as the strip lays it out. Its cards
+    /// are placed by tick on a zoomable axis and shrink to unlabeled slivers when zoomed out, so
+    /// the list is built from the comp rather than the draw.</item>
+    /// <item>Details (2): the focused memory. The pane draws its content with a raw
+    /// <c>GUI.Label</c>, which no capture sees, so its lines are rebuilt from the memory in the
+    /// pane's own order.</item>
     /// </list>
     ///
-    /// SELECTION MODEL. The mod's own <c>selectedMemories</c> backs BOTH single-target selection
-    /// AND the batch buttons' "operate on selection, or on everything filtered if none selected"
-    /// fallback. Two keyboard actions reproduce the mouse's two gestures without collapsing them:
-    /// the Timeline row's default Activate mirrors a PLAIN click (replace the whole selection with
-    /// this card), while the dedicated "Selected" column mirrors a Ctrl-click (toggle membership,
-    /// preserving the rest). The mouse's rubber-band drag-select and Shift-click range gestures
-    /// have no keyboard equivalent: toggling each card through the Selected column reaches the
-    /// identical end state, so this is a deliberate simplification, not a silent drop.
+    /// CAPTURED EXTRAS carry the rest unchanged: the layer, type, personalize and tools buttons
+    /// with their menus, Edit, Save and Cancel, the selection bar, and while editing the content
+    /// box, the two sliders and the tag and note boxes (the editable lines leave Details then, so
+    /// the presented-text dedupe cannot swallow the live boxes). Card hotspots are excluded (the tables own them) and the pawn button is
+    /// re-declared with a name, since it draws only the pawn's bare name.
     ///
-    /// ACCEPT/CANCEL: MainTabWindow overrides neither <c>OnAcceptKeyPressed</c> nor
-    /// <c>OnCancelKeyPressed</c>, so <see cref="ScreenScope"/>'s own defaults are correct.
+    /// Moving onto a timeline or chronicle row scrolls the mod's own views to that memory, so a
+    /// viewer sees the card the cursor is on.
     /// </summary>
     public sealed class RimTalkMemoryMainTabScope : ScreenScope
     {
-        private const int FiltersRegion = 0;
-        private const int TimelineRegion = 1;
+        private const int TimelineRegion = 0;
+        private const int ChronicleRegion = 1;
+        private const int DetailsRegion = 2;
 
-        private const int FilterItemAll = 0;
-        private const int FilterItemConversation = 1;
-        private const int FilterItemAction = 2;
-        private const int FilterItemStats = 3;
+        private const int ColMemory = 0;
+        private const int ColLayer = 1;
+        private const int ColContent = 2;
+        private const int ColSelected = 3;
+        private const int ColPinned = 4;
+        private const int ColSummary = 5;
+        private const int ColumnCount = 6;
 
-        private const int ColInfo = 0;
-        private const int ColContent = 1;
-        private const int ColImportance = 2;
-        private const int ColActivity = 3;
-        private const int ColSelected = 4;
-        private const int ColPinned = 5;
-        private const int ColEdit = 6;
+        private enum DetailRow
+        {
+            Guide,
+            LayerAndType,
+            Age,
+            Content,
+            Importance,
+            Activity,
+            Tags,
+            Notes,
+            Status,
+        }
 
         private readonly Window dialog;
 
-        private readonly List<object> memories = new List<object>(); // boxed MemoryEntry
+        private readonly List<object> timeline = new List<object>();
+        private readonly List<object> chronicle = new List<object>();
+        private readonly List<DetailRow> details = new List<DetailRow>();
+        private readonly List<ScreenAction> actions = new List<ScreenAction>();
+
+        private object context;
+        private object focused;
 
         public RimTalkMemoryMainTabScope(Window dialog)
         {
@@ -78,244 +80,298 @@ namespace RimWorldAccess.Shell
 
         public override string Name
         {
-            get { return "rimtalk-memory-mainttab"; }
+            get { return "rimtalk-memory-maintab"; }
         }
 
         protected override int ContentRegionCount
         {
-            get { return 2; }
+            get { return 3; }
         }
 
         protected override string ContentRegionName(int region)
         {
-            return region == FiltersRegion
-                ? "RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName".Translate()
-                : "RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName".Translate();
+            switch (region)
+            {
+                case TimelineRegion: return "RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName".Translate();
+                case ChronicleRegion: return "RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName".Translate();
+                default: return Translator.Translate("RimTalk.Memory.UI.TabWindow.Details");
+            }
+        }
+
+        protected override string ContentRegionEntryDetail(int region)
+        {
+            object comp = RimTalkMemoryCompat.ContextMemoryComp(context);
+            if (region == ChronicleRegion)
+            {
+                return comp == null ? null : (string)TranslatorFormattedStringExtensions.Translate("RimTalk.Memory.UI.TabWindow.ChronicleTitle",
+                    (RimTalkMemoryCompat.ArchiveMemories(comp)?.Count ?? 0).Named("COUNT"));
+            }
+            if (region != TimelineRegion)
+            {
+                return null;
+            }
+            if (comp == null)
+            {
+                return "RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected".Translate();
+            }
+            string counts = "RimWorldAccess.Compat.RimTalk.Memory.StatsValue".Translate(
+                RimTalkMemoryCompat.ActiveMemories(comp)?.Count ?? 0,
+                RimTalkMemoryCompat.SituationalMemories(comp)?.Count ?? 0,
+                RimTalkMemoryCompat.EventLogMemories(comp)?.Count ?? 0,
+                RimTalkMemoryCompat.ArchiveMemories(comp)?.Count ?? 0);
+            int selected = RimTalkMemoryCompat.SelectionCount(context);
+            return selected == 0
+                ? counts
+                : (string)"RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection".Translate(
+                    counts, TranslatorFormattedStringExtensions.Translate("RimTalk.Memory.UI.TabWindow.Selected", selected));
         }
 
         protected override void RefreshContent()
         {
-            memories.Clear();
-            Pawn pawn = RimTalkMemoryCompat.GetSelectedPawn(dialog);
-            object comp = RimTalkMemoryCompat.GetCurrentMemoryComp(dialog);
-            if (pawn == null || comp == null)
+            timeline.Clear();
+            chronicle.Clear();
+            details.Clear();
+
+            context = RimTalkMemoryCompat.TabContext(dialog);
+            object comp = RimTalkMemoryCompat.ContextMemoryComp(context);
+            AddAll(timeline, RimTalkMemoryCompat.ContextTimelineMemories(context));
+            AddAll(chronicle, RimTalkMemoryCompat.ArchiveMemories(comp));
+            chronicle.Sort((a, b) => RimTalkMemoryCompat.MemGameTick(a).CompareTo(RimTalkMemoryCompat.MemGameTick(b)));
+
+            focused = RimTalkMemoryCompat.ContextFocuse(context);
+            if (focused == null)
+            {
+                details.Add(DetailRow.Guide);
+                return;
+            }
+            details.Add(DetailRow.LayerAndType);
+            details.Add(DetailRow.Age);
+            if (!RimTalkMemoryCompat.DetailsEditing(RimTalkMemoryCompat.TabDetails(dialog)))
+            {
+                details.Add(DetailRow.Content);
+                details.Add(DetailRow.Importance);
+                details.Add(DetailRow.Activity);
+                details.Add(DetailRow.Tags);
+                details.Add(DetailRow.Notes);
+            }
+            details.Add(DetailRow.Status);
+        }
+
+        private static void AddAll(List<object> into, IList from)
+        {
+            if (from == null)
             {
                 return;
             }
-            IList filtered = RimTalkMemoryCompat.GetFilteredMemories(dialog);
-            if (filtered == null)
-            {
-                return;
-            }
-            foreach (object entry in filtered)
+            foreach (object entry in from)
             {
                 if (entry != null)
                 {
-                    memories.Add(entry);
+                    into.Add(entry);
                 }
             }
         }
 
+        private List<object> Rows(int region)
+        {
+            return region == ChronicleRegion ? chronicle : timeline;
+        }
+
+        private object MemoryAt(int region, int row)
+        {
+            List<object> rows = Rows(region);
+            return row >= 0 && row < rows.Count ? rows[row] : null;
+        }
+
         protected override int ContentItemCount(int region)
         {
-            return region == FiltersRegion ? 4 : memories.Count;
+            return region == DetailsRegion ? details.Count : Rows(region).Count;
         }
 
         protected override int ContentColumnCount(int region)
         {
-            return region == TimelineRegion ? 7 : 0;
+            return region == DetailsRegion ? 0 : ColumnCount;
         }
 
         protected override TableColumnInfo ContentColumnInfo(int region, int column)
         {
-            if (region != TimelineRegion)
+            if (region == DetailsRegion)
             {
                 return null;
             }
             switch (column)
             {
-                case ColInfo: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo".Translate());
+                case ColMemory: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory".Translate());
+                case ColLayer: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer".Translate());
                 case ColContent: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnContent".Translate());
-                case ColImportance: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance".Translate());
-                case ColActivity: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity".Translate());
                 case ColSelected: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected".Translate());
                 case ColPinned: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned".Translate());
-                default: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit".Translate());
+                default: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary".Translate());
             }
         }
 
         protected override string ContentCellText(int region, int row, int column)
         {
-            if (region != TimelineRegion || row < 0 || row >= memories.Count)
+            object entry = region == DetailsRegion ? null : MemoryAt(region, row);
+            if (entry == null)
             {
                 return "";
             }
-            object entry = memories[row];
             switch (column)
             {
-                case ColInfo: return InfoLine(entry);
-                case ColContent: return RimTalkMemoryCompat.MemContent(entry) ?? "";
-                case ColImportance: return RimTalkMemoryCompat.MemImportance(entry).ToString("F2");
-                case ColActivity: return RimTalkMemoryCompat.MemActivity(entry).ToString("F2");
-                case ColSelected: return RimTalkMemoryCompat.IsSelected(dialog, entry)
+                case ColMemory: return CardTitle(region, entry);
+                case ColLayer: return RimTalkMemoryCompat.MemLayerLabel(entry);
+                case ColContent: return RimTalkMemoryCompat.MemContent(entry);
+                case ColSelected: return RimTalkMemoryCompat.IsSelected(context, entry)
                     ? "RimWorldAccess.Compat.RimTalk.Memory.Selected".Translate()
                     : "RimWorldAccess.Compat.RimTalk.Memory.NotSelected".Translate();
-                case ColPinned: return RimTalkMemoryCompat.MemIsPinned(entry)
-                    ? "RimWorldAccess.Compat.RimTalk.Memory.Pinned".Translate()
-                    : "RimWorldAccess.Compat.RimTalk.Memory.NotPinned".Translate();
-                default: return "RimWorldAccess.Compat.RimTalk.Memory.EditAction".Translate();
+                case ColPinned: return Translator.Translate(RimTalkMemoryCompat.MemIsPinned(entry)
+                    ? "RimTalk.Memory.UI.TabWindow.Pinned" : "RimTalk.Memory.UI.TabWindow.NotPinned");
+                default: return SummaryText(entry);
             }
         }
 
-        /// <summary>Mirrors DrawMemoryCard's own header line format ("[Layer] Type · Age" plus "with X" when related).</summary>
-        private static string InfoLine(object entry)
+        /// <summary>The card's own title: type and age on the timeline (TimelineCard.GetTitle), the covered dates on the chronicle (ChronicleCard.GetTitle).</summary>
+        private static string CardTitle(int region, object entry)
         {
-            string relatedPawn = RimTalkMemoryCompat.MemRelatedPawnName(entry);
-            return string.IsNullOrEmpty(relatedPawn)
-                ? "RimWorldAccess.Compat.RimTalk.Memory.InfoLine".Translate(
-                    RimTalkMemoryCompat.MemLayerName(entry), RimTalkMemoryCompat.MemTypeName(entry), RimTalkMemoryCompat.MemAgeString(entry))
-                : "RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn".Translate(
-                    RimTalkMemoryCompat.MemLayerName(entry), RimTalkMemoryCompat.MemTypeName(entry), RimTalkMemoryCompat.MemAgeString(entry), relatedPawn);
+            if (region == ChronicleRegion)
+            {
+                return "RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle".Translate(
+                    GenDate.DateFullStringAt(GenDate.TickGameToAbs(RimTalkMemoryCompat.MemGameTick(entry)), Vector2.zero),
+                    GenDate.DateFullStringAt(GenDate.TickGameToAbs(RimTalkMemoryCompat.MemEndGameTick(entry)), Vector2.zero));
+            }
+            string related = RimTalkMemoryCompat.MemRelatedPawnName(entry);
+            return string.IsNullOrEmpty(related)
+                ? (string)"RimWorldAccess.Compat.RimTalk.Memory.CardTitle".Translate(
+                    RimTalkMemoryCompat.MemTypeLabel(entry), RimTalkMemoryCompat.MemAgeString(entry))
+                : (string)"RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn".Translate(
+                    RimTalkMemoryCompat.MemTypeLabel(entry), RimTalkMemoryCompat.MemAgeString(entry), related);
+        }
+
+        /// <summary>MemoryDetails' summary state words; a card shows the summarizing state as a pulsing outline.</summary>
+        private string SummaryText(object entry)
+        {
+            object comp = RimTalkMemoryCompat.ContextMemoryComp(context);
+            string key = RimTalkMemoryCompat.IsSummarizing(comp, entry) ? "RimTalk.Memory.UI.TabWindow.Summarizing"
+                : RimTalkMemoryCompat.IsSummarized(comp, entry) ? "RimTalk.Memory.UI.TabWindow.Summarized"
+                : "RimTalk.Memory.UI.TabWindow.NotSummarized";
+            return Translator.Translate(key);
         }
 
         protected override ElementDescription DescribeContentItem(int region, int index)
         {
             var d = new ElementDescription();
-            if (region == FiltersRegion)
+            if (region != DetailsRegion)
             {
-                DescribeFilterRow(d, index);
+                object entry = MemoryAt(region, index);
+                d.Label = entry == null ? "" : CardTitle(region, entry);
+                return d;
             }
-            else
+            if (index < 0 || index >= details.Count)
             {
-                d.Label = ContentCellText(TimelineRegion, index, ColInfo);
+                return d;
             }
+            DescribeDetail(d, details[index]);
             return d;
         }
 
-        private void DescribeFilterRow(ElementDescription d, int index)
+        private void DescribeDetail(ElementDescription d, DetailRow row)
         {
-            if (index == FilterItemStats)
+            d.ReadOnly = true;
+            switch (row)
             {
-                d.Role = ElementRole.None;
-                d.ReadOnly = true;
-                d.Label = "RimWorldAccess.Compat.RimTalk.Memory.StatsLabel".Translate();
-                Pawn pawn = RimTalkMemoryCompat.GetSelectedPawn(dialog);
-                object comp = RimTalkMemoryCompat.GetCurrentMemoryComp(dialog);
-                if (pawn == null)
-                {
-                    d.Value = "RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected".Translate();
-                }
-                else if (comp == null)
-                {
-                    d.Value = "RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent".Translate();
-                }
-                else
-                {
-                    d.Value = "RimWorldAccess.Compat.RimTalk.Memory.StatsValue".Translate(
-                        RimTalkMemoryCompat.GetActiveMemories(comp)?.Count ?? 0,
-                        RimTalkMemoryCompat.GetSituationalMemories(comp)?.Count ?? 0,
-                        RimTalkMemoryCompat.GetEventLogMemories(comp)?.Count ?? 0,
-                        RimTalkMemoryCompat.GetArchiveMemories(comp)?.Count ?? 0);
-                }
-                return;
-            }
-
-            d.Role = ElementRole.RadioButton;
-            object currentFilter = RimTalkMemoryCompat.GetFilterType(dialog);
-            switch (index)
-            {
-                case FilterItemAll:
-                    d.Label = "RimWorldAccess.Compat.RimTalk.Memory.FilterAll".Translate();
-                    d.Selected = currentFilter == null;
-                    break;
-                case FilterItemConversation:
-                    d.Label = "RimWorldAccess.Compat.RimTalk.Memory.FilterConversation".Translate();
-                    d.Selected = Equals(currentFilter, RimTalkMemoryCompat.GetMemoryTypeConversation());
-                    break;
+                case DetailRow.Guide:
+                    d.Label = SpeechFlatten.ToSentences(Translator.Translate("RimTalk.Memory.UI.TabWindow.Guide")) ?? "";
+                    return;
+                case DetailRow.LayerAndType:
+                    d.Label = "RimWorldAccess.Compat.RimTalk.Memory.LayerAndType".Translate(
+                        RimTalkMemoryCompat.MemLayerLabel(focused), RimTalkMemoryCompat.MemTypeLabel(focused));
+                    return;
+                case DetailRow.Age:
+                    d.Label = RimTalkMemoryCompat.MemAgeString(focused);
+                    return;
+                case DetailRow.Content:
+                    d.Label = SpeechFlatten.ToSentences(RimTalkMemoryCompat.MemContent(focused)) ?? "";
+                    return;
+                case DetailRow.Importance:
+                    d.Label = TranslatorFormattedStringExtensions.Translate("RimTalk.Memory.UI.TabWindow.Importance",
+                        RimTalkMemoryCompat.MemImportance(focused).ToString("F2").Named("IMPORTANCE"));
+                    return;
+                case DetailRow.Activity:
+                    d.Label = TranslatorFormattedStringExtensions.Translate("RimTalk.Memory.UI.TabWindow.Activity",
+                        RimTalkMemoryCompat.MemActivity(focused).ToString("F2").Named("ACTIVITY"));
+                    return;
+                case DetailRow.Tags:
+                    // The pane draws the mod's caption key directly followed by the joined tags.
+                    IList<string> tags = RimTalkMemoryCompat.MemTags(focused);
+                    d.Label = Translator.Translate("RimTalk.Memory.UI.TabWindow.Tags")
+                        + (tags == null ? "" : string.Join(", ", tags));
+                    return;
+                case DetailRow.Notes:
+                    // Same caption-then-value draw as the tags line.
+                    d.Label = Translator.Translate("RimTalk.Memory.UI.TabWindow.Notes") + RimTalkMemoryCompat.MemNote(focused);
+                    return;
                 default:
-                    d.Label = "RimWorldAccess.Compat.RimTalk.Memory.FilterAction".Translate();
-                    d.Selected = Equals(currentFilter, RimTalkMemoryCompat.GetMemoryTypeAction());
-                    break;
+                    d.Label = "RimWorldAccess.Compat.RimTalk.Memory.DetailStatus".Translate(
+                        Translator.Translate(RimTalkMemoryCompat.MemIsPinned(focused)
+                            ? "RimTalk.Memory.UI.TabWindow.Pinned" : "RimTalk.Memory.UI.TabWindow.NotPinned"),
+                        SummaryText(focused));
+                    return;
             }
         }
 
         protected override void ActivateContentItem(int region, int index)
         {
-            if (region == FiltersRegion)
-            {
-                ActivateFilterRow(index);
-                return;
-            }
-            if (index < 0 || index >= memories.Count)
-            {
-                return;
-            }
-            RimTalkMemoryCompat.ReplaceSelectionWith(dialog, memories[index]);
-            AnnounceCurrentItem();
-        }
-
-        private void ActivateFilterRow(int index)
-        {
-            if (index == FilterItemStats)
+            if (region == DetailsRegion)
             {
                 AnnounceCurrentItem();
                 return;
             }
-            object value = index == FilterItemAll ? null
-                : index == FilterItemConversation ? RimTalkMemoryCompat.GetMemoryTypeConversation()
-                : RimTalkMemoryCompat.GetMemoryTypeAction();
-            RimTalkMemoryCompat.SetFilterType(dialog, value);
+            object entry = MemoryAt(region, index);
+            if (entry == null || context == null)
+            {
+                return;
+            }
+            RimTalkMemoryCompat.SelectMemory(context, entry, addToSelection: false);
             RefreshModel();
             AnnounceCurrentItem();
         }
 
         protected override bool ActivateContentCell(int region, int row, int column)
         {
-            if (region != TimelineRegion || row < 0 || row >= memories.Count)
+            object entry = region == DetailsRegion ? null : MemoryAt(region, row);
+            if (entry == null || context == null)
             {
                 return false;
             }
-            object entry = memories[row];
             switch (column)
             {
                 case ColSelected:
-                    RimTalkMemoryCompat.ToggleSelection(dialog, entry);
-                    RefreshModel();
-                    AnnounceCurrentItem();
-                    return true;
+                    RimTalkMemoryCompat.SelectMemory(context, entry, addToSelection: true);
+                    break;
                 case ColPinned:
-                {
-                    object comp = RimTalkMemoryCompat.GetCurrentMemoryComp(dialog);
-                    if (comp != null)
-                    {
-                        RimTalkMemoryCompat.PinMemory(comp, RimTalkMemoryCompat.MemId(entry), !RimTalkMemoryCompat.MemIsPinned(entry));
-                        RefreshModel();
-                        AnnounceCurrentItem();
-                    }
-                    return true;
-                }
-                case ColEdit:
-                {
-                    object comp = RimTalkMemoryCompat.GetCurrentMemoryComp(dialog);
-                    if (comp != null)
-                    {
-                        RimTalkMemoryCompat.OpenEditMemory(entry, comp);
-                    }
-                    return true;
-                }
+                    RimTalkMemoryCompat.TogglePin(RimTalkMemoryCompat.ContextMemoryComp(context), entry);
+                    break;
                 default:
                     return false;
             }
+            RefreshModel();
+            AnnounceCurrentItem();
+            return true;
         }
 
-        // Focus ring. The timeline is virtualized, so a card's place on screen lives only in
-        // DrawTimeline's own y/height caches; the card's pin button (the one 24px square it
-        // draws, at the card's own +8 offset) both confirms the card was drawn this pass and
-        // carries the scrolled group's translation and visible band, which the pass this runs
-        // after has already closed. A card scrolled out draws no button, and no ring is right.
+        protected override void OnCursorSettled(int region, int index)
+        {
+            // Table regions carry their header at model row 0.
+            object entry = region == TimelineRegion || region == ChronicleRegion ? MemoryAt(region, index - 1) : null;
+            if (entry != null && context != null)
+            {
+                RimTalkMemoryCompat.RevealMemory(context, entry);
+            }
+        }
 
-        private const float CardButtonSize = 24f;
-        private const float CardButtonInset = 8f;
+        // Focus ring: a card draws its content with Widgets.Label and covers itself with one
+        // ButtonInvisible, so the hotspot holding the content label is the card on screen.
 
         protected internal override Rect FocusedContentRect()
         {
@@ -324,22 +380,46 @@ namespace RimWorldAccess.Shell
             {
                 return default(Rect);
             }
-            return Model.RegionIndex == FiltersRegion
-                ? FilterRowRect(region.Index)
-                : Model.RegionIndex == TimelineRegion ? CardRect(region.Index) : default(Rect);
+            switch (Model.RegionIndex)
+            {
+                case TimelineRegion:
+                case ChronicleRegion:
+                    object entry = MemoryAt(Model.RegionIndex, region.Index - 1);
+                    return entry == null ? default(Rect) : CardRect(RimTalkMemoryCompat.MemContent(entry));
+                case DetailsRegion:
+                    return LabelRect(DescribeContentItem(DetailsRegion, region.Index).Label);
+                default:
+                    return default(Rect);
+            }
         }
 
-        private Rect FilterRowRect(int index)
+        private static Rect CardRect(string content)
         {
-            if (index == FilterItemStats)
-            {
-                return default(Rect);
-            }
-            string label = RimTalkMemoryCompat.FilterButtonRawLabel(index);
             IReadOnlyList<CapturedWidget> pass = WidgetCapture.Items;
             for (int i = 0; i < pass.Count; i++)
             {
-                if (pass[i].Kind == WidgetKind.Button && pass[i].Label == label)
+                if (pass[i].Kind != WidgetKind.Label || pass[i].Label != content)
+                {
+                    continue;
+                }
+                Vector2 center = pass[i].ScreenRect.center;
+                for (int j = i + 1; j < pass.Count; j++)
+                {
+                    if (pass[j].Kind == WidgetKind.InvisibleButton && pass[j].ScreenRect.Contains(center))
+                    {
+                        return pass[j].VisibleScreenRect;
+                    }
+                }
+            }
+            return default(Rect);
+        }
+
+        private static Rect LabelRect(string text)
+        {
+            IReadOnlyList<CapturedWidget> pass = WidgetCapture.Items;
+            for (int i = 0; i < pass.Count; i++)
+            {
+                if (pass[i].Kind == WidgetKind.Label && pass[i].Label == text)
                 {
                     return pass[i].VisibleScreenRect;
                 }
@@ -347,41 +427,8 @@ namespace RimWorldAccess.Shell
             return default(Rect);
         }
 
-        private Rect CardRect(int index)
-        {
-            if (index >= memories.Count)
-            {
-                return default(Rect);
-            }
-            IList cached = RimTalkMemoryCompat.GetCachedMemories(dialog);
-            IList<float> yPositions = RimTalkMemoryCompat.GetCachedCardYPositions(dialog);
-            IList<float> heights = RimTalkMemoryCompat.GetCachedCardHeights(dialog);
-            int cardIndex = cached?.IndexOf(memories[index]) ?? -1;
-            if (cardIndex < 0 || yPositions == null || heights == null
-                || cardIndex >= yPositions.Count || cardIndex >= heights.Count)
-            {
-                return default(Rect);
-            }
-            float cardY = yPositions[cardIndex];
-            IReadOnlyList<CapturedWidget> pass = WidgetCapture.Items;
-            for (int i = 0; i < pass.Count; i++)
-            {
-                CapturedWidget widget = pass[i];
-                if (widget.Kind != WidgetKind.Button
-                    || Mathf.Abs(widget.Rect.height - CardButtonSize) > 0.5f
-                    || Mathf.Abs(widget.Rect.y - (cardY + CardButtonInset)) > 0.5f)
-                {
-                    continue;
-                }
-                return GuiSpace.VisibleScreenRectFrom(widget.Rect, widget.ScreenRect, widget.Clip,
-                    new Rect(0f, cardY, widget.Clip.VisibleRect.width, heights[cardIndex]));
-            }
-            return default(Rect);
-        }
-
-        // Declared actions: the four right-click-only "create memory here" gestures.
-
-        private readonly List<ScreenAction> actions = new List<ScreenAction>();
+        // The pawn button draws only the pawn's bare name, so it is re-declared with a caption and
+        // still activated through the same captured widget, keeping the mod's own side window.
 
         protected override IReadOnlyList<ScreenAction> DeclaredActions
         {
@@ -389,25 +436,18 @@ namespace RimWorldAccess.Shell
             {
                 actions.Clear();
                 actions.Add(new ScreenAction(
-                    PawnSelectorLabel(), ActivatePawnSelector, "rimTalkMemory.pawnSelector"));
-                actions.Add(new ScreenAction(
-                    "RimWorldAccess.Compat.RimTalk.Memory.AddToActive".Translate(),
-                    delegate { RimTalkMemoryCompat.ShowCreateMemoryMenu(dialog, "Active"); },
-                    "rimTalkMemory.addToActive"));
-                actions.Add(new ScreenAction(
-                    "RimWorldAccess.Compat.RimTalk.Memory.AddToSituational".Translate(),
-                    delegate { RimTalkMemoryCompat.ShowCreateMemoryMenu(dialog, "Situational"); },
-                    "rimTalkMemory.addToSituational"));
-                actions.Add(new ScreenAction(
-                    "RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog".Translate(),
-                    delegate { RimTalkMemoryCompat.ShowCreateMemoryMenu(dialog, "EventLog"); },
-                    "rimTalkMemory.addToEventLog"));
-                actions.Add(new ScreenAction(
-                    "RimWorldAccess.Compat.RimTalk.Memory.AddToArchive".Translate(),
-                    delegate { RimTalkMemoryCompat.ShowCreateMemoryMenu(dialog, "Archive"); },
-                    "rimTalkMemory.addToArchive"));
+                    "RimWorldAccess.Compat.RimTalk.Memory.PawnSelector".Translate(PawnButtonLabel()),
+                    delegate { WidgetCapture.RequestActivate(WidgetKind.Button, PawnButtonLabel(), 0); },
+                    "rimTalkMemory.pawnSelector"));
                 return actions;
             }
+        }
+
+        /// <summary>MemoryTabHeader's own choice of button text.</summary>
+        private string PawnButtonLabel()
+        {
+            Pawn pawn = RimTalkMemoryCompat.ContextPawn(RimTalkMemoryCompat.TabContext(dialog));
+            return pawn != null ? pawn.LabelShort : (string)Translator.Translate("RimTalk.Memory.UI.TabWindow.Need_SelectPawn");
         }
 
         protected override bool CaptureWindowButtons
@@ -420,39 +460,23 @@ namespace RimWorldAccess.Shell
             get { return true; }
         }
 
-        // Pawn selector: DrawTopBar's pawn-picker draws Widgets.ButtonText with the pawn's bare
-        // LabelShort, so riding captured-extras would announce "Vlad. button. 1 of 32" with no
-        // indication of what it is. Excluded here and re-declared with a "Pawn: {0}" label, still
-        // activated through the same captured widget so its own FloatMenu keeps working.
-
-        /// <summary>The exact raw text the mod's own button shows this frame -- mirrors DrawTopBar's own string choice so both the exclusion match and the reactivation lookup target the real widget.</summary>
-        private string PawnSelectorRawLabel()
-        {
-            Pawn pawn = RimTalkMemoryCompat.GetSelectedPawn(dialog);
-            return pawn != null ? pawn.LabelShort : Translator.Translate("RimTalk_SelectColonist").Resolve();
-        }
-
-        private string PawnSelectorLabel()
-        {
-            Pawn pawn = RimTalkMemoryCompat.GetSelectedPawn(dialog);
-            string name = pawn != null ? pawn.LabelShortCap : PawnSelectorRawLabel();
-            return "RimWorldAccess.Compat.RimTalk.Memory.PawnSelector".Translate(name);
-        }
-
-        /// <summary>Vehicle A: re-invokes the SAME captured button by raw label + ordinal 0, unique because the label is either the current pawn's name or the mod's "select colonist" fallback, never shared with another button on this window.</summary>
-        private void ActivatePawnSelector()
-        {
-            WidgetCapture.RequestActivate(WidgetKind.Button, PawnSelectorRawLabel(), 0);
-        }
-
         protected override bool ExcludeFromCapturedExtras(CapturedWidget widget)
         {
-            return widget.Kind == WidgetKind.Button && widget.Label == PawnSelectorRawLabel();
+            if (widget.Kind == WidgetKind.InvisibleButton)
+            {
+                return true;
+            }
+            if (widget.Kind == WidgetKind.Button && widget.Label == PawnButtonLabel())
+            {
+                return true;
+            }
+            return false;
         }
 
         protected override string ComposeOpenAnnouncement()
         {
-            return "RimWorldAccess.Compat.RimTalk.Memory.Opened".Translate();
+            MainButtonDef def = DefDatabase<MainButtonDef>.GetNamedSilentFail("RimTalk_Memory");
+            return def != null ? def.LabelCap.ToString() : null;
         }
     }
 }

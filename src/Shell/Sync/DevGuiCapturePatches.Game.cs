@@ -203,12 +203,25 @@ namespace RimWorldAccess.Shell
             {
                 ModLogger.LimitedError("DevGUI scroll capture error", ex);
             }
+            WidgetCapture.EnterWrappedScrollView();
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            WidgetCapture.ExitWrappedScrollView();
         }
     }
 
     [HarmonyPatch(typeof(DevGUI), nameof(DevGUI.EndScrollView))]
     internal static class DevGuiCaptureEndScrollViewPatch
     {
+        [HarmonyPrefix]
+        public static void Prefix()
+        {
+            WidgetCapture.EnterWrappedScrollView();
+        }
+
         [HarmonyPostfix]
         public static void Postfix()
         {
@@ -220,6 +233,12 @@ namespace RimWorldAccess.Shell
             {
                 ModLogger.LimitedError("DevGUI scroll capture error", ex);
             }
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            WidgetCapture.ExitWrappedScrollView();
         }
     }
 }

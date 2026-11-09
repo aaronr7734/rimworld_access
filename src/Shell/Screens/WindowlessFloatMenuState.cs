@@ -213,8 +213,7 @@ namespace RimWorldAccess
                 }
             }
 
-            // Capture the callback before Close clears it, so it can run AFTER the option's action,
-            // which may itself speak.
+            // Captured before Close clears it, to run AFTER the option's action, which may speak.
             System.Action<bool> closeCb = onCloseCallback;
 
             // Close before executing, so the action is free to open a new menu.

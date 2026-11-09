@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Verse;
+using UnityEngine;
 using Verse.Sound;
 using RimWorld;
 using RimWorldAccess.Shell;
@@ -35,7 +36,6 @@ namespace RimWorldAccess
         /// </summary>
         internal static void OpenArchitectTreeMenu()
         {
-            // Enter category selection mode in ArchitectState
             ArchitectState.EnterCategorySelection();
 
             // Open the tree menu with callback for when a designator is selected
@@ -98,14 +98,28 @@ namespace RimWorldAccess
 
                 if (ArchitectHelper.RequiresMaterialSelection(buildable))
                 {
-                    // Show material selection menu
                     ShowMaterialMenu(buildable, buildDesignator);
                     return;
                 }
             }
 
+            // A mod designator's own ProcessInput may set it up first (a target menu, a map-wide
+            // action) before selecting itself; run it as a click would. Its Select routes into
+            // placement through DesignatorManagerPatch, and any FloatMenu goes windowless.
+            if (ModOverridesProcessInput(designator))
+            {
+                designator.ProcessInput(new Event { type = EventType.Used });
+                return;
+            }
+
             // No material selection needed - go straight to placement
             ArchitectState.EnterPlacementMode(designator);
+        }
+
+        private static bool ModOverridesProcessInput(Designator designator)
+        {
+            System.Type declaring = designator.GetType().GetMethod(nameof(Designator.ProcessInput), new[] { typeof(Event) })?.DeclaringType;
+            return declaring != null && declaring.Assembly != typeof(Designator).Assembly;
         }
 
         /// <summary>
@@ -161,7 +175,6 @@ namespace RimWorldAccess
             // mirrors the stuff float menu in Designator_Build.ProcessInput; SetStuffDef alone leaves the label in pre-material form
             BuildingReflection.SetWriteStuff(designator, true);
 
-            // Enter placement mode
             ArchitectState.EnterPlacementMode(designator, material);
         }
 

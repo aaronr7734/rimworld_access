@@ -58,6 +58,7 @@ TOP_CLASS = re.compile(r"^\s{0,8}(?:\[[^\]]*\]\s*)*(?:public|internal|sealed|abs
 TREE_EXEMPT = {
     "CmrLogsDetails": "mirrors Colony Manager's own SelectedLog per tab; SetSelectedLog is the toggle",
     "CmrManagerScope": "mirrors Colony Manager's own per-row expansion via live Func reads",
+    "CmrProductionDetails": "mirrors Colony Manager's own _collapsedWorkbenchGroups (Production Available list)",
     "DevDebugScope": "drill-down pager over vanilla's own DebugActionNode location; no our-side state",
     "FishingZoneMenuState": "describe helper for FishingZoneScope, a TreeRegionScope",
     "GenericWindowScope": "mirrors captured foreign windows' collapsible rows; no stable model exists",

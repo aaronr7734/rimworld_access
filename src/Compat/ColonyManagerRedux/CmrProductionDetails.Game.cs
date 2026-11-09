@@ -71,22 +71,58 @@ namespace RimWorldAccess.Shell
         private static CmrDetailRegion BuildAvailable(object tab)
         {
             var region = new CmrDetailRegion(ModText("ColonyManagerRedux.Thresholds.Available"));
-            List<RecipeDef> recipes = CmrCompat.Production.AvailableRecipes(tab);
-            for (int i = 0; i < recipes.Count; i++)
+            CmrDetailRow groupToggle = CmrTabRows.Toggle(null, "ColonyManagerRedux.Production.GroupByWorkbench",
+                () => CmrCompat.Production.GroupByWorkbench(tab),
+                value => CmrCompat.Production.SetGroupByWorkbench(tab, value));
+            groupToggle.OnSettle = () => CmrCompat.Production.ShowSubTab(tab, 0);
+            region.Rows.Add(groupToggle);
+
+            if (!CmrCompat.Production.GroupByWorkbench(tab))
             {
-                RecipeDef recipe = recipes[i];
+                foreach (RecipeDef recipe in CmrCompat.Production.AvailableRecipes(tab))
+                {
+                    region.Rows.Add(RecipeRow(tab, recipe));
+                }
+                return region;
+            }
+            foreach (KeyValuePair<ThingDef, List<RecipeDef>> group in CmrCompat.Production.WorkbenchGroups(tab))
+            {
+                ThingDef workbench = group.Key;
+                Func<bool> expanded = () => !CmrCompat.Production.IsWorkbenchGroupCollapsed(tab, workbench);
                 region.Rows.Add(new CmrDetailRow
                 {
-                    Label = recipe.LabelCap,
-                    Value = () => Workstations(recipe),
-                    Tooltip = () => Flatten(recipe.description),
-                    Role = ElementRole.Button,
+                    Label = workbench.LabelCap + " (" + group.Value.Count + ")",
+                    Role = ElementRole.TreeItem,
+                    Expanded = expanded,
                     OnSettle = () => CmrCompat.Production.ShowSubTab(tab, 0),
-                    Activate = () => CmrCompat.Production.SelectRecipe(tab, recipe),
-                    Confirmation = "RimWorldAccess.Cmr.Production.JobOpened".Translate(recipe.LabelCap),
+                    Activate = () => CmrCompat.Production.SetWorkbenchGroupCollapsed(tab, workbench, expanded()),
+                    CanAdjust = direction => expanded() == (direction < 0),
+                    Adjust = direction => CmrCompat.Production.SetWorkbenchGroupCollapsed(tab, workbench, direction < 0),
+                    InfoCardDef = workbench,
                 });
+                if (expanded())
+                {
+                    foreach (RecipeDef recipe in group.Value)
+                    {
+                        region.Rows.Add(RecipeRow(tab, recipe));
+                    }
+                }
             }
             return region;
+        }
+
+        private static CmrDetailRow RecipeRow(object tab, RecipeDef recipe)
+        {
+            return new CmrDetailRow
+            {
+                Label = recipe.LabelCap,
+                Value = () => Workstations(recipe),
+                Tooltip = () => Flatten(recipe.description),
+                Role = ElementRole.Button,
+                OnSettle = () => CmrCompat.Production.ShowSubTab(tab, 0),
+                Activate = () => CmrCompat.Production.SelectRecipe(tab, recipe),
+                Confirmation = "RimWorldAccess.Cmr.Production.JobOpened".Translate(recipe.LabelCap),
+            };
         }
 
         private static string Workstations(RecipeDef recipe)
@@ -112,6 +148,7 @@ namespace RimWorldAccess.Shell
             AddLinkedJobs(region, tab, job);
             AddWorkbenchScope(region, job);
             AddJobSettings(region, job);
+            AddReservedStock(region, tab, job);
             AddStatus(region, job);
             return region;
         }
@@ -277,6 +314,27 @@ namespace RimWorldAccess.Shell
             region.Rows.Add(CmrTabRows.Toggle(section, "ColonyManagerRedux.Threshold.CountAllOnMap",
                 () => CmrCompat.Threshold.JobCountAllOnMap(job),
                 value => CmrCompat.Threshold.SetJobCountAllOnMap(job, value)));
+
+            if (maintainStock && CmrCompat.Production.ShowsQualityRange(job))
+            {
+                region.Rows.Add(new CmrDetailRow
+                {
+                    Label = "Quality".Translate(),
+                    Role = ElementRole.Slider,
+                    SectionTitle = section,
+                    Value = () => QualityRangeValue(CmrCompat.Production.CountedQualityRange(job)),
+                    Tooltip = ModTip("ColonyManagerRedux.Production.QualityRange.Tip"),
+                    Activate = () => RangeEditMenuState.OpenQualityRange(
+                        () => CmrCompat.Production.CountedQualityRange(job),
+                        value => CmrCompat.Production.SetCountedQualityRange(job, value)),
+                    OpensWindow = true,
+                });
+            }
+        }
+
+        private static string QualityRangeValue(QualityRange range)
+        {
+            return "RimWorldAccess.Shell.FilterTree.RangeValue".Translate(range.min.GetLabel(), range.max.GetLabel());
         }
 
         private static bool CanStepTargetCount(object job, int direction)
@@ -576,6 +634,57 @@ namespace RimWorldAccess.Shell
             });
         }
 
+        private static void AddReservedStock(CmrDetailRegion region, object tab, object job)
+        {
+            string section = ModText("ColonyManagerRedux.Production.ReservedStock");
+            foreach (ThingDef ingredient in CmrCompat.Production.ReservedIngredients(job))
+            {
+                ThingDef def = ingredient;
+                Func<int> current = () => CmrCompat.Production.EffectiveReservedStock(job, def);
+                Action<int> apply = value => CmrCompat.Production.SetReservedStockOverride(tab, job, def, Math.Max(0, value));
+                region.Rows.Add(new CmrDetailRow
+                {
+                    Label = def.LabelCap,
+                    Role = ElementRole.Stepper,
+                    SectionTitle = section,
+                    Value = () => current().ToString(CultureInfo.InvariantCulture),
+                    Tooltip = ModTip("ColonyManagerRedux.Production.ReservedStock.JobOverride.Tip"),
+                    CanAdjust = direction => direction > 0 || current() > 0,
+                    Adjust = direction => apply(current() + direction),
+                    Numeric = new CmrNumericSpec
+                    {
+                        Min = 0,
+                        Max = int.MaxValue,
+                        Current = current,
+                        Apply = apply,
+                    },
+                    InfoCardDef = def,
+                });
+                if (CmrCompat.Production.HasReservedStockOverride(job, def))
+                {
+                    string key = CmrCompat.Production.HasDefaultReservedStock(job, def)
+                        ? "ColonyManagerRedux.Production.ReservedStock.ResetToGlobal"
+                        : "ColonyManagerRedux.Production.ReservedStock.Remove";
+                    region.Rows.Add(new CmrDetailRow
+                    {
+                        Label = "RimWorldAccess.Cmr.Production.ReservedStockAction".Translate(ModText(key), def.LabelCap),
+                        Role = ElementRole.Button,
+                        SectionTitle = section,
+                        Activate = () => CmrCompat.Production.SetReservedStockOverride(tab, job, def, null),
+                        Confirmation = ModText(key),
+                    });
+                }
+            }
+            region.Rows.Add(new CmrDetailRow
+            {
+                Label = ModText("ColonyManagerRedux.Production.AddReservedStock"),
+                Role = ElementRole.Button,
+                SectionTitle = section,
+                Activate = () => CmrCompat.Production.OpenAddReservedStockMenu(job),
+                OpensWindow = true,
+            });
+        }
+
         /// <summary>The min/max pair, wording and grammar reused key-for-key from the bill config skill-range rows (BillConfigState.cs:700-714).</summary>
         private static void AddSkillRange(CmrDetailRegion region, string section, object job)
         {
@@ -622,13 +731,14 @@ namespace RimWorldAccess.Shell
         {
             int min = CmrCompat.Production.SkillMin(job);
             int max = CmrCompat.Production.SkillMax(job);
-            return direction < 0 ? max > min : max < 20;
+            return direction < 0 ? max > min : max < CmrCompat.Production.MaxAllowedSkillLevel();
         }
 
         private static void StepSkillMax(object job, int direction)
         {
             int min = CmrCompat.Production.SkillMin(job);
-            int max = Mathf.Clamp(CmrCompat.Production.SkillMax(job) + direction, min, 20);
+            int max = Mathf.Clamp(CmrCompat.Production.SkillMax(job) + direction, min,
+                CmrCompat.Production.MaxAllowedSkillLevel());
             CmrCompat.Production.SetSkillRange(job, min, max);
         }
 
@@ -724,17 +834,23 @@ namespace RimWorldAccess.Shell
                     () => CmrCompat.Production.SyncFilterAndAllowed(job),
                     value => CmrCompat.Production.SetSyncFilterAndAllowed(job, value),
                     tipKey: "ColonyManagerRedux.Production.SyncFilterAndAllowed.Tip"));
+                region.Rows.Add(CmrTabRows.Toggle(null, "ColonyManagerRedux.Production.ConsumeSurplusPerIngredient",
+                    () => CmrCompat.Production.ConsumeSurplusPerIngredient(job),
+                    value => CmrCompat.Production.SetConsumeSurplusPerIngredient(job, value)));
             }
 
-            List<ThingDef> allIngredients = CmrCompat.Production.AllIngredientOptions(recipe);
+            List<ThingDef> allIngredients = CmrCompat.Production.OptionalIngredientOptions(recipe);
+            Func<ThingDef, bool> isAllowed = def => CmrCompat.Production.IngredientAllowed(job, def);
+            Action<ThingDef, bool> setAllowed = (def, allow) => CmrCompat.Production.SetIngredientAllowed(job, def, allow);
 
-            region.Rows.Add(ShortcutRow(job, ModText("ColonyManagerRedux.Shortcuts.All"), allIngredients));
-
-            List<KeyValuePair<ThingCategoryDef, List<ThingDef>>> categories =
-                CmrCompat.Production.IngredientCategories(allIngredients);
-            for (int i = 0; i < categories.Count; i++)
+            CmrTabRows.AddShortcutRows(region, allIngredients, new List<CmrShortcutCategory<ThingDef>>(),
+                isAllowed, setAllowed);
+            foreach (KeyValuePair<ThingCategoryDef, List<ThingDef>> category in
+                CmrCompat.Production.IngredientCategories(allIngredients))
             {
-                region.Rows.Add(ShortcutRow(job, categories[i].Key.LabelCap, categories[i].Value));
+                CmrTabRows.AddShortcutRow(region, category.Value, allIngredients, category.Key.LabelCap,
+                    ModArgs("ColonyManagerRedux.Production.IngredientCategory.Tip", category.Key.label), false,
+                    isAllowed, setAllowed);
             }
 
             for (int i = 0; i < allIngredients.Count; i++)
@@ -758,38 +874,6 @@ namespace RimWorldAccess.Shell
                 }
             }
             return region;
-        }
-
-        /// <summary>A group's own all/none/some toggle, same arithmetic as every S3 shortcut row (CmrSubsetToggle).</summary>
-        private static CmrDetailRow ShortcutRow(object job, string label, List<ThingDef> subset)
-        {
-            return new CmrDetailRow
-            {
-                Label = label,
-                Role = ElementRole.Checkbox,
-                Check = () => CmrSubsetToggle.StateOf(subset.Count, AllowedCount(job, subset)),
-                Activate = delegate
-                {
-                    bool allow = CmrSubsetToggle.ValueForNextClick(subset.Count, AllowedCount(job, subset));
-                    for (int i = 0; i < subset.Count; i++)
-                    {
-                        CmrCompat.Production.SetIngredientAllowed(job, subset[i], allow);
-                    }
-                },
-            };
-        }
-
-        private static int AllowedCount(object job, List<ThingDef> subset)
-        {
-            int allowed = 0;
-            for (int i = 0; i < subset.Count; i++)
-            {
-                if (CmrCompat.Production.IngredientAllowed(job, subset[i]))
-                {
-                    allowed++;
-                }
-            }
-            return allowed;
         }
 
         /// <summary>

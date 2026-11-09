@@ -9,11 +9,10 @@ namespace RimWorldAccess.Shell
     /// <summary>
     /// The row factories every threshold-tab provider (<see cref="CmrHuntingDetails"/>,
     /// <see cref="CmrForestryDetails"/>, <see cref="CmrForagingDetails"/>, <see cref="CmrMiningDetails"/>)
-    /// and <see cref="CmrLivestockDetails"/>/<see cref="CmrProductionDetails"/> copy-pasted independently
-    /// while each tab's support landed: the toggle row, a group all/none/some shortcut over a subset of
-    /// a def list, the area-strip combo box, the threshold section's own run of rows, and the
-    /// refresh-plus-padlock icon pair. One copy here, called with each tab's own keys and facade
-    /// delegates, so a fix to the shape lands once.
+    /// and <see cref="CmrLivestockDetails"/>/<see cref="CmrProductionDetails"/> share: the toggle row,
+    /// the shortcut rows above a def list, the area-strip combo box, the threshold section's own run
+    /// of rows, and the refresh-plus-padlock icon pair, called with each tab's own keys and facade
+    /// delegates.
     /// </summary>
     internal static class CmrTabRows
     {
@@ -36,43 +35,56 @@ namespace RimWorldAccess.Shell
         }
 
         // ------------------------------------------------------------------
-        // Subset shortcut: a group's own all/none/some toggle over a subset of a def list.
+        // Shortcut rows: the mod's own group toggles above a def list.
         // ------------------------------------------------------------------
 
-        public static void AddSubsetShortcut<T>(CmrDetailRegion region, List<T> all, string labelKey,
-            string tipKey, Func<T, bool> inSubset, Func<T, bool> isAllowed, Action<T, bool> setAllowed,
-            bool onlyWhenAny = false, bool onlyWhenNotAll = false)
+        public static void AddShortcutRows<T>(CmrDetailRegion region, List<T> all,
+            List<CmrShortcutCategory<T>> categories, Func<T, bool> isAllowed, Action<T, bool> setAllowed,
+            bool includeAllRow = true)
         {
-            var subset = new List<T>();
-            for (int i = 0; i < all.Count; i++)
+            if (includeAllRow)
             {
-                if (inSubset(all[i]))
+                AddShortcutRow(region, all, all, ModText("ColonyManagerRedux.Shortcuts.All"),
+                    ModText("ColonyManagerRedux.Shortcuts.All.Tip"), true, isAllowed, setAllowed);
+            }
+            for (int c = 0; c < categories.Count; c++)
+            {
+                var matching = new List<T>();
+                for (int i = 0; i < all.Count; i++)
                 {
-                    subset.Add(all[i]);
+                    if (categories[c].Predicate(all[i]))
+                    {
+                        matching.Add(all[i]);
+                    }
                 }
+                AddShortcutRow(region, matching, all, categories[c].Label, categories[c].Tip, false,
+                    isAllowed, setAllowed);
             }
-            if (onlyWhenAny && subset.Count == 0)
+        }
+
+        /// <summary>The mod's mouse-modifier tooltip line is replaced by its keyboard twin.</summary>
+        public static void AddShortcutRow<T>(CmrDetailRegion region, List<T> matching, List<T> all,
+            string label, string tip, bool isAllRow, Func<T, bool> isAllowed, Action<T, bool> setAllowed)
+        {
+            if (!CmrCompat.Shortcuts.RowVisible(matching.Count, all.Count, isAllRow))
             {
                 return;
             }
-            if (onlyWhenNotAll && subset.Count == all.Count)
-            {
-                return;
-            }
+            Action<CmrShortcutClick> click = mode => CmrCompat.Shortcuts.Apply(matching, all, setAllowed, mode,
+                CmrSubsetToggle.ValueForNextClick(matching.Count, AllowedCount(matching, isAllowed)));
             region.Rows.Add(new CmrDetailRow
             {
-                Label = ModText(labelKey),
-                Tooltip = tipKey == null ? null : ModTip(tipKey),
-                Role = ElementRole.Checkbox,
-                Check = () => CmrSubsetToggle.StateOf(subset.Count, AllowedCount(subset, isAllowed)),
-                Activate = delegate
+                Label = label,
+                Tooltip = () => CompatText.JoinSentences(new List<string>
                 {
-                    bool allow = CmrSubsetToggle.ValueForNextClick(subset.Count, AllowedCount(subset, isAllowed));
-                    for (int i = 0; i < subset.Count; i++)
-                    {
-                        setAllowed(subset[i], allow);
-                    }
-                },
+                    Flatten(tip),
+                    "RimWorldAccess.Cmr.Shortcuts.ModifiersTip".Translate(
+                        KeyboardHelper.CtrlLabelFor(KeyCode.Return)).ToString(),
+                }),
+                Role = ElementRole.Checkbox,
+                Check = () => CmrSubsetToggle.StateOf(matching.Count, AllowedCount(matching, isAllowed)),
+                Activate = () => click(CmrShortcutClick.Toggle),
+                ShortcutClick = click,
             });
         }
 

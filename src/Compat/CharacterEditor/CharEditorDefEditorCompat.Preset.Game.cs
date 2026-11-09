@@ -37,9 +37,10 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorDefEditorCompat
     {
-        private static bool presetInitialized;
-        private static bool objectPresetReady;
-        private static bool genePresetReady;
+        private static readonly LazyReflectionGate objectPresetGate =
+            new LazyReflectionGate("CharEditorDefEditorCompat object preset", ResolveObjectPreset);
+        private static readonly LazyReflectionGate genePresetGate =
+            new LazyReflectionGate("CharEditorDefEditorCompat gene preset", ResolveGenePreset);
 
         private static Type presetObjectType;
         private static Type presetGeneType;
@@ -64,27 +65,29 @@ namespace RimWorldAccess
         // capacity/reload time rows the same way DialogObjects.cs:956/964 gates its own widgets.
         private static PropertyInfo ceditorIsCombatExtendedActiveProp;
 
-        public static bool ObjectPresetReady { get { EnsurePresetInit(); return objectPresetReady; } }
-        public static bool GenePresetReady { get { EnsurePresetInit(); return genePresetReady; } }
+        private const BindingFlags PresetNestedFlags = BindingFlags.NonPublic | BindingFlags.Public;
+
+        public static bool ObjectPresetReady { get { EnsurePresetInit(); return objectPresetGate.Ensure(); } }
+        public static bool GenePresetReady { get { EnsurePresetInit(); return genePresetGate.Ensure(); } }
 
         private static void EnsurePresetInit()
         {
-            if (presetInitialized) return;
-            presetInitialized = true;
-            if (!CharEditorCompat.ModPresent) return;
+            objectPresetGate.Ensure();
+            genePresetGate.Ensure();
+        }
 
-            const BindingFlags NestedFlags = BindingFlags.NonPublic | BindingFlags.Public;
+        // Two independent capabilities, each with its own gate: a reshaped PresetGene must not
+        // disable the object-preset writes, or vice versa. Both anchor on CEditor so a single
+        // missing preset type still reports instead of reading as "mod absent".
+        private static bool ResolveObjectPreset(ReflectionSurface objectSurface)
+        {
+            if (!CharEditorCompat.ModPresent) return false;
             Type ceditorType2 = CharEditorCompat.EditorCore.CEditorType;
-
-            // Two independent capabilities, each with its own Ready flag: a reshaped PresetGene
-            // must not disable the object-preset writes, or vice versa. Both anchor on CEditor so
-            // a single missing preset type still reports instead of reading as "mod absent".
-            var objectSurface = new ReflectionSurface("CharEditorDefEditorCompat object preset");
             objectSurface.Supplied("CharacterEditor.CEditor", ceditorType2);
 
             presetObjectType = objectSurface.Type("CharacterEditor.PresetObject");
             presetObjectParamType = objectSurface.Supplied("PresetObject.Param",
-                presetObjectType?.GetNestedType("Param", NestedFlags));
+                presetObjectType?.GetNestedType("Param", PresetNestedFlags));
             presetObjectCtor = objectSurface.Constructor(presetObjectType, new[] { typeof(ThingDef) });
             presetObjectFromDictionary = objectSurface.Method(presetObjectType, "FromDictionary", Type.EmptyTypes);
             presetObjectDicParamsField = objectSurface.Field(presetObjectType, "dicParams");
@@ -99,28 +102,32 @@ namespace RimWorldAccess
             thingAllTechLevelsProp = objectSurface.Property(thingToolType, "AllTechLevels");
             thingAllTradeabilitiesProp = objectSurface.Property(thingToolType, "AllTradeabilities");
 
-            objectPresetReady = objectSurface.Ready;
-
             // Version-optional, deliberately outside both surfaces: a non-CE install simply lacks
             // it, so its absence must not disable the object-preset writes.
             ceditorIsCombatExtendedActiveProp = ceditorType2 == null ? null
                 : AccessTools.Property(ceditorType2, "IsCombatExtendedActive");
 
-            var geneSurface = new ReflectionSurface("CharEditorDefEditorCompat gene preset");
+            return objectSurface.Ready;
+        }
+
+        private static bool ResolveGenePreset(ReflectionSurface geneSurface)
+        {
+            if (!CharEditorCompat.ModPresent) return false;
+            Type ceditorType2 = CharEditorCompat.EditorCore.CEditorType;
             geneSurface.Supplied("CharacterEditor.CEditor", ceditorType2);
 
             presetGeneType = geneSurface.Type("CharacterEditor.PresetGene");
             presetGeneParamType = geneSurface.Supplied("PresetGene.Param",
-                presetGeneType?.GetNestedType("Param", NestedFlags));
+                presetGeneType?.GetNestedType("Param", PresetNestedFlags));
             presetGeneCtor = geneSurface.Constructor(presetGeneType, new[] { typeof(GeneDef) });
             presetGeneFromDictionary = geneSurface.Method(presetGeneType, "FromDictionary", Type.EmptyTypes);
             presetGeneDicParamsField = geneSurface.Field(presetGeneType, "dicParams");
 
-            genePresetReady = geneSurface.Ready;
-
 #if DEBUG
+            objectPresetGate.Ensure();
             RegisterPresetMirrors();
 #endif
+            return geneSurface.Ready;
         }
 
 #if DEBUG

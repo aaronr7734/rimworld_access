@@ -195,7 +195,7 @@ namespace RimWorldAccess.Shell
 
             /// <summary>
             /// Set by <see cref="FuseToggleableIconRun"/> on a ToggleableIcon row a same-row
-            /// caption Label folded into: the composed name to use instead of
+            /// caption Label folded into, or a captionless hotspot its tooltip names: the name instead of
             /// <see cref="ResolvePresentationLabel"/>'s default.
             /// </summary>
             public string LabelOverride;
@@ -279,9 +279,9 @@ namespace RimWorldAccess.Shell
         /// heading: fusion never crosses one. A CheckTexMarker overlapping a non-dropdown pair
         /// picks Button vs Checkbox vs RadioButton (<see cref="ApplyMarkerPromotion"/>). An
         /// InvisibleButton with no fusable Label is dropped as an orphan unless it is a vanilla
-        /// dropdown opener (emitted as a ComboBox) or an uncaptioned radio (emitted as a
-        /// RadioButton). A row stamped by a composite bracket short-circuits all of that and
-        /// folds by role instead of geometry.
+        /// dropdown opener (a ComboBox), an uncaptioned radio (a RadioButton) or a hotspot under
+        /// a tooltip (a Button that tooltip names). A row stamped by a composite bracket
+        /// short-circuits all of that and folds by role instead of geometry.
         ///
         /// Geometric tests apply a two-tier clip rule (<see cref="MayFuse"/>): rows in the SAME
         /// <see cref="GuiSpace.ClipKey"/> match on raw screen rects; rows in DIFFERENT clips
@@ -565,6 +565,14 @@ namespace RimWorldAccess.Shell
                     fusion[i].CheckOverride = row.Checked ? CheckState.Checked : CheckState.Unchecked;
                     continue;
                 }
+                if (row.Kind == WidgetKind.Button && fusion[i].KindOverride == null && !string.IsNullOrEmpty(row.Label)
+                    && (row.HighlightSelected || highlightToggleLabels.Contains(row.Label)))
+                {
+                    highlightToggleLabels.Add(row.Label);
+                    fusion[i].KindOverride = WidgetKind.Checkbox;
+                    fusion[i].CheckOverride = row.HighlightSelected ? CheckState.Checked : CheckState.Unchecked;
+                    continue;
+                }
 
                 // A blank checkbox is fusable whether or not it is tri-state. The tri-state
                 // restriction was the narrower case that happened to be needed first; the shape
@@ -743,7 +751,17 @@ namespace RimWorldAccess.Shell
                             }
                             else
                             {
-                                consumed[i] = true; // orphan: dropped at emission
+                                // Named for presentation only: activation re-finds the capture row by its recorded identity.
+                                string tipName = WidgetCapture.ShortTipName(TooltipCapture.TryResolveAtScreen(row.ScreenRect, row.Clip));
+                                if (tipName != null)
+                                {
+                                    fusion[i].KindOverride = WidgetKind.Button;
+                                    fusion[i].LabelOverride = tipName;
+                                }
+                                else
+                                {
+                                    consumed[i] = true; // orphan: dropped at emission
+                                }
                             }
                         }
                     }
@@ -895,9 +913,8 @@ namespace RimWorldAccess.Shell
                 {
                     if (fusion[i].LabelOverride != null)
                     {
-                        // A toggle from a folded Label+ToggleableIcon(s) run. KindOverride and
-                        // CheckOverride are already set by the generic per-row ToggleableIcon
-                        // rule in Phase 1, so only the label needs overriding here.
+                        // A folded Label+ToggleableIcon(s) toggle or a tooltip-named hotspot; Phase 1
+                        // already set KindOverride (and the toggle's CheckOverride).
                         pr.Label = fusion[i].LabelOverride;
                     }
                     else if (fusion[i].KindOverride == WidgetKind.Stepper)

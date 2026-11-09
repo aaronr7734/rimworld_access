@@ -458,6 +458,12 @@ namespace RimWorldAccess.Shell
                 new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, shift: true) }));
             c.Register(InputAction.ForScreen("cmrManager", "cmrManager.paintUp",
                 new List<KeyChord> { KeyChord.Of(KeyCode.UpArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("cmrManager", "cmrManager.shortcutRestrict",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Return, ctrl: true), KeyChord.Of(KeyCode.KeypadEnter, ctrl: true) }));
+            c.Register(InputAction.ForScreen("cmrManager", "cmrManager.shortcutAdd",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Return, shift: true), KeyChord.Of(KeyCode.KeypadEnter, shift: true) }));
+            c.Register(InputAction.ForScreen("cmrManager", "cmrManager.shortcutRemove",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Return, alt: true), KeyChord.Of(KeyCode.KeypadEnter, alt: true) }));
             c.Register(InputAction.ForScreen("cmrImportJobs", "cmrImportJobs.paintDown",
                 new List<KeyChord> { KeyChord.Of(KeyCode.DownArrow, shift: true) }));
             c.Register(InputAction.ForScreen("cmrImportJobs", "cmrImportJobs.paintUp",

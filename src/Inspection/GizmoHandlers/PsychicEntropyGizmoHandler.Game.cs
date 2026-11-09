@@ -173,28 +173,26 @@ namespace RimWorldAccess
             Pawn pawn = tracker.Pawn;
             var parts = new List<string>();
 
-            // Heat bar tooltip (PsychicEntropyGizmo.GizmoOnGUI, rect7): title with
-            // rounded current/max, fall-rate stats line, then the long description.
-            // Keys verified in Core Keyed/Misc_Gameplay.xml.
-            string heatTip = "PsychicEntropy".Translate() + ": "
-                + Mathf.Round(tracker.EntropyValue).ToString("F0") + " / "
-                + Mathf.Round(tracker.MaxEntropy).ToString("F0");
+            // Heat bar tooltip (PsychicEntropyGizmo.GizmoOnGUI, rect7) minus its current/max
+            // title, which BuildStatus already speaks.
+            string heatTip = "";
             float recoveryRate = tracker.RecoveryRate;
             if (recoveryRate > float.Epsilon)
             {
                 // Vanilla computes seconds-until-zero as EntropyValue / RecoveryRate;
                 // guarded here so a zero rate can't speak "Infinity".
-                heatTip += "\n" + "PawnTooltipPsychicEntropyStats".Translate(
-                    recoveryRate.ToString("0.#"), Mathf.Round(tracker.EntropyValue / recoveryRate));
+                heatTip = "PawnTooltipPsychicEntropyStats".Translate(
+                    recoveryRate.ToString("0.#"), Mathf.Round(tracker.EntropyValue / recoveryRate)) + "\n\n";
             }
-            heatTip += "\n\n" + "PawnTooltipPsychicEntropyDesc".Translate();
+            heatTip += "PawnTooltipPsychicEntropyDesc".Translate();
             parts.Add(heatTip);
 
-            // Psyfocus bar tooltip (rect10): current/desired psyfocus plus the
-            // per-band psycast-level and fall-rate tables. The gizmo passes its
-            // selectedPsyfocusTarget field, which is initialized to -1 and never
-            // reassigned, so the method's default (-1 = no override) matches.
+            // Psyfocus bar tooltip (rect10); vanilla passes no target override (its selectedPsyfocusTarget
+            // stays -1). The first paragraph is the current/desired values BuildStatus already speaks.
             string psyfocusTip = tracker.PsyfocusTipString();
+            int valuesEnd = psyfocusTip?.IndexOf("\n\n") ?? -1;
+            if (valuesEnd >= 0)
+                psyfocusTip = psyfocusTip.Substring(valuesEnd + 2);
             if (!string.IsNullOrEmpty(psyfocusTip))
                 parts.Add(psyfocusTip);
 

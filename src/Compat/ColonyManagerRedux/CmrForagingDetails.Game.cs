@@ -104,17 +104,7 @@ namespace RimWorldAccess.Shell
             var region = new CmrDetailRegion(ModText("ColonyManagerRedux.Foraging.Plants"));
             List<ThingDef> all = CmrCompat.Foraging.AllPlants(job);
 
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Shortcuts.All", null,
-                plant => true, def => CmrCompat.Foraging.IsPlantAllowed(job, def),
-                (def, allow) => CmrCompat.Foraging.SetPlantAllowed(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Foraging.Edible",
-                "ColonyManagerRedux.Foraging.Edible.Tip",
-                plant => plant.plant?.harvestedThingDef?.IsNutritionGivingIngestible ?? false,
-                def => CmrCompat.Foraging.IsPlantAllowed(job, def),
-                (def, allow) => CmrCompat.Foraging.SetPlantAllowed(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Foraging.Mushrooms",
-                "ColonyManagerRedux.Foraging.Mushrooms.Tip",
-                plant => plant.plant?.cavePlant ?? false,
+            CmrTabRows.AddShortcutRows(region, all, CmrCompat.Shortcuts.Foraging(),
                 def => CmrCompat.Foraging.IsPlantAllowed(job, def),
                 (def, allow) => CmrCompat.Foraging.SetPlantAllowed(job, def, allow));
 

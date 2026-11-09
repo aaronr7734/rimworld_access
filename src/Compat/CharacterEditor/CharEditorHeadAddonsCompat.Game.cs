@@ -38,8 +38,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorHeadAddonsCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorHeadAddonsCompat", Resolve);
 
         private static Type dialogType;
         private static Type alienRaceToolType;
@@ -65,24 +64,18 @@ namespace RimWorldAccess
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { gate.Ensure(); return gate.Ensure(); }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorHeadAddonsCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogChangeHeadAddons");
             alienRaceToolType = surface.Type("CharacterEditor.AlienRaceTool");
@@ -104,7 +97,7 @@ namespace RimWorldAccess
             alienRaceCompSetAddonVariantsMethod = surface.Method(alienRaceToolType, "AlienRaceComp_SetAddonVariants", new[] { typeof(Pawn), typeof(List<int>) });
             alienPartGeneratorBodyAddonToggleDrawForMethod = surface.Method(alienRaceToolType, "AlienPartGenerator_BodyAddon_Toggle_DrawFor", new[] { typeof(Pawn), typeof(int), typeof(bool) });
 
-            ready = surface.Ready && CharEditorCompat.EditorCore.Ready;
+            return surface.Ready && CharEditorCompat.EditorCore.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

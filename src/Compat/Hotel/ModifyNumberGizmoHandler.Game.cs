@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using RimWorld;
 using RimWorldAccess.Shell;
@@ -50,6 +51,8 @@ namespace RimWorldAccess
         private readonly MethodInfo updateRoyaltyStats;
         private readonly FieldInfo metRoyalTitles;
         private readonly FieldInfo textNextTitleReq;
+        private readonly PropertyInfo allTitles;
+        private readonly PropertyInfo distinctFactions;
 
         private readonly FieldInfo vendingMachine;
         private readonly PropertyInfo currentPrice;
@@ -89,6 +92,9 @@ namespace RimWorldAccess
                     attractiveness = surface.Field(statsType, "attractiveness");
                     metRoyalTitles = surface.Field(statsType, "metRoyalTitles");
                     textNextTitleReq = surface.Field(statsType, "textNextTitleReq");
+                    Type guestUtilityType = surface.Type("Hospitality.Utilities.GuestUtility");
+                    allTitles = surface.Property(guestUtilityType, "AllTitles");
+                    distinctFactions = surface.Property(guestUtilityType, "DistinctFactions");
                     break;
                 case Kind.VendingPrice:
                 case Kind.VendingThreshold:
@@ -269,29 +275,18 @@ namespace RimWorldAccess
                     return false;
                 }
 
-                var titleLabels = new List<string>();
-                if (metRoyalTitles.GetValue(stats) is RoyalTitleDef[] met)
+                var met = metRoyalTitles.GetValue(stats) as RoyalTitleDef[] ?? new RoyalTitleDef[0];
+                List<string> titles = BedTitleEntries(met);
+                if (titles.Count == 0)
                 {
-                    foreach (RoyalTitleDef royalTitle in met)
-                    {
-                        if (royalTitle != null)
-                        {
-                            titleLabels.Add(royalTitle.GetLabelCapForBothGenders());
-                        }
-                    }
+                    return false;
                 }
-
                 var parts = new List<string>
                 {
-                    titleLabels.Count > 0
-                        ? "RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied".Translate(titleLabels.ToCommaList()).ToString()
-                        : "RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied".Translate().ToString(),
+                    CompatText.ModText("BedSatisfiedTitles"),
+                    titles.ToCommaList(),
+                    CompatText.Flatten(textNextTitleReq.GetValue(stats)?.ToString()),
                 };
-                string nextTitleReq = textNextTitleReq.GetValue(stats)?.ToString();
-                if (!string.IsNullOrEmpty(nextTitleReq))
-                {
-                    parts.Add(nextTitleReq);
-                }
                 description = CompatText.JoinSentences(parts);
                 return true;
             }
@@ -300,6 +295,47 @@ namespace RimWorldAccess
                 ModLogger.LimitedError("ModifyNumberGizmoHandler royal titles", ex);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Every title BedStatsDrawer.DrawTitles lists, in its order: all royal titles by seniority that
+        /// some faction in play grants, the unsatisfied ones dimmed. Its per-title faction icons are
+        /// named only when the granting factions differ between titles; one shared set says nothing.
+        /// </summary>
+        private List<string> BedTitleEntries(RoyalTitleDef[] met)
+        {
+            // AllTitles' getter initializes the cache DistinctFactions is filled from.
+            allTitles.GetValue(null, null);
+            var factions = distinctFactions.GetValue(null, null) as Faction[] ?? new Faction[0];
+            var rows = new List<(RoyalTitleDef title, List<Faction> grantedBy)>();
+            foreach (RoyalTitleDef title in DefDatabase<RoyalTitleDef>.AllDefsListForReading.OrderBy(t => t.seniority))
+            {
+                var grantedBy = factions
+                    .Where(f => f?.def?.RoyalTitlesAllInSeniorityOrderForReading != null
+                        && f.def.RoyalTitlesAllInSeniorityOrderForReading.Contains(title))
+                    .ToList();
+                if (grantedBy.Count > 0)
+                {
+                    rows.Add((title, grantedBy));
+                }
+            }
+            bool nameFactions = rows.Select(r => string.Join("|", r.grantedBy.Select(f => f.GetUniqueLoadID()))).Distinct().Count() > 1;
+
+            var entries = new List<string>(rows.Count);
+            foreach (var (title, grantedBy) in rows)
+            {
+                string entry = title.GetLabelCapForBothGenders();
+                if (nameFactions)
+                {
+                    entry = "RimWorldAccess.Compat.Hospitality.RoyalTitleFactions".Translate(entry, grantedBy.Select(f => f.Name).ToCommaList()).ToString();
+                }
+                if (!met.Contains(title))
+                {
+                    entry = "RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet".Translate(entry).ToString();
+                }
+                entries.Add(entry);
+            }
+            return entries;
         }
 
         private int VendingInt(Gizmo gizmo, PropertyInfo property)

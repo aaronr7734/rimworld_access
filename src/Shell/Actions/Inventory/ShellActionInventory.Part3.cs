@@ -109,17 +109,6 @@ namespace RimWorldAccess.Shell
             c.Register(InputAction.ForScreen("rimTalkChatDialog", "rimTalkChatDialog.activateFocused",
                 new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
 
-            // ---- RimTalk's PersonaEditorWindow -> RimTalkPersonaScope ----
-            // Space is the same alternate button activation; Left/Right adjust the focused
-            // chattiness slider. NextHorizontal/PreviousHorizontal are deliberately not reused: a
-            // slider gives Left/Right a different meaning than horizontal strip navigation.
-            c.Register(InputAction.ForScreen("rimTalkPersonaEditor", "rimTalkPersonaEditor.activateFocused",
-                new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
-            c.Register(InputAction.ForScreen("rimTalkPersonaEditor", "rimTalkPersonaEditor.decreaseChattiness",
-                new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow) }));
-            c.Register(InputAction.ForScreen("rimTalkPersonaEditor", "rimTalkPersonaEditor.increaseChattiness",
-                new List<KeyChord> { KeyChord.Of(KeyCode.RightArrow) }));
-
             // ---- The RimTalk TTS addon's voice picker -> RimTalkTtsVoiceSelectionScope ----
             // Space is the same alternate button activation.
             c.Register(InputAction.ForScreen("rimTalkTtsVoiceSelection", "rimTalkTtsVoiceSelection.activateFocused",

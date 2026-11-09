@@ -15,8 +15,7 @@ namespace RimWorldAccess.Shell
     /// private <c>_pawn</c>/<c>_selectedVoiceId</c>/<c>_voiceModels</c> fields plus VoiceModel's two
     /// public fields once behind <see cref="Ready"/> (missing type or member = the TTS addon not
     /// loaded, or its shipped DLL drifted -- silent decline), and installs the scope registration
-    /// and draw-pass Harmony patch. Never touches RimTalk.TTS.Service.SiliconFlowClient or anything
-    /// that references it (see <see cref="RimTalkTtsCompat"/>'s poisoned-assembly remarks).
+    /// and draw-pass Harmony patch.
     /// </summary>
     internal static class RimTalkTtsVoiceSelectionCompat
     {

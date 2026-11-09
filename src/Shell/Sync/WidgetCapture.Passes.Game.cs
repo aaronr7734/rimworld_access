@@ -76,6 +76,7 @@ namespace RimWorldAccess.Shell
             lastBareTextureValid = false;
             lastBareTipValid = false;
             pendingTipTextureValid = false;
+            selectedHighlightValid = false;
             WidgetCapture.focusedIndex = focusedIndex;
             focusedControlIndex = -1;
             lastValueControlIndex = -1;

@@ -166,6 +166,7 @@ namespace RimWorldAccess.Shell
             MaybeArmMatch(WidgetKind.Button, label ?? "", index);
             MaybeLiveActivateMatch(WidgetKind.Button, label ?? "", index);
             CapturedWidget row = new CapturedWidget { Kind = WidgetKind.Button, Label = label ?? "", Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), RecordColor = GUI.color, Disabled = disabled, DropdownOpener = labeledButtonDepth > 0 || (mayOpenDropdown && DrawnByDropdown(rect, label)), CloseX = closeX, NameFromTip = nameFromTip, NeedsLateTipName = needsLateTipName, LabelIsTextureName = labelIsTextureName };
+            row.HighlightSelected = TakeSelectedHighlight(row, index);
             if (intEntryDepth > 0)
             {
                 // Draw order is the button's identity: vanilla draws -10x, -1x, +10x, +1x

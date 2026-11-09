@@ -32,8 +32,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool healthInitialized;
-        private static bool healthReady;
+        private static readonly LazyReflectionGate healthGate = new LazyReflectionGate("CharEditorCompat health", ResolveHealth);
 
         private static Type blockHealthType;
         private static Type healthToolType;
@@ -61,19 +60,17 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return healthReady;
+                gate.Ensure();
+                return healthGate.Ensure();
             }
         }
 
         /// <summary>Called from the main <c>EnsureInit</c> once EditorUI and TabType are known; idempotent, like the sibling binders.</summary>
-        private static void BindHealth()
+        private static bool ResolveHealth(ReflectionSurface surface)
         {
-            if (healthInitialized)
-                return;
-            healthInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat health");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             blockHealthType = surface.Supplied("EditorUI.BlockHealth", editorUIType.GetNestedType("BlockHealth", NestedFlags));
@@ -98,7 +95,7 @@ namespace RimWorldAccess
             healthRemoveHediffMethod = surface.Method(blockHealthType, "BRemoveHediff", new[] { typeof(Hediff) });
             healthToolIsHediffWithLevelMethod = surface.Method(healthToolType, "IsHediffWithLevel", new[] { typeof(HediffDef) });
 
-            healthReady = surface.Ready;
+            return surface.Ready;
         }
 
         private static object HealthBlock(Window editorUI)

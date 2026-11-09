@@ -164,13 +164,8 @@ namespace RimWorldAccess.Shell
             {
                 return null;
             }
-            string tip = subject.GetTooltip().text ?? "";
-            string name = subject.LabelCap;
-            if (!string.IsNullOrEmpty(name) && tip.StartsWith(name, StringComparison.Ordinal))
-            {
-                tip = tip.Substring(name.Length);
-            }
-            tip = SpeechFlatten.ToSentences(tip.StripTags().Trim());
+            string tip = RedundantLabelPrefix.AfterTitle((subject.GetTooltip().text ?? "").StripTags(), subject.LabelCap.StripTags());
+            tip = SpeechFlatten.ToSentences(tip.Trim());
             return string.IsNullOrEmpty(tip) ? null : tip;
         }
 

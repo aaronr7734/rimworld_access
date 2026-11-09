@@ -44,8 +44,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorGeneryCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorGeneryCompat", Resolve);
 
         private static Type dialogType;
 
@@ -64,24 +63,18 @@ namespace RimWorldAccess
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { gate.Ensure(); return gate.Ensure(); }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorGeneryCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogGenery");
 
@@ -96,7 +89,7 @@ namespace RimWorldAccess
             aSelectedModNameMethod = surface.Method(dialogType, "ASelectedModName", new[] { typeof(string) });
             aRandomDefMethod = surface.Method(dialogType, "ARandomDef", Type.EmptyTypes);
 
-            ready = surface.Ready && CharEditorCompat.Search.Ready;
+            return surface.Ready && CharEditorCompat.Search.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

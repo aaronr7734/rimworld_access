@@ -35,8 +35,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorHealthBrowserCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorHealthBrowserCompat", Resolve);
 
         private static Type dialogAddHediffType;
         private static Type dialogFullhealType;
@@ -103,26 +102,19 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return ready;
+                return gate.Ensure();
             }
         }
 
-        public static Type AddHediffDialogType { get { EnsureInit(); return dialogAddHediffType; } }
-        public static Type FullhealDialogType { get { EnsureInit(); return dialogFullhealType; } }
-        public static Type ChoosePartDialogType { get { EnsureInit(); return dialogChoosePartType; } }
-        public static Type ChoosePawnDialogType { get { EnsureInit(); return dialogChoosePawnType; } }
+        public static Type AddHediffDialogType { get { gate.Ensure(); return dialogAddHediffType; } }
+        public static Type FullhealDialogType { get { gate.Ensure(); return dialogFullhealType; } }
+        public static Type ChoosePartDialogType { get { gate.Ensure(); return dialogChoosePartType; } }
+        public static Type ChoosePawnDialogType { get { gate.Ensure(); return dialogChoosePawnType; } }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorHealthBrowserCompat");
+                return false;
 
             ceditorTypeLocal = surface.Supplied("CharacterEditor.CEditor", CharEditorCompat.EditorCore.CEditorType);
             eTypeTypeLocal = surface.Type("CharacterEditor.EType");
@@ -180,7 +172,7 @@ namespace RimWorldAccess
             choosePawnFactionSelectedMethod = surface.Method(dialogChoosePawnType, "AFactionSelected", new[] { typeof(string) });
             choosePawnDoAndCloseMethod = surface.Method(dialogChoosePawnType, "DoAndClose", Type.EmptyTypes);
 
-            ready = surface.Ready && CharEditorCompat.EditorCore.Ready && CharEditorCompat.Search.Ready;
+            return surface.Ready && CharEditorCompat.EditorCore.Ready && CharEditorCompat.Search.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

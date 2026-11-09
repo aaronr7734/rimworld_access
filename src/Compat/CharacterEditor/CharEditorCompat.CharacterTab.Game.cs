@@ -49,8 +49,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool characterTabInitialized;
-        private static bool characterTabReady;
+        private static readonly LazyReflectionGate characterTabGate = new LazyReflectionGate("CharEditorCompat character tab", ResolveCharacterTab);
 
         private static Type blockBioType;
         private static Type ageToolType;
@@ -96,19 +95,17 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return characterTabReady;
+                gate.Ensure();
+                return characterTabGate.Ensure();
             }
         }
 
         /// <summary>Called from the main <c>EnsureInit</c> once EditorUI and TabType are known; idempotent.</summary>
-        private static void BindCharacterTab()
+        private static bool ResolveCharacterTab(ReflectionSurface surface)
         {
-            if (characterTabInitialized)
-                return;
-            characterTabInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat character tab");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             blockBioType = surface.Supplied("EditorUI.BlockBio", editorUIType.GetNestedType("BlockBio", NestedFlags));
@@ -159,7 +156,7 @@ namespace RimWorldAccess
 
             labelAllField = surface.Field(Labels.LabelType, "ALL");
 
-            characterTabReady = surface.Ready && Labels.Ready;
+            return surface.Ready && Labels.Ready;
         }
 
         /// <summary>The mod's own "All" word, the fallback its dropdowns show for a null filter value.</summary>

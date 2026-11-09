@@ -1,0 +1,1 @@
+Modded Orders tools picked from the Architect menu now run their own setup first, the same as a mouse click. Keyz' Allow Utilities' remove floor matching tool now offers its floor list, including removing a floor type across the whole map.

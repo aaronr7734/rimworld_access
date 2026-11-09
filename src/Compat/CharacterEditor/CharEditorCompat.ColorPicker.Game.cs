@@ -27,8 +27,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorColorPickerCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorColorPickerCompat", Resolve);
 
         private static Type dialogType;
         private static Type colorTypeEnumType;
@@ -67,26 +66,19 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return ready;
+                return gate.Ensure();
             }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorColorPickerCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogColorPicker");
             colorTypeEnumType = surface.Type("CharacterEditor.ColorType");
@@ -123,7 +115,7 @@ namespace RimWorldAccess
             geneToolGetHairGenes = surface.Method(geneToolType, "GetHairGenes", new[] { typeof(Pawn) });
             geneToolGetSkinGenes = surface.Method(geneToolType, "GetSkinGenes", new[] { typeof(Pawn) });
 
-            ready = surface.Ready;
+            return surface.Ready;
         }
 
         private static readonly System.Collections.Generic.HashSet<string> loggedFailures = new System.Collections.Generic.HashSet<string>();

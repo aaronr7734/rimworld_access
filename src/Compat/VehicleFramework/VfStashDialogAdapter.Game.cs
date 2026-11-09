@@ -206,6 +206,8 @@ namespace RimWorldAccess
             }
         }
 
+        public string AcceptLabel => null;
+
         public bool HasSummary => true;
 
         /// <summary>

@@ -14,8 +14,7 @@ namespace RimWorldAccess.Shell
     /// <c>VoiceEntry</c> class: resolves the window type, its private <c>searchText</c>/
     /// <c>selectedLanguage</c> instance fields, the static <c>allVoices</c> field, and VoiceEntry's
     /// six public fields once behind <see cref="Ready"/> (missing type or member = the TTS addon
-    /// not loaded, or its shipped DLL drifted -- silent decline). Never touches
-    /// RimTalk.TTS.Service.SiliconFlowClient or anything that references it.
+    /// not loaded, or its shipped DLL drifted -- silent decline).
     /// </summary>
     internal static class RimTalkTtsVoiceLibraryCompat
     {

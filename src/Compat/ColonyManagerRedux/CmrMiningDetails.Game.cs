@@ -141,13 +141,32 @@ namespace RimWorldAccess.Shell
         {
             string section = ModText("ColonyManagerRedux.Mining.Chunks");
             region.Rows.Add(CmrTabRows.Toggle(section,
-                "ColonyManagerRedux.Mining.HaulMapChunks",
+                "ColonyManagerRedux.Mining.CountChunkProducts",
+                () => CmrCompat.Mining.CountChunkProducts(job),
+                value => CmrCompat.Mining.SetCountChunkProducts(job, value)));
+            bool counted = CmrCompat.Mining.CountChunkProducts(job);
+            region.Rows.Add(HaulChunksRow(section, counted, "ColonyManagerRedux.Mining.HaulMapChunks",
                 () => CmrCompat.Mining.HaulMapChunks(job),
                 value => CmrCompat.Mining.SetHaulMapChunks(job, value)));
-            region.Rows.Add(CmrTabRows.Toggle(section,
-                "ColonyManagerRedux.Mining.HaulMinedChunks",
+            region.Rows.Add(HaulChunksRow(section, counted, "ColonyManagerRedux.Mining.HaulMinedChunks",
                 () => CmrCompat.Mining.HaulMinedChunks(job),
                 value => CmrCompat.Mining.SetHaulMinedChunks(job, value)));
+        }
+
+        private static CmrDetailRow HaulChunksRow(string section, bool counted, string labelKey, Func<bool> get,
+            Action<bool> set)
+        {
+            if (counted)
+            {
+                return CmrTabRows.Toggle(section, labelKey, get, set);
+            }
+            return new CmrDetailRow
+            {
+                Label = ModText(labelKey),
+                Tooltip = ModTip("ColonyManagerRedux.Mining.HaulChunks.Disabled.Tip"),
+                Disabled = true,
+                SectionTitle = section,
+            };
         }
 
         /// <summary>
@@ -251,23 +270,7 @@ namespace RimWorldAccess.Shell
             var region = new CmrDetailRegion(ModText("ColonyManagerRedux.Mining.AllowedMinerals"));
             List<ThingDef> all = CmrCompat.Mining.AllMinerals(job);
 
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Shortcuts.All", null,
-                mineral => true, def => CmrCompat.Mining.IsMineralAllowed(job, def),
-                (def, allow) => CmrCompat.Mining.SetAllowMineral(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Mining.Stone",
-                "ColonyManagerRedux.Mining.Stone.Tip", mineral => !mineral.building.isResourceRock,
-                def => CmrCompat.Mining.IsMineralAllowed(job, def),
-                (def, allow) => CmrCompat.Mining.SetAllowMineral(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Mining.Metal",
-                "ColonyManagerRedux.Mining.Metal.Tip",
-                mineral => mineral.building.isResourceRock
-                    && CmrCompat.Mining.IsMetal(mineral.building.mineableThing),
-                def => CmrCompat.Mining.IsMineralAllowed(job, def),
-                (def, allow) => CmrCompat.Mining.SetAllowMineral(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Mining.Precious",
-                "ColonyManagerRedux.Mining.Precious.Tip",
-                mineral => mineral.building.isResourceRock
-                    && (mineral.building.mineableThing != null && mineral.building.mineableThing.smallVolume),
+            CmrTabRows.AddShortcutRows(region, all, CmrCompat.Shortcuts.Minerals(),
                 def => CmrCompat.Mining.IsMineralAllowed(job, def),
                 (def, allow) => CmrCompat.Mining.SetAllowMineral(job, def, allow));
 
@@ -307,9 +310,15 @@ namespace RimWorldAccess.Shell
             var region = new CmrDetailRegion(ModText("ColonyManagerRedux.Mining.AllowedBuildings"));
             List<ThingDef> all = CmrCompat.Mining.AllDeconstructibleBuildings(job);
 
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Shortcuts.All", null,
-                building => true, def => CmrCompat.Mining.IsBuildingAllowed(job, def),
-                (def, allow) => CmrCompat.Mining.SetBuildingAllowed(job, def, allow));
+            Func<ThingDef, bool> isAllowed = def => CmrCompat.Mining.IsBuildingAllowed(job, def);
+            Action<ThingDef, bool> setAllowed = (def, allow) => CmrCompat.Mining.SetBuildingAllowed(job, def, allow);
+            CmrTabRows.AddShortcutRows(region, all, new List<CmrShortcutCategory<ThingDef>>(), isAllowed, setAllowed);
+            foreach (KeyValuePair<DesignationCategoryDef, List<ThingDef>> category in CmrCompat.Shortcuts.BuildingCategories(all))
+            {
+                CmrTabRows.AddShortcutRow(region, category.Value, all, category.Key.LabelCap,
+                    ModArgs("ColonyManagerRedux.Mining.BuildingCategory.Tip", category.Key.label), false,
+                    isAllowed, setAllowed);
+            }
 
             region.Rows.Add(CmrTabRows.LockRow("RimWorldAccess.Cmr.Mining.LockBuildingsToMap",
                 () => CmrCompat.Mining.BuildingsLockedToMap(job),
@@ -327,7 +336,7 @@ namespace RimWorldAccess.Shell
                         : CheckState.Unchecked,
                     Activate = () => CmrCompat.Mining.SetBuildingAllowed(job, def,
                         !CmrCompat.Mining.IsBuildingAllowed(job, def)),
-                    Tooltip = () => Flatten(def.description),
+                    Tooltip = () => Flatten(CmrCompat.Mining.BuildingTooltip(def)),
                     InfoCardDef = def,
                 });
             }

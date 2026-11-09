@@ -256,7 +256,9 @@ namespace RimWorldAccess.Shell
                     }
                     d.Label = label;
                     d.Role = ElementRole.ComboBox;
-                    d.Extras = exemplar != null && pawn != null ? exemplar.GetTooltip(pawn, Prefs.DevMode) : null;
+                    d.Extras = exemplar != null && pawn != null
+                        ? RedundantLabelPrefix.AfterTitle(exemplar.GetTooltip(pawn, Prefs.DevMode).StripTags(), exemplar.LabelCap.StripTags())
+                        : null;
                     break;
                 }
                 case HealthRowKind.ActionAddCondition:

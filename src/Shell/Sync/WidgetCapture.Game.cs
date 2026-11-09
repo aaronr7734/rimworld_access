@@ -88,8 +88,8 @@ namespace RimWorldAccess.Shell
 
         // Generic scroll-follow: mods that cull rows outside their ScrollView's visible band never
         // issue a draw call for a culled row, so a list silently truncates. Every cull decision
-        // reads scroll state flowing through Widgets.BeginScrollView(Rect, ref Vector2, Rect, bool)
-        // and written back before content draws — the same state the mouse wheel mutates — so a
+        // reads scroll state flowing through Widgets.BeginScrollView(Rect, ref Vector2, Rect, bool),
+        // or a mod's raw GUI.BeginScrollView, and written back before content draws — the same state the mouse wheel mutates — so a
         // prefix nudging the ref Vector2 propagates into every cull decision that frame with zero
         // mod-specific code. Gated on an explicit armed request (ArmScrollNudge) so it never runs
         // unsolicited. Tracked only during a LIVE pass (an inspection-harness capture stays
@@ -231,6 +231,26 @@ namespace RimWorldAccess.Shell
             }
             scrollContainers.Add(container);
             containerStack.Add(index);
+        }
+
+        private static int wrappedScrollViewDepth;
+
+        internal static bool InWrappedScrollView
+        {
+            get { return wrappedScrollViewDepth > 0; }
+        }
+
+        internal static void EnterWrappedScrollView()
+        {
+            wrappedScrollViewDepth++;
+        }
+
+        internal static void ExitWrappedScrollView()
+        {
+            if (wrappedScrollViewDepth > 0)
+            {
+                wrappedScrollViewDepth--;
+            }
         }
 
         /// <summary>Widgets.EndScrollView core: pops the container stack pushed by RecordScrollContainerBegin.</summary>

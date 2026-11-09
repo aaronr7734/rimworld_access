@@ -54,8 +54,7 @@ namespace RimWorldAccess
             Animal,
         }
 
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorCapsuleCompat", Resolve);
 
         private static Type dialogType;
         private static Type ceditorType;
@@ -83,24 +82,18 @@ namespace RimWorldAccess
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { gate.Ensure(); return gate.Ensure(); }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorCapsuleCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogCapsuleUI");
             ceditorType = surface.Supplied("CharacterEditor.CEditor", CharEditorCompat.EditorCore.CEditorType);
@@ -123,7 +116,7 @@ namespace RimWorldAccess
             numCapsuleSlotsGetter = surface.Property(ceditorType, "NumCapsuleSlots")?.GetGetMethod(true);
             scenPartLabelGetter = surface.Property(fLabelType, "ScenPartLabel")?.GetGetMethod(true);
 
-            ready = surface.Ready && CharEditorCompat.EditorCore.Ready;
+            return surface.Ready && CharEditorCompat.EditorCore.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

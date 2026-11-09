@@ -11,6 +11,7 @@ namespace RimWorldAccess.Shell
     /// private <c>_initiator</c>/<c>_recipient</c>/<c>_text</c> fields once behind <see cref="Ready"/>
     /// (missing type or member = RimTalk not loaded, or its shipped DLL drifted -- silent decline),
     /// and installs the two Harmony guards <see cref="RimTalkChatScope"/>'s class remarks require.
+    /// The mode and photo fields are optional; older builds lack them.
     /// </summary>
     internal static class RimTalkChatDialogCompat
     {
@@ -20,6 +21,9 @@ namespace RimWorldAccess.Shell
         private static readonly FieldInfo initiatorField;
         private static readonly FieldInfo recipientField;
         private static readonly FieldInfo textField;
+        private static readonly FieldInfo modeField;
+        private static readonly FieldInfo attachPhotoField;
+        private static readonly FieldInfo allowAnnouncementField;
         private static readonly bool ready;
 
         public static Type DialogType => dialogType;
@@ -35,6 +39,14 @@ namespace RimWorldAccess.Shell
             textField = surface.Field(dialogType, "_text");
 
             ready = surface.Ready;
+
+            if (dialogType != null)
+            {
+                modeField = AccessTools.Field(dialogType, "_mode");
+                attachPhotoField = AccessTools.Field(dialogType, "_attachPhoto");
+                Type settingsType = AccessTools.TypeByName("RimTalk.RimTalkSettings");
+                allowAnnouncementField = settingsType != null ? AccessTools.Field(settingsType, "AllowAnnouncement") : null;
+            }
         }
 
         internal static Pawn GetInitiator(Window w)
@@ -63,6 +75,40 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        internal static bool HasPhotoToggle => attachPhotoField != null;
+
+        internal static bool ModeButtonsShown()
+        {
+            if (modeField == null || allowAnnouncementField == null)
+            {
+                return false;
+            }
+            object settings = RimTalkSettingsFacade.Get();
+            return settings != null && allowAnnouncementField.GetValue(settings) is bool allowed && allowed;
+        }
+
+        internal static bool IsAnnounceMode(Window w)
+        {
+            return modeField != null && Convert.ToInt32(modeField.GetValue(w)) == 1;
+        }
+
+        /// <summary>MUTATION-C: mirrors DrawModeButton's click body (`_mode = mode`); the icon is a Widgets.ButtonImage this dialog's capture does not address.</summary>
+        internal static void SetAnnounceMode(Window w, bool announce)
+        {
+            modeField.SetValue(w, Enum.ToObject(modeField.FieldType, announce ? 1 : 0));  // MUTATION-C: see summary.
+        }
+
+        internal static bool IsPhotoAttached(Window w)
+        {
+            return attachPhotoField != null && attachPhotoField.GetValue(w) is bool on && on;
+        }
+
+        /// <summary>MUTATION-C: mirrors DrawToggleButton's click body (`isToggled = !isToggled` on `_attachPhoto`); the icon is a Widgets.ButtonImage this dialog's capture does not address.</summary>
+        internal static void TogglePhoto(Window w)
+        {
+            attachPhotoField.SetValue(w, !IsPhotoAttached(w));  // MUTATION-C: see summary.
+        }
+
         /// <summary>Registers the scope and installs its draw-pass/accept-key guards. No-op unless both RimTalk is active and this dialog's reflection surface resolved.</summary>
         public static void Register()
         {
@@ -79,13 +125,9 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// Two independent patches, both required -- see <see cref="RimTalkChatScope"/>'s class
-        /// remarks for why each exists:
-        ///
+        /// Two independent patches, both required (see <see cref="RimTalkChatScope"/>'s remarks).
         /// 1) DoWindowContents: brackets the scope's capture passes AND masks the window's own
-        /// raw in-draw Return poll (<see cref="TextFieldRawPollGuard"/>) unconditionally, since this
-        /// scope drives Enter entirely itself.
-        ///
+        /// raw in-draw Return poll (<see cref="TextFieldRawPollGuard"/>) unconditionally.
         /// 2) OnAcceptKeyPressed: CustomDialogueWindow overrides it WITHOUT calling base, and
         /// closeOnAccept defaults true on the base Window class, so vanilla's own
         /// WindowStack.Notify_PressedAccept invokes it unconditionally on every Enter press --

@@ -19,8 +19,8 @@ namespace RimWorldAccess.Shell
     ///
     /// Conditional rows appear and vanish with their own conditions exactly as the sighted rows do --
     /// the meat shortcuts with the target resource, the "also unforbid disallowed animals" child with
-    /// its parent, the twisted-meat shortcut with Anomaly, the exploding-animals shortcut with the
-    /// map having any. Nothing is presented that the mod is not drawing.
+    /// its parent, the twisted-meat shortcut with Anomaly, each animal shortcut only where the mod's
+    /// own visibility rule draws it. Nothing is presented that the mod is not drawing.
     ///
     /// DEFERRED: the magnifier beside the threshold label, which float-menus the job's current hunt
     /// designations and jumps the camera to one (Trigger_Threshold.cs:508-563). It is a navigation
@@ -166,6 +166,13 @@ namespace RimWorldAccess.Shell
                     "ColonyManagerRedux.Hunting.UnforbidAllCorpses",
                     () => CmrCompat.Hunting.UnforbidAllCorpses(job),
                     value => CmrCompat.Hunting.SetUnforbidAllCorpses(job, value)));
+                if (CmrCompat.Hunting.UnforbidAllCorpses(job))
+                {
+                    region.Rows.Add(CmrTabRows.Toggle(null,
+                        "ColonyManagerRedux.Hunting.UnforbidHumanCorpses",
+                        () => CmrCompat.Hunting.UnforbidHumanCorpses(job),
+                        value => CmrCompat.Hunting.SetUnforbidHumanCorpses(job, value)));
+                }
             }
         }
 
@@ -196,28 +203,9 @@ namespace RimWorldAccess.Shell
             var region = new CmrDetailRegion(ModText("ColonyManagerRedux.Hunting.Animals"));
             List<PawnKindDef> all = CmrCompat.Hunting.AllAnimals(job);
 
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Shortcuts.All", null,
-                animal => true, kind => CmrCompat.Hunting.IsAnimalAllowed(job, kind),
-                (kind, allow) => CmrCompat.Hunting.SetAnimalAllowed(job, kind, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Hunting.Predators",
-                "ColonyManagerRedux.Hunting.Predators.Tip", animal => animal.RaceProps.predator,
+            CmrTabRows.AddShortcutRows(region, all, CmrCompat.Shortcuts.Hunting(CmrCompat.JobTab(job)),
                 kind => CmrCompat.Hunting.IsAnimalAllowed(job, kind),
                 (kind, allow) => CmrCompat.Hunting.SetAnimalAllowed(job, kind, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Hunting.Aggressive",
-                "ColonyManagerRedux.Hunting.Aggressive.Tip",
-                animal => animal.RaceProps.manhunterOnDamageChance >= 0.05f,
-                kind => CmrCompat.Hunting.IsAnimalAllowed(job, kind),
-                (kind, allow) => CmrCompat.Hunting.SetAnimalAllowed(job, kind, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Hunting.HerdAnimals",
-                "ColonyManagerRedux.Hunting.HerdAnimals.Tip", animal => animal.RaceProps.herdAnimal,
-                kind => CmrCompat.Hunting.IsAnimalAllowed(job, kind),
-                (kind, allow) => CmrCompat.Hunting.SetAnimalAllowed(job, kind, allow));
-            // The mod draws this one only when the map has any (ManagerTab_Hunting.cs:405-416).
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Hunting.Exploding",
-                "ColonyManagerRedux.Hunting.Exploding.Tip", Explodes,
-                kind => CmrCompat.Hunting.IsAnimalAllowed(job, kind),
-                (kind, allow) => CmrCompat.Hunting.SetAnimalAllowed(job, kind, allow),
-                onlyWhenAny: true);
 
             CmrTabRows.AddRefreshAndLock(region,
                 "RimWorldAccess.Cmr.Hunting.RefreshAnimals", "RimWorldAccess.Cmr.Hunting.AnimalsRefreshed",
@@ -243,15 +231,6 @@ namespace RimWorldAccess.Shell
                 });
             }
             return region;
-        }
-
-        private static bool Explodes(PawnKindDef animal)
-        {
-            Type worker = animal.RaceProps.deathAction == null
-                ? null
-                : animal.RaceProps.deathAction.workerClass;
-            return worker == typeof(DeathActionWorker_SmallExplosion)
-                || worker == typeof(DeathActionWorker_BigExplosion);
         }
 
         /// <summary>

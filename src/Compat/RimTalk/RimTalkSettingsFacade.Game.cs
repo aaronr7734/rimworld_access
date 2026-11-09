@@ -8,7 +8,7 @@ namespace RimWorldAccess
     /// RimTalk's own settings entry points, resolved once for the whole module: <c>RimTalk.Settings</c>
     /// (the Mod subclass that both hosts the static <c>Get()</c> every RimTalk surface reads its live
     /// settings through and is the type <see cref="Verse.LoadedModManager"/> opens the settings dialog
-    /// for), plus the TTS addon's <c>TTSConfig</c>/<c>TTSSettings</c> pair. Four gates resolved
+    /// for), plus the TTS addon's <c>TtsRuntime</c>/<c>TTSSettings</c> pair. Four gates resolved
     /// <c>RimTalk.Settings</c> or that pair independently, so a rename was caught in N places with N
     /// failure modes.
     ///
@@ -24,7 +24,7 @@ namespace RimWorldAccess
     {
         private static bool typesResolved;
         private static Type settingsType;
-        private static Type ttsConfigType;
+        private static Type ttsRuntimeType;
         private static Type ttsSettingsType;
 
         private static MethodInfo getMethod;
@@ -37,10 +37,10 @@ namespace RimWorldAccess
             get { EnsureTypes(); return settingsType; }
         }
 
-        /// <summary>The TTS addon's static config holder, null when the addon is not loaded.</summary>
-        public static Type TtsConfigType
+        /// <summary>The TTS addon's runtime singleton (<c>TtsRuntime.Current</c>), null when the addon is not loaded.</summary>
+        public static Type TtsRuntimeType
         {
-            get { EnsureTypes(); return ttsConfigType; }
+            get { EnsureTypes(); return ttsRuntimeType; }
         }
 
         /// <summary>The TTS addon's settings object, null when the addon is not loaded.</summary>
@@ -85,7 +85,7 @@ namespace RimWorldAccess
             typesResolved = true;
 
             settingsType = AccessTools.TypeByName("RimTalk.Settings");
-            ttsConfigType = AccessTools.TypeByName("RimTalk.TTS.Data.TTSConfig");
+            ttsRuntimeType = AccessTools.TypeByName("RimTalk.TTS.TtsRuntime");
             ttsSettingsType = AccessTools.TypeByName("RimTalk.TTS.Data.TTSSettings");
         }
 

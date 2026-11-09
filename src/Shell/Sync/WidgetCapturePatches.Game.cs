@@ -9,8 +9,6 @@ using Verse.Sound;
 
 namespace RimWorldAccess.Shell
 {
-    // Harmony taps, one patch class per Widgets primitive.
-
     /// <summary>TargetMethod, not the attribute's Type[] form: a by-ref parameter type is not a compile-time constant (CS0182).</summary>
     [HarmonyPatch]
     internal static class WidgetCaptureCheckboxLabeledPatch
@@ -199,6 +197,7 @@ namespace RimWorldAccess.Shell
         public static void Prefix(Rect rect, string text, out int __state)
         {
             __state = WidgetCapture.RecordTextField(rect, text, multiLine: true);
+            WidgetCapture.EnterWrappedTextArea();
         }
 
         [HarmonyPostfix]
@@ -206,6 +205,12 @@ namespace RimWorldAccess.Shell
         {
             WidgetCapture.MaybeOverrideText(__state, ref __result);
             FrameProfilerCapture.OnTextField(rect, ref __result, true);
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            WidgetCapture.ExitWrappedTextArea();
         }
     }
 
@@ -217,6 +222,13 @@ namespace RimWorldAccess.Shell
         public static void Prefix(Rect rect, string label)
         {
             WidgetCapture.RecordLabel(rect, label);
+            WidgetCapture.EnterWrappedLabel();
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            WidgetCapture.ExitWrappedLabel();
         }
     }
 
@@ -274,10 +286,9 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// Generic scroll-follow on the terminal Widgets.BeginScrollView overload every other
-    /// overload funnels through. Prefix, because nudging the ref scrollPosition has to land
-    /// before GUI.BeginScrollView reads it and before a mod's own cull decision does. See
-    /// WidgetCapture.RecordScrollContainerBegin for the arm/match logic.
+    /// Generic scroll-follow on the terminal Widgets.BeginScrollView overload. Prefix, because the
+    /// ref scrollPosition nudge must land before GUI.BeginScrollView reads it and before a mod's own
+    /// cull decision does. See WidgetCapture.RecordScrollContainerBegin for the arm/match logic.
     /// </summary>
     [HarmonyPatch]
     internal static class WidgetCaptureScrollViewPatch
@@ -292,6 +303,13 @@ namespace RimWorldAccess.Shell
         public static void Prefix(Rect outRect, ref Vector2 scrollPosition, Rect viewRect)
         {
             WidgetCapture.RecordScrollContainerBegin(outRect, ref scrollPosition, viewRect);
+            WidgetCapture.EnterWrappedScrollView();
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            WidgetCapture.ExitWrappedScrollView();
         }
     }
 
@@ -303,6 +321,45 @@ namespace RimWorldAccess.Shell
         public static void Prefix()
         {
             WidgetCapture.RecordScrollContainerEnd();
+            WidgetCapture.EnterWrappedScrollView();
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            WidgetCapture.ExitWrappedScrollView();
+        }
+    }
+
+    /// <summary>A mod's raw GUI.BeginScrollView records the container Widgets.BeginScrollView would, through the private core every overload funnels into (the one-line overloads may be inlined); the Widgets and DevGUI wrappers are bracketed so they never record twice.</summary>
+    [HarmonyPatch]
+    internal static class WidgetCaptureRawScrollViewPatch
+    {
+        static MethodBase TargetMethod()
+        {
+            return AccessTools.Method(typeof(GUI), "BeginScrollViewImpl");
+        }
+
+        [HarmonyPrefix]
+        public static void Prefix(Rect position, ref Vector2 scrollPosition, Rect viewRect)
+        {
+            if (!WidgetCapture.InWrappedScrollView)
+            {
+                WidgetCapture.RecordScrollContainerBegin(position, ref scrollPosition, viewRect);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(GUI), "EndScrollView", new Type[] { typeof(bool) })]
+    internal static class WidgetCaptureRawEndScrollViewPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix()
+        {
+            if (!WidgetCapture.InWrappedScrollView)
+            {
+                WidgetCapture.RecordScrollContainerEnd();
+            }
         }
     }
 

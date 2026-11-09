@@ -23,8 +23,7 @@ namespace RimWorldAccess
         /// </summary>
         internal static class EditorCore
         {
-            private static bool initialized;
-            private static bool ready;
+            private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorCompat.EditorCore", Resolve);
 
             private static Type ceditorType;
             private static MethodInfo apiGetter;
@@ -33,35 +32,29 @@ namespace RimWorldAccess
             /// <summary>True when both central members resolved against the loaded assembly.</summary>
             public static bool Ready
             {
-                get { EnsureInit(); return ready; }
+                get { return gate.Ensure(); }
             }
 
             /// <summary>The <c>CEditor</c> type itself, for satellites resolving nested types or enums from it.</summary>
             public static Type CEditorType
             {
-                get { EnsureInit(); return ceditorType; }
+                get { gate.Ensure(); return ceditorType; }
             }
 
-            private static void EnsureInit()
+            private static bool Resolve(ReflectionSurface surface)
             {
-                if (initialized)
-                    return;
-                initialized = true;
-
-                var surface = new ReflectionSurface("CharEditorCompat.EditorCore");
-
                 ceditorType = surface.Type("CharacterEditor.CEditor");
                 apiGetter = surface.Property(ceditorType, "API")?.GetGetMethod(true);
                 updateGraphicsMethod = surface.Method(ceditorType, "UpdateGraphics", Type.EmptyTypes);
 
-                ready = surface.Ready;
+                return surface.Ready;
             }
 
             /// <summary>The mod's singleton, or null when it has not bootstrapped yet.</summary>
             public static object Api()
             {
-                EnsureInit();
-                if (!ready || apiGetter == null)
+                gate.Ensure();
+                if (!gate.Ensure() || apiGetter == null)
                     return null;
                 try
                 {
@@ -104,8 +97,7 @@ namespace RimWorldAccess
         /// </summary>
         internal static class Search
         {
-            private static bool initialized;
-            private static bool ready;
+            private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorCompat.Search", Resolve);
 
             private static Type searchToolType;
             private static FieldInfo modNameField;
@@ -116,30 +108,24 @@ namespace RimWorldAccess
             /// <summary>True when every shared filter slot resolved.</summary>
             public static bool Ready
             {
-                get { EnsureInit(); return ready; }
+                get { return gate.Ensure(); }
             }
 
             /// <summary>The <c>SearchTool</c> type, for facades binding their own dialog-specific slots.</summary>
             public static Type SearchToolType
             {
-                get { EnsureInit(); return searchToolType; }
+                get { gate.Ensure(); return searchToolType; }
             }
 
-            private static void EnsureInit()
+            private static bool Resolve(ReflectionSurface surface)
             {
-                if (initialized)
-                    return;
-                initialized = true;
-
-                var surface = new ReflectionSurface("CharEditorCompat.Search");
-
                 searchToolType = surface.Type("CharacterEditor.SearchTool");
                 modNameField = surface.Field(searchToolType, "modName");
                 oFilter1Field = surface.Field(searchToolType, "ofilter1");
                 filter1Field = surface.Field(searchToolType, "filter1");
                 filter2Field = surface.Field(searchToolType, "filter2");
 
-                ready = surface.Ready;
+                return surface.Ready;
             }
 
             /// <summary>The mod-name filter every DialogTemplate row draws.</summary>
@@ -171,8 +157,8 @@ namespace RimWorldAccess
 
             private static object Read(FieldInfo field, object search, string member)
             {
-                EnsureInit();
-                if (!ready || field == null || search == null)
+                gate.Ensure();
+                if (!gate.Ensure() || field == null || search == null)
                     return null;
                 try
                 {
@@ -197,8 +183,7 @@ namespace RimWorldAccess
         /// </summary>
         internal static class Labels
         {
-            private static bool initialized;
-            private static bool ready;
+            private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorCompat.Labels", Resolve);
 
             private static Type labelType;
             private static readonly Dictionary<string, FieldInfo> fieldCache = new Dictionary<string, FieldInfo>();
@@ -206,23 +191,18 @@ namespace RimWorldAccess
             /// <summary>True when the label table itself resolved.</summary>
             public static bool Ready
             {
-                get { EnsureInit(); return ready; }
+                get { return gate.Ensure(); }
             }
 
             public static Type LabelType
             {
-                get { EnsureInit(); return labelType; }
+                get { gate.Ensure(); return labelType; }
             }
 
-            private static void EnsureInit()
+            private static bool Resolve(ReflectionSurface surface)
             {
-                if (initialized)
-                    return;
-                initialized = true;
-
-                var surface = new ReflectionSurface("CharEditorCompat.Labels");
                 labelType = surface.Type("CharacterEditor.Label");
-                ready = surface.Ready;
+                return surface.Ready;
             }
 
             /// <summary>
@@ -232,7 +212,7 @@ namespace RimWorldAccess
             /// </summary>
             public static string Get(string fieldName)
             {
-                EnsureInit();
+                gate.Ensure();
                 if (labelType == null)
                     return "";
                 if (!fieldCache.TryGetValue(fieldName, out FieldInfo field))

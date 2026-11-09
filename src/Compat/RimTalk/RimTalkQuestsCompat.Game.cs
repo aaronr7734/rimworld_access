@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
+using RimWorldAccess.Shell;
 using Verse;
 
 namespace RimWorldAccess
@@ -23,11 +24,8 @@ namespace RimWorldAccess
     /// way -- Quests itself, and Literature's own quest-description addendum
     /// (<see cref="RimTalkLiteratureCompat.IsQuestGenerating"/>, whose own remarks
     /// hand this integration here rather than duplicating it there).
-    /// <see cref="IsQuestDescriptionGenerating"/> folds
-    /// both signals at the one shared read site so neither mod's reflection is
-    /// duplicated and the two probes never fight over the same pending-interest
-    /// key -- each mod's own probe self-disables independently when that mod
-    /// isn't installed or its reflection surface didn't resolve.
+    /// <see cref="IsQuestDescriptionGenerating"/> folds both signals at the one
+    /// shared read site; each probe self-disables when its mod is absent.
     ///
     /// SIGNAL PRECISION: the public <c>ProcessingCount</c> is just
     /// <c>_processingQuests.Count</c> -- a coarse mod-wide "something is
@@ -172,6 +170,71 @@ namespace RimWorldAccess
                 () => quest.description.Resolve(),
                 isStillRelevant,
                 onSettledAnnounce != null ? (Action<string>)(_ => onSettledAnnounce()) : null);
+        }
+
+        private static readonly LazyReflectionGate regenerateGate =
+            new LazyReflectionGate("Quests compat (regenerate button)", ResolveRegenerate);
+
+        private static PropertyInfo modSettingsProperty;
+        private static FieldInfo enableAIDescriptionsField;
+        private static MethodInfo isAIServiceAvailableMethod;
+        private static MethodInfo isProcessingMethod;
+        private static MethodInfo regenerateMethod;
+
+        private static bool ResolveRegenerate(ReflectionSurface surface)
+        {
+            Type modType = surface.Type("RimTalkQuests.RimTalkQuestsMod");
+            Type settingsType = surface.Type("RimTalkQuests.QuestSettings");
+            Type generatorType = surface.Type("RimTalkQuests.Services.QuestDescriptionGenerator");
+            PropertyInfo settings = surface.Property(modType, "Settings");
+            FieldInfo enable = surface.Field(settingsType, "enableAIDescriptions");
+            MethodInfo available = surface.Method(generatorType, "IsAIServiceAvailable", Type.EmptyTypes);
+            MethodInfo processing = surface.Method(generatorType, "IsProcessing", new[] { typeof(int) });
+            MethodInfo regenerate = surface.Method(generatorType, "RegenerateQuestDescription", new[] { typeof(Quest) });
+            if (!surface.Ready)
+            {
+                return false;
+            }
+            modSettingsProperty = settings;
+            enableAIDescriptionsField = enable;
+            isAIServiceAvailableMethod = available;
+            isProcessingMethod = processing;
+            regenerateMethod = regenerate;
+            return true;
+        }
+
+        /// <summary>QuestTabWindowPatch's Regenerate button, gated and labeled as DoDescriptionPostfix draws it; the click is the generator's own RegenerateQuestDescription (vehicle A).</summary>
+        public static bool TryGetRegenerateAction(Quest quest, out ScreenAction action)
+        {
+            action = null;
+            if (quest == null || !ModsConfig.IsActive(PackageId) || !regenerateGate.Ensure())
+            {
+                return false;
+            }
+            try
+            {
+                object settings = modSettingsProperty.GetValue(null);
+                if (settings == null || !(enableAIDescriptionsField.GetValue(settings) is bool enabled) || !enabled)
+                {
+                    return false;
+                }
+                bool available = (bool)isAIServiceAvailableMethod.Invoke(null, null);
+                bool processing = (bool)isProcessingMethod.Invoke(null, new object[] { quest.id });
+                string label = Translator.Translate(processing ? "RimTalkQuests.Regenerate.InProgress" : "RimTalkQuests.Regenerate");
+                string reason = !available
+                    ? (string)Translator.Translate("RimTalkQuests.Regenerate.Unavailable")
+                    : processing ? label : null;
+                action = new ScreenAction(label,
+                    delegate { regenerateMethod.Invoke(null, new object[] { quest }); },
+                    disabled: reason != null,
+                    disabledReason: reason);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("Quests compat: regenerate button", ex);
+                return false;
+            }
         }
     }
 }

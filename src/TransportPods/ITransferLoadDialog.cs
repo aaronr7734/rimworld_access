@@ -45,6 +45,9 @@ namespace RimWorldAccess
         /// <summary>Triggers the dialog's accept/confirm logic.</summary>
         void TriggerAccept();
 
+        /// <summary>The accept button's caption when the dialog draws its own; null for vanilla's AcceptButton.</summary>
+        string AcceptLabel { get; }
+
         /// <summary>
         /// Whether the dialog presents a stats/summary panel. Transport pods and shuttles show
         /// caravan-style stats; map portals show none, so the Tab summary view is unavailable.
@@ -89,9 +92,8 @@ namespace RimWorldAccess
         string CountColumnTooltip { get; }
 
         /// <summary>
-        /// Whether the dialog draws a Pawns tab at all. The two vanilla dialogs always do;
-        /// Vehicle Framework's cargo dialog is a single items table with no tab bar, so its
-        /// scope presents only Items (and Summary).
+        /// Whether the dialog draws a Pawns tab at all. The two vanilla dialogs always do; Vehicle
+        /// Framework's cargo dialog is one items table with no tab bar, so its scope presents Items and Summary.
         /// </summary>
         bool HasPawnsTab { get; }
     }

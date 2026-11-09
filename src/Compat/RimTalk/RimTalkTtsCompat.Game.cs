@@ -39,12 +39,9 @@ namespace RimWorldAccess.Shell
     /// first, losing the other four columns) -- also a bespoke call, overriding the automatic
     /// fallback with <see cref="ScopeForWindow.Register"/>.
     ///
-    /// POISONED ASSEMBLY: the TTS addon ships one type, RimTalk.TTS.Service.SiliconFlowClient,
-    /// whose fields reference NAudio types that fail to resolve on macOS -- touching that type even
-    /// via GetFields()/IsAssignableFrom throws TypeLoadException (CLAUDE.md gotcha). Every type
-    /// resolved anywhere in this file and its sibling scope files is named exactly
-    /// (AccessTools.TypeByName/AccessTools.Inner with one specific name), never swept via
-    /// GenTypes/reflection-over-all-types, and none of them is SiliconFlowClient or references it.
+    /// Every type resolved in this file and its sibling scope files is named exactly
+    /// (AccessTools.TypeByName/AccessTools.Inner), never swept: older builds of the addon shipped
+    /// types whose fields referenced assemblies missing on macOS (CLAUDE.md gotcha).
     /// </summary>
     internal static class RimTalkTtsCompat
     {
@@ -55,6 +52,7 @@ namespace RimWorldAccess.Shell
             new LazyReflectionGate("RimTalk TTS compat (Bio-tab voice opener)", ResolveCacheReflection);
 
         private static MethodInfo cacheGetMethod;
+        private static MethodInfo getVoiceModelMethod;
 
         public static void Register()
         {
@@ -97,6 +95,7 @@ namespace RimWorldAccess.Shell
         private static bool ResolveCacheReflection(ReflectionSurface surface)
         {
             MethodInfo getMethod = surface.Method(surface.Type("RimTalk.Data.Cache"), "Get", new[] { typeof(Pawn) });
+            MethodInfo voiceModelMethod = surface.Method(surface.Type("RimTalk.TTS.Data.PawnVoiceManager"), "GetVoiceModel", new[] { typeof(Pawn) });
 
             if (!surface.Ready)
             {
@@ -104,6 +103,7 @@ namespace RimWorldAccess.Shell
             }
 
             cacheGetMethod = getMethod;
+            getVoiceModelMethod = voiceModelMethod;
             return true;
         }
 
@@ -125,13 +125,32 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        /// <summary>The current-voice line of the Bio-tab chip's tooltip: the resolved model, or the Default/None choice.</summary>
+        private static string CurrentVoiceLabel(Pawn pawn)
+        {
+            string model = null;
+            try
+            {
+                model = getVoiceModelMethod.Invoke(null, new object[] { pawn }) as string;
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("RimTalk TTS compat", ex);
+            }
+            if (string.IsNullOrEmpty(model))
+            {
+                return Translator.Translate("RimTalk.TTS.VoiceDefault").Resolve();
+            }
+            return model == "NONE" ? Translator.Translate("RimTalk.TTS.VoiceNone").Resolve() : model;
+        }
+
         private static void AddVoiceOpenerRow(InspectionTreeItem categoryItem, object obj)
         {
             if (!(obj is Pawn pawn) || !ShouldShowVoiceUi(pawn))
             {
                 return;
             }
-            string label = "RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow".Translate();
+            string label = "RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent".Translate(CurrentVoiceLabel(pawn));
             InspectNodeFactory.ActionRow(categoryItem, label, pawn, () => RimTalkTtsVoiceSelectionCompat.OpenVoiceSelection(pawn));
         }
 

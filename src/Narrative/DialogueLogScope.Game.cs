@@ -539,11 +539,18 @@ namespace RimWorldAccess.Shell
             RunTtsControlAction(RimTalkTtsOverlayCompat.TryDisplayNextDialogue, "RimWorldAccess.Narrative.DialogueLog.TtsDisplayStarted");
         }
 
+        /// <summary>Most of these handlers post the addon's own message, which is already spoken; the confirmation is only for one that stays silent.</summary>
         private static void RunTtsControlAction(Func<bool> action, string successKey)
         {
-            TolkHelper.SpeakData(action()
-                ? (string)successKey.Translate()
-                : (string)"RimWorldAccess.Narrative.DialogueLog.ActionFailed".Translate());
+            long messagesBefore = NotificationAccessibilityPatch.MessageEmissionCount;
+            if (!action())
+            {
+                TolkHelper.SpeakData((string)"RimWorldAccess.Narrative.DialogueLog.ActionFailed".Translate());
+            }
+            else if (NotificationAccessibilityPatch.MessageEmissionCount == messagesBefore)
+            {
+                TolkHelper.SpeakData((string)successKey.Translate());
+            }
         }
 
         protected override IReadOnlyList<ScreenAction> DeclaredActions

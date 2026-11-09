@@ -48,8 +48,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool characterExtendedInitialized;
-        private static bool characterExtendedReady;
+        private static readonly LazyReflectionGate characterExtendedGate = new LazyReflectionGate("CharEditorCompat character extended", ResolveCharacterExtended);
 
         private static Type abilityToolType;
         private static Type pawnxToolType;
@@ -90,19 +89,17 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return characterExtendedReady;
+                gate.Ensure();
+                return characterExtendedGate.Ensure();
             }
         }
 
         /// <summary>Runs after <see cref="BindCharacterTab"/>, reusing the members it bound.</summary>
-        private static void BindCharacterExtended()
+        private static bool ResolveCharacterExtended(ReflectionSurface surface)
         {
-            if (characterExtendedInitialized)
-                return;
-            characterExtendedInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat character extended");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
             surface.Supplied("EditorUI.BlockBio", blockBioType);
             surface.Supplied("CharacterEditor.EType", eTypeType);
@@ -144,7 +141,7 @@ namespace RimWorldAccess
             surface.Required("CEditor.Get<HashSet<string>>(EType) closed", ceditorGetHashSetString);
             eTypeModsAbilityDef = surface.Required("EType.ModsAbilityDef boxed", EnumValue(eTypeType, "ModsAbilityDef"));
 
-            characterExtendedReady = surface.Ready;
+            return surface.Ready;
         }
 
         // Abilities.

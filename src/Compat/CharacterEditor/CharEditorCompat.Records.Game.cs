@@ -17,8 +17,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool recordsInitialized;
-        private static bool recordsReady;
+        private static readonly LazyReflectionGate recordsGate = new LazyReflectionGate("CharEditorCompat records", ResolveRecords);
 
         private static Type recordToolType;
         private static MethodInfo recordSetValueMethod;
@@ -28,25 +27,23 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return recordsReady;
+                gate.Ensure();
+                return recordsGate.Ensure();
             }
         }
 
-        private static void BindRecords()
+        private static bool ResolveRecords(ReflectionSurface surface)
         {
-            if (recordsInitialized)
-                return;
-            recordsInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat records");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             recordToolType = surface.Type("CharacterEditor.RecordTool");
             recordSetValueMethod = surface.Method(recordToolType, "SetRecordValue",
                 new[] { typeof(Pawn), typeof(RecordDef), typeof(float) });
 
-            recordsReady = surface.Ready;
+            return surface.Ready;
         }
 
         /// <summary>

@@ -40,9 +40,8 @@ namespace RimWorldAccess
         private const BindingFlags MemberFlags =
             BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static;
 
-        private static bool initialized;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorCompat", Resolve);
         private static bool modPresent;
-        private static bool ready;
 
         private static Type ceditorType;
         private static Type editorUIType;
@@ -84,7 +83,7 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
+                gate.Ensure();
                 return modPresent;
             }
         }
@@ -94,8 +93,7 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return ready;
+                return gate.Ensure();
             }
         }
 
@@ -104,7 +102,7 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
+                gate.Ensure();
                 return editorUIType;
             }
         }
@@ -114,16 +112,12 @@ namespace RimWorldAccess
         /// later touches are a bool test. Deliberately not a static constructor — binding must
         /// happen after the mod list is populated, and the caller decides when that is.
         /// </summary>
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             // ignorePostfix trims the "_steam" suffix a Workshop install carries.
             modPresent = ModLister.GetActiveModWithIdentifier(PackageId, ignorePostfix: true) != null;
             if (!modPresent)
-                return;
+                return false;
 
             ceditorType = EditorCore.CEditorType;
             editorUIType = ceditorType != null ? ceditorType.GetNestedType("EditorUI", NestedFlags) : null;
@@ -139,16 +133,16 @@ namespace RimWorldAccess
             // every surface in one pass.
             if (editorUIType != null && tabTypeType != null)
             {
-                BindCharacterTab();
-                BindCharacterExtended();
-                BindAppearance();
-                BindActions();
-                BindHealth();
-                BindNeeds();
-                BindSocial();
-                BindInventory();
-                BindPlacing();
-                BindRecords();
+                characterTabGate.Ensure();
+                characterExtendedGate.Ensure();
+                appearanceGate.Ensure();
+                actionsGate.Ensure();
+                healthGate.Ensure();
+                needsGate.Ensure();
+                socialGate.Ensure();
+                inventoryGate.Ensure();
+                placingGate.Ensure();
+                recordsGate.Ensure();
             }
 
             if (ceditorType == null || editorUIType == null || blockPawnListType == null
@@ -157,12 +151,11 @@ namespace RimWorldAccess
                 ModLogger.Warning("CharEditorCompat: Character Editor is installed but its core types "
                     + "(CEditor / EditorUI / BlockPawnList / BlockPerson / TabType / EType / Label) "
                     + "could not be resolved; the bespoke editor screen is disabled.");
-                return;
+                return false;
             }
 
             // Every core type is non-null here, so the surface anchors on one rather than
             // re-resolving any by name.
-            var surface = new ReflectionSurface("CharEditorCompat");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             PropertyInfo pawnProperty = surface.Property(ceditorType, "Pawn");
@@ -196,7 +189,7 @@ namespace RimWorldAccess
                 CloseGeneric(editorUIType, "Get", blockPersonType));
             eTypePawns = surface.Required("EType.Pawns boxed", EnumValue(eTypeType, "Pawns"));
 
-            ready = surface.Ready && EditorCore.Ready && Labels.Ready;
+            return surface.Ready && EditorCore.Ready && Labels.Ready;
         }
 
         /// <summary>Members already reported as throwing, so a per-frame reader logs once, not every pass.</summary>

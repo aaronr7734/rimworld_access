@@ -39,8 +39,7 @@ namespace RimWorldAccess
         /// <summary>Local mirror of the internal <c>CharacterEditor.DialogType</c> enum, round-tripped by name.</summary>
         internal enum ObjectsMode { Object, Weapon, Apparel }
 
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorObjectsCompat", Resolve);
 
         private static Type dialogObjectsType;
         private static Type dialogTypeEnumType;
@@ -133,24 +132,18 @@ namespace RimWorldAccess
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { gate.Ensure(); return gate.Ensure(); }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogObjectsType; }
+            get { gate.Ensure(); return dialogObjectsType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorObjectsCompat");
+                return false;
 
             dialogObjectsType = surface.Type("CharacterEditor.DialogObjects");
             dialogTypeEnumType = surface.Type("CharacterEditor.DialogType");
@@ -231,7 +224,7 @@ namespace RimWorldAccess
             labelAllField = surface.Field(labelType, "ALL");
             labelDestroyField = surface.Field(labelType, "DESTROY");
 
-            ready = surface.Ready && CharEditorCompat.Search.Ready && CharEditorCompat.Labels.Ready;
+            return surface.Ready && CharEditorCompat.Search.Ready && CharEditorCompat.Labels.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

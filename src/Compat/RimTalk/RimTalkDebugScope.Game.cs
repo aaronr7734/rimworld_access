@@ -97,6 +97,14 @@ namespace RimWorldAccess.Shell
             Response,
             SegmentToggle,
             SegmentContent,
+            MemoryHint,
+            MemoryHeader,
+            MemoryChangeType,
+            MemoryWeight,
+            MemoryEventKey,
+            MemoryFlags,
+            MemoryNote,
+            MemoryReason,
         }
 
         private struct DetailRow
@@ -150,6 +158,8 @@ namespace RimWorldAccess.Shell
                     return Translator.Translate("RimTalk.DebugWindow.ViewByPawn").Resolve();
                 case "ActiveRequests":
                     return Translator.Translate("RimTalk.DebugWindow.ViewTalkRequests").Resolve();
+                case "MemoryLog":
+                    return Translator.Translate("RimTalk.DebugWindow.ViewMemoryLog").Resolve();
                 default:
                     return Translator.Translate("RimTalk.DebugWindow.ViewByTime").Resolve();
             }
@@ -177,11 +187,32 @@ namespace RimWorldAccess.Shell
             }
 
             detailRows.Clear();
+            if (viewMode == "MemoryLog")
+            {
+                RebuildMemoryDetailRows();
+                return;
+            }
             object selected = RimTalkDebugWindowCompat.GetSelectedLog(dialog);
             if (selected != null)
             {
                 RebuildDetailRows(selected);
             }
+        }
+
+        private void RebuildMemoryDetailRows()
+        {
+            if (RimTalkDebugWindowCompat.GetSelectedMemoryLog(dialog) == null)
+            {
+                detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryHint });
+                return;
+            }
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryHeader });
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryChangeType });
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryWeight });
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryEventKey });
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryFlags });
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryNote });
+            detailRows.Add(new DetailRow { Kind = DetailRowKind.MemoryReason });
         }
 
         private void RebuildPawnTableRows()
@@ -284,6 +315,8 @@ namespace RimWorldAccess.Shell
                 case "ActiveRequests":
                     IList active = RimTalkDebugWindowCompat.GetActiveRequestsView(dialog);
                     return active?.Count ?? 0;
+                case "MemoryLog":
+                    return RimTalkDebugWindowCompat.GetMemoryLogs(dialog)?.Count ?? 0;
                 default:
                     IList requests = RimTalkDebugWindowCompat.GetRequests(dialog);
                     return requests?.Count ?? 0;
@@ -315,6 +348,8 @@ namespace RimWorldAccess.Shell
                         return GroupedColumnInfo(column);
                     case "ActiveRequests":
                         return ActiveRequestsColumnInfo(column);
+                    case "MemoryLog":
+                        return MemoryLogColumnInfo(column);
                     default:
                         return MainTableColumnInfo(column, includePawn: true);
                 }
@@ -348,6 +383,34 @@ namespace RimWorldAccess.Shell
                 case 4: return new TableColumnInfo(H("HeaderType"));
                 case 5: return new TableColumnInfo(H("HeaderElapsed"));
                 default: return new TableColumnInfo(H("HeaderStatus"));
+            }
+        }
+
+        private static TableColumnInfo MemoryLogColumnInfo(int column)
+        {
+            switch (column)
+            {
+                case 0: return new TableColumnInfo(H("HeaderTimestamp"));
+                case 1: return new TableColumnInfo(H("HeaderTick"));
+                case 2: return new TableColumnInfo(H("HeaderPawn"));
+                case 3: return new TableColumnInfo(H("HeaderTarget"));
+                case 4: return new TableColumnInfo(H("HeaderChangeType"));
+                case 5: return new TableColumnInfo(H("HeaderWeight"));
+                default: return new TableColumnInfo(H("HeaderEventNote"));
+            }
+        }
+
+        private static string MemoryLogCellText(object entry, int column)
+        {
+            switch (column)
+            {
+                case 0: return RimTalkDebugWindowCompat.MemoryLogTimestamp(entry).ToString("HH:mm:ss");
+                case 1: return RimTalkDebugWindowCompat.MemoryLogTick(entry).ToString();
+                case 2: return RimTalkDebugWindowCompat.MemoryLogPawnName(entry, target: false);
+                case 3: return RimTalkDebugWindowCompat.MemoryLogPawnName(entry, target: true);
+                case 4: return RimTalkDebugWindowCompat.MemoryLogChangeTypeLabel(entry);
+                case 5: return RimTalkDebugWindowCompat.MemoryLogWeight(entry, "0");
+                default: return RimTalkDebugWindowCompat.MemoryLogSummary(entry);
             }
         }
 
@@ -388,6 +451,9 @@ namespace RimWorldAccess.Shell
                     case "ActiveRequests":
                         IList active = RimTalkDebugWindowCompat.GetActiveRequestsView(dialog);
                         return active != null && row >= 0 && row < active.Count ? ActiveRequestCellText(active[row], column) : "";
+                    case "MemoryLog":
+                        IList memoryLogs = RimTalkDebugWindowCompat.GetMemoryLogs(dialog);
+                        return memoryLogs != null && row >= 0 && row < memoryLogs.Count ? MemoryLogCellText(memoryLogs[row], column) : "";
                     default:
                         IList requests = RimTalkDebugWindowCompat.GetRequests(dialog);
                         return requests != null && row >= 0 && row < requests.Count ? ApiLogCellText(requests[row], column, includePawn: true) : "";
@@ -587,6 +653,11 @@ namespace RimWorldAccess.Shell
 
         private void DescribeDetailsRow(ElementDescription d, int index)
         {
+            if (CurrentViewMode() == "MemoryLog")
+            {
+                DescribeMemoryDetailsRow(d, index);
+                return;
+            }
             object selected = RimTalkDebugWindowCompat.GetSelectedLog(dialog);
             if (selected == null || index < 0 || index >= detailRows.Count)
                 return;
@@ -627,6 +698,64 @@ namespace RimWorldAccess.Shell
                     if (string.IsNullOrEmpty(content)) d.ValueBlank = true; else d.Value = content;
                     break;
             }
+        }
+
+        private void DescribeMemoryDetailsRow(ElementDescription d, int index)
+        {
+            if (index < 0 || index >= detailRows.Count)
+                return;
+            d.Role = ElementRole.None;
+            d.ReadOnly = true;
+            object entry = RimTalkDebugWindowCompat.GetSelectedMemoryLog(dialog);
+            if (detailRows[index].Kind == DetailRowKind.MemoryHint || entry == null)
+            {
+                d.Label = H("SelectRowHint");
+                return;
+            }
+            switch (detailRows[index].Kind)
+            {
+                case DetailRowKind.MemoryHeader:
+                {
+                    string time = RimTalkDebugWindowCompat.MemoryLogTimestamp(entry).ToString("yyyy-MM-dd HH:mm:ss");
+                    int tick = RimTalkDebugWindowCompat.MemoryLogTick(entry);
+                    string source = RimTalkDebugWindowCompat.MemoryLogPawnName(entry, target: false);
+                    string target = RimTalkDebugWindowCompat.MemoryLogPawnName(entry, target: true);
+                    d.Label = target == "-"
+                        ? "RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader".Translate(time, tick, source)
+                        : "RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget".Translate(time, tick, source, target);
+                    return;
+                }
+                case DetailRowKind.MemoryChangeType:
+                    d.Label = H("HeaderChangeType");
+                    d.Value = RimTalkDebugWindowCompat.MemoryLogChangeTypeLabel(entry);
+                    return;
+                case DetailRowKind.MemoryWeight:
+                    d.Label = H("HeaderWeight");
+                    d.Value = RimTalkDebugWindowCompat.MemoryLogWeight(entry, "F1");
+                    return;
+                case DetailRowKind.MemoryEventKey:
+                    d.Label = H("HeaderEventKey");
+                    d.Value = DashIfEmpty(RimTalkDebugWindowCompat.MemoryLogEventKey(entry));
+                    return;
+                case DetailRowKind.MemoryFlags:
+                    d.Label = "RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags".Translate(
+                        (RimTalkDebugWindowCompat.MemoryLogIsDirective(entry) ? "Yes" : "No").Translate(),
+                        (RimTalkDebugWindowCompat.MemoryLogIsCoreTrauma(entry) ? "Yes" : "No").Translate());
+                    return;
+                case DetailRowKind.MemoryNote:
+                    d.Label = H("HeaderNoteContent");
+                    d.Value = DashIfEmpty(RimTalkDebugWindowCompat.MemoryLogNote(entry));
+                    return;
+                default:
+                    d.Label = H("HeaderReasonContext");
+                    d.Value = DashIfEmpty(RimTalkDebugWindowCompat.MemoryLogDetails(entry));
+                    return;
+            }
+        }
+
+        private static string DashIfEmpty(string text)
+        {
+            return string.IsNullOrEmpty(text) ? "-" : text;
         }
 
         private bool IsSegmentExpanded(int segmentIndex)
@@ -725,6 +854,14 @@ namespace RimWorldAccess.Shell
                     // clickable.
                     AnnounceCurrentItem();
                     return;
+                case "MemoryLog":
+                    IList memoryLogs = RimTalkDebugWindowCompat.GetMemoryLogs(dialog);
+                    if (memoryLogs == null || index < 0 || index >= memoryLogs.Count)
+                        return;
+                    RimTalkDebugWindowCompat.SelectMemoryLog(dialog, memoryLogs[index]);
+                    RefreshModel();
+                    AnnounceCurrentItem();
+                    return;
                 default:
                     IList requests = RimTalkDebugWindowCompat.GetRequests(dialog);
                     if (requests == null || index < 0 || index >= requests.Count)
@@ -760,7 +897,7 @@ namespace RimWorldAccess.Shell
             if (index < 0 || index >= detailRows.Count)
                 return;
             DetailRow row = detailRows[index];
-            if (row.Kind != DetailRowKind.SegmentToggle)
+            if (row.Kind != DetailRowKind.SegmentToggle || CurrentViewMode() == "MemoryLog")
             {
                 AnnounceCurrentItem();
                 return;
@@ -787,6 +924,14 @@ namespace RimWorldAccess.Shell
                     ? RimTalkDebugWindowCompat.TalkRequestInitiator(active[row])
                     : RimTalkDebugWindowCompat.TalkRequestRecipient(active[row]);
                 return JumpToPawn(pawn);
+            }
+
+            if (region == TableRegion && CurrentViewMode() == "MemoryLog")
+            {
+                IList memoryLogs = RimTalkDebugWindowCompat.GetMemoryLogs(dialog);
+                if ((column != 2 && column != 3) || memoryLogs == null || row < 0 || row >= memoryLogs.Count)
+                    return false;
+                return JumpToPawn(RimTalkDebugWindowCompat.MemoryLogPawn(memoryLogs[row], target: column == 3));
             }
 
             if (region == TableRegion && CurrentViewMode() == "GroupedByPawn")
@@ -827,8 +972,8 @@ namespace RimWorldAccess.Shell
 
         /// <summary>
         /// Only the Filters rows have a literal widget behind them: DrawSearchField's two
-        /// <c>Widgets.TextField</c> calls, in this region's order. The detail panes use raw
-        /// <c>GUI.TextArea</c>, which no tap sees, and every other region is reflected data.
+        /// <c>Widgets.TextField</c> calls, in this region's order, drawn before the detail panes'
+        /// raw <c>GUI.TextArea</c> boxes so their ordinals hold; every other region is reflected data.
         /// </summary>
         protected internal override UnityEngine.Rect FocusedContentRect()
         {

@@ -189,6 +189,8 @@ namespace RimWorldAccess
             }
         }
 
+        public string AcceptLabel => null;
+
         public bool HasSummary => true;
 
         /// <summary>The cargo dialog's own DrawCargoNumbers readout shows only mass, so the summary is a single line.</summary>

@@ -150,6 +150,8 @@ namespace RimWorldAccess
         /// <summary>Invokes the dialog's own SetToLoadEverything (Vehicle A): maxes every transferable and recaches.</summary>
         public void SetToLoadEverything() => setToLoadEverythingMethod?.Invoke(dialog, null);
 
+        public string AcceptLabel => null;
+
         public bool HasSummary => true;
 
         /// <summary>

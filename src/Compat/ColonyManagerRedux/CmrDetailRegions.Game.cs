@@ -32,12 +32,16 @@ namespace RimWorldAccess.Shell
 
         public Func<bool> Selected;
 
+        public bool Disabled;
+
         public Func<string> Value;
 
         /// <summary>Whether an expandable row is open; activating it toggles and echoes the new word.</summary>
         public Func<bool> Expanded;
 
         public Action Activate;
+
+        public Action<CmrShortcutClick> ShortcutClick;
 
         /// <summary>Left/Right, paired with <see cref="CanAdjust"/>. Null for a row with no value axis.</summary>
         public Action<int> Adjust;

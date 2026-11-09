@@ -1328,12 +1328,6 @@
   <RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix> - {0} cells</RimWorldAccess.Inspection.Tree.MeditationFocusDistanceSuffix>
   <RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix> - No line of sight</RimWorldAccess.Inspection.Tree.MeditationFocusNoLineOfSightSuffix>
 
-  <!-- Skill XP progress row (BuildSkillChildren). {0} = XP since last
-       level (F0), {1} = XP required for next level (F0). The "XP"
-       prefix is mod-side because the vanilla Skills.xml exposes only
-       the long-form "Experience" word and we want a compact row. -->
-  <RimWorldAccess.Inspection.Tree.SkillXpProgress>XP: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
-
   <!-- =================================================================
        RangeEditMenuState announcements. Spoken when the user
        navigates between the min / max sliders and as values change.

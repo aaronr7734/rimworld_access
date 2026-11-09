@@ -1,4 +1,7 @@
+using System;
 using System.Collections.Generic;
+using System.Reflection;
+using HarmonyLib;
 using RimWorld;
 using Verse;
 using Verse.Sound;
@@ -11,14 +14,11 @@ namespace RimWorldAccess.Shell
     /// <see cref="ScopeForWindow.Register"/>. Content regions, plus the automatic Buttons region:
     /// the manager tab strip (labelled by each icon's own hover tooltip; icons switched off in mod
     /// settings are not drawn and not presented, while a tab the game blocks stays a navigable,
-    /// disabled row carrying its reason); the selected tab's job list in the mod's priority order,
-    /// each row carrying all four zones of the sighted row (absent on Import/Export and Power, which
-    /// draw no job list; on Logs the job rows ARE the log filter, so Enter toggles that instead of the
-    /// suspend stamp); then one region per column of the selected job's detail pane, supplied by
-    /// whichever <see cref="ICmrJobDetailsProvider"/> handles the tab. A tab with no provider or no
-    /// selected job grows no detail regions, and the empty-region rule hides them.
-    /// Selection follows the cursor: landing on a job row writes the tab's <c>Selected</c> exactly as
-    /// a mouse click does, silently, keeping the sighted detail pane on the keyboard user's job.
+    /// disabled row carrying its reason); the selected tab's job list as the mod draws it (Overview's
+    /// with its group headers; none on Import/Export and Power; on Logs Enter toggles the log
+    /// filter); then one region per column of the selected job's detail pane, from whichever
+    /// <see cref="ICmrJobDetailsProvider"/> handles the tab. Selection follows the cursor: landing on
+    /// a job row writes the tab's <c>Selected</c> exactly as a mouse click does, silently.
     /// <c>MainTabWindow</c> overrides neither <c>OnAcceptKeyPressed</c> nor <c>OnCancelKeyPressed</c>,
     /// so <see cref="ScreenScope"/>'s defaults are correct.
     /// </summary>
@@ -33,6 +33,8 @@ namespace RimWorldAccess.Shell
         private readonly Window window;
         private readonly List<object> tabs = new List<object>();
         private readonly List<object> jobs = new List<object>();
+
+        private readonly List<CmrOverviewGroup> entryGroups = new List<CmrOverviewGroup>();
         private readonly List<CmrDetailRegion> detailRegions = new List<CmrDetailRegion>();
         private readonly HashSet<string> capturedTwins = new HashSet<string>();
         private object currentTab;
@@ -64,6 +66,9 @@ namespace RimWorldAccess.Shell
             Claim("cmrManager.cyclePriorityUp", e => AdjustCurrentCell(1), when: () => CurrentCellAdjustable());
             Claim("cmrManager.paintDown", e => PaintDetailRow(1), when: () => CurrentRowPaintable());
             Claim("cmrManager.paintUp", e => PaintDetailRow(-1), when: () => CurrentRowPaintable());
+            Claim("cmrManager.shortcutRestrict", e => ShortcutClick(CmrShortcutClick.Restrict), when: CurrentRowIsShortcut);
+            Claim("cmrManager.shortcutAdd", e => ShortcutClick(CmrShortcutClick.Add), when: CurrentRowIsShortcut);
+            Claim("cmrManager.shortcutRemove", e => ShortcutClick(CmrShortcutClick.Remove), when: CurrentRowIsShortcut);
 
             RegisterPopTeardown(editor.CancelIfActive);
         }
@@ -149,6 +154,7 @@ namespace RimWorldAccess.Shell
         {
             tabs.Clear();
             jobs.Clear();
+            entryGroups.Clear();
             detailRegions.Clear();
             currentTab = null;
             jobTracker = null;
@@ -174,7 +180,11 @@ namespace RimWorldAccess.Shell
             }
             // Import/Export and Power replace the tab layout wholesale and draw no job list; their
             // providers model everything those tabs do draw.
-            if (!CmrCompat.ImportExport.HandlesTab(currentTab)
+            if (CmrCompat.OverviewList.HandlesTab(currentTab))
+            {
+                AddOverviewEntries();
+            }
+            else if (!CmrCompat.ImportExport.HandlesTab(currentTab)
                 && !CmrCompat.Power.HandlesTab(currentTab))
             {
                 jobs.AddRange(CmrCompat.TabJobs(currentTab));
@@ -197,6 +207,102 @@ namespace RimWorldAccess.Shell
                         capturedTwins.Add(rows[i].CapturedTwin);
                     }
                 }
+            }
+        }
+
+        /// <summary>Overview: header rows carry a null job; collapse is the mod's own persisted state.</summary>
+        private void AddOverviewEntries()
+        {
+            foreach (CmrOverviewGroup group in CmrCompat.OverviewList.Groups(currentTab))
+            {
+                if (group.Header != null)
+                {
+                    jobs.Add(null);
+                    entryGroups.Add(group);
+                    if (CmrCompat.OverviewList.IsCollapsed(currentTab, group.Key))
+                    {
+                        continue;
+                    }
+                }
+                foreach (object job in group.Jobs)
+                {
+                    jobs.Add(job);
+                    entryGroups.Add(group);
+                }
+            }
+        }
+
+        private CmrOverviewGroup HeaderAt(int index)
+        {
+            return index >= 0 && index < jobs.Count && jobs[index] == null && index < entryGroups.Count
+                ? entryGroups[index]
+                : null;
+        }
+
+        private ElementDescription DescribeGroupHeader(CmrOverviewGroup group)
+        {
+            return new ElementDescription
+            {
+                Label = group.Header + " (" + group.Jobs.Count + ")",
+                Role = ElementRole.TreeItem,
+                Expanded = !CmrCompat.OverviewList.IsCollapsed(currentTab, group.Key),
+            };
+        }
+
+        private void OpenGroupActions(CmrOverviewGroup group)
+        {
+            bool opened = CmrRowEditor.OpenPicker(CmrOverviewDetails.GroupActionChoices(currentTab, group), null,
+                group.Header, delegate
+                {
+                    RefreshModel();
+                    AnnounceCurrentItem();
+                });
+            if (!opened)
+            {
+                AnnounceCurrentItem();
+            }
+        }
+
+        private bool CanAdjustOverviewEntry(int index, int direction)
+        {
+            if (!CmrCompat.OverviewList.HandlesTab(currentTab) || index < 0 || index >= entryGroups.Count)
+            {
+                return false;
+            }
+            CmrOverviewGroup header = HeaderAt(index);
+            if (header != null)
+            {
+                return CmrCompat.OverviewList.IsCollapsed(currentTab, header.Key) == (direction > 0);
+            }
+            return direction < 0 && entryGroups[index] != null && entryGroups[index].Header != null;
+        }
+
+        private void AdjustOverviewEntry(int index, int direction)
+        {
+            CmrOverviewGroup header = HeaderAt(index);
+            if (header != null)
+            {
+                CmrCompat.OverviewList.SetCollapsed(currentTab, header.Key, direction < 0);
+                RefreshModel();
+                TolkHelper.SpeakData(AnnouncementComposer.ComposeStateChange(
+                    DescribeGroupHeader(header), TranslatedShellVocabulary.Instance));
+                return;
+            }
+            int headerIndex = -1;
+            for (int i = index - 1; i >= 0; i--)
+            {
+                if (jobs[i] == null)
+                {
+                    headerIndex = i;
+                    break;
+                }
+            }
+            ListModel region = Model.CurrentRegion;
+            if (region != null && headerIndex >= 0)
+            {
+                region.MoveTo(headerIndex);
+                NotifyCursorSettled();
+                AnnounceCurrentItem();
             }
         }
 
@@ -276,7 +382,12 @@ namespace RimWorldAccess.Shell
             {
                 // On the Logs tab a job row IS the log filter and draws no stamp, so Enter toggles the
                 // filter there and the suspend stamp everywhere else.
-                if (CmrCompat.Logs.HandlesTab(currentTab))
+                CmrOverviewGroup header = HeaderAt(index);
+                if (header != null)
+                {
+                    OpenGroupActions(header);
+                }
+                else if (CmrCompat.Logs.HandlesTab(currentTab))
                 {
                     ToggleLogFilter(index);
                 }
@@ -313,7 +424,7 @@ namespace RimWorldAccess.Shell
                 return;
             }
             object job = jobs[index];
-            if (!ReferenceEquals(CmrCompat.TabSelectedJob(currentTab), job))
+            if (job != null && !ReferenceEquals(CmrCompat.TabSelectedJob(currentTab), job))
             {
                 CmrCompat.SelectJob(currentTab, job);
             }
@@ -373,6 +484,11 @@ namespace RimWorldAccess.Shell
             if (index < 0 || index >= jobs.Count)
             {
                 return d;
+            }
+            CmrOverviewGroup header = HeaderAt(index);
+            if (header != null)
+            {
+                return DescribeGroupHeader(header);
             }
             object job = jobs[index];
             d.Label = CmrCompat.JobLabel(job);
@@ -478,6 +594,7 @@ namespace RimWorldAccess.Shell
             }
             d.Label = row.Label;
             d.Role = row.Role;
+            d.Disabled = row.Disabled;
             if (row.Check != null)
             {
                 d.Check = row.Check();
@@ -572,6 +689,25 @@ namespace RimWorldAccess.Shell
             AnnounceCurrentItem();
         }
 
+        private bool CurrentRowIsShortcut()
+        {
+            RefreshModel();
+            CmrDetailRow row = CurrentDetailRow();
+            return row != null && row.ShortcutClick != null;
+        }
+
+        private void ShortcutClick(CmrShortcutClick mode)
+        {
+            CmrDetailRow row = CurrentDetailRow();
+            if (row == null || row.ShortcutClick == null)
+            {
+                return;
+            }
+            row.ShortcutClick(mode);
+            RefreshModel();
+            AnnounceDetailChange(row);
+        }
+
         // -------------------------------------------------------------------
         // Paint (Shift+Down/Up): the keyboard mirror of CheckboxMulti(paintable: true)'s drag-paint.
         // -------------------------------------------------------------------
@@ -644,8 +780,46 @@ namespace RimWorldAccess.Shell
             PawnColumnDef def = table.Columns[column];
             string label = CmrPawnTableFusion.ColumnHeader(def);
             // Suppress a tip the label already IS (an icon-headed column's headerTip promoted to it).
-            string tip = def.headerTip.NullOrEmpty() || def.headerTip == label ? null : def.headerTip;
+            string tip = OverriddenHeaderTip(def, table.Table)
+                ?? (def.headerTip.NullOrEmpty() || def.headerTip == label ? null : def.headerTip);
             return new TableColumnInfo(label, tip, def.sortable);
+        }
+
+        private static readonly Dictionary<Type, MethodInfo> headerTipOverrides = new Dictionary<Type, MethodInfo>();
+
+        /// <summary>A mod worker's own GetHeaderTip; vanilla's base only adds a click-to-sort instruction.</summary>
+        private static string OverriddenHeaderTip(PawnColumnDef def, PawnTable pawnTable)
+        {
+            PawnColumnWorker worker = def.Worker;
+            if (worker == null)
+            {
+                return null;
+            }
+            MethodInfo method;
+            Type workerType = worker.GetType();
+            if (!headerTipOverrides.TryGetValue(workerType, out method))
+            {
+                method = AccessTools.Method(workerType, "GetHeaderTip", new[] { typeof(PawnTable) });
+                if (method != null && method.DeclaringType == typeof(PawnColumnWorker))
+                {
+                    method = null;
+                }
+                headerTipOverrides[workerType] = method;
+            }
+            if (method == null)
+            {
+                return null;
+            }
+            try
+            {
+                string tip = method.Invoke(worker, new object[] { pawnTable }) as string;
+                return string.IsNullOrEmpty(tip) ? null : FlattenTooltip(tip);
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("CmrManagerScope.OverriddenHeaderTip", ex);
+                return null;
+            }
         }
 
         protected override string ContentCellText(int region, int row, int column)
@@ -776,6 +950,10 @@ namespace RimWorldAccess.Shell
 
         protected override bool CanAdjustContentItem(int region, int index)
         {
+            if (region == JobsRegion)
+            {
+                return CanAdjustOverviewEntry(index, -1) || CanAdjustOverviewEntry(index, 1);
+            }
             CmrDetailRow row = DetailRow(region, index);
             return row != null && row.Adjust != null
                 && (row.CanAdjust == null || row.CanAdjust(-1) || row.CanAdjust(1));
@@ -783,6 +961,18 @@ namespace RimWorldAccess.Shell
 
         protected override void AdjustContentItem(int region, int index, int direction)
         {
+            if (region == JobsRegion)
+            {
+                if (CanAdjustOverviewEntry(index, direction))
+                {
+                    AdjustOverviewEntry(index, direction);
+                }
+                else
+                {
+                    AnnounceCurrentItem();
+                }
+                return;
+            }
             CmrDetailRow row = DetailRow(region, index);
             if (row == null || row.Adjust == null)
             {
@@ -917,9 +1107,10 @@ namespace RimWorldAccess.Shell
             {
                 return false;
             }
-            // Livestock's and Logs' job rows draw no order arrows at all, so the reorder chord refuses
+            // Livestock's, Logs' and Overview's job rows draw no order arrows at all, so the reorder chord refuses
             // on those tabs.
-            if (CmrCompat.Livestock.HandlesTab(currentTab) || CmrCompat.Logs.HandlesTab(currentTab))
+            if (CmrCompat.Livestock.HandlesTab(currentTab) || CmrCompat.Logs.HandlesTab(currentTab)
+                || CmrCompat.Overview.HandlesTab(currentTab))
             {
                 return false;
             }
@@ -947,7 +1138,8 @@ namespace RimWorldAccess.Shell
             }
             if (region != JobsRegion || index < 0 || index >= jobs.Count || currentTab == null
                 || CmrCompat.Livestock.HandlesTab(currentTab)
-                || CmrCompat.Logs.HandlesTab(currentTab))
+                || CmrCompat.Logs.HandlesTab(currentTab)
+                || CmrCompat.Overview.HandlesTab(currentTab))
             {
                 return -1;
             }

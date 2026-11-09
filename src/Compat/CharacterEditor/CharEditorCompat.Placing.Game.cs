@@ -22,8 +22,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool placingInitialized;
-        private static bool placingReady;
+        private static readonly LazyReflectionGate placingGate = new LazyReflectionGate("CharEditorCompat placing", ResolvePlacing);
 
         private static Type placingToolType;
         private static MethodInfo placingBeginTeleportPawnMethod;
@@ -36,18 +35,16 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return placingReady;
+                gate.Ensure();
+                return placingGate.Ensure();
             }
         }
 
-        private static void BindPlacing()
+        private static bool ResolvePlacing(ReflectionSurface surface)
         {
-            if (placingInitialized)
-                return;
-            placingInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat placing");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             placingToolType = surface.Type("CharacterEditor.PlacingTool");
@@ -56,7 +53,7 @@ namespace RimWorldAccess
             placingRotationField = surface.Field(placingToolType, "rotation");
             editorMoveRightMethod = surface.Method(ceditorType, "EditorMoveRight", Type.EmptyTypes);
 
-            placingReady = surface.Ready;
+            return surface.Ready;
         }
 
         /// <summary>

@@ -193,7 +193,8 @@ namespace RimWorldAccess.Shell
                     d.Label = ability?.def?.LabelCap.ToString() ?? "";
                     d.Role = ElementRole.Button;
                     // Command_Ability.Desc is empty without hover -- read the def's own description directly.
-                    d.Extras = ability?.def?.GetTooltip(pawn);
+                    d.Extras = ability?.def == null ? null
+                        : RedundantLabelPrefix.AfterTitle(ability.def.GetTooltip(pawn).StripTags(), d.Label.StripTags());
                     break;
                 }
                 case CharRowKind.PsycastEntropy:

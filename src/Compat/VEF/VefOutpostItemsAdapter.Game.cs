@@ -160,6 +160,8 @@ namespace RimWorldAccess
                 : (string)"RimWorldAccess.Compat.Vef.OutpostTakeDone".Translate(outpost.LabelCap));
         }
 
+        public string AcceptLabel => CompatText.ModText(give ? "Outposts.Give" : "Outposts.Take");
+
         public bool HasSummary => false;
 
         public void BuildSummaryItems(List<string> outItems, float massUsage)

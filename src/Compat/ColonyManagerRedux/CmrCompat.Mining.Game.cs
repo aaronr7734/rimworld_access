@@ -58,6 +58,7 @@ namespace RimWorldAccess
             private static readonly FieldInfo checkRoofSupportField;
             private static readonly FieldInfo checkRoofSupportAdvancedField;
             private static readonly FieldInfo checkRoomDivisionField;
+            private static readonly FieldInfo countChunkProductsField;
             private static readonly FieldInfo haulMapChunksField;
             private static readonly FieldInfo haulMinedChunksField;
             private static readonly FieldInfo deconstructAncientDangerWhenFoggedField;
@@ -82,7 +83,7 @@ namespace RimWorldAccess
             private static readonly MethodInfo refreshAllBuildingsAndMineralsMethod;
             private static readonly MethodInfo getChunkProductKindMethod;
             private static readonly MethodInfo getMineralTooltipMethod;
-            private static readonly MethodInfo isMetalMethod;
+            private static readonly MethodInfo getBuildingTooltipMethod;
 
             private static readonly MethodInfo targetLabelGetter;
             private static readonly MethodInfo currentCountMethod;
@@ -90,6 +91,7 @@ namespace RimWorldAccess
             private static readonly MethodInfo chunksCachedValueGetter;
             private static readonly MethodInfo designatedCachedValueGetter;
             private static readonly MethodInfo cacheUpdateMethod;
+            private static readonly MethodInfo cacheForceUpdateMethod;
             private static readonly MethodInfo cacheValueGetter;
 
             private static readonly object filterToAllowedSync;
@@ -117,6 +119,7 @@ namespace RimWorldAccess
                 checkRoofSupportField = surface.Field(jobType, "CheckRoofSupport");
                 checkRoofSupportAdvancedField = surface.Field(jobType, "CheckRoofSupportAdvanced");
                 checkRoomDivisionField = surface.Field(jobType, "CheckRoomDivision");
+                countChunkProductsField = surface.Field(jobType, "CountChunkProducts");
                 haulMapChunksField = surface.Field(jobType, "HaulMapChunks");
                 haulMinedChunksField = surface.Field(jobType, "HaulMinedChunks");
                 deconstructAncientDangerWhenFoggedField =
@@ -154,7 +157,7 @@ namespace RimWorldAccess
                     surface.Method(jobType, "RefreshAllBuildingsAndMinerals", new Type[0]);
                 getChunkProductKindMethod = surface.Method(jobType, "GetChunkProductKind", new Type[0]);
                 getMineralTooltipMethod = surface.Method(tabType, "GetMineralTooltip", new[] { typeof(ThingDef) });
-                isMetalMethod = surface.Method(tabType, "IsMetal", new[] { typeof(ThingDef) });
+                getBuildingTooltipMethod = surface.Method(tabType, "GetBuildingTooltip", new[] { typeof(ThingDef) });
 
                 targetLabelGetter = Getter(surface.Property(triggerType, "TargetLabel"));
                 currentCountMethod = surface.Method(triggerType, "GetCurrentCount", new[] { typeof(bool) });
@@ -166,6 +169,7 @@ namespace RimWorldAccess
                 // version change.
                 Type cacheType = chunksCachedValueGetter != null ? chunksCachedValueGetter.ReturnType : null;
                 cacheUpdateMethod = surface.Method(cacheType, "DoUpdateIfNeeded", new[] { typeof(bool) });
+                cacheForceUpdateMethod = surface.Method(cacheType, "ForceUpdate", new Type[0]);
                 cacheValueGetter = Getter(surface.Property(cacheType, "Value"));
 
                 ready = surface.Ready;
@@ -268,6 +272,20 @@ namespace RimWorldAccess
             public static void SetCheckRoomDivision(object job, bool value)
             {
                 SetField(checkRoomDivisionField, job, value, "SetCheckRoomDivision");
+            }
+
+            public static bool CountChunkProducts(object job)
+            {
+                return FieldFlag(countChunkProductsField, job, "CountChunkProducts");
+            }
+
+            public static void SetCountChunkProducts(object job, bool value)
+            {
+                SetField(countChunkProductsField, job, value, "SetCountChunkProducts");
+                Call(cacheForceUpdateMethod, Get(chunksCachedValueGetter, job, "ChunksCachedValue"), null,
+                    "SetCountChunkProducts");
+                Call(cacheForceUpdateMethod, Get(designatedCachedValueGetter, job, "DesignatedCachedValue"), null,
+                    "SetCountChunkProducts");
             }
 
             public static bool HaulMapChunks(object job)
@@ -462,15 +480,6 @@ namespace RimWorldAccess
                 SetProperty(mineralsLockedSetter, job, value, "SetMineralsLockedToMap");
             }
 
-            public static bool IsMetal(ThingDef def)
-            {
-                if (!ready || isMetalMethod == null)
-                {
-                    return false;
-                }
-                return Call(isMetalMethod, null, new object[] { def }, "IsMetal") is bool value && value;
-            }
-
             /// <summary>The mod's own hover text for a mineral row: description, then chunk or bar yield and drop chance (ManagerTab_Mining.cs:27-50).</summary>
             public static string MineralTooltip(ThingDef mineral)
             {
@@ -479,6 +488,15 @@ namespace RimWorldAccess
                     return "";
                 }
                 return Call(getMineralTooltipMethod, null, new object[] { mineral }, "MineralTooltip") as string ?? "";
+            }
+
+            public static string BuildingTooltip(ThingDef building)
+            {
+                if (!ready || building == null || getBuildingTooltipMethod == null)
+                {
+                    return "";
+                }
+                return Call(getBuildingTooltipMethod, null, new object[] { building }, "BuildingTooltip") as string ?? "";
             }
 
             // Deconstructible buildings.

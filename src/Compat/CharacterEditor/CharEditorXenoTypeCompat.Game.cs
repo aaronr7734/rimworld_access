@@ -60,8 +60,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorXenoTypeCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorXenoTypeCompat", Resolve);
 
         private static Type dialogType;
 
@@ -78,24 +77,19 @@ namespace RimWorldAccess
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { gate.Ensure(); return gate.Ensure(); }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorXenoTypeCompat");
             // Anchor: this facade resolves ONE type, so without a type known to be present a
             // missing DialogXenoType would read as "mod absent" and decline silently.
             surface.Supplied("CharacterEditor.CEditor", AccessTools.TypeByName("CharacterEditor.CEditor"));
@@ -111,7 +105,7 @@ namespace RimWorldAccess
             aLoadCustomXenotypeMethod = surface.Method(dialogType, "ALoadCustomXenotype", new[] { typeof(CustomXenotype) });
             aLoadXenotypeDefMethod = surface.Method(dialogType, "ALoadXenotypeDef", new[] { typeof(XenotypeDef) });
 
-            ready = surface.Ready;
+            return surface.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Reflection;
 using RimWorld;
 using Verse;
@@ -70,6 +71,21 @@ namespace RimWorldAccess
             private static readonly FieldInfo autoRestrictIngredientsFromLinksField;
             private static readonly FieldInfo demandAggregationField;
             private static readonly FieldInfo syncFilterAndAllowedField;
+            private static readonly FieldInfo consumeSurplusPerIngredientField;
+            private static readonly FieldInfo maxAllowedSkillLevelField;
+            private static readonly FieldInfo groupByWorkbenchField;
+            private static readonly FieldInfo collapsedWorkbenchGroupsField;
+            private static readonly MethodInfo workbenchGroupsGetter;
+            private static readonly FieldInfo reservedStockOverridesField;
+            private static readonly FieldInfo reservedStockInputBuffersField;
+            private static readonly MethodInfo effectiveReservedStockMethod;
+            private static readonly MethodInfo managerSettingsGetter;
+            private static readonly FieldInfo globalReservedStockField;
+            private static readonly MethodInfo relevantReservedIngredientsMethod;
+            private static readonly MethodInfo addReservedStockOptionsMethod;
+            private static readonly MethodInfo countedQualityRangeGetter;
+            private static readonly MethodInfo countedQualityRangeSetter;
+            private static readonly MethodInfo anyHasQualityMethod;
             private static readonly FieldInfo assignmentModeField;
             private static readonly FieldInfo workbenchAreaField;
             private static readonly FieldInfo invertWorkbenchAreaField;
@@ -86,12 +102,11 @@ namespace RimWorldAccess
             private static readonly MethodInfo allEligibleWorkTablesGetter;
             private static readonly MethodInfo managedBillsGetter;
             private static readonly MethodInfo setIngredientAllowedMethod;
-            private static readonly MethodInfo allRecipeIngredientOptionsMethod;
+            private static readonly MethodInfo optionalRecipeIngredientOptionsMethod;
+            private static readonly MethodInfo groupIngredientsByCategoryMethod;
             private static readonly MethodInfo resolvedOutputDefsMethod;
             private static readonly MethodInfo representativeThingDefMethod;
 
-            // Only the Trigger_Threshold members this block's own rows need are bound here; the rest
-            // live on CmrCompat.Threshold's job-taking overloads.
             private static readonly MethodInfo targetLabelGetter;
             private static readonly MethodInfo statusTooltipGetter;
             private static readonly MethodInfo currentCountMethod;
@@ -154,6 +169,13 @@ namespace RimWorldAccess
                     surface.Field(jobType, "AutoRestrictIngredientsFromLinks");
                 demandAggregationField = surface.Field(jobType, "DemandAggregation");
                 syncFilterAndAllowedField = surface.Field(jobType, "SyncFilterAndAllowed");
+                consumeSurplusPerIngredientField = surface.Field(jobType, "ConsumeSurplusPerIngredient");
+                maxAllowedSkillLevelField = surface.Field(jobType, "MaxAllowedSkillLevel");
+                PropertyInfo qualityRangeProperty = surface.Property(jobType, "CountedQualityRange");
+                countedQualityRangeGetter = Getter(qualityRangeProperty);
+                countedQualityRangeSetter = surface.Required("ManagerJob_Production.CountedQualityRange setter",
+                    Setter(qualityRangeProperty));
+                anyHasQualityMethod = surface.Method(jobType, "AnyHasQuality", new[] { typeof(IEnumerable<ThingDef>) });
                 assignmentModeField = surface.Field(jobType, "AssignmentMode");
                 workbenchAreaField = surface.Field(jobType, "WorkbenchArea");
                 invertWorkbenchAreaField = surface.Field(jobType, "InvertWorkbenchArea");
@@ -174,8 +196,10 @@ namespace RimWorldAccess
                 managedBillsGetter = Getter(surface.Property(jobType, "ManagedBills"));
                 setIngredientAllowedMethod = surface.Method(jobType, "SetIngredientAllowed",
                     new[] { typeof(ThingDef), typeof(bool), typeof(bool) });
-                allRecipeIngredientOptionsMethod =
-                    surface.Method(jobType, "AllRecipeIngredientOptions", new[] { typeof(RecipeDef) });
+                optionalRecipeIngredientOptionsMethod =
+                    surface.Method(jobType, "OptionalRecipeIngredientOptions", new[] { typeof(RecipeDef) });
+                groupIngredientsByCategoryMethod = surface.Method(jobType, "GroupIngredientsByCategory",
+                    new[] { typeof(IEnumerable<ThingDef>) });
                 resolvedOutputDefsMethod =
                     surface.Method(jobType, "ResolvedOutputDefs", new[] { typeof(RecipeDef) });
                 representativeThingDefMethod =
@@ -187,6 +211,22 @@ namespace RimWorldAccess
                 detailsWindowGetter = Getter(surface.Property(triggerType, "DetailsWindow"));
 
                 availableRecipesField = surface.Field(tabType, "_availableRecipes");
+                groupByWorkbenchField = surface.Field(tabType, "_groupByWorkbench");
+                collapsedWorkbenchGroupsField = surface.Field(tabType, "_collapsedWorkbenchGroups");
+                workbenchGroupsGetter = Getter(surface.Property(tabType, "WorkbenchGroups"));
+                reservedStockOverridesField = surface.Field(jobType, "ReservedStockOverrides");
+                reservedStockInputBuffersField = surface.Field(tabType, "_reservedStockInputBuffers");
+                effectiveReservedStockMethod = surface.Method(jobType, "GetEffectiveReservedStock", new[] { typeof(ThingDef) });
+                managerSettingsGetter = Getter(surface.Property(jobType, "ManagerSettings"));
+                globalReservedStockField = surface.Field(
+                    surface.Type("ColonyManagerRedux.Managers.ManagerSettings_Production"), "ReservedStock");
+                if (jobType != null)
+                {
+                    relevantReservedIngredientsMethod =
+                        surface.Method(tabType, "ComputeRelevantReservedIngredients", new[] { jobType });
+                    addReservedStockOptionsMethod =
+                        surface.Method(tabType, "BuildAddJobReservedStockOptions", new[] { jobType });
+                }
                 currentTabField = surface.Field(tabType, "_currentTab");
                 tabListGetter = Getter(surface.Property(tabType, "TabList"));
                 tabRecordTabGetter = Getter(surface.Property(tabRecordType, "Tab"));
@@ -240,6 +280,125 @@ namespace RimWorldAccess
             // Available sub-tab and recipe selection.
             // ------------------------------------------------------------------
 
+            public static bool GroupByWorkbench(object tab)
+            {
+                return FieldFlag(groupByWorkbenchField, tab, "GroupByWorkbench");
+            }
+
+            public static void SetGroupByWorkbench(object tab, bool value)
+            {
+                SetField(groupByWorkbenchField, tab, value, "SetGroupByWorkbench");
+            }
+
+            public static List<KeyValuePair<ThingDef, List<RecipeDef>>> WorkbenchGroups(object tab)
+            {
+                var result = new List<KeyValuePair<ThingDef, List<RecipeDef>>>();
+                var groups = Get(workbenchGroupsGetter, tab, "WorkbenchGroups") as IEnumerable;
+                if (groups == null)
+                {
+                    return result;
+                }
+                try
+                {
+                    foreach (object group in groups)
+                    {
+                        Type recordType = group.GetType();
+                        result.Add(new KeyValuePair<ThingDef, List<RecipeDef>>(
+                            recordType.GetProperty("Workbench").GetValue(group, null) as ThingDef,
+                            recordType.GetProperty("Recipes").GetValue(group, null) as List<RecipeDef>));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Fail("WorkbenchGroups", ex);
+                }
+                return result;
+            }
+
+            public static bool IsWorkbenchGroupCollapsed(object tab, ThingDef workbench)
+            {
+                var collapsed = FieldValue(collapsedWorkbenchGroupsField, tab, "IsWorkbenchGroupCollapsed") as HashSet<ThingDef>;
+                return collapsed != null && collapsed.Contains(workbench);
+            }
+
+            public static void SetWorkbenchGroupCollapsed(object tab, ThingDef workbench, bool collapse)
+            {
+                var collapsed = FieldValue(collapsedWorkbenchGroupsField, tab, "SetWorkbenchGroupCollapsed") as HashSet<ThingDef>;
+                if (collapsed == null)
+                {
+                    return;
+                }
+                // MUTATION-C: the header's closure edits this private set directly; no method wraps it.
+                if (collapse)
+                {
+                    collapsed.Add(workbench);
+                }
+                else
+                {
+                    collapsed.Remove(workbench);
+                }
+            }
+
+            public static List<ThingDef> ReservedIngredients(object job)
+            {
+                return Call(relevantReservedIngredientsMethod, null, new[] { job }, "ReservedIngredients") as List<ThingDef>
+                    ?? new List<ThingDef>();
+            }
+
+            public static int EffectiveReservedStock(object job, ThingDef def)
+            {
+                return Call(effectiveReservedStockMethod, job, new object[] { def }, "EffectiveReservedStock") is int count
+                    ? count
+                    : 0;
+            }
+
+            public static bool HasReservedStockOverride(object job, ThingDef def)
+            {
+                var overrides = FieldValue(reservedStockOverridesField, job, "HasReservedStockOverride") as Dictionary<ThingDef, int>;
+                return overrides != null && overrides.ContainsKey(def);
+            }
+
+            public static bool HasDefaultReservedStock(object job, ThingDef def)
+            {
+                object settings = Get(managerSettingsGetter, job, "HasDefaultReservedStock");
+                var defaults = FieldValue(globalReservedStockField, settings, "HasDefaultReservedStock") as Dictionary<ThingDef, int>;
+                return defaults != null && defaults.ContainsKey(def);
+            }
+
+            /// <summary>The tab re-parses its text buffer every frame, so the buffer entry goes too, as the delete icon does.</summary>
+            public static void SetReservedStockOverride(object tab, object job, ThingDef def, int? count)
+            {
+                var overrides = FieldValue(reservedStockOverridesField, job, "SetReservedStockOverride") as Dictionary<ThingDef, int>;
+                var buffers = FieldValue(reservedStockInputBuffersField, tab, "SetReservedStockOverride") as Dictionary<ThingDef, string>;
+                if (overrides == null)
+                {
+                    return;
+                }
+                // MUTATION-C: the field's and delete icon's own dictionary writes; no method wraps them.
+                if (count.HasValue)
+                {
+                    overrides[def] = count.Value;
+                }
+                else
+                {
+                    overrides.Remove(def);
+                }
+                if (buffers != null)
+                {
+                    buffers.Remove(def);
+                }
+            }
+
+            public static void OpenAddReservedStockMenu(object job)
+            {
+                var options = Call(addReservedStockOptionsMethod, null, new[] { job }, "OpenAddReservedStockMenu")
+                    as List<FloatMenuOption>;
+                if (options != null && options.Count > 0)
+                {
+                    Find.WindowStack.Add(new FloatMenu(options));
+                }
+            }
+
             /// <summary>Every recipe the Available list offers, already label-sorted by the tab's own Refresh.</summary>
             public static List<RecipeDef> AvailableRecipes(object tab)
             {
@@ -286,10 +445,8 @@ namespace RimWorldAccess
             }
 
             /// <summary>
-            /// Puts the visible sub-tab where the keyboard cursor is, changing no game state at all --
-            /// the write <c>TabDrawer.DrawTabs</c> performs when a sub-tab is clicked
-            /// (PostSelect/tab 84-90 does the same for job selection). MUTATION-C: the private field
-            /// has no setter to invoke, and the write is purely visual.
+            /// Puts the visible sub-tab where the keyboard cursor is: the write <c>TabDrawer.DrawTabs</c>
+            /// performs on a sub-tab click. MUTATION-C: no setter exists, and the write is purely visual.
             /// </summary>
             public static void ShowSubTab(object tab, int index)
             {
@@ -865,15 +1022,51 @@ namespace RimWorldAccess
                 SetField(syncFilterAndAllowedField, job, value, "SetSyncFilterAndAllowed");
             }
 
-            public static List<ThingDef> AllIngredientOptions(RecipeDef recipe)
+            public static bool ConsumeSurplusPerIngredient(object job)
+            {
+                return FieldFlag(consumeSurplusPerIngredientField, job, "ConsumeSurplusPerIngredient");
+            }
+
+            /// <summary>Writes the field the ConsumeSurplus-only "Check each ingredient" toggle passes by ref.</summary>
+            public static void SetConsumeSurplusPerIngredient(object job, bool value)
+            {
+                SetField(consumeSurplusPerIngredientField, job, value, "SetConsumeSurplusPerIngredient");
+            }
+
+            /// <summary>Whether the tab draws the quality range: some def the threshold counts has a quality (ManagerTab_Production.DrawThresholdReadOnly).</summary>
+            public static bool ShowsQualityRange(object job)
+            {
+                ThingFilter filter = Threshold.ThresholdFilter(JobTrigger(job));
+                if (!ready || filter == null)
+                {
+                    return false;
+                }
+                return Call(anyHasQualityMethod, null, new object[] { filter.AllowedThingDefs },
+                    "ShowsQualityRange") is bool any && any;
+            }
+
+            public static QualityRange CountedQualityRange(object job)
+            {
+                return Get(countedQualityRangeGetter, job, "CountedQualityRange") is QualityRange range
+                    ? range
+                    : QualityRange.All;
+            }
+
+            public static void SetCountedQualityRange(object job, QualityRange value)
+            {
+                SetProperty(countedQualityRangeSetter, job, value, "SetCountedQualityRange");
+            }
+
+            /// <summary>The ingredients a player can choose for the recipe, the list the tab's shortcuts and checkboxes draw (ManagerTab_Production.DrawIngredientList).</summary>
+            public static List<ThingDef> OptionalIngredientOptions(RecipeDef recipe)
             {
                 var result = new List<ThingDef>();
-                if (!ready || recipe == null || allRecipeIngredientOptionsMethod == null)
+                if (!ready || recipe == null || optionalRecipeIngredientOptionsMethod == null)
                 {
                     return result;
                 }
-                var items = Call(allRecipeIngredientOptionsMethod, null, new object[] { recipe },
-                    "AllIngredientOptions") as IEnumerable<ThingDef>;
+                var items = Call(optionalRecipeIngredientOptionsMethod, null, new object[] { recipe },
+                    "OptionalIngredientOptions") as IEnumerable<ThingDef>;
                 if (items == null)
                 {
                     return result;
@@ -884,7 +1077,7 @@ namespace RimWorldAccess
                 }
                 catch (Exception ex)
                 {
-                    Fail("AllIngredientOptions", ex);
+                    Fail("OptionalIngredientOptions", ex);
                 }
                 return result;
             }
@@ -922,42 +1115,25 @@ namespace RimWorldAccess
                 }
             }
 
-            /// <summary>
-            /// Groups ingredients by the category directly above each item, reimplemented rather than
-            /// reflected because the mod's own GroupIngredientsByCategory returns an ILookup. Ordered
-            /// by category label to match the tab's shortcut row order.
-            /// </summary>
+            /// <summary>The ingredient shortcut rows' groups, the mod's own grouping ordered as the tab orders them (ManagerTab_Production.DrawIngredientShortcuts).</summary>
             public static List<KeyValuePair<ThingCategoryDef, List<ThingDef>>> IngredientCategories(
                 List<ThingDef> ingredients)
             {
                 var result = new List<KeyValuePair<ThingCategoryDef, List<ThingDef>>>();
-                if (ingredients == null)
+                if (!ready || ingredients == null)
                 {
                     return result;
                 }
-                var groups = new Dictionary<ThingCategoryDef, List<ThingDef>>();
-                var order = new List<ThingCategoryDef>();
-                foreach (ThingDef def in ingredients)
+                var groups = Call(groupIngredientsByCategoryMethod, null, new object[] { ingredients },
+                    "IngredientCategories") as IEnumerable<IGrouping<ThingCategoryDef, ThingDef>>;
+                if (groups == null)
                 {
-                    if (def == null || def.thingCategories == null || def.thingCategories.Count == 0)
-                    {
-                        continue;
-                    }
-                    ThingCategoryDef category = def.thingCategories[0];
-                    List<ThingDef> list;
-                    if (!groups.TryGetValue(category, out list))
-                    {
-                        list = new List<ThingDef>();
-                        groups[category] = list;
-                        order.Add(category);
-                    }
-                    list.Add(def);
+                    return result;
                 }
-                order.Sort((a, b) => string.Compare(a.LabelCap.ToString(), b.LabelCap.ToString(),
-                    StringComparison.OrdinalIgnoreCase));
-                foreach (ThingCategoryDef category in order)
+                foreach (IGrouping<ThingCategoryDef, ThingDef> group in groups
+                    .OrderBy(g => g.Key.LabelCap.Resolve(), StringComparer.OrdinalIgnoreCase))
                 {
-                    result.Add(new KeyValuePair<ThingCategoryDef, List<ThingDef>>(category, groups[category]));
+                    result.Add(new KeyValuePair<ThingCategoryDef, List<ThingDef>>(group.Key, group.ToList()));
                 }
                 return result;
             }
@@ -1131,6 +1307,26 @@ namespace RimWorldAccess
             public static int SkillMin(object job)
             {
                 return AllowedSkillRangeOf(job).min;
+            }
+
+            /// <summary>The skill range slider's live upper bound, which integrations such as EndlessGrowth raise.</summary>
+            public static int MaxAllowedSkillLevel()
+            {
+                const int VanillaMax = 20;
+                if (!ready || maxAllowedSkillLevelField == null)
+                {
+                    return VanillaMax;
+                }
+                try
+                {
+                    var max = maxAllowedSkillLevelField.GetValue(null) as Func<int>;
+                    return max != null ? max() : VanillaMax;
+                }
+                catch (Exception ex)
+                {
+                    Fail("MaxAllowedSkillLevel", ex);
+                    return VanillaMax;
+                }
             }
 
             public static int SkillMax(object job)

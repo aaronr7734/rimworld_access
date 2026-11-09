@@ -18,10 +18,9 @@ namespace RimWorldAccess
     /// Concern 1, <see cref="TtsWillVocalize"/>: whether the TTS addon is about to speak the line
     /// just created. Callable unconditionally — it does its own ModsConfig.IsActive check.
     ///
-    /// Concern 2 (P2): a postfix on <c>Verse.PlayLog.Add</c> at <see cref="Priority.Low"/> so it
-    /// runs after Bubbles' own default-priority postfix, letting P1 observe and publish first. It
-    /// catches RimTalk lines whose bubble was suppressed but that remain visible in RimTalk's
-    /// overlay; P1's dedupe key makes it a silent no-op otherwise.
+    /// Concern 2 (P2): a <see cref="Priority.Low"/> postfix on <c>Verse.PlayLog.Add</c>, after
+    /// Bubbles' (P1 publishes first) and after RimTalk's own, which raises its native bubble. A
+    /// line is announced when that bubble appeared or the overlay shows it.
     ///
     /// Concern 3 (P3): a subscription to <c>RimTalk.UI.Overlay.OnLogUpdated</c>, the family's only
     /// public event. Lines the player types as their own persona never reach <c>Verse.PlayLog</c>
@@ -44,6 +43,7 @@ namespace RimWorldAccess
                 return;
             }
 
+            RegisterNativeBubbleWatch(harmony);
             RegisterP2(harmony);
             RegisterP3();
             RegisterOverlayToggleAnnouncement(harmony);
@@ -62,24 +62,25 @@ namespace RimWorldAccess
         private static readonly LazyReflectionGate ttsGate =
             new LazyReflectionGate("RimTalk TTS compat (backoff detection)", ResolveTtsReflection);
 
-        private static PropertyInfo ttsConfigIsEnabledProperty;
-        private static PropertyInfo ttsConfigSettingsProperty;
+        private static PropertyInfo ttsRuntimeCurrentProperty;
+        private static PropertyInfo ttsRuntimeIsPlaybackOnProperty;
+        private static PropertyInfo ttsRuntimeSettingsProperty;
         private static PropertyInfo ttsSettingsSupplierProperty;
         private static MethodInfo audioPlaybackIsCurrentlyPlayingMethod;
 
         /// <summary>
-        /// True only when the TTS addon is installed, enabled, has a real supplier, AND has just
-        /// started or is still playing audio for the line this call concerns. Safe to call
-        /// unconditionally: it does its own <c>ModsConfig.IsActive</c> check and never throws.
+        /// True only when the TTS addon is installed, its playback is on, it has a real supplier,
+        /// AND it has just started or is still playing audio for the line this call concerns. Safe
+        /// to call unconditionally: it does its own <c>ModsConfig.IsActive</c> check and never
+        /// throws.
         ///
         /// DELIBERATELY decides on <c>AudioPlaybackService.IsCurrentlyPlaying()</c> rather than
-        /// the static settings alone. The addon prefixes the same
-        /// <c>TalkService.CreateInteraction</c> call that produces the entry, and that prefix
-        /// synchronously calls <c>PlayAudio</c> before letting the original — and therefore
+        /// the settings alone. The addon prefixes the same <c>TalkService.CreateInteraction</c>
+        /// call that produces the entry, and that prefix (<c>DialoguePipeline.ShouldDisplay</c>)
+        /// starts the line's audio before letting the original — and therefore
         /// <c>PlayLog.Add</c> — run, so TTS has already decided by the time a producer fires. That
         /// also covers the per-pawn "voice model == NONE" skip and the mute toggle for free: when
-        /// either suppresses audio, PlayAudio never runs and the flag stays false. The
-        /// EnableTTS/supplier checks remain as defense in depth.
+        /// either suppresses audio, playback never starts and the flag stays false.
         /// </summary>
         internal static bool TtsWillVocalize()
         {
@@ -95,12 +96,13 @@ namespace RimWorldAccess
 
             try
             {
-                if (!(ttsConfigIsEnabledProperty.GetValue(null) is bool enabled) || !enabled)
+                object runtime = ttsRuntimeCurrentProperty.GetValue(null);
+                if (runtime == null || !(ttsRuntimeIsPlaybackOnProperty.GetValue(runtime) is bool on) || !on)
                 {
                     return false;
                 }
 
-                object settings = ttsConfigSettingsProperty.GetValue(null);
+                object settings = ttsRuntimeSettingsProperty.GetValue(runtime);
                 if (settings == null)
                 {
                     return false;
@@ -123,12 +125,13 @@ namespace RimWorldAccess
 
         private static bool ResolveTtsReflection(ReflectionSurface surface)
         {
-            Type ttsConfigType = surface.Supplied("RimTalk.TTS.Data.TTSConfig", RimTalkSettingsFacade.TtsConfigType);
+            Type ttsRuntimeType = surface.Supplied("RimTalk.TTS.TtsRuntime", RimTalkSettingsFacade.TtsRuntimeType);
             Type ttsSettingsType = surface.Supplied("RimTalk.TTS.Data.TTSSettings", RimTalkSettingsFacade.TtsSettingsType);
-            Type audioPlaybackServiceType = surface.Type("RimTalk.TTS.Service.AudioPlaybackService");
+            Type audioPlaybackServiceType = surface.Type("RimTalk.TTS.Audio.AudioPlaybackService");
 
-            PropertyInfo isEnabledProperty = surface.Property(ttsConfigType, "IsEnabled");
-            PropertyInfo settingsProperty = surface.Property(ttsConfigType, "Settings");
+            PropertyInfo currentProperty = surface.Property(ttsRuntimeType, "Current");
+            PropertyInfo isPlaybackOnProperty = surface.Property(ttsRuntimeType, "IsPlaybackOn");
+            PropertyInfo settingsProperty = surface.Property(ttsRuntimeType, "Settings");
             PropertyInfo supplierProperty = surface.Property(ttsSettingsType, "Supplier");
             MethodInfo isCurrentlyPlayingMethod = surface.Method(audioPlaybackServiceType, "IsCurrentlyPlaying", Type.EmptyTypes);
 
@@ -137,8 +140,9 @@ namespace RimWorldAccess
                 return false;
             }
 
-            ttsConfigIsEnabledProperty = isEnabledProperty;
-            ttsConfigSettingsProperty = settingsProperty;
+            ttsRuntimeCurrentProperty = currentProperty;
+            ttsRuntimeIsPlaybackOnProperty = isPlaybackOnProperty;
+            ttsRuntimeSettingsProperty = settingsProperty;
             ttsSettingsSupplierProperty = supplierProperty;
             audioPlaybackIsCurrentlyPlayingMethod = isCurrentlyPlayingMethod;
             return true;
@@ -313,8 +317,61 @@ namespace RimWorldAccess
             }
         }
 
-        // Concern 2 (P2): overlay-only RimTalk lines, on a PlayLog.Add postfix that runs after
-        // Bubbles' own so P1 gets first refusal.
+        // SpeechBubbleDrawer.AddBubble(LogEntry) applies every bubble gate and appends to
+        // ActiveBubbles only when a bubble appears, so a changed tail is the decision.
+
+        private static FieldInfo activeBubblesField;
+        private static object nativeTailBefore;
+        private static int nativeCountBefore;
+        private static LogEntry nativeBubbleEntry;
+
+        private static void RegisterNativeBubbleWatch(Harmony harmony)
+        {
+            Type drawerType = AccessTools.TypeByName("RimTalk.UI.SpeechBubbleDrawer");
+            if (drawerType == null)
+            {
+                return;
+            }
+            try
+            {
+                var surface = new ReflectionSurface("RimTalk compat (native speech bubbles)");
+                surface.Supplied("RimTalk.UI.SpeechBubbleDrawer", drawerType);
+                FieldInfo active = surface.Field(drawerType, "ActiveBubbles");
+                MethodInfo addFromEntry = surface.Method(drawerType, "AddBubble", new[] { typeof(LogEntry) });
+                if (!surface.Ready)
+                {
+                    return;
+                }
+                activeBubblesField = active;
+                harmony.Patch(addFromEntry,
+                    prefix: new HarmonyMethod(typeof(RimTalkNarrativeCompat), nameof(NativeBubblePrefix)),
+                    postfix: new HarmonyMethod(typeof(RimTalkNarrativeCompat), nameof(NativeBubblePostfix)));
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Error($"RimTalk compat (native speech bubbles) registration failed: {ex.Message}");
+            }
+        }
+
+        private static void NativeBubblePrefix()
+        {
+            IList active = activeBubblesField.GetValue(null) as IList;
+            nativeCountBefore = active?.Count ?? 0;
+            nativeTailBefore = nativeCountBefore > 0 ? active[nativeCountBefore - 1] : null;
+        }
+
+        private static void NativeBubblePostfix(LogEntry entry)
+        {
+            IList active = activeBubblesField.GetValue(null) as IList;
+            int count = active?.Count ?? 0;
+            object tail = count > 0 ? active[count - 1] : null;
+            if (tail != null && (count > nativeCountBefore || !ReferenceEquals(tail, nativeTailBefore)))
+            {
+                nativeBubbleEntry = entry;
+            }
+        }
+
+        // Concern 2 (P2): lines shown in RimTalk's native bubble or overlay.
 
         private static void RegisterP2(Harmony harmony)
         {
@@ -392,7 +449,7 @@ namespace RimWorldAccess
                     entry.GetUniqueLoadID(),
                     vocalizedByTts: TtsWillVocalize())
                 {
-                    AnnounceEligible = IsOverlayEnabled()
+                    AnnounceEligible = ReferenceEquals(entry, nativeBubbleEntry) || IsOverlayEnabled()
                 };
 
                 // A no-op when P1 already published this entry, which is correct whenever a

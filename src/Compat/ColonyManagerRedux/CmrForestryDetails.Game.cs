@@ -190,51 +190,13 @@ namespace RimWorldAccess.Shell
             var region = new CmrDetailRegion(ModText("ColonyManagerRedux.Forestry.Trees"));
             List<ThingDef> all = CmrCompat.Forestry.AllPlants(job);
 
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Shortcuts.All", null,
-                tree => true, def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.Mini", null,
-                tree => tree.plant != null && tree.plant.treeCategory == TreeCategory.Mini,
-                def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.Full", null,
-                tree => tree.plant != null && tree.plant.treeCategory == TreeCategory.Full,
-                def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow));
-            CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.Super", null,
-                tree => tree.plant != null && tree.plant.treeCategory == TreeCategory.Super,
-                def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow));
-
-            // The mod draws these four only while clearing an area (ManagerTab_Forestry.cs:411-484).
+            Func<ThingDef, bool> isAllowed = def => CmrCompat.Forestry.IsTreeAllowed(job, def);
+            Action<ThingDef, bool> setAllowed = (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow);
+            CmrTabRows.AddShortcutRows(region, all, CmrCompat.Shortcuts.Forestry(clearArea: false), isAllowed, setAllowed);
             if (CmrCompat.Forestry.IsClearArea(job))
             {
-                CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.Trees",
-                    "ColonyManagerRedux.Forestry.Trees.Tip",
-                    tree => tree.plant.harvestTag == "Wood"
-                        || tree.plant.harvestedThingDef == ThingDefOf.WoodLog,
-                    def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                    (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow));
-                // Drawn only when at least one tree is not flammable (ManagerTab_Forestry.cs:433-446).
-                CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.Flammable",
-                    "ColonyManagerRedux.Forestry.Flammable.Tip",
-                    tree => tree.BaseFlammability > 0,
-                    def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                    (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow),
-                    onlyWhenNotAll: true);
-                // Drawn only when at least one tree is ugly (ManagerTab_Forestry.cs:449-466).
-                CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.Ugly",
-                    "ColonyManagerRedux.Forestry.Ugly.Tip",
-                    tree => tree.statBases.GetStatValueFromList(StatDefOf.Beauty, 0) < 0,
-                    def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                    (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow),
-                    onlyWhenAny: true);
-                CmrTabRows.AddSubsetShortcut(region, all, "ColonyManagerRedux.Forestry.ProvidesCover",
-                    "ColonyManagerRedux.Forestry.ProvidesCover.Tip",
-                    tree => tree.Fillage == FillCategory.Full
-                        || (tree.Fillage == FillCategory.Partial && tree.fillPercent > 0),
-                    def => CmrCompat.Forestry.IsTreeAllowed(job, def),
-                    (def, allow) => CmrCompat.Forestry.SetTreeAllowed(job, def, allow));
+                CmrTabRows.AddShortcutRows(region, all, CmrCompat.Shortcuts.Forestry(clearArea: true), isAllowed,
+                    setAllowed, includeAllRow: false);
             }
 
             CmrTabRows.AddRefreshAndLock(region,

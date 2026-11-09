@@ -11,11 +11,12 @@ namespace RimWorldAccess.Shell
     /// <summary>
     /// Reflection facade for <c>RimTalk.UI.PersonaEditorWindow</c> plus its two openers
     /// (<c>BioTabPersonalityPatch</c>'s Bio-tab chip, <c>HealthCardUtilityPatch</c>'s vocal-link
-    /// health row): resolves the window's constructor and its private <c>_pawn</c>/
-    /// <c>_isGenerating</c> fields once behind <see cref="Ready"/> (missing type or member =
-    /// RimTalk not loaded, or its shipped DLL drifted — silent decline), installs the scope
-    /// registration and draw-pass Harmony patch, and registers the two inspection-tree opener
-    /// rows via <see cref="InspectNodeRegistry.RegisterCategoryExtender"/>.
+    /// health row): resolves the window's constructor and its private <c>_pawn</c> field once behind
+    /// <see cref="Ready"/> (missing type or member = RimTalk not loaded, or its shipped DLL drifted —
+    /// silent decline), and registers the two inspection-tree opener rows via
+    /// <see cref="InspectNodeRegistry.RegisterCategoryExtender"/>.
+    /// The non-absorbing window itself, both tabs and the buttons PersonaDirector and the TTS
+    /// addon add to it, is plain Widgets, read by the generic reader.
     /// </summary>
     internal static class RimTalkPersonaDialogCompat
     {
@@ -61,14 +62,14 @@ namespace RimWorldAccess.Shell
             vocalLinkDef = DefDatabase<HediffDef>.GetNamedSilentFail(VocalLinkHediffDefName);
         }
 
+        internal static bool IsGenerating(Window w)
+        {
+            return isGeneratingField.GetValue(w) is bool busy && busy;
+        }
+
         internal static Pawn GetPawn(Window w)
         {
             return pawnField != null ? pawnField.GetValue(w) as Pawn : null;
-        }
-
-        internal static bool IsGenerating(Window w)
-        {
-            return isGeneratingField != null && (bool)isGeneratingField.GetValue(w);
         }
 
         /// <summary>
@@ -129,7 +130,7 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// Registers the scope, its draw-pass patch, and the two inspection-tree opener rows.
+        /// Registers the generic reader for the window and the two inspection-tree opener rows.
         /// No-op unless both RimTalk is active and this window's reflection surface resolved.
         /// </summary>
         public static void Register()
@@ -139,13 +140,9 @@ namespace RimWorldAccess.Shell
                 return;
             }
 
-            ScopeForWindow.Register(dialogType, delegate (Window w)
-            {
-                return new RimTalkPersonaScope(w);
-            });
-            PatchDrawPass();
+            ScopeForWindow.TryRegisterGenericReaderForWindow("RimTalk.UI.PersonaEditorWindow");
+            PatchWindow();
 
-            // Bio tab chip opener (BioTabPersonalityPatch's own "Character" tab / Bio tab).
             InspectNodeRegistry.RegisterCategoryExtender("Character", AddBioOpenerRow);
             // Health tab vocal-link row opener (HealthCardUtilityPatch): our health reader
             // builds its own hediff tree from pawn.health.hediffSet directly rather than
@@ -176,51 +173,27 @@ namespace RimWorldAccess.Shell
             InspectNodeFactory.ActionRow(categoryItem, label, pawn, () => OpenPersonaEditor(pawn));
         }
 
-        private static void PatchDrawPass()
+        private static void PatchWindow()
         {
             try
             {
-                MethodInfo doWindowContents = AccessTools.Method(dialogType, "DoWindowContents");
-                if (doWindowContents == null)
+                MethodInfo draw = AccessTools.Method(dialogType, "DoWindowContents");
+                MethodInfo deleteButton = AccessTools.Method(dialogType, "DrawFlatDeleteButton", new[] { typeof(Rect), typeof(string) });
+                if (draw != null)
                 {
-                    ModLogger.Error("RimTalk persona editor compat: could not resolve PersonaEditorWindow.DoWindowContents; declining draw-pass patch.");
-                    return;
+                    RimWorldAccessMod.HarmonyInstance.Patch(draw,
+                        postfix: new HarmonyMethod(typeof(RimTalkPersonaEditorCuePatch), nameof(RimTalkPersonaEditorCuePatch.Postfix)));
                 }
-                RimWorldAccessMod.HarmonyInstance.Patch(doWindowContents,
-                    prefix: new HarmonyMethod(typeof(RimTalkPersonaDialogCompat), nameof(DrawPrefix)),
-                    finalizer: new HarmonyMethod(typeof(RimTalkPersonaDialogCompat), nameof(DrawFinalizer)));
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"RimTalk persona editor compat: PatchDrawPass failed: {ex.Message}");
-            }
-        }
-
-        public static void DrawPrefix(object __instance, Rect inRect, out RimTalkPersonaScope __state)
-        {
-            __state = null;
-            try
-            {
-                Window window = __instance as Window;
-                RimTalkPersonaScope scope = RimTalkTextDialogScopeBase.OwningScope<RimTalkPersonaScope>(window);
-                if (scope != null)
+                if (deleteButton != null)
                 {
-                    __state = scope;
-                    scope.BeginDrawPass(inRect);
+                    RimWorldAccessMod.HarmonyInstance.Patch(deleteButton,
+                        prefix: new HarmonyMethod(typeof(RimTalkPersonaDeleteButtonPatch), nameof(RimTalkPersonaDeleteButtonPatch.Prefix)),
+                        postfix: new HarmonyMethod(typeof(RimTalkPersonaDeleteButtonPatch), nameof(RimTalkPersonaDeleteButtonPatch.Postfix)));
                 }
             }
             catch (Exception ex)
             {
-                ModLogger.LimitedError("RimTalk persona editor guard", ex);
-            }
-        }
-
-        public static void DrawFinalizer(Exception __exception, RimTalkPersonaScope __state)
-        {
-            if (__state != null)
-            {
-                CapturePasses.Finish(__state, FocusStack.Contains(__state), __exception,
-                    () => WidgetCapture.EndPass(), s => s.OnGuiPass(), "RimTalk persona editor guard");
+                ModLogger.Error($"RimTalk persona editor compat: patching failed: {ex.Message}");
             }
         }
     }

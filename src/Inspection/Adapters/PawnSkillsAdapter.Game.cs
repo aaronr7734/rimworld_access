@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
+using RimWorldAccess.Shell;
 using Verse;
 
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Adapter for a pawn's "Skills" inspection category. Lists each skill
-    /// ordered by level, expandable into level/passion/XP/description detail
-    /// rows.
+    /// Adapter for a pawn's "Skills" inspection category. Lists each skill in
+    /// vanilla's order as the bar reads (level, passion), expandable into the
+    /// lines of vanilla's own hover tooltip.
     /// </summary>
     internal sealed class PawnSkillsAdapter : InspectNodeAdapter
     {
@@ -17,11 +18,9 @@ namespace RimWorldAccess
             new List<Action<InspectionTreeItem, Pawn, SkillRecord>>();
 
         /// <summary>
-        /// Registers a mod-compat detail extender that runs at the end of
-        /// <see cref="BuildSkillDetailChildren"/> for EVERY skill, before the caller
-        /// (<see cref="BuildSkillsChildren"/>) folds direct-child labels into the
-        /// skill's collapsed label — so anything an extender attaches directly to the
-        /// skill item becomes part of that fold. Public for mod-compat shims (e.g.
+        /// Registers a mod-compat detail extender that runs for EVERY skill after the
+        /// tooltip lines, before <see cref="BuildSkillsChildren"/> folds the labels of the
+        /// rows extenders attached into the skill's collapsed label. Public for mod-compat shims (e.g.
         /// VseExpertiseCompat) that nest per-skill sub-nodes without this adapter
         /// knowing about the mod that owns them.
         /// </summary>
@@ -55,98 +54,77 @@ namespace RimWorldAccess
 
             foreach (var skill in skills)
             {
-                string skillName = skill.def.skillLabel.CapitalizeFirst();
-
+                string summary = RowSummary(skill);
                 var skillItem = new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
-                    Label = skillName,
-                    ExpandedLabel = skillName,
+                    Label = summary,
+                    ExpandedLabel = summary,
                     Data = skill,
                     IndentLevel = parentItem.IndentLevel + 1,
                     IsExpandable = true,
                     IsExpanded = false
                 };
 
-                // Build children eagerly for collapsed summary
-                BuildSkillDetailChildren(skillItem, pawn, skill);
-                var skillChildLabels = skillItem.Children.Select(c => c.Label).ToList();
-                if (skillChildLabels.Count > 0)
-                    skillItem.Label += $": {string.Join(". ", skillChildLabels)}";
+                // Built eagerly: extender rows fold into the collapsed label. The tooltip lines
+                // stay one expand away, as they are one hover away on the vanilla bar.
+                foreach (string line in TooltipLines(skill))
+                    InspectNodeFactory.DetailLine(skillItem, line);
+                int extenderStart = skillItem.Children.Count;
+                RunDetailExtenders(skillItem, pawn, skill);
+                var extenderLabels = skillItem.Children.Skip(extenderStart).Select(c => c.Label).ToList();
+                if (extenderLabels.Count > 0)
+                    skillItem.Label += $". {string.Join(". ", extenderLabels)}";
 
                 InspectNodeFactory.Attach(parentItem, skillItem);
             }
         }
 
-        /// <summary>
-        /// Builds detail children for a skill.
-        /// </summary>
-        private static void BuildSkillDetailChildren(InspectionTreeItem skillItem, Pawn pawn, SkillRecord skill)
+        /// <summary>What the skill bar itself shows: the name, the level or the disabled dash, and the passion icon.</summary>
+        private static string RowSummary(SkillRecord skill)
         {
-            if (skillItem.Children.Count > 0)
-                return; // Already built
-
-            int childIndent = skillItem.IndentLevel + 1;
-
-            // Level
-            InspectNodeFactory.Attach(skillItem, new InspectionTreeItem
+            var parts = new List<string>
             {
-                Type = InspectionTreeItem.ItemType.DetailText,
-                Label = $"{"Level".Translate()} {skill.Level}",
-                IndentLevel = childIndent,
-                IsExpandable = false
-            });
-
-            // Passion
+                skill.TotallyDisabled
+                    ? "DisabledLower".Translate().ToString().ToUpper()
+                    : $"{"Level".Translate()} {skill.Level}"
+            };
             if (skill.passion != Passion.None)
+                parts.Add(skill.passion.GetLabel());
+            return $"{skill.def.skillLabel.CapitalizeFirst()}: {string.Join(". ", parts)}";
+        }
+
+        /// <summary>
+        /// Vanilla's skill tooltip (<c>SkillUI.GetSkillDescription</c>, with whatever other mods patch
+        /// into it) as tag-free lines, minus its title line, which repeats the skill's own name.
+        /// Falls back to the def description when the private builder cannot be reached.
+        /// </summary>
+        internal static List<string> TooltipLines(SkillRecord skill)
+        {
+            string tooltip = null;
+            if (PawnColumnWorker_AccessSkill.SkillDescription != null)
             {
-                InspectNodeFactory.Attach(skillItem, new InspectionTreeItem
+                try
                 {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = skill.passion.GetLabel(),
-                    IndentLevel = childIndent,
-                    IsExpandable = false
-                });
-            }
-
-            // Disabled
-            if (skill.TotallyDisabled)
-            {
-                InspectNodeFactory.Attach(skillItem, new InspectionTreeItem
+                    tooltip = PawnColumnWorker_AccessSkill.SkillDescription(skill);
+                }
+                catch (Exception ex)
                 {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = "DisabledLower".Translate().ToString().ToUpper(),
-                    IndentLevel = childIndent,
-                    IsExpandable = false
-                });
+                    ModLogger.LimitedError("PawnSkillsAdapter skill tooltip", ex);
+                }
             }
+            if (string.IsNullOrWhiteSpace(tooltip))
+                return InspectTextUtility.SplitLines(skill.def.description);
 
-            // XP progress
-            InspectNodeFactory.Attach(skillItem, new InspectionTreeItem
-            {
-                Type = InspectionTreeItem.ItemType.DetailText,
-                Label = "RimWorldAccess.Inspection.Tree.SkillXpProgress".Translate(
-                    skill.xpSinceLastLevel.ToString("F0"),
-                    skill.XpRequiredForLevelUp.ToString("F0")),
-                IndentLevel = childIndent,
-                IsExpandable = false
-            });
+            List<string> lines = InspectTextUtility.SplitLines(tooltip.StripTags());
+            if (lines.Count > 0 && lines[0].StartsWith(skill.def.LabelCap.ToString(), StringComparison.Ordinal))
+                lines.RemoveAt(0);
+            return lines;
+        }
 
-            // Description
-            if (!string.IsNullOrEmpty(skill.def.description))
-            {
-                InspectNodeFactory.Attach(skillItem, new InspectionTreeItem
-                {
-                    Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = skill.def.description,
-                    IndentLevel = childIndent,
-                    IsExpandable = false
-                });
-            }
-
-            // Mod-compat extenders (e.g. VSE expertise) run after the vanilla detail
-            // rows so their nodes attach directly to the skill item and fold into its
-            // collapsed label alongside them. A broken extender is logged, never fatal.
+        /// <summary>Mod-compat extenders, after the vanilla rows. A broken extender is logged, never fatal.</summary>
+        private static void RunDetailExtenders(InspectionTreeItem skillItem, Pawn pawn, SkillRecord skill)
+        {
             foreach (var extender in detailExtenders)
             {
                 try

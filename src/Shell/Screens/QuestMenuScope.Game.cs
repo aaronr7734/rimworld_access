@@ -693,6 +693,11 @@ namespace RimWorldAccess.Shell
                     }));
                 }
 
+                if (RimTalkQuestsCompat.TryGetRegenerateAction(quest, out ScreenAction regenerate))
+                {
+                    actions.Add(regenerate);
+                }
+
                 AddDevActions(quest);
                 return actions;
             }

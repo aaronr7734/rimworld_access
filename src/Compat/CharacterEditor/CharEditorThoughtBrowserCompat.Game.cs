@@ -45,8 +45,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorThoughtBrowserCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorThoughtBrowserCompat", Resolve);
 
         private static Type dialogType;
         private static Type thoughtToolType;
@@ -90,23 +89,16 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return ready;
+                return gate.Ensure();
             }
         }
 
-        public static Type DialogType { get { EnsureInit(); return dialogType; } }
+        public static Type DialogType { get { gate.Ensure(); return dialogType; } }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorThoughtBrowserCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogAddThought");
             thoughtToolType = surface.Type("CharacterEditor.ThoughtTool");
@@ -143,7 +135,7 @@ namespace RimWorldAccess
             hasOtherPawnMemberMethod = surface.Method(thoughtToolType, "HasOtherPawnMember", new[] { typeof(ThoughtDef) });
             isForTitleMethod = surface.Method(thoughtToolType, "IsForTitle", new[] { typeof(ThoughtDef) });
 
-            ready = surface.Ready;
+            return surface.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

@@ -18,6 +18,10 @@ namespace RimWorldAccess.Shell
     /// </summary>
     internal sealed class CmrLivestockDetails : ICmrJobDetailsProvider
     {
+        private const int MinTrainedAnimalLimit = 0;
+        private const int MaxTrainedAnimalLimit = 9999;
+        private const float MinEndOfLifeThreshold = 0.1f;
+
         public bool Handles(object tab)
         {
             return CmrCompat.Livestock.HandlesTab(tab);
@@ -33,6 +37,10 @@ namespace RimWorldAccess.Shell
             regions.Add(BuildAvailable(tab));
             if (job == null)
             {
+                var empty = new CmrDetailRegion("RimWorldAccess.Cmr.OptionsRegion".Translate());
+                empty.Rows.Add(new CmrDetailRow { Label = ModText("ColonyManagerRedux.Livestock.NoPawnKindSelected") });
+                SettleToCurrent(empty, tab);
+                regions.Add(empty);
                 return regions;
             }
             CmrDetailRegion options = BuildOptions(tab, job);
@@ -321,15 +329,15 @@ namespace RimWorldAccess.Shell
         /// <summary>A percentage slider whose caption embeds the percentage, so the row carries no separate
         /// value: stepping rebuilds the label. No typed entry; Enter-to-type is for count fields.</summary>
         private static CmrDetailRow ThresholdRow(string section, string labelKey, Func<float> read,
-            Action<float> write)
+            Action<float> write, float min = 0f)
         {
             return new CmrDetailRow
             {
                 Label = ModArgs(labelKey, PercentText(read())),
                 Role = ElementRole.Stepper,
                 SectionTitle = section,
-                CanAdjust = direction => direction < 0 ? read() > 0f : read() < 1f,
-                Adjust = direction => write(SliderStep.Stepped(read(), direction, 0f, 1f, -1f)),
+                CanAdjust = direction => direction < 0 ? read() > min : read() < 1f,
+                Adjust = direction => write(SliderStep.Stepped(read(), direction, min, 1f, -1f)),
             };
         }
 
@@ -377,6 +385,80 @@ namespace RimWorldAccess.Shell
             region.Rows.Add(CmrTabRows.Toggle(section, "ColonyManagerRedux.Livestock.TrainYoung",
                 () => CmrCompat.Livestock.TrainYoung(job),
                 value => CmrCompat.Livestock.SetTrainYoung(job, value)));
+            AddTrainingLimit(region, section, job);
+        }
+
+        private static void AddTrainingLimit(CmrDetailRegion region, string section, object job)
+        {
+            region.Rows.Add(CmrTabRows.Toggle(section, "ColonyManagerRedux.Livestock.LimitTrainedAnimals",
+                () => CmrCompat.Livestock.LimitTrainedAnimals(job),
+                value => CmrCompat.Livestock.SetLimitTrainedAnimals(job, value)));
+            if (!CmrCompat.Livestock.LimitTrainedAnimals(job))
+            {
+                return;
+            }
+            region.Rows.Add(new CmrDetailRow
+            {
+                Label = ModText("ColonyManagerRedux.Livestock.LimitTrainedAnimals"),
+                Role = ElementRole.Stepper,
+                SectionTitle = section,
+                Value = () => CmrCompat.Livestock.TrainedAnimalLimit(job).ToString(CultureInfo.InvariantCulture),
+                CanAdjust = direction => direction < 0
+                    ? CmrCompat.Livestock.TrainedAnimalLimit(job) > MinTrainedAnimalLimit
+                    : CmrCompat.Livestock.TrainedAnimalLimit(job) < MaxTrainedAnimalLimit,
+                Adjust = direction => CmrCompat.Livestock.SetTrainedAnimalLimit(job, Mathf.Clamp(
+                    CmrCompat.Livestock.TrainedAnimalLimit(job) + direction, MinTrainedAnimalLimit,
+                    MaxTrainedAnimalLimit)),
+                Numeric = new CmrNumericSpec
+                {
+                    Min = MinTrainedAnimalLimit,
+                    Max = MaxTrainedAnimalLimit,
+                    Current = () => CmrCompat.Livestock.TrainedAnimalLimit(job),
+                    Apply = value => CmrCompat.Livestock.SetTrainedAnimalLimit(job, value),
+                },
+            });
+
+            region.Rows.Add(new CmrDetailRow
+            {
+                Label = ModText("ColonyManagerRedux.Livestock.TrainingPriority"),
+                Tooltip = ModTip("ColonyManagerRedux.Livestock.TrainingPriority.Tip"),
+                Role = ElementRole.ComboBox,
+                SectionTitle = section,
+                Value = () => TrainingPriorityLabel(CmrCompat.Livestock.TrainingPriority(job)),
+                Choices = () => TrainingPriorityChoices(job),
+            });
+            region.Rows.Add(CmrTabRows.Toggle(section, "ColonyManagerRedux.Livestock.PrioritizeNamed",
+                () => CmrCompat.Livestock.PrioritizeNamed(job),
+                value => CmrCompat.Livestock.SetPrioritizeNamed(job, value)));
+            region.Rows.Add(CmrTabRows.Toggle(section, "ColonyManagerRedux.Livestock.PrioritizeBonded",
+                () => CmrCompat.Livestock.PrioritizeBonded(job),
+                value => CmrCompat.Livestock.SetPrioritizeBonded(job, value)));
+            region.Rows.Add(CmrTabRows.Toggle(section, "ColonyManagerRedux.Livestock.IgnoreNearingEndOfLife",
+                () => CmrCompat.Livestock.IgnoreNearingEndOfLife(job),
+                value => CmrCompat.Livestock.SetIgnoreNearingEndOfLife(job, value)));
+            if (CmrCompat.Livestock.IgnoreNearingEndOfLife(job))
+            {
+                region.Rows.Add(ThresholdRow(section, "ColonyManagerRedux.Livestock.EndOfLifeThreshold",
+                    () => CmrCompat.Livestock.EndOfLifeThreshold(job),
+                    value => CmrCompat.Livestock.SetEndOfLifeThreshold(job, value), MinEndOfLifeThreshold));
+            }
+        }
+
+        private static string TrainingPriorityLabel(object priority)
+        {
+            return priority == null ? "" : ModText("ColonyManagerRedux.Livestock.TrainingPriority." + priority);
+        }
+
+        private static List<CmrPickerChoice> TrainingPriorityChoices(object job)
+        {
+            var choices = new List<CmrPickerChoice>();
+            foreach (object priority in CmrCompat.Livestock.TrainingPriorityValues())
+            {
+                object choice = priority;
+                choices.Add(new CmrPickerChoice(TrainingPriorityLabel(choice),
+                    () => CmrCompat.Livestock.SetTrainingPriority(job, choice)));
+            }
+            return choices;
         }
 
         /// <summary>The restriction grid and the five send-to-area controls. A roaming animal ends the section after one greyed label, as the mod draws no send-to controls at all.</summary>

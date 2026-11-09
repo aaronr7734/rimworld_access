@@ -52,8 +52,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool socialInitialized;
-        private static bool socialReady;
+        private static readonly LazyReflectionGate socialGate = new LazyReflectionGate("CharEditorCompat social", ResolveSocial);
 
         private static Type blockSocialType;
 
@@ -111,18 +110,16 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return socialReady;
+                gate.Ensure();
+                return socialGate.Ensure();
             }
         }
 
-        private static void BindSocial()
+        private static bool ResolveSocial(ReflectionSurface surface)
         {
-            if (socialInitialized)
-                return;
-            socialInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat social");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             blockSocialType = surface.Supplied("EditorUI.BlockSocial", editorUIType.GetNestedType("BlockSocial", NestedFlags));
@@ -179,7 +176,7 @@ namespace RimWorldAccess
             listOfInspirationsMethod = surface.Required("CEditor.ListOf<InspirationDef>(EType) closed",
                 CloseGeneric(ceditorType, "ListOf", typeof(InspirationDef)));
 
-            socialReady = surface.Ready;
+            return surface.Ready;
         }
 
         private static object SocialBlock(Window editorUI)

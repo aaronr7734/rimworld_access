@@ -11,8 +11,7 @@ namespace RimWorldAccess.Shell
 {
     /// <summary>
     /// Keyboard support for the RimTalk TTS addon's per-pawn voice picker,
-    /// <c>RimTalk.TTS.UI.VoiceSelectionWindow</c>, opened from the Bio-tab chip
-    /// <see cref="RimTalkTtsCompat"/> registers. Wraps the window with the full
+    /// <c>RimTalk.TTS.UI.VoiceSelectionWindow</c>. Wraps the window with the full
     /// <see cref="WidgetCapture"/> engine, but over a VARIABLE-length option list rather than a
     /// fixed set of rows: NONE / DEFAULT / RULE_BASED plus one row per entry in the mod's own
     /// <c>_voiceModels</c>, rebuilt every refresh from that live data, then the custom language
@@ -173,6 +172,7 @@ namespace RimWorldAccess.Shell
                 d.Label = ResolveFieldLabel();
                 d.Role = ElementRole.TextField;
                 string value = textFieldIndex >= 0 ? WidgetCapture.Items[textFieldIndex].Text : null;
+                d.Extras = LanguageHint();
                 if (string.IsNullOrEmpty(value))
                 {
                     d.ValueBlank = true;
@@ -352,12 +352,27 @@ namespace RimWorldAccess.Shell
         protected override string ComposeOpenedAnnouncement()
         {
             string pawnName = pawn != null ? pawn.LabelShortCap : "";
-            return (string)"RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened".Translate(pawnName);
+            return (string)"RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription".Translate(
+                pawnName, Translator.Translate("RimTalk.TTS.VoiceSelectionDesc").Resolve());
         }
 
         private static string ResolveFieldLabel()
         {
-            return (string)"RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField".Translate();
+            return CompatText.ResolveOrFallback("RimTalk.TTS.CustomLanguage", "RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField");
+        }
+
+        /// <summary>The fallback-language line drawn under the language box.</summary>
+        private string LanguageHint()
+        {
+            IReadOnlyList<CapturedWidget> items = WidgetCapture.Items;
+            for (int i = textFieldIndex + 1; textFieldIndex >= 0 && i < items.Count; i++)
+            {
+                if (items[i].Kind == WidgetKind.Label)
+                {
+                    return items[i].Label;
+                }
+            }
+            return null;
         }
 
         private string ResolveButtonLabel(int bi)

@@ -250,6 +250,8 @@ namespace RimWorldAccess.Shell
         // X when the same window also draws a bottom Close button for the identical action.
         public bool CloseX;
 
+        public bool HighlightSelected;
+
         /// <summary>
         /// Button rows only: the live <c>GUI.color</c> tint set when this button was drawn.
         /// IMGUI has no "selected button" concept, so a caller hand-rolling

@@ -14,7 +14,6 @@ namespace RimWorldAccess
         public override void Activate(Harmony harmony)
         {
             VseExpertiseCompat.Register(harmony);
-            VsePassionCompat.Register();
         }
     }
 }

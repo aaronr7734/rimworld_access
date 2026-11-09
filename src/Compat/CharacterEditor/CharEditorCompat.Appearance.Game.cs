@@ -31,8 +31,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool appearanceInitialized;
-        private static bool appearanceReady;
+        private static readonly LazyReflectionGate appearanceGate = new LazyReflectionGate("CharEditorCompat appearance", ResolveAppearance);
 
         private static Type hairToolType;
         private static Type styleToolType;
@@ -93,19 +92,17 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return appearanceReady;
+                gate.Ensure();
+                return appearanceGate.Ensure();
             }
         }
 
         /// <summary>Called from the main <c>EnsureInit</c> once EditorUI and BlockPerson are known.</summary>
-        private static void BindAppearance()
+        private static bool ResolveAppearance(ReflectionSurface surface)
         {
-            if (appearanceInitialized)
-                return;
-            appearanceInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat appearance");
             surface.Supplied("EditorUI.BlockPerson", blockPersonType);
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
@@ -167,7 +164,7 @@ namespace RimWorldAccess
 
             isGradientHairActiveMember = surface.FieldOrProperty(ceditorType, "IsGradientHairActive");
 
-            appearanceReady = surface.Ready;
+            return surface.Ready;
         }
 
         // Gates.

@@ -9,6 +9,7 @@ namespace RimWorldAccess
     public static class PawnFilterRandomizePatch
     {
         [HarmonyPrefix]
+        [HarmonyPriority(Priority.First)]
         public static bool Prefix(int pawnIndex)
         {
             if (!PawnFilterData.HasActiveFilters())

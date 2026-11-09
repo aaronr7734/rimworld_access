@@ -26,9 +26,11 @@ namespace RimWorldAccess
             RimTalkChatDialogCompat.Register();
             RimTalkPersonaDialogCompat.Register();
             RimTalkDebugWindowCompat.Register();
+            RimTalkGenericWindowsCompat.Register();
             RimTalkTtsCompat.Register();
             RimTalkMemoryCompat.Register();
             PersonaDirectorCompat.Register();
+            PersonaDirectorCompat.ApplyPatches(harmony);
             PromptEnhanceCompat.Register();
             RimTalkLiteratureCompat.Register();
             RimTalkLiteratureCompat.ApplyPatches(harmony);

@@ -108,6 +108,8 @@ namespace RimWorldAccess
             dialog.OnAcceptKeyPressed();
         }
 
+        public string AcceptLabel => null;
+
         // The vanilla portal dialog shows only the two tabs and the Reset/Cancel/Accept buttons -
         // no stats panel - so there is no summary to present.
         public bool HasSummary => false;

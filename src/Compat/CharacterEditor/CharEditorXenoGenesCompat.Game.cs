@@ -33,8 +33,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorXenoGenesCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorXenoGenesCompat", Resolve);
 
         private static Type dialogType;
         private static Type geneToolType;
@@ -55,24 +54,18 @@ namespace RimWorldAccess
 
         public static bool Ready
         {
-            get { EnsureInit(); return ready; }
+            get { gate.Ensure(); return gate.Ensure(); }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorXenoGenesCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogViewXenoGenes");
             geneToolType = surface.Type("CharacterEditor.GeneTool");
@@ -88,7 +81,7 @@ namespace RimWorldAccess
 
             clearGenesMethod = surface.Method(geneToolType, "ClearGenes", new[] { typeof(Pawn), typeof(bool), typeof(bool) });
 
-            ready = surface.Ready && CharEditorCompat.EditorCore.Ready;
+            return surface.Ready && CharEditorCompat.EditorCore.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();

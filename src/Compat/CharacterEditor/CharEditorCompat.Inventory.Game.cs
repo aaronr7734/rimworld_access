@@ -30,8 +30,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool inventoryInitialized;
-        private static bool inventoryReady;
+        private static readonly LazyReflectionGate inventoryGate = new LazyReflectionGate("CharEditorCompat inventory", ResolveInventory);
 
         private static Type blockInventoryType;
         private static Type inventoryDialogTypeEnumType;
@@ -66,21 +65,19 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return inventoryReady;
+                gate.Ensure();
+                return inventoryGate.Ensure();
             }
         }
 
         /// <summary>
         /// Called from the main <c>EnsureInit</c> once EditorUI and TabType are known.
         /// </summary>
-        private static void BindInventory()
+        private static bool ResolveInventory(ReflectionSurface surface)
         {
-            if (inventoryInitialized)
-                return;
-            inventoryInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat inventory");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             blockInventoryType = surface.Supplied("EditorUI.BlockInventory", editorUIType.GetNestedType("BlockInventory", NestedFlags));
@@ -115,7 +112,7 @@ namespace RimWorldAccess
             invARandomThingMethod = inventoryDialogTypeEnumType == null ? null
                 : surface.Method(blockInventoryType, "ARandomThing", new[] { typeof(Thing), inventoryDialogTypeEnumType });
 
-            inventoryReady = surface.Ready;
+            return surface.Ready;
         }
 
         private static object InventoryBlock(Window editorUI)

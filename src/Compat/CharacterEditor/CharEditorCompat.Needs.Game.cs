@@ -51,8 +51,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static partial class CharEditorCompat
     {
-        private static bool needsInitialized;
-        private static bool needsReady;
+        private static readonly LazyReflectionGate needsGate = new LazyReflectionGate("CharEditorCompat needs", ResolveNeeds);
 
         private static Type blockNeedsType;
         private static Type thoughtToolType;
@@ -76,18 +75,16 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return needsReady;
+                gate.Ensure();
+                return needsGate.Ensure();
             }
         }
 
-        private static void BindNeeds()
+        private static bool ResolveNeeds(ReflectionSurface surface)
         {
-            if (needsInitialized)
-                return;
-            needsInitialized = true;
+            if (editorUIType == null || tabTypeType == null)
+                return false;
 
-            var surface = new ReflectionSurface("CharEditorCompat needs");
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             blockNeedsType = surface.Supplied("EditorUI.BlockNeeds", editorUIType.GetNestedType("BlockNeeds", NestedFlags));
@@ -117,7 +114,7 @@ namespace RimWorldAccess
             thoughtGetSortedMethod = surface.Method(thoughtToolType, "GetThoughtsSorted", new[] { typeof(Pawn) });
             thoughtRemoveMethod = surface.Method(thoughtToolType, "RemoveThought", new[] { typeof(Pawn), typeof(Thought) });
 
-            needsReady = surface.Ready;
+            return surface.Ready;
         }
 
         private static object NeedsBlock(Window editorUI)

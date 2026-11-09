@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -14,8 +15,8 @@ namespace RimWorldAccess.Shell
     /// shape didn't need: this dialog's own <c>OnAcceptKeyPressed</c> override requires a dedicated
     /// guard (see <see cref="RimTalkChatDialogCompat"/>).
     ///
-    /// THREE rows in the dialog's own draw order: Field ("CustomTalkTextField", no length cap
-    /// -- the mod imposes none), Send button (capture index 0), Cancel button (capture index 1).
+    /// Rows in reading order: Field (no length cap), the mode icons while AllowAnnouncement draws
+    /// them, the photo toggle, Send (button capture 0) and Cancel (1); icons read their tooltips.
     ///
     /// ENTER POSTURE, hazardous here for two independent reasons:
     /// <list type="bullet">
@@ -57,9 +58,14 @@ namespace RimWorldAccess.Shell
         private enum ElementKind
         {
             Field,
+            DirectMode,
+            AnnounceMode,
+            AttachPhoto,
             SendButton,
             CancelButton,
         }
+
+        private readonly List<ElementKind> kinds = new List<ElementKind>();
 
         public RimTalkChatScope(Window dialog)
             : base(dialog)
@@ -78,15 +84,37 @@ namespace RimWorldAccess.Shell
             return (string)"RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName".Translate();
         }
 
+        protected override void RefreshContent()
+        {
+            kinds.Clear();
+            kinds.Add(ElementKind.Field);
+            if (RimTalkChatDialogCompat.ModeButtonsShown())
+            {
+                kinds.Add(ElementKind.DirectMode);
+                kinds.Add(ElementKind.AnnounceMode);
+            }
+            if (RimTalkChatDialogCompat.HasPhotoToggle)
+            {
+                kinds.Add(ElementKind.AttachPhoto);
+            }
+            kinds.Add(ElementKind.SendButton);
+            kinds.Add(ElementKind.CancelButton);
+        }
+
+        private ElementKind KindAt(int index)
+        {
+            return index >= 0 && index < kinds.Count ? kinds[index] : ElementKind.CancelButton;
+        }
+
         protected override int ContentItemCount(int region)
         {
-            return 3;
+            return kinds.Count;
         }
 
         protected override ElementDescription DescribeContentItem(int region, int index)
         {
             var d = new ElementDescription();
-            switch ((ElementKind)index)
+            switch (KindAt(index))
             {
                 case ElementKind.Field:
                     d.Label = ResolveFieldLabel();
@@ -100,6 +128,18 @@ namespace RimWorldAccess.Shell
                     {
                         d.Value = value;
                     }
+                    break;
+                case ElementKind.DirectMode:
+                case ElementKind.AnnounceMode:
+                    bool announce = KindAt(index) == ElementKind.AnnounceMode;
+                    d.Label = Translator.Translate(announce ? "RimTalk.FloatMenu.AnnounceModeTooltip" : "RimTalk.FloatMenu.DirectModeTooltip");
+                    d.Role = ElementRole.RadioButton;
+                    d.Selected = RimTalkChatDialogCompat.IsAnnounceMode(dialog) == announce;
+                    break;
+                case ElementKind.AttachPhoto:
+                    d.Label = Translator.Translate("RimTalk.FloatMenu.AttachPhotoTooltip");
+                    d.Role = ElementRole.Checkbox;
+                    d.Check = RimTalkChatDialogCompat.IsPhotoAttached(dialog) ? CheckState.Checked : CheckState.Unchecked;
                     break;
                 case ElementKind.SendButton:
                     d.Label = ResolveSendLabel();
@@ -115,22 +155,32 @@ namespace RimWorldAccess.Shell
 
         protected override void ActivateRow(int index)
         {
-            if ((ElementKind)index == ElementKind.Field)
+            switch (KindAt(index))
             {
-                BeginEdit(announcePrompt: true);
-                return;
+                case ElementKind.Field:
+                    BeginEdit(announcePrompt: true);
+                    return;
+                case ElementKind.DirectMode:
+                case ElementKind.AnnounceMode:
+                    RimTalkChatDialogCompat.SetAnnounceMode(dialog, KindAt(index) == ElementKind.AnnounceMode);
+                    AnnounceCurrentItem();
+                    return;
+                case ElementKind.AttachPhoto:
+                    RimTalkChatDialogCompat.TogglePhoto(dialog);
+                    AnnounceCurrentItem();
+                    return;
+                default:
+                    ClickButton(ButtonCaptureIndex(index));
+                    return;
             }
-            ClickButton(ButtonCaptureIndex(index));
         }
 
         protected override bool IsTextRow(int index)
         {
-            return index == (int)ElementKind.Field;
+            return KindAt(index) == ElementKind.Field;
         }
 
-        // ---------------------------------------------------------------
-        // Per-GUI-pass work, driven by the dialog's own draw
-        // ---------------------------------------------------------------
+        // Per-GUI-pass work, driven by the dialog's own draw.
 
         internal void BeginDrawPass()
         {
@@ -165,6 +215,14 @@ namespace RimWorldAccess.Shell
                 }
                 rect = TextFieldCapture.Items[0].Rect;
             }
+            else if (KindAt(index) != ElementKind.SendButton && KindAt(index) != ElementKind.CancelButton)
+            {
+                if (TextFieldCapture.Items.Count == 0)
+                {
+                    return;
+                }
+                rect = IconRect(KindAt(index), TextFieldCapture.Items[0].Rect.width);
+            }
             else
             {
                 int captureIndex = ButtonCaptureIndex(index);
@@ -181,10 +239,22 @@ namespace RimWorldAccess.Shell
             FocusRing.Draw(rect.ExpandedBy(FocusRingExpand));
         }
 
-        /// <summary>Dialog draw order is Send first, then Cancel (CustomDialogueWindow.DoWindowContents) -- captured button index 0 / 1 respectively.</summary>
-        private static int ButtonCaptureIndex(int index)
+        /// <summary>DoWindowContents' icon layout: 28px squares 4px apart, right-aligned over the full-width message field.</summary>
+        private static Rect IconRect(ElementKind kind, float contentWidth)
         {
-            return (ElementKind)index == ElementKind.SendButton ? 0 : 1;
+            const float size = 28f;
+            const float step = 32f;
+            bool modes = RimTalkChatDialogCompat.ModeButtonsShown();
+            int count = modes ? 3 : 1;
+            float x = contentWidth - (count * size + (count - 1) * 4f);
+            int slot = kind == ElementKind.DirectMode ? 0 : kind == ElementKind.AnnounceMode ? 1 : (modes ? 2 : 0);
+            return new Rect(x + slot * step, 0f, size, size);
+        }
+
+        /// <summary>Dialog draw order is Send first, then Cancel (CustomDialogueWindow.DoWindowContents) -- captured button index 0 / 1 respectively.</summary>
+        private int ButtonCaptureIndex(int index)
+        {
+            return KindAt(index) == ElementKind.SendButton ? 0 : 1;
         }
 
         private void ClickButton(int captureIndex)
@@ -199,9 +269,7 @@ namespace RimWorldAccess.Shell
             ButtonTextCapture.RequestClick(captureIndex);
         }
 
-        // ---------------------------------------------------------------
-        // Enter / type to edit (browse -> edit), via the shared session
-        // ---------------------------------------------------------------
+        // Enter / type to edit (browse -> edit), via the shared session.
 
         protected override void BeginEdit(bool announcePrompt)
         {

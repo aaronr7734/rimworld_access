@@ -9,82 +9,85 @@ using Verse;
 namespace RimWorldAccess.Shell
 {
     /// <summary>
-    /// Reflection facade for the ExpandMemory extension (cj.rimtalk.expandmemory):
-    /// <c>MainTabWindow_Memory</c> ("Mind Stream"), <c>Dialog_CommonKnowledge</c>,
-    /// <c>FourLayerMemoryComp</c>, <c>MemoryEntry</c>, <c>CommonKnowledgeEntry</c>/<c>Library</c>
-    /// and <c>MemoryManager</c>. The RimTalkMemoryPatch assembly is never linked, so every member
-    /// is resolved by name.
+    /// Reflection facade for the ExpandMemory extension (cj.rimtalk.expandmemory). The
+    /// RimTalkMemoryPatch assembly is never linked, so every member is resolved by name, on three
+    /// independent surfaces so a drift in one never takes the others down:
     ///
-    /// <see cref="RimTalkMemoryMainTabScope"/> and <see cref="RimTalkCommonKnowledgeScope"/> are
-    /// the two bespoke scopes this backs; both mod surfaces hand-roll row hit-testing as raw
-    /// <c>Event.current.mousePosition</c> arithmetic with no clickable widget, so neither is
-    /// reachable by the generic reader. Everything else in the mod needs no code here: the six
-    /// editor dialogs draw plain captured Widgets in reading order and
-    /// <see cref="ScopeForWindow.GenericReaderEligible"/> already attaches
-    /// <see cref="GenericWindowScope"/> to them; the settings surfaces live inside the shared
-    /// <c>Dialog_ModSettings</c> (the API key is masked in speech only, by GenericWindowScope's
-    /// mod-agnostic <c>IsSensitiveFieldLabel</c>); <c>ITab_Memory</c> is dead code.
+    /// <b>Memory data</b> (<c>FourLayerMemoryComp</c>, <c>MemoryEntry</c>, the mod's own
+    /// <c>TextUtil.Translate</c> labels): the "Memories" branch of the pawn inspection tree.
     ///
-    /// <see cref="RegisterMemoriesInspectionRow"/> adds a read-only "Memories" branch to the
-    /// "Character" inspection category for any pawn carrying the comp, found by <c>AllComps</c>
-    /// type-name match (never <c>ThingCompUtility.TryGetComp&lt;T&gt;</c>, which needs a
-    /// compile-time T). Read-only by design: a second editor would duplicate Mind Stream's own.
+    /// <b>Memory tab</b> (<c>MemoryTabWindowBridge</c> and the <c>MemoryTabWindow.Context</c> its
+    /// elements share): <see cref="RimTalkMemoryMainTabScope"/>. Every element reads that one
+    /// context, so the scope reads and drives it there rather than through the draw.
+    ///
+    /// <b>Common Knowledge</b> (<c>Dialog_CommonKnowledge</c> and its library):
+    /// <see cref="RimTalkCommonKnowledgeScope"/>.
+    ///
+    /// Everything else in the mod draws plain captured Widgets inside absorbing windows the
+    /// generic reader already attaches to (the pawn selector and personalize side windows, the
+    /// create-memory, prompt, tag-test and injection-preview dialogs); the settings live in the
+    /// shared <c>Dialog_ModSettings</c>. <c>ITab_Memory</c> is still never registered by the mod.
     /// </summary>
     internal static class RimTalkMemoryCompat
     {
         private const string PackageId = "cj.rimtalk.expandmemory";
 
-        // MainTabWindow_Memory
-        private static readonly Type mainTabType;
-        private static readonly FieldInfo selectedPawnField;
-        private static readonly FieldInfo currentMemoryCompField;
-        private static readonly FieldInfo filterTypeField;
-        private static readonly FieldInfo selectedMemoriesField;
-        private static readonly FieldInfo lastSelectedMemoryField;
-        private static readonly FieldInfo filtersDirtyField;
-        private static readonly MethodInfo getFilteredMemoriesMethod;
-        private static readonly MethodInfo showCreateMemoryMenuMethod;
-        private static readonly FieldInfo cachedMemoriesField;
-        private static readonly FieldInfo cachedCardYPositionsField;
-        private static readonly FieldInfo cachedCardHeightsField;
+        // Memory data
 
-        // FourLayerMemoryComp
         private static readonly Type memoryCompType;
         private static readonly PropertyInfo activeMemoriesProp;
         private static readonly PropertyInfo situationalMemoriesProp;
         private static readonly PropertyInfo eventLogMemoriesProp;
         private static readonly PropertyInfo archiveMemoriesProp;
+        private static readonly PropertyInfo interactorProp;
+        private static readonly PropertyInfo summarizerProp;
         private static readonly MethodInfo pinMemoryMethod;
+        private static readonly MethodInfo checkSummarizingMethod;
+        private static readonly MethodInfo checkSummarizedMethod;
 
-        // MemoryEntry
-        private static readonly Type memoryEntryType;
-        private static readonly FieldInfo memIdField;
         private static readonly FieldInfo memContentField;
         private static readonly FieldInfo memTypeField;
         private static readonly FieldInfo memLayerField;
+        private static readonly FieldInfo memGameTickField;
+        private static readonly PropertyInfo memEndGameTickProp;
         private static readonly PropertyInfo memImportanceProp;
-        private static readonly FieldInfo memActivityField;
+        private static readonly PropertyInfo memActivityProp;
         private static readonly FieldInfo memRelatedPawnNameField;
         private static readonly FieldInfo memIsPinnedField;
+        private static readonly FieldInfo memTagsField;
+        private static readonly FieldInfo memNoteField;
         private static readonly PropertyInfo memAgeStringProp;
 
-        // MemoryLayer / MemoryType enums
-        private static readonly Type memoryLayerType;
-        private static readonly Type memoryTypeType;
+        private static readonly MethodInfo translateLayerMethod;
+        private static readonly MethodInfo translateTypeMethod;
 
-        // Dialog_EditMemory
-        private static readonly ConstructorInfo editMemoryCtor;
+        private static readonly bool dataReady;
 
-        // MemoryManager / CommonKnowledgeLibrary
+        // Memory tab
+
+        private static readonly Type bridgeType;
+        private static readonly FieldInfo bridgeTabWindowField;
+        private static readonly FieldInfo tabWindowContextField;
+        private static readonly FieldInfo tabWindowDetailsField;
+        private static readonly FieldInfo contextMemoryCompField;
+        private static readonly FieldInfo contextSelectionField;
+        private static readonly FieldInfo contextTreatedTimelineField;
+        private static readonly PropertyInfo contextFocuseProp;
+        private static readonly MethodInfo contextSetFocuseMethod;
+        private static readonly PropertyInfo contextCursorTickProp;
+        private static readonly MethodInfo contextRaiseRePositionTimelineMethod;
+        private static readonly MethodInfo contextRaiseRePositionCursorMethod;
+        private static readonly FieldInfo detailsEditingMemoryField;
+        private static readonly MethodInfo selectionContainsMethod;
+        private static readonly MethodInfo selectionAddMethod;
+        private static readonly MethodInfo selectionClearMethod;
+
+        private static readonly bool tabReady;
+
+        // Common Knowledge
+
         private static readonly Type dialogCommonKnowledgeType;
-
-        // CommonKnowledgeLibrary
-        private static readonly Type libraryType;
         private static readonly PropertyInfo entriesProp; // List<CommonKnowledgeEntry>
-        private static readonly MethodInfo removeEntryMethod;
-        private static readonly MethodInfo addEntryStringsMethod; // AddEntry(string tag, string content)
-
-        // Dialog_CommonKnowledge instance state
         private static readonly FieldInfo dckSearchFilterField;
         private static readonly FieldInfo dckSelectedEntriesField;
         private static readonly FieldInfo dckLastSelectedEntryField;
@@ -94,18 +97,15 @@ namespace RimWorldAccess.Shell
         private static readonly MethodInfo dckGetCategoryCountMethod;
         private static readonly Type knowledgeCategoryType;
 
-        /// <summary>The mod's own enum names (RimTalk.Memory.UI.KnowledgeCategory), read once at static init so a mod update can never leave this list stale against the Enum.Parse calls below. The literal fallback only serves the type-missing case, where the compat never attaches anyway.</summary>
+        /// <summary>The mod's own enum names (RimTalk.Memory.UI.KnowledgeCategory), read once so a mod update can never leave this list stale against the Enum.Parse calls below.</summary>
         private static readonly string[] KnowledgeCategoryNames;
 
-        // CommonKnowledgeEntry
         private static readonly Type entryType;
         private static readonly FieldInfo entryTagField;
         private static readonly FieldInfo entryContentField;
         private static readonly FieldInfo entryImportanceField;
         private static readonly FieldInfo entryIsEnabledField;
-        private static readonly FieldInfo entryTargetPawnIdField;
 
-        // ExtendedKnowledgeEntry / CommonKnowledgeUIHelpers
         private static readonly MethodInfo canBeExtractedMethod;
         private static readonly MethodInfo setCanBeExtractedMethod;
         private static readonly MethodInfo canBeMatchedMethod;
@@ -114,73 +114,97 @@ namespace RimWorldAccess.Shell
         private static readonly MethodInfo getCategoryLabelMethod;
         private static readonly MethodInfo getVisibilityTextMethod;
 
-        // FourLayerMemoryComp lookup via Pawn.AllComps (never ThingCompUtility.TryGetComp<T>,
-        // which needs a compile-time T we don't have).
-        private static readonly bool ready;
         private static readonly bool commonKnowledgeReady;
 
-        public static bool Ready { get { return ready; } }
         public static bool CommonKnowledgeReady { get { return commonKnowledgeReady; } }
 
         static RimTalkMemoryCompat()
         {
-            var main = new ReflectionSurface("RimTalk memory compat (Mind Stream)");
+            var data = new ReflectionSurface("RimTalk memory compat (memory data)");
 
-            mainTabType = main.Type("RimTalk.Memory.UI.MainTabWindow_Memory");
-            memoryCompType = main.Type("RimTalk.Memory.FourLayerMemoryComp");
-            memoryEntryType = main.Type("RimTalk.Memory.MemoryEntry");
-            memoryLayerType = main.Type("RimTalk.Memory.MemoryLayer");
-            memoryTypeType = main.Type("RimTalk.Memory.MemoryType");
-            Type editMemoryType = main.Type("RimTalk.Memory.UI.Dialog_EditMemory");
-            dialogCommonKnowledgeType = main.Type("RimTalk.Memory.UI.Dialog_CommonKnowledge");
-            libraryType = main.Type("RimTalk.Memory.CommonKnowledgeLibrary");
+            memoryCompType = data.Type("RimTalk.Memory.FourLayerMemoryComp");
+            Type memoryEntryType = data.Type("RimTalk.Memory.MemoryEntry");
+            Type memoryLayerType = data.Type("RimTalk.Memory.MemoryLayer");
+            Type memoryTypeType = data.Type("RimTalk.Memory.MemoryType");
+            Type interactorType = data.Type("RimTalk.Memory.Maintenance.MemoryInteractor");
+            Type summarizerType = data.Type("RimTalk.Memory.Maintenance.MemorySummarizer");
+            Type textUtilType = data.Type("RimTalk.Memory.Utils.TextUtil");
 
-            selectedPawnField = main.Field(mainTabType, "selectedPawn");
-            currentMemoryCompField = main.Field(mainTabType, "currentMemoryComp");
-            filterTypeField = main.Field(mainTabType, "filterType");
-            selectedMemoriesField = main.Field(mainTabType, "selectedMemories");
-            lastSelectedMemoryField = main.Field(mainTabType, "lastSelectedMemory");
-            filtersDirtyField = main.Field(mainTabType, "filtersDirty");
-            getFilteredMemoriesMethod = main.Method(mainTabType, "GetFilteredMemories");
-            cachedMemoriesField = main.Field(mainTabType, "cachedMemories");
-            cachedCardYPositionsField = main.Field(mainTabType, "cachedCardYPositions");
-            cachedCardHeightsField = main.Field(mainTabType, "cachedCardHeights");
-            showCreateMemoryMenuMethod = memoryLayerType != null
-                ? main.Method(mainTabType, "ShowCreateMemoryMenu", new[] { memoryLayerType })
-                : null;
+            activeMemoriesProp = data.Property(memoryCompType, "ActiveMemories");
+            situationalMemoriesProp = data.Property(memoryCompType, "SituationalMemories");
+            eventLogMemoriesProp = data.Property(memoryCompType, "EventLogMemories");
+            archiveMemoriesProp = data.Property(memoryCompType, "ArchiveMemories");
+            interactorProp = data.Property(memoryCompType, "Interactor");
+            summarizerProp = data.Property(memoryCompType, "Summarizer");
 
-            activeMemoriesProp = main.Property(memoryCompType, "ActiveMemories");
-            situationalMemoriesProp = main.Property(memoryCompType, "SituationalMemories");
-            eventLogMemoriesProp = main.Property(memoryCompType, "EventLogMemories");
-            archiveMemoriesProp = main.Property(memoryCompType, "ArchiveMemories");
-            pinMemoryMethod = main.Method(memoryCompType, "PinMemory", new[] { typeof(string), typeof(bool) });
+            memContentField = data.Field(memoryEntryType, "Content");
+            memTypeField = data.Field(memoryEntryType, "Type");
+            memLayerField = data.Field(memoryEntryType, "Layer");
+            memGameTickField = data.Field(memoryEntryType, "GameTick");
+            memEndGameTickProp = data.Property(memoryEntryType, "EndGameTick");
+            memImportanceProp = data.Property(memoryEntryType, "Importance");
+            memActivityProp = data.Property(memoryEntryType, "Activity");
+            memRelatedPawnNameField = data.Field(memoryEntryType, "relatedPawnName");
+            memIsPinnedField = data.Field(memoryEntryType, "IsPinned");
+            memTagsField = data.Field(memoryEntryType, "Tags");
+            memNoteField = data.Field(memoryEntryType, "Note");
+            memAgeStringProp = data.Property(memoryEntryType, "AgeString");
 
-            memIdField = main.Field(memoryEntryType, "Id");
-            memContentField = main.Field(memoryEntryType, "Content");
-            memTypeField = main.Field(memoryEntryType, "Type");
-            memLayerField = main.Field(memoryEntryType, "Layer");
-            memImportanceProp = main.Property(memoryEntryType, "Importance");
-            memActivityField = main.Field(memoryEntryType, "Activity");
-            memRelatedPawnNameField = main.Field(memoryEntryType, "relatedPawnName");
-            memIsPinnedField = main.Field(memoryEntryType, "IsPinned");
-            memAgeStringProp = main.Property(memoryEntryType, "AgeString");
+            if (memoryEntryType != null)
+            {
+                pinMemoryMethod = data.Method(interactorType, "PinMemory", new[] { memoryEntryType, typeof(bool) });
+                checkSummarizingMethod = data.Method(summarizerType, "CheckSummarizing", new[] { memoryEntryType });
+                checkSummarizedMethod = data.Method(summarizerType, "CheckSummarized", new[] { memoryEntryType });
+            }
+            if (memoryLayerType != null && memoryTypeType != null)
+            {
+                translateLayerMethod = data.Method(textUtilType, "Translate", new[] { memoryLayerType });
+                translateTypeMethod = data.Method(textUtilType, "Translate", new[] { memoryTypeType });
+            }
 
-            editMemoryCtor = editMemoryType != null && memoryEntryType != null && memoryCompType != null
-                ? AccessTools.Constructor(editMemoryType, new[] { memoryEntryType, memoryCompType })
-                : null;
+            dataReady = data.Ready;
 
-            ready = main.Ready && editMemoryCtor != null;
+            var tab = new ReflectionSurface("RimTalk memory compat (memory tab)");
+
+            bridgeType = tab.Type("RimTalk.Memory.UI.TabWindow.MemoryTabWindowBridge");
+            Type tabWindowType = tab.Type("RimTalk.Memory.UI.TabWindow.MemoryTabWindow");
+            Type contextType = tab.Supplied("RimTalk.Memory.UI.TabWindow.MemoryTabWindow.Context",
+                tabWindowType != null ? AccessTools.Inner(tabWindowType, "Context") : null);
+            Type detailsType = tab.Type("RimTalk.Memory.UI.TabWindow.MemoryDetails");
+
+            bridgeTabWindowField = tab.Field(bridgeType, "_memoryTabWindow");
+            tabWindowContextField = tab.Field(tabWindowType, "_context");
+            tabWindowDetailsField = tab.Field(tabWindowType, "_details");
+            contextMemoryCompField = tab.Field(contextType, "MemoryComp");
+            contextSelectionField = tab.Field(contextType, "Selection");
+            contextTreatedTimelineField = tab.Field(contextType, "TreatedTimelineMemories");
+            contextFocuseProp = tab.Property(contextType, "Focuse");
+            contextCursorTickProp = tab.Property(contextType, "CursorTick");
+            contextRaiseRePositionTimelineMethod = tab.Method(contextType, "RaiseRePositionTimeline", Type.EmptyTypes);
+            contextRaiseRePositionCursorMethod = tab.Method(contextType, "RaiseRePositionCursor", Type.EmptyTypes);
+            detailsEditingMemoryField = tab.Field(detailsType, "_editingMemory");
+
+            Type selectionType = contextSelectionField?.FieldType;
+            if (memoryEntryType != null)
+            {
+                contextSetFocuseMethod = tab.Method(contextType, "SetFocuse", new[] { memoryEntryType });
+                selectionContainsMethod = tab.Method(selectionType, "Contains", new[] { memoryEntryType });
+                selectionAddMethod = tab.Method(selectionType, "Add", new[] { memoryEntryType });
+                selectionClearMethod = tab.Method(selectionType, "Clear", Type.EmptyTypes);
+            }
+
+            tabReady = dataReady && tab.Ready && contextCursorTickProp?.GetSetMethod() != null;
 
             var ck = new ReflectionSurface("RimTalk memory compat (Common Knowledge)");
 
+            dialogCommonKnowledgeType = ck.Type("RimTalk.Memory.UI.Dialog_CommonKnowledge");
+            Type libraryType = ck.Type("RimTalk.Memory.CommonKnowledgeLibrary");
             entryType = ck.Type("RimTalk.Memory.CommonKnowledgeEntry");
             knowledgeCategoryType = ck.Type("RimTalk.Memory.UI.KnowledgeCategory");
             Type extendedType = ck.Type("RimTalk.Memory.ExtendedKnowledgeEntry");
             Type uiHelpersType = ck.Type("RimTalk.Memory.UI.CommonKnowledgeUIHelpers");
 
             entriesProp = ck.Property(libraryType, "Entries");
-            removeEntryMethod = entryType != null ? ck.Method(libraryType, "RemoveEntry", new[] { entryType }) : null;
-            addEntryStringsMethod = ck.Method(libraryType, "AddEntry", new[] { typeof(string), typeof(string) });
 
             dckSearchFilterField = ck.Field(dialogCommonKnowledgeType, "searchFilter");
             dckSelectedEntriesField = ck.Field(dialogCommonKnowledgeType, "selectedEntries");
@@ -196,7 +220,6 @@ namespace RimWorldAccess.Shell
             entryContentField = ck.Field(entryType, "content");
             entryImportanceField = ck.Field(entryType, "importance");
             entryIsEnabledField = ck.Field(entryType, "isEnabled");
-            entryTargetPawnIdField = ck.Field(entryType, "targetPawnId");
 
             if (entryType != null)
             {
@@ -213,9 +236,9 @@ namespace RimWorldAccess.Shell
 
             KnowledgeCategoryNames = knowledgeCategoryType != null
                 ? Enum.GetNames(knowledgeCategoryType)
-                : new[] { "All", "Instructions", "Lore", "PawnStatus", "History", "Other" };
+                : new string[0];
 
-            commonKnowledgeReady = ready && ck.Ready;
+            commonKnowledgeReady = ck.Ready;
         }
 
         public static void Register()
@@ -225,166 +248,164 @@ namespace RimWorldAccess.Shell
                 return;
             }
 
-            if (ready)
+            if (tabReady)
             {
-                ScopeForWindow.Register(mainTabType, delegate (Window w)
+                ScopeForWindow.Register(bridgeType, delegate (Window w)
                 {
                     return new RimTalkMemoryMainTabScope(w);
                 });
-                if (commonKnowledgeReady)
+            }
+            if (commonKnowledgeReady)
+            {
+                ScopeForWindow.Register(dialogCommonKnowledgeType, delegate (Window w)
                 {
-                    ScopeForWindow.Register(dialogCommonKnowledgeType, delegate (Window w)
-                    {
-                        return new RimTalkCommonKnowledgeScope(w);
-                    });
-                }
+                    return new RimTalkCommonKnowledgeScope(w);
+                });
+            }
+            if (dataReady)
+            {
                 InspectNodeRegistry.RegisterCategoryExtender("Character", AddMemoriesNode);
             }
         }
 
-        // MainTabWindow_Memory
+        // Memory tab. Every element of the tab shares one MemoryTabWindow.Context, owned by the
+        // bridge through its private MemoryTabWindow.
 
-        internal static Pawn GetSelectedPawn(Window w) { return selectedPawnField.GetValue(w) as Pawn; }
-        internal static object GetCurrentMemoryComp(Window w) { return currentMemoryCompField.GetValue(w); }
-
-        /// <summary>Null = "All". Boxed MemoryType otherwise.</summary>
-        internal static object GetFilterType(Window w) { return filterTypeField.GetValue(w); }
-
-        /// <summary>MUTATION-C: mirrors the Type-filter buttons' own body (bare Nullable&lt;MemoryType&gt; field, no gated setter) -- clears the SAME live HashSet instance rather than reassigning the field, matching `selectedMemories.Clear()`.</summary>
-        internal static void SetFilterType(Window w, object boxedMemoryTypeOrNull)
+        internal static object TabContext(Window bridge)
         {
-            filterTypeField.SetValue(w, boxedMemoryTypeOrNull);
-            InvokeSetMethod(selectedMemoriesField.GetValue(w), "Clear", null);
-            // MUTATION-C: filtersDirty is the same bare-field mirror as filterType above.
-            filtersDirtyField.SetValue(w, true);
+            object tabWindow = bridgeTabWindowField.GetValue(bridge);
+            return tabWindow == null ? null : tabWindowContextField.GetValue(tabWindow);
         }
 
-        internal static object GetMemoryTypeConversation()
+        internal static object TabDetails(Window bridge)
         {
-            return memoryTypeType != null ? Enum.Parse(memoryTypeType, "Conversation") : null;
+            object tabWindow = bridgeTabWindowField.GetValue(bridge);
+            return tabWindow == null ? null : tabWindowDetailsField.GetValue(tabWindow);
         }
 
-        internal static object GetMemoryTypeAction()
+        internal static object ContextMemoryComp(object context)
         {
-            return memoryTypeType != null ? Enum.Parse(memoryTypeType, "Action") : null;
+            return context == null ? null : contextMemoryCompField.GetValue(context);
         }
 
-        internal static IList GetFilteredMemories(Window w)
+        internal static Pawn ContextPawn(object context)
         {
-            return getFilteredMemoriesMethod.Invoke(w, null) as IList;
+            return (ContextMemoryComp(context) as ThingComp)?.parent as Pawn;
         }
 
-        /// <summary>DrawTimeline's own three parallel caches: the memory entries it draws, and each card's y-position and height inside the timeline scroll view. Null when the field is gone, which reads as "no card geometry this pass".</summary>
-        internal static IList GetCachedMemories(Window w)
+        internal static IList ContextTimelineMemories(object context)
         {
-            return cachedMemoriesField?.GetValue(w) as IList;
+            return context == null ? null : contextTreatedTimelineField.GetValue(context) as IList;
         }
 
-        internal static IList<float> GetCachedCardYPositions(Window w)
+        internal static object ContextFocuse(object context)
         {
-            return cachedCardYPositionsField?.GetValue(w) as IList<float>;
+            return context == null ? null : contextFocuseProp.GetValue(context);
         }
 
-        internal static IList<float> GetCachedCardHeights(Window w)
+        internal static bool IsSelected(object context, object memory)
         {
-            return cachedCardHeightsField?.GetValue(w) as IList<float>;
+            object selection = context == null ? null : contextSelectionField.GetValue(context);
+            return selection != null && (bool)selectionContainsMethod.Invoke(selection, new[] { memory });
         }
 
-        /// <summary>The exact text DrawControlPanel's own type-filter buttons show, in the same order the Filters region lists them.</summary>
-        internal static string FilterButtonRawLabel(int index)
+        internal static int SelectionCount(object context)
         {
-            switch (index)
+            return context == null ? 0 : CountOf(contextSelectionField.GetValue(context));
+        }
+
+        /// <summary>
+        /// MUTATION-C: mirrors MemoryCard.HandleSelect's click body (Selection.Clear unless Ctrl
+        /// is held, then Selection.Add and SetFocuse). The card's only vehicle is a
+        /// Widgets.ButtonInvisible that the virtualized timeline draws only while the card is
+        /// scrolled into view, and its body reads the live Ctrl state, so the two gestures go
+        /// through the context's own public members instead.
+        /// </summary>
+        internal static void SelectMemory(object context, object memory, bool addToSelection)
+        {
+            object selection = contextSelectionField.GetValue(context);
+            if (!addToSelection)
             {
-                case 0: return Translator.Translate("RimTalk_MindStream_All").Resolve();
-                case 1: return Translator.Translate("RimTalk_MindStream_Conversation").Resolve();
-                default: return Translator.Translate("RimTalk_MindStream_Action").Resolve();
+                selectionClearMethod.Invoke(selection, null);
+            }
+            selectionAddMethod.Invoke(selection, new[] { memory });
+            contextSetFocuseMethod.Invoke(context, new[] { memory });
+        }
+
+        /// <summary>
+        /// Scrolls the timeline and the chronicle cursor to <paramref name="memory"/> through the
+        /// same cursor tick and reposition events the chronicle axis raises on a click. View state
+        /// only.
+        /// </summary>
+        internal static void RevealMemory(object context, object memory)
+        {
+            contextCursorTickProp.GetSetMethod().Invoke(context, new object[] { MemGameTick(memory) });
+            contextRaiseRePositionTimelineMethod.Invoke(context, null);
+            contextRaiseRePositionCursorMethod.Invoke(context, null);
+        }
+
+        internal static bool DetailsEditing(object details)
+        {
+            return details != null && detailsEditingMemoryField.GetValue(details) != null;
+        }
+
+        // FourLayerMemoryComp
+
+        internal static IList ActiveMemories(object comp) { return comp == null ? null : activeMemoriesProp.GetValue(comp) as IList; }
+        internal static IList SituationalMemories(object comp) { return comp == null ? null : situationalMemoriesProp.GetValue(comp) as IList; }
+        internal static IList EventLogMemories(object comp) { return comp == null ? null : eventLogMemoriesProp.GetValue(comp) as IList; }
+        internal static IList ArchiveMemories(object comp) { return comp == null ? null : archiveMemoriesProp.GetValue(comp) as IList; }
+
+        /// <summary>Vehicle A: the pin button's own click body, <c>MemoryComp.Interactor.PinMemory(memory, !memory.IsPinned)</c>.</summary>
+        internal static void TogglePin(object comp, object memory)
+        {
+            object interactor = comp == null ? null : interactorProp.GetValue(comp);
+            if (interactor != null)
+            {
+                pinMemoryMethod.Invoke(interactor, new object[] { memory, !MemIsPinned(memory) });
             }
         }
 
-        /// <summary>Vehicle A: the mod's own private ShowCreateMemoryMenu(MemoryLayer) verbatim -- the exact 2-option FloatMenu (Conversation/Action) a mouse right-click opens, reached here as the keyboard's declared-action equivalent of that gesture. Wrapped in ScopeDelegateGuard.Run so the real FloatMenu it opens (Find.WindowStack.Add(new FloatMenu(list))) rides the windowless path instead of self-dismissing far from the mouse.</summary>
-        internal static void ShowCreateMemoryMenu(Window w, string layerName)
+        internal static bool IsSummarizing(object comp, object memory)
         {
-            object layer = Enum.Parse(memoryLayerType, layerName);
-            ScopeDelegateGuard.Run(() => showCreateMemoryMenuMethod.Invoke(w, new object[] { layer }));
+            object summarizer = comp == null ? null : summarizerProp.GetValue(comp);
+            return summarizer != null && (bool)checkSummarizingMethod.Invoke(summarizer, new[] { memory });
         }
 
-        /// <summary>MUTATION-C: mirrors HandleMemoryClick's plain-click branch (Clear then Add then set lastSelectedMemory -- all bare fields with no gated setter).</summary>
-        internal static void ReplaceSelectionWith(Window w, object memoryEntry)
+        internal static bool IsSummarized(object comp, object memory)
         {
-            object set = selectedMemoriesField.GetValue(w);
-            InvokeSetMethod(set, "Clear", null);
-            InvokeSetMethod(set, "Add", memoryEntry);
-            // MUTATION-C: same bare-field mirror as the HashSet ops just above.
-            lastSelectedMemoryField.SetValue(w, memoryEntry);
+            object summarizer = comp == null ? null : summarizerProp.GetValue(comp);
+            return summarizer != null && (bool)checkSummarizedMethod.Invoke(summarizer, new[] { memory });
         }
 
-        /// <summary>MUTATION-C: mirrors HandleMemoryClick's Ctrl-click branch (Contains/Remove/Add toggle on the bare HashSet field, plus lastSelectedMemory).</summary>
-        internal static void ToggleSelection(Window w, object memoryEntry)
-        {
-            object set = selectedMemoriesField.GetValue(w);
-            bool contains = (bool)InvokeSetMethod(set, "Contains", memoryEntry);
-            InvokeSetMethod(set, contains ? "Remove" : "Add", memoryEntry);
-            // MUTATION-C: same bare-field mirror as the HashSet toggle just above.
-            lastSelectedMemoryField.SetValue(w, memoryEntry);
-        }
+        // MemoryEntry
 
-        internal static bool IsSelected(Window w, object memoryEntry)
-        {
-            object set = selectedMemoriesField.GetValue(w);
-            return (bool)InvokeSetMethod(set, "Contains", memoryEntry);
-        }
-
-        private static object InvokeSetMethod(object set, string name, object arg)
-        {
-            if (set == null)
-            {
-                return name == "Contains" ? (object)false : null;
-            }
-            MethodInfo m = arg == null
-                ? set.GetType().GetMethod(name, Type.EmptyTypes)
-                : set.GetType().GetMethod(name, new[] { memoryEntryType });
-            return m?.Invoke(set, arg == null ? null : new[] { arg });
-        }
-
-        // FourLayerMemoryComp / MemoryEntry
-
-        internal static IList GetActiveMemories(object comp) { return activeMemoriesProp.GetValue(comp) as IList; }
-        internal static IList GetSituationalMemories(object comp) { return situationalMemoriesProp.GetValue(comp) as IList; }
-        internal static IList GetEventLogMemories(object comp) { return eventLogMemoriesProp.GetValue(comp) as IList; }
-        internal static IList GetArchiveMemories(object comp) { return archiveMemoriesProp.GetValue(comp) as IList; }
-
-        /// <summary>Vehicle B: FourLayerMemoryComp's own gated PinMemory(id, pinned) -- promotes ABM to SCM on pin exactly as the mod's own Pin button does.</summary>
-        internal static void PinMemory(object comp, string memoryId, bool pinned)
-        {
-            pinMemoryMethod.Invoke(comp, new object[] { memoryId, pinned });
-        }
-
-        internal static string MemId(object entry) { return memIdField.GetValue(entry) as string; }
-        internal static string MemContent(object entry) { return memContentField.GetValue(entry) as string; }
-        internal static string MemTypeName(object entry) { return memTypeField.GetValue(entry).ToString(); }
-        internal static string MemLayerName(object entry) { return memLayerField.GetValue(entry).ToString(); }
+        internal static string MemContent(object entry) { return memContentField.GetValue(entry) as string ?? ""; }
+        internal static int MemGameTick(object entry) { return (int)memGameTickField.GetValue(entry); }
+        internal static int MemEndGameTick(object entry) { return (int)memEndGameTickProp.GetValue(entry); }
         internal static float MemImportance(object entry) { return (float)memImportanceProp.GetValue(entry); }
-        internal static float MemActivity(object entry) { return (float)memActivityField.GetValue(entry); }
+        internal static float MemActivity(object entry) { return (float)memActivityProp.GetValue(entry); }
         internal static string MemRelatedPawnName(object entry) { return memRelatedPawnNameField.GetValue(entry) as string; }
         internal static bool MemIsPinned(object entry) { return (bool)memIsPinnedField.GetValue(entry); }
-        internal static string MemAgeString(object entry) { return memAgeStringProp.GetValue(entry) as string; }
+        internal static IList<string> MemTags(object entry) { return memTagsField.GetValue(entry) as IList<string>; }
+        internal static string MemNote(object entry) { return memNoteField.GetValue(entry) as string; }
+        internal static string MemAgeString(object entry) { return memAgeStringProp.GetValue(entry) as string ?? ""; }
 
-        /// <summary>Vehicle A: `new Dialog_EditMemory(memory, comp)` verbatim -- the mod's own Rename/Edit button click.</summary>
-        internal static void OpenEditMemory(object memoryEntry, object comp)
+        /// <summary>The layer name the mod's own UI shows (TextUtil.Translate).</summary>
+        internal static string MemLayerLabel(object entry)
         {
-            object instance = editMemoryCtor.Invoke(new[] { memoryEntry, comp });
-            Find.WindowStack.Add((Window)instance);
+            return translateLayerMethod.Invoke(null, new[] { memLayerField.GetValue(entry) }) as string ?? "";
+        }
+
+        /// <summary>The type name the mod's own UI shows (TextUtil.Translate).</summary>
+        internal static string MemTypeLabel(object entry)
+        {
+            return translateTypeMethod.Invoke(null, new[] { memTypeField.GetValue(entry) }) as string ?? "";
         }
 
         // CommonKnowledgeLibrary / CommonKnowledgeEntry
 
         internal static IList GetEntries(object library) { return entriesProp.GetValue(library) as IList; }
-
-        /// <summary>Vehicle A: CommonKnowledgeLibrary's own gated RemoveEntry (also cleans up ExtendedKnowledgeEntry's side table and any vector-DB sync the mod's settings enabled).</summary>
-        internal static void RemoveEntry(object library, object entry)
-        {
-            removeEntryMethod.Invoke(library, new[] { entry });
-        }
 
         internal static string EntryTag(object entry) { return entryTagField.GetValue(entry) as string; }
         internal static string EntryContent(object entry) { return entryContentField.GetValue(entry) as string; }
@@ -456,15 +477,26 @@ namespace RimWorldAccess.Shell
 
         internal static int SelectedEntryCount(Window w)
         {
-            object set = dckSelectedEntriesField.GetValue(w);
-            PropertyInfo countProp = set?.GetType().GetProperty("Count");
-            return countProp != null ? (int)countProp.GetValue(set) : 0;
+            return CountOf(dckSelectedEntriesField.GetValue(w));
+        }
+
+        /// <summary>A HashSet's element count; HashSet&lt;T&gt; implements only the generic ICollection.</summary>
+        private static int CountOf(object set)
+        {
+            int count = 0;
+            if (set is IEnumerable enumerable)
+            {
+                foreach (object unused in enumerable)
+                {
+                    count++;
+                }
+            }
+            return count;
         }
 
         internal static IEnumerable<object> SelectedEntries(Window w)
         {
-            object set = dckSelectedEntriesField.GetValue(w);
-            if (set is IEnumerable enumerable)
+            if (dckSelectedEntriesField.GetValue(w) is IEnumerable enumerable)
             {
                 foreach (object item in enumerable)
                 {
@@ -531,7 +563,7 @@ namespace RimWorldAccess.Shell
 
         private static void AddMemoriesNode(InspectionTreeItem categoryItem, object obj)
         {
-            if (!ready || !(obj is Pawn pawn))
+            if (!(obj is Pawn pawn))
             {
                 return;
             }
@@ -540,10 +572,10 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
-            IList active = GetActiveMemories(comp);
-            IList situational = GetSituationalMemories(comp);
-            IList eventLog = GetEventLogMemories(comp);
-            IList archive = GetArchiveMemories(comp);
+            IList active = ActiveMemories(comp);
+            IList situational = SituationalMemories(comp);
+            IList eventLog = EventLogMemories(comp);
+            IList archive = ArchiveMemories(comp);
             int total = (active?.Count ?? 0) + (situational?.Count ?? 0) + (eventLog?.Count ?? 0) + (archive?.Count ?? 0);
             if (total == 0)
             {
@@ -553,46 +585,49 @@ namespace RimWorldAccess.Shell
             string label = "RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode".Translate(total);
             InspectNodeFactory.Section(categoryItem, label, pawn, delegate (InspectionTreeItem section)
             {
-                AddLayerSubsection(section, "RimWorldAccess.Compat.RimTalk.Memory.LayerActive".Translate(), active);
-                AddLayerSubsection(section, "RimWorldAccess.Compat.RimTalk.Memory.LayerSituational".Translate(), situational);
-                AddLayerSubsection(section, "RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog".Translate(), eventLog);
-                AddLayerSubsection(section, "RimWorldAccess.Compat.RimTalk.Memory.LayerArchive".Translate(), archive);
+                AddLayerSubsection(section, active);
+                AddLayerSubsection(section, situational);
+                AddLayerSubsection(section, eventLog);
+                AddLayerSubsection(section, archive);
             });
         }
 
-        private static void AddLayerSubsection(InspectionTreeItem parent, string layerLabel, IList memories)
+        /// <summary>Each comp list holds one layer, so its first entry names the layer.</summary>
+        private static void AddLayerSubsection(InspectionTreeItem parent, IList memories)
         {
-            if (memories == null || memories.Count == 0)
+            if (memories == null || memories.Count == 0 || memories[0] == null)
             {
                 return;
             }
-            string label = "RimWorldAccess.Compat.RimTalk.Memory.LayerNode".Translate(layerLabel, memories.Count);
+            string label = "RimWorldAccess.Compat.RimTalk.Memory.LayerNode".Translate(MemLayerLabel(memories[0]), memories.Count);
             InspectNodeFactory.Section(parent, label, memories, delegate (InspectionTreeItem layerSection)
             {
                 foreach (object entry in memories)
                 {
-                    if (entry == null)
+                    if (entry != null)
                     {
-                        continue;
+                        InspectNodeFactory.DetailLine(layerSection, MemoryLine(entry));
                     }
-                    string relatedPawn = MemRelatedPawnName(entry);
-                    string line = string.IsNullOrEmpty(relatedPawn)
-                        ? "RimWorldAccess.Compat.RimTalk.Memory.MemoryLine".Translate(
-                            MemTypeName(entry), MemContent(entry), MemAgeString(entry),
-                            MemImportance(entry).ToString("F2"), MemActivity(entry).ToString("F2"))
-                        : "RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn".Translate(
-                            MemTypeName(entry), MemContent(entry), MemAgeString(entry),
-                            MemImportance(entry).ToString("F2"), MemActivity(entry).ToString("F2"), relatedPawn);
-                    if (MemIsPinned(entry))
-                    {
-                        line = "RimWorldAccess.Compat.RimTalk.Memory.MemoryLinePinned".Translate(line);
-                    }
-                    InspectNodeFactory.DetailLine(layerSection, line);
                 }
             });
         }
 
-        /// <summary>Reflective AllComps type-name match -- never <c>ThingCompUtility.TryGetComp&lt;T&gt;</c>, which needs a compile-time T we don't have for a type in an unreferenced assembly.</summary>
+        private static string MemoryLine(object entry)
+        {
+            string relatedPawn = MemRelatedPawnName(entry);
+            string line = string.IsNullOrEmpty(relatedPawn)
+                ? "RimWorldAccess.Compat.RimTalk.Memory.MemoryLine".Translate(
+                    MemTypeLabel(entry), MemContent(entry), MemAgeString(entry),
+                    MemImportance(entry).ToString("F2"), MemActivity(entry).ToString("F2"))
+                : "RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn".Translate(
+                    MemTypeLabel(entry), MemContent(entry), MemAgeString(entry),
+                    MemImportance(entry).ToString("F2"), MemActivity(entry).ToString("F2"), relatedPawn);
+            return MemIsPinned(entry)
+                ? (string)"RimWorldAccess.Compat.RimTalk.Memory.MemoryLinePinned".Translate(line)
+                : line;
+        }
+
+        /// <summary>AllComps type match: <c>ThingCompUtility.TryGetComp&lt;T&gt;</c> needs a compile-time T this assembly never has.</summary>
         private static object FindMemoryComp(Pawn pawn)
         {
             if (pawn?.AllComps == null)
@@ -601,13 +636,12 @@ namespace RimWorldAccess.Shell
             }
             foreach (ThingComp comp in pawn.AllComps)
             {
-                if (comp != null && comp.GetType().Name == "FourLayerMemoryComp")
+                if (comp != null && memoryCompType.IsInstanceOfType(comp))
                 {
                     return comp;
                 }
             }
             return null;
         }
-
     }
 }

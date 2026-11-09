@@ -67,7 +67,8 @@ namespace RimWorldAccess
             var results = CharEditorBrowserCompat.AddAbilityResults(dialog);
             if (index < 0 || index >= results.Count)
                 return null;
-            return results[index].GetTooltip(CharEditorCompat.CurrentPawn);
+            return RedundantLabelPrefix.AfterTitle(results[index].GetTooltip(CharEditorCompat.CurrentPawn).StripTags(),
+                results[index].LabelCap.ToString().StripTags());
         }
 
         public override int SelectedResultIndex

@@ -45,9 +45,10 @@ namespace RimWorldAccess
     {
         private const BindingFlags MemberFlags = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static;
 
-        private static bool initialized;
-        private static bool geneReady;
-        private static bool objectReady;
+        private static readonly LazyReflectionGate geneGate =
+            new LazyReflectionGate("CharEditorDefEditorCompat gene", ResolveGene);
+        private static readonly LazyReflectionGate objectGate =
+            new LazyReflectionGate("CharEditorDefEditorCompat object", ResolveObject);
 
         private static Type geneToolType;
         private static Type thingToolType;
@@ -96,8 +97,8 @@ namespace RimWorldAccess
 
         public static bool ModPresent => CharEditorCompat.ModPresent;
 
-        public static bool GeneReady { get { EnsureInit(); return geneReady; } }
-        public static bool ObjectReady { get { EnsureInit(); return objectReady; } }
+        public static bool GeneReady { get { return geneGate.Ensure(); } }
+        public static bool ObjectReady { get { return objectGate.Ensure(); } }
 
         /// <summary>
         /// Vehicle A: the browse dialog's own bottom-row Save button (DialogTemplate&lt;T&gt;.ASave,
@@ -149,19 +150,14 @@ namespace RimWorldAccess
 
         private static void EnsureInit()
         {
-            if (initialized) return;
-            initialized = true;
-            if (!CharEditorCompat.ModPresent) return;
-
-            ceditorType = CharEditorCompat.EditorCore.CEditorType;
-
-            BindGene();
-            BindObject();
+            geneGate.Ensure();
+            objectGate.Ensure();
         }
 
-        private static void BindGene()
+        private static bool ResolveGene(ReflectionSurface surface)
         {
-            var surface = new ReflectionSurface("CharEditorDefEditorCompat gene");
+            if (!CharEditorCompat.ModPresent) return false;
+            ceditorType = CharEditorCompat.EditorCore.CEditorType;
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             geneToolType = surface.Type("CharacterEditor.GeneTool");
@@ -213,12 +209,13 @@ namespace RimWorldAccess
             geneIsBodySizeGene = surface.Method(geneToolType, "IsBodySizeGene", new[] { typeof(GeneDef) });
             geneGetLifeStageDef = surface.Method(geneToolType, "GetLifeStageDef", new[] { typeof(GeneDef) });
 
-            geneReady = surface.Ready;
+            return surface.Ready;
         }
 
-        private static void BindObject()
+        private static bool ResolveObject(ReflectionSurface surface)
         {
-            var surface = new ReflectionSurface("CharEditorDefEditorCompat object");
+            if (!CharEditorCompat.ModPresent) return false;
+            ceditorType = CharEditorCompat.EditorCore.CEditorType;
             surface.Supplied("CharacterEditor.CEditor", ceditorType);
 
             thingToolType = surface.Type("CharacterEditor.ThingTool");
@@ -257,7 +254,7 @@ namespace RimWorldAccess
             thingSetBladeLinkTrait = surface.Method(thingToolType, "SetBladeLinkTrait", new[] { typeof(Thing), typeof(WeaponTraitDef) });
             thingRemoveBladeLinkTrait = surface.Method(thingToolType, "RemoveBladeLinkTrait", new[] { typeof(Thing), typeof(WeaponTraitDef) });
 
-            objectReady = surface.Ready;
+            return surface.Ready;
         }
 
         private static readonly HashSet<string> loggedFailures = new HashSet<string>();
@@ -330,14 +327,14 @@ namespace RimWorldAccess
 
         public static bool GeneIsBodySizeGene(GeneDef g)
         {
-            if (!geneReady) return false;
+            if (!geneGate.Ensure()) return false;
             try { return (bool)geneIsBodySizeGene.Invoke(null, new object[] { g }); }
             catch (Exception ex) { Fail("GeneIsBodySizeGene", ex); return false; }
         }
 
         public static LifeStageDef GeneGetLifeStageDef(GeneDef g)
         {
-            if (!geneReady) return null;
+            if (!geneGate.Ensure()) return null;
             try { return geneGetLifeStageDef.Invoke(null, new object[] { g }) as LifeStageDef; }
             catch (Exception ex) { Fail("GeneGetLifeStageDef", ex); return null; }
         }
@@ -383,7 +380,7 @@ namespace RimWorldAccess
 
         public static HashSet<WeaponTraitDef> ThingAllWeaponTraitDef()
         {
-            if (!objectReady) return null;
+            if (!objectGate.Ensure()) return null;
             try { return thingAllWeaponTraitDefProp.GetValue(null, null) as HashSet<WeaponTraitDef>; }
             catch (Exception ex) { Fail("ThingAllWeaponTraitDef", ex); return null; }
         }
@@ -393,7 +390,7 @@ namespace RimWorldAccess
         /// <summary>The live Thing instance the Objects browser is editing (ThingTool.SelectedThing.tempThing) -- needed for the WeaponTraits/biocoded section, which DrawWeaponTraits keys off a real Thing's CompBladelinkWeapon rather than the ThingDef.</summary>
         public static Thing ThingSelectedTempThing()
         {
-            if (!objectReady) return null;
+            if (!objectGate.Ensure()) return null;
             try
             {
                 object selected = thingSelectedThingProp.GetValue(null, null);

@@ -36,8 +36,7 @@ namespace RimWorldAccess
     /// </summary>
     internal static class CharEditorBirthdayCompat
     {
-        private static bool initialized;
-        private static bool ready;
+        private static readonly LazyReflectionGate gate = new LazyReflectionGate("CharEditorBirthdayCompat", Resolve);
 
         private static Type dialogType;
         private static ConstructorInfo ctor;
@@ -73,26 +72,19 @@ namespace RimWorldAccess
         {
             get
             {
-                EnsureInit();
-                return ready;
+                return gate.Ensure();
             }
         }
 
         public static Type DialogType
         {
-            get { EnsureInit(); return dialogType; }
+            get { gate.Ensure(); return dialogType; }
         }
 
-        private static void EnsureInit()
+        private static bool Resolve(ReflectionSurface surface)
         {
-            if (initialized)
-                return;
-            initialized = true;
-
             if (!ModPresent)
-                return;
-
-            var surface = new ReflectionSurface("CharEditorBirthdayCompat");
+                return false;
 
             dialogType = surface.Type("CharacterEditor.DialogChangeBirthday");
             labelType = surface.Supplied("CharacterEditor.Label", CharEditorCompat.Labels.LabelType);
@@ -120,7 +112,7 @@ namespace RimWorldAccess
             labelHoursField = surface.Field(labelType, "HOURS");
             labelLifestageField = surface.Field(labelType, "LIFESTAGE");
 
-            ready = surface.Ready && CharEditorCompat.Labels.Ready;
+            return surface.Ready && CharEditorCompat.Labels.Ready;
         }
 
         private static readonly System.Collections.Generic.HashSet<string> loggedFailures = new System.Collections.Generic.HashSet<string>();
