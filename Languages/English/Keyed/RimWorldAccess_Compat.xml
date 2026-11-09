@@ -1191,4 +1191,8 @@
   <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
   <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
 
+  <!-- XML Extensions: the settings search box, which draws only a magnifier icon. {0} = the mod's own result count text. -->
+  <RimWorldAccess.Compat.XmlExtensions.Search>Search</RimWorldAccess.Compat.XmlExtensions.Search>
+  <RimWorldAccess.Compat.XmlExtensions.SearchWithResults>Search. {0}</RimWorldAccess.Compat.XmlExtensions.SearchWithResults>
+
 </LanguageData>

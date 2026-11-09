@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- VisibleWealthScope: the wealth breakdown window. Region names. -->
+  <RimWorldAccess.Compat.VisibleWealth.OverviewRegion>Özet</RimWorldAccess.Compat.VisibleWealth.OverviewRegion>
+  <RimWorldAccess.Compat.VisibleWealth.NestedRegion>Kategoriye göre servet</RimWorldAccess.Compat.VisibleWealth.NestedRegion>
+  <RimWorldAccess.Compat.VisibleWealth.FlatRegion>Servet listesi</RimWorldAccess.Compat.VisibleWealth.FlatRegion>
+  <RimWorldAccess.Compat.VisibleWealth.SliceRegion>Pasta grafiği dilimleri</RimWorldAccess.Compat.VisibleWealth.SliceRegion>
+  <RimWorldAccess.Compat.VisibleWealth.OptionsRegion>Grafik seçenekleri</RimWorldAccess.Compat.VisibleWealth.OptionsRegion>
+  <RimWorldAccess.Compat.VisibleWealth.Search>Ara</RimWorldAccess.Compat.VisibleWealth.Search>
+  <!-- Names for the two toolbar pickers the mod captions with an icon only. -->
+  <RimWorldAccess.Compat.VisibleWealth.ChartTypeOption>Grafik türü</RimWorldAccess.Compat.VisibleWealth.ChartTypeOption>
+  <RimWorldAccess.Compat.VisibleWealth.PercentOption>Yüzdeler</RimWorldAccess.Compat.VisibleWealth.PercentOption>
+  <!-- Flat list column headers. -->
+  <RimWorldAccess.Compat.VisibleWealth.ItemColumn>Öğe</RimWorldAccess.Compat.VisibleWealth.ItemColumn>
+  <RimWorldAccess.Compat.VisibleWealth.ValueColumn>Değer</RimWorldAccess.Compat.VisibleWealth.ValueColumn>
+  <RimWorldAccess.Compat.VisibleWealth.PercentColumn>Yüzde</RimWorldAccess.Compat.VisibleWealth.PercentColumn>
+  <!-- A row's market value as the mod prints it. {0} = the whole-number amount. -->
+  <RimWorldAccess.Compat.VisibleWealth.Money>${0}</RimWorldAccess.Compat.VisibleWealth.Money>
+  <!-- {0} = a percentage such as 3.4%, {1} = the parent category's name. -->
+  <RimWorldAccess.Compat.VisibleWealth.PercentOfTotal>toplam servetin {0} kadarı</RimWorldAccess.Compat.VisibleWealth.PercentOfTotal>
+  <RimWorldAccess.Compat.VisibleWealth.PercentOfParent>{1} içinde {0}</RimWorldAccess.Compat.VisibleWealth.PercentOfParent>
+  <!-- A pie slice's parent category. {0} = category name. -->
+  <RimWorldAccess.Compat.VisibleWealth.InParent>{0} içinde</RimWorldAccess.Compat.VisibleWealth.InParent>
+  <RimWorldAccess.Compat.VisibleWealth.NotMatching>Aramayla eşleşmiyor</RimWorldAccess.Compat.VisibleWealth.NotMatching>
+  <RimWorldAccess.Compat.VisibleWealth.ChartLockedWhileSearching>Arama sırasında pasta grafiği açılamaz veya kapatılamaz</RimWorldAccess.Compat.VisibleWealth.ChartLockedWhileSearching>
+  <!-- The pause menu's mod toolbar entry. {0} = the window's name, {1} = a key chord. -->
+  <RimWorldAccess.Compat.VisibleWealth.OpenWithHotkey>{0}, kısayol {1}</RimWorldAccess.Compat.VisibleWealth.OpenWithHotkey>
+  <!-- {0} = a key name. -->
+  <RimWorldAccess.Compat.VisibleWealth.ShiftChord>Shift+{0}</RimWorldAccess.Compat.VisibleWealth.ShiftChord>
+</LanguageData>

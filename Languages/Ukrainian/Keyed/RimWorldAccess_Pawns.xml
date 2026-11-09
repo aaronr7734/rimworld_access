@@ -550,6 +550,7 @@
   <RimWorldAccess.Pawns.Character.SkillLine>{0}: {1}{2}</RimWorldAccess.Pawns.Character.SkillLine>
   <RimWorldAccess.Pawns.Character.PassionMinor> (•)</RimWorldAccess.Pawns.Character.PassionMinor>
   <RimWorldAccess.Pawns.Character.PassionMajor> (••)</RimWorldAccess.Pawns.Character.PassionMajor>
+  <RimWorldAccess.Pawns.Character.PassionNamed> ({0})</RimWorldAccess.Pawns.Character.PassionNamed>
 
   <!-- Top-3 skills concise format (Alt+K). -->
   <RimWorldAccess.Pawns.TopSkills.NoSkills>{0}: немає навичок</RimWorldAccess.Pawns.TopSkills.NoSkills>
@@ -557,6 +558,7 @@
   <RimWorldAccess.Pawns.TopSkills.SkillEntry>{0}: {1}</RimWorldAccess.Pawns.TopSkills.SkillEntry>
   <RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>{0}: {1}, зацікавленість</RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion>
   <RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>{0}: {1}, подвійна зацікавленість</RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion>
+  <RimWorldAccess.Pawns.TopSkills.SkillEntryNamedPassion>{0}: {1}, {2}</RimWorldAccess.Pawns.TopSkills.SkillEntryNamedPassion>
 
   <!-- Work priorities readout. -->
   <RimWorldAccess.Pawns.WorkInfo.NoSettings>{0}: немає налаштувань праці</RimWorldAccess.Pawns.WorkInfo.NoSettings>

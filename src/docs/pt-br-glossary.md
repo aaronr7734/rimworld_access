@@ -1035,3 +1035,12 @@ record here so later waves stay consistent instead of re-deriving these. The glo
 | unshared / shared with another watermill | não compartilhada / compartilhada com outro moinho de água | Coined |
 | placement spot (scanner category/item) | Locais de colocação de {0} / Local | Mirrors `Abilities.Plant.ScannerCategory`/`ScannerItemLabel` ("Locais de plantio de {0}" / "Local plantável") |
 | facing {0} (trailing fragment) | voltado para {0} | Mirrors `Building.ArchitectPlace.GravshipFacing` ("Gravinave voltada para {0}") |
+
+## Mod-coined terms: compat wave (2026-11-09)
+
+| English | Português (BR) | Basis |
+|---|---|---|
+| Guest tab (Hospitality) | aba Convidado | Core `TabGuest` is "Convidado" |
+| Timeline (RimTalk memory region) | Linha do tempo | Standard UI term |
+| Customize (Vehicle Framework tab) | Personalizar | Mirrors the English verb as a tab label |
+| tick (RimTalk debug) | tick | Kept as a loanword, a game-engine unit |

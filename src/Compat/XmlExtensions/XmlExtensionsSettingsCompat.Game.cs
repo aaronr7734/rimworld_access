@@ -20,8 +20,13 @@ namespace RimWorldAccess
     /// caller then writes through SettingsManager.SetSetting.
     ///
     /// CollapsibleSettings draws its header as caption, Reveal texture and invisible hotspot.
-    /// The header is recorded as a tree expander carrying the open state; the caption stays
-    /// suppressed until the section's children start drawing.
+    /// The header is recorded in Listing_Tree's own shape, an expander carrying the open state
+    /// followed by the node's label at its nesting depth, so the reader presents one named tree
+    /// item; the drawn caption stays suppressed until the section's children start drawing.
+    ///
+    /// Searchbox is a bare text field whose only caption is a magnifier icon, and whose result
+    /// count is drawn only after every setting has drawn. The field is named, and the count rides
+    /// that name rather than landing as a stray row at the end of the page.
     /// </summary>
     internal static class XmlExtensionsSettingsCompat
     {
@@ -34,12 +39,28 @@ namespace RimWorldAccess
         private static FieldInfo collapsibleHeaderHeightField;
         private static FieldInfo labelField;
         private static FieldInfo tKeyField;
+        private static FieldInfo tooltipField;
+        private static FieldInfo tKeyTipField;
+        private static FieldInfo menuDefField;
+        private static FieldInfo searchTextField;
+        private static FieldInfo foundResultsField;
+        private static FieldInfo showCountField;
         private static MethodInfo translateIfTKeyAvailable;
         private static object stateOpen;
         private static object stateClosed;
 
         /// <summary>True between a collapsible header's capture and the first child draw.</summary>
         private static bool collapsibleCaptionOpen;
+
+        /// <summary>How many collapsible sections enclose the one drawing now.</summary>
+        private static int collapsibleDepth;
+
+        /// <summary>
+        /// The result count a search box drew last pass. Its draw comes after every setting, by
+        /// when the field it describes is already recorded; it changes only as the search text does.
+        /// </summary>
+        private static object searchCountOwner;
+        private static string searchCountText;
 
         public static void Register(Harmony harmony)
         {
@@ -52,6 +73,8 @@ namespace RimWorldAccess
                 Type collapsibleType = surface.Type("XmlExtensions.Setting.CollapsibleSettings");
                 Type containerType = surface.Type("XmlExtensions.Setting.SettingContainer");
                 Type stateType = surface.Type("XmlExtensions.Setting.CollapsibleSettings+State");
+                Type searchboxType = surface.Type("XmlExtensions.Setting.Searchbox");
+                Type menuDefType = surface.Type("XmlExtensions.SettingsMenuDef");
 
                 checkboxStyleField = surface.Field(checkboxType, "style");
                 radioButtonStyleField = surface.Field(radioButtonType, "style");
@@ -60,6 +83,12 @@ namespace RimWorldAccess
                 collapsibleHeaderHeightField = surface.Field(collapsibleType, "headerHeight");
                 labelField = surface.Field(containerType, "label");
                 tKeyField = surface.Field(containerType, "tKey");
+                tooltipField = surface.Field(containerType, "tooltip");
+                tKeyTipField = surface.Field(containerType, "tKeyTip");
+                menuDefField = surface.Field(surface.Type("XmlExtensions.Container"), "menuDef");
+                searchTextField = surface.Field(menuDefType, "searchText");
+                foundResultsField = surface.Field(menuDefType, "foundResults");
+                showCountField = surface.Field(searchboxType, "showCount");
                 translateIfTKeyAvailable = surface.Method(surface.Type("XmlExtensions.StringExtensions"),
                     "TranslateIfTKeyAvailable", new[] { typeof(string), typeof(string) });
 
@@ -70,6 +99,8 @@ namespace RimWorldAccess
                 MethodInfo drawRadioButtons = surface.Method(radioButtonsType, "DrawRadioButton", radioSignature);
                 MethodInfo drawCollapsible = surface.Method(collapsibleType, "DrawSettingContents", new[] { typeof(Rect) });
                 MethodInfo drawSettingsList = surface.Method(containerType, "DrawSettingsList", null);
+                MethodInfo drawSearchbox = surface.Method(searchboxType, "DrawSettingContents", new[] { typeof(Rect) });
+                MethodInfo postDrawSearchbox = surface.Method(searchboxType, "PostDrawSettingContents", new[] { typeof(Rect) });
                 if (!surface.Ready || !stateType.IsEnum
                     || !Enum.IsDefined(stateType, "Open") || !Enum.IsDefined(stateType, "Closed"))
                 {
@@ -94,6 +125,12 @@ namespace RimWorldAccess
                     finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(CollapsibleFinalizer)));
                 harmony.Patch(drawSettingsList,
                     prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SettingsListPrefix)));
+                harmony.Patch(drawSearchbox,
+                    prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SearchboxPrefix)),
+                    finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SearchboxFinalizer)));
+                harmony.Patch(postDrawSearchbox,
+                    prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SearchCountPrefix)),
+                    finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SearchCountFinalizer)));
             }
             catch (Exception ex)
             {
@@ -180,18 +217,26 @@ namespace RimWorldAccess
             return __exception;
         }
 
+        private static string Translated(object setting, FieldInfo text, FieldInfo key)
+        {
+            return (string)translateIfTKeyAvailable.Invoke(null, new[] { text.GetValue(setting), key.GetValue(setting) });
+        }
+
         private static void CollapsiblePrefix(object __instance, Rect inRect, out bool __state)
         {
             __state = false;
-            string label = (string)translateIfTKeyAvailable.Invoke(null,
-                new[] { labelField.GetValue(__instance), tKeyField.GetValue(__instance) });
+            string label = Translated(__instance, labelField, tKeyField) ?? "";
             Rect header = inRect.TopPartPixels((float)collapsibleHeaderHeightField.GetValue(__instance));
             bool open = Equals(collapsibleStateField.GetValue(__instance), stateOpen);
+            int level = collapsibleDepth;
 
-            WidgetCapture.EnterListingTreeExpander(0);
+            WidgetCapture.EnterListingTreeExpander(level);
             WidgetCapture.NoteTreeExpanderTexture(open ? TexButton.Collapse : TexButton.Reveal);
-            int index = WidgetCapture.RecordButton(header, label ?? "", false);
+            int index = WidgetCapture.RecordButton(header, label, false);
             WidgetCapture.ExitListingTreeExpander();
+            WidgetCapture.EnterListingTreeLabel(label, Translated(__instance, tooltipField, tKeyTipField), level);
+            WidgetCapture.RecordLabel(header, label);
+            WidgetCapture.ExitListingTreeLabel();
 
             bool activated = false;
             WidgetCapture.MaybeForceActivate(index, ref activated, false);
@@ -203,6 +248,7 @@ namespace RimWorldAccess
 
             WidgetCapture.EnterSelfCaptioned(label);
             collapsibleCaptionOpen = true;
+            collapsibleDepth++;
             __state = true;
         }
 
@@ -220,7 +266,46 @@ namespace RimWorldAccess
             if (__state)
             {
                 SettingsListPrefix();
+                collapsibleDepth--;
             }
+            return __exception;
+        }
+
+        private static void SearchboxPrefix(object __instance)
+        {
+            string name = "RimWorldAccess.Compat.XmlExtensions.Search".Translate();
+            if (__instance == searchCountOwner && !string.IsNullOrEmpty(searchCountText))
+            {
+                name = "RimWorldAccess.Compat.XmlExtensions.SearchWithResults".Translate(searchCountText);
+            }
+            WidgetCapture.EnterFieldLabel(name);
+        }
+
+        private static Exception SearchboxFinalizer(Exception __exception)
+        {
+            WidgetCapture.ExitFieldLabel();
+            return __exception;
+        }
+
+        /// <summary>Mirrors the count Searchbox.PostDrawSettingContents draws, in the mod's own words.</summary>
+        private static void SearchCountPrefix(object __instance)
+        {
+            object menuDef = menuDefField.GetValue(__instance);
+            searchCountOwner = __instance;
+            searchCountText = null;
+            if ((bool)showCountField.GetValue(__instance)
+                && !string.IsNullOrEmpty((string)searchTextField.GetValue(menuDef)))
+            {
+                string format = (string)translateIfTKeyAvailable.Invoke(null,
+                    new object[] { "{0} Result(s)", "XmlExtensions_SearchResults" });
+                searchCountText = format.Replace("{0}", foundResultsField.GetValue(menuDef).ToString());
+            }
+            WidgetCapture.EnterFilterPanelSuppression();
+        }
+
+        private static Exception SearchCountFinalizer(Exception __exception)
+        {
+            WidgetCapture.ExitFilterPanelSuppression();
             return __exception;
         }
     }

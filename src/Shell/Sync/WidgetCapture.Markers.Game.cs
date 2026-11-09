@@ -81,17 +81,23 @@ namespace RimWorldAccess.Shell
             if (pendingTipTextureValid && pendingTipTextureRect == rect && pendingTipTextureClip.Equals(GuiSpace.CurrentClip())
                 && CurrentSink.Count == pendingTipTextureSinkIndex)
             {
-                // Third leg of the TipRegion, DrawTexture, ButtonInvisible shape on one rect, whose
-                // texture RecordCheckTexMarker deferred rather than mint a placeholder row.
-                // Recording straight through RecordButton keeps this row's kind and label identity
-                // stable from the first pass it exists in, which is what the activation channels
-                // match by; a post-hoc rename would strand a pending request forever.
+                // Third leg of TipRegion, DrawTexture, ButtonInvisible on one rect. Recording through
+                // RecordButton keeps kind and label stable from the first pass, which activation
+                // matches by; a post-hoc rename would strand a pending request forever.
                 pendingTipTextureValid = false;
                 string tipLabel = pendingTipTextureResolve();
                 if (!string.IsNullOrEmpty(tipLabel))
                 {
                     return RecordButton(rect, tipLabel, false);
                 }
+            }
+            // A tipped icon INSIDE a larger hotspot (an "expensive" badge on a whole-row toggle) is
+            // not its name: its tip follows as a Label, since one before would be taken as caption.
+            bool tippedIconInside = pendingTipTextureValid && pendingTipTextureClip.Equals(GuiSpace.CurrentClip())
+                && CurrentSink.Count == pendingTipTextureSinkIndex && RectContains(rect, pendingTipTextureRect, 2f);
+            if (tippedIconInside)
+            {
+                pendingTipTextureValid = false;
             }
             gapLinePending = false;
             List<CapturedWidget> sink = CurrentSink;
@@ -145,6 +151,10 @@ namespace RimWorldAccess.Shell
             }
             sink.Add(row);
             DrawFocusRingIfFocused(index, rect);
+            if (tippedIconInside)
+            {
+                AddPendingTipTextureLabel(sink);
+            }
             return index;
         }
 

@@ -54,6 +54,10 @@
   <RimWorldAccess.Cmr.Hunting.RefreshAnimals>刷新动物列表</RimWorldAccess.Cmr.Hunting.RefreshAnimals>
   <RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>动物列表已刷新。</RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>
   <RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>将列表限制为此地图上的动物</RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>
+  <RimWorldAccess.Cmr.Overview.ListOptionsRegion>任务列表选项</RimWorldAccess.Cmr.Overview.ListOptionsRegion>
+  <RimWorldAccess.Cmr.Overview.Search>搜索任务</RimWorldAccess.Cmr.Overview.Search>
+  <RimWorldAccess.Cmr.Production.ReservedStockAction>{0}: {1}</RimWorldAccess.Cmr.Production.ReservedStockAction>
+  <RimWorldAccess.Cmr.Shortcuts.ModifiersTip>{0}+回车: 仅允许这些。Shift+回车: 同时允许这些。Alt+回车: 停止允许这些。</RimWorldAccess.Cmr.Shortcuts.ModifiersTip>
 
   <!-- The three controls the mod's threshold details window draws around its item
        filter, none of which it labels: a button showing only a comparison glyph,

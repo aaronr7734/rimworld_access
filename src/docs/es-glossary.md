@@ -491,3 +491,7 @@ verified against the game's corpus. Decided from context per house rule (no nati
 | unshared / shared with another watermill | no compartida / compartida con otro molino de agua | Coined |
 | placement spot (scanner category/item) | Sitios para colocar {0} / Lugar | Mirrors `Abilities.Plant.ScannerCategory`/`ScannerItemLabel` ("Sitios para plantar {0}" / "Lugar plantable") |
 | facing {0} (trailing fragment) | orientado al {0} | Mirrors `Building.Architect.NowFacing` ("Ahora orientado al {0}") |
+
+## Mod-coined terms: delta sync (2026-11-09)
+
+Vehicle Framework tab "Customize" = Personalizar; RimTalk memory "Timeline" = Cronología, "Chronicle" = Crónica; "no pawn selected" = ningún personaje seleccionado; in-game "tick" stays tick; Hospitality "Guest" = huésped; "Rollback" (save) = Revertir partida.

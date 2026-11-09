@@ -1017,6 +1017,7 @@
   <RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>（已抑制）</RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>（好奇）</RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>（狂热）</RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix>（{0}）</RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>（未满足）</RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>
 
   <!-- Skill rows. Disabled form: {0} = skill label, {1} = vanilla
@@ -1314,7 +1315,6 @@
        level (F0), {1} = XP required for next level (F0). The "XP"
        prefix is mod-side because the vanilla Skills.xml exposes only
        the long-form "Experience" word and we want a compact row. -->
-  <RimWorldAccess.Inspection.Tree.SkillXpProgress>经验: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
 
   <!-- =================================================================
        RangeEditMenuState announcements. Spoken when the user

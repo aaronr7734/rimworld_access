@@ -465,3 +465,5 @@ Watermill keys keeps the established `_numCase` three-form tag, matching `Outlin
 | placement spot (scanner category/item) | Места для размещения: {0} / Место | Mirrors `Abilities.Plant.ScannerCategory`/`ScannerItemLabel` ("Места для посадки: {0}" / "Место для посадки") |
 | facing {0} (trailing fragment) | лицом к {0} | Mirrors `Building.ArchitectPlace.GravshipFacing` ("Гравикорабль лицом к {0}") |
 | read only (BrowsingField) | только для чтения | Reuses `Shell.State.ReadOnly`'s full standalone form (vs. Biotech/UI's shorter inline "только чтение") |
+
+- Delta wave (2026-11): "Customize" tab (Vehicle Framework) = Настройка; RimTalk memory "Timeline" = Хронология, "Chronicle" = Летопись; "pawn" in new RimTalk strings = персонаж (not колонист); gender-safe "{0} (недоступно)" for unavailable pawns.

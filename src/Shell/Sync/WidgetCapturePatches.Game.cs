@@ -331,35 +331,56 @@ namespace RimWorldAccess.Shell
         }
     }
 
-    /// <summary>A mod's raw GUI.BeginScrollView records the container Widgets.BeginScrollView would, through the private core every overload funnels into (the one-line overloads may be inlined); the Widgets and DevGUI wrappers are bracketed so they never record twice.</summary>
+    /// <summary>A mod's raw GUI.BeginScrollView records the container Widgets.BeginScrollView would, at the outermost of the public overloads (see <see cref="RawGuiOverloads"/>); the Widgets and DevGUI wrappers are bracketed so they never record twice.</summary>
     [HarmonyPatch]
     internal static class WidgetCaptureRawScrollViewPatch
     {
-        static MethodBase TargetMethod()
+        private static int depth;
+
+        static IEnumerable<MethodBase> TargetMethods()
         {
-            return AccessTools.Method(typeof(GUI), "BeginScrollViewImpl");
+            return RawGuiOverloads.Of("BeginScrollView", typeof(Rect), typeof(Vector2), typeof(Rect));
         }
 
         [HarmonyPrefix]
         public static void Prefix(Rect position, ref Vector2 scrollPosition, Rect viewRect)
         {
-            if (!WidgetCapture.InWrappedScrollView)
+            if (depth++ == 0 && !WidgetCapture.InWrappedScrollView)
             {
                 WidgetCapture.RecordScrollContainerBegin(position, ref scrollPosition, viewRect);
             }
         }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            depth--;
+        }
     }
 
-    [HarmonyPatch(typeof(GUI), "EndScrollView", new Type[] { typeof(bool) })]
+    [HarmonyPatch]
     internal static class WidgetCaptureRawEndScrollViewPatch
     {
+        private static int depth;
+
+        static IEnumerable<MethodBase> TargetMethods()
+        {
+            return RawGuiOverloads.Of("EndScrollView");
+        }
+
         [HarmonyPrefix]
         public static void Prefix()
         {
-            if (!WidgetCapture.InWrappedScrollView)
+            if (depth++ == 0 && !WidgetCapture.InWrappedScrollView)
             {
                 WidgetCapture.RecordScrollContainerEnd();
             }
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            depth--;
         }
     }
 
@@ -472,17 +493,32 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// Patches only the 3-arg (Rect, Texture, ScaleMode) overload: GUI.DrawTexture(Rect,
-    /// Texture) is IL-verified to be a pure forward into it with the same arguments, so this
-    /// one tap covers the 2-arg callers too. See RecordCheckTexMarker's remarks.
+    /// Taps every public GUI.DrawTexture overload, recording at the outermost (see
+    /// <see cref="RawGuiOverloads"/>). See RecordCheckTexMarker's remarks.
     /// </summary>
-    [HarmonyPatch(typeof(GUI), "DrawTexture", new Type[] { typeof(Rect), typeof(Texture), typeof(ScaleMode) })]
+    [HarmonyPatch]
     internal static class WidgetCaptureCheckTexMarkerPatch
     {
+        private static int depth;
+
+        static IEnumerable<MethodBase> TargetMethods()
+        {
+            return RawGuiOverloads.Of("DrawTexture", typeof(Rect), typeof(Texture));
+        }
+
         [HarmonyPrefix]
         public static void Prefix(Rect position, Texture image)
         {
-            WidgetCapture.RecordCheckTexMarker(position, image);
+            if (depth++ == 0)
+            {
+                WidgetCapture.RecordCheckTexMarker(position, image);
+            }
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            depth--;
         }
     }
 

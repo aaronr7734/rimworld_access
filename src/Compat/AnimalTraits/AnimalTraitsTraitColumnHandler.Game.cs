@@ -18,11 +18,11 @@ namespace RimWorldAccess
     {
         private static readonly MethodInfo getTextFor = AccessTools.Method(typeof(PawnColumnWorker_Text), "GetTextFor");
 
-        private readonly MethodInfo getTraitDefNames;
+        private readonly MethodInfo getAnimalTraits;
 
-        private AnimalTraitsTraitColumnHandler(MethodInfo getTraitDefNames)
+        private AnimalTraitsTraitColumnHandler(MethodInfo getAnimalTraits)
         {
-            this.getTraitDefNames = getTraitDefNames;
+            this.getAnimalTraits = getAnimalTraits;
         }
 
         public static void Register()
@@ -31,12 +31,12 @@ namespace RimWorldAccess
             {
                 var surface = new ReflectionSurface("Animal Traits System traits column");
                 Type workerType = surface.Type("AnimalTraitExtension.PawnColumnWorker_AnimalTraits");
-                MethodInfo traitDefNames = surface.Method(workerType, "GetAnimalTraitDefNames", new[] { typeof(Pawn) });
+                MethodInfo animalTraits = surface.Method(workerType, "GetAnimalTraits", new[] { typeof(Pawn) });
                 if (!surface.Ready)
                 {
                     return;
                 }
-                PawnColumnHandlerRegistry.Register(workerType, new AnimalTraitsTraitColumnHandler(traitDefNames));
+                PawnColumnHandlerRegistry.Register(workerType, new AnimalTraitsTraitColumnHandler(animalTraits));
             }
             catch (Exception ex)
             {
@@ -52,20 +52,16 @@ namespace RimWorldAccess
 
         public override string CellTip(PawnColumnDef def, Pawn pawn)
         {
-            var traitNames = getTraitDefNames.Invoke(def.Worker, new object[] { pawn }) as List<string>;
-            if (traitNames == null || traitNames.Count == 0)
+            var traits = getAnimalTraits.Invoke(def.Worker, new object[] { pawn }) as List<Hediff>;
+            if (traits == null || traits.Count == 0)
             {
                 return null;
             }
             var entries = new List<string>();
-            foreach (string defName in traitNames)
+            foreach (Hediff hediff in traits)
             {
-                HediffDef trait = DefDatabase<HediffDef>.GetNamedSilentFail(defName);
-                if (trait == null)
-                {
-                    continue;
-                }
-                string label = !trait.label.NullOrEmpty() ? trait.LabelCap.ToString() : defName;
+                HediffDef trait = hediff.def;
+                string label = !trait.label.NullOrEmpty() ? trait.LabelCap.ToString() : trait.defName;
                 string polarity = (trait.isBad
                     ? "RimWorldAccess.Compat.AnimalTraits.Negative"
                     : "RimWorldAccess.Compat.AnimalTraits.Positive").Loc().ToString();

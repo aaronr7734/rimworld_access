@@ -243,7 +243,7 @@
        below bake VF's own English text (VF_Upgrade, VF_RemoveUpgrade, VF_DisabledFromOtherNode,
        VF_MissingPrerequisiteUpgrade, verified against the mod's own Languages/English/Keyed/
        Upgrades.xml) into keys this ratchet can verify instead. -->
-  <RimWorldAccess.Compat.Vf.UpgradesTab>Upgrades</RimWorldAccess.Compat.Vf.UpgradesTab>
+  <RimWorldAccess.Compat.Vf.UpgradesTab>Personalizar</RimWorldAccess.Compat.Vf.UpgradesTab>
   <RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>Melhoria em andamento: {0}.</RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>
   <RimWorldAccess.Compat.Vf.UpgradeNodeSection>{0}, {1}</RimWorldAccess.Compat.Vf.UpgradeNodeSection>
   <RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>melhoria em andamento</RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>
@@ -254,6 +254,7 @@
   <RimWorldAccess.Compat.Vf.UpgradeStateAvailable>disponível</RimWorldAccess.Compat.Vf.UpgradeStateAvailable>
   <RimWorldAccess.Compat.Vf.UpgradeCostLine>{0}: necessário {1}, disponível {2}.</RimWorldAccess.Compat.Vf.UpgradeCostLine>
   <RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>{0}: necessário {1}.</RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>
+  <RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>Também requer: {0}.</RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>
   <RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>Incompatível com: {0}.</RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>
   <RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>Não é possível remover: melhorias posteriores dependem desta.</RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>
   <RimWorldAccess.Compat.Vf.UpgradeStarted>Melhoria de {0} iniciada. Os materiais serão entregues pelos colonos.</RimWorldAccess.Compat.Vf.UpgradeStarted>
@@ -583,8 +584,11 @@
   <RimWorldAccess.Compat.Hospitality.ResetRentalFee>Redefinir taxa de aluguel para o padrão</RimWorldAccess.Compat.Hospitality.ResetRentalFee>
   <RimWorldAccess.Compat.Hospitality.SetAutoPrice>Definir para preço automático</RimWorldAccess.Compat.Hospitality.SetAutoPrice>
   <RimWorldAccess.Compat.Hospitality.SetThresholdAuto>Definir limite para dez vezes o preço</RimWorldAccess.Compat.Hospitality.SetThresholdAuto>
-  <RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>Títulos reais satisfeitos por esta cama: {0}.</RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>
-  <RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>Nenhum título real é satisfeito por esta cama.</RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>
+  <!-- One title in the guest bed's royal title box. {0} = title, {1} = the factions that grant it. -->
+  <RimWorldAccess.Compat.Hospitality.RoyalTitleFactions>{0} ({1})</RimWorldAccess.Compat.Hospitality.RoyalTitleFactions>
+  <!-- A title the mod dims because this bed does not satisfy it. {0} = title. -->
+  <RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet>{0} (não aceitará)</RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet>
+  <RimWorldAccess.Compat.Hospitality.ShowGuestTab>Mostrar na aba Convidado</RimWorldAccess.Compat.Hospitality.ShowGuestTab>
 
   <!-- CashRegisterCompat: CashRegister's register-radius gizmo (Gizmo_Radius), served
        by the same ModifyNumberGizmoHandler as the Hospitality keys above. -->
@@ -599,7 +603,10 @@
        = "No one") since those keys cannot be called via Translate() from our
        C# - see the adapter's class remarks. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Shifts</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>Turno {0}. {1}. Horários: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Turno {0}, em serviço agora. {1}. Horários: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Turno {0}, fora de serviço agora. {1}. Horários: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (indisponível)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Hora {0}: {1}, hora atual</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>No one</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>nenhum</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>o dia todo</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
@@ -621,8 +628,6 @@
        calling either vanilla's or the mod's own Translate() key on their
        behalf (the mod's own "AreaNoShopping" reads "No shopping",
        verified against its Languages/English/Keyed/Hospitality.xml). -->
-  <RimWorldAccess.Compat.Hospitality.NoAccommodationArea>Sem restrição</RimWorldAccess.Compat.Hospitality.NoAccommodationArea>
-  <RimWorldAccess.Compat.Hospitality.NoShoppingArea>No shopping</RimWorldAccess.Compat.Hospitality.NoShoppingArea>
 
   <!-- JecsAbilityCompat / JecsAbilityCommandHandler: JecsTools' AbilityUser
        framework (RimWorld of Magic spells and any other mod built on it).
@@ -803,17 +808,9 @@
        own keys below even where the English text mirrors RimTalk's own wording verbatim
        (Title/Instruct/TalkFrequencyDesc/Chattiness/Save/SmartGen/RollGen/Clear) rather than
        calling RimTalk's own translation keys directly. -->
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.PersonaField>Estilo de conversa</RimWorldAccess.Compat.RimTalk.PersonaEditor.PersonaField>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.OpenerRow>Editar estilo de conversa</RimWorldAccess.Compat.RimTalk.PersonaEditor.OpenerRow>
+  <RimWorldAccess.Compat.RimTalk.PersonaEditor.DeleteMemory>Excluir memória: {0}</RimWorldAccess.Compat.RimTalk.PersonaEditor.DeleteMemory>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.GenerationComplete>Geração concluída.</RimWorldAccess.Compat.RimTalk.PersonaEditor.GenerationComplete>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Title>{0}'s Conversation Style</RimWorldAccess.Compat.RimTalk.PersonaEditor.Title>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Instruct>Describe how this colonist talks and behaves. Keep it brief (under 300 characters) for best results.</RimWorldAccess.Compat.RimTalk.PersonaEditor.Instruct>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.TalkFrequencyDesc>Controls how often this colonist initiates talks. Even at the lowest setting, they will still reply when others speak to them. This only affects conversation initiation frequency.</RimWorldAccess.Compat.RimTalk.PersonaEditor.TalkFrequencyDesc>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Chattiness>Chattiness</RimWorldAccess.Compat.RimTalk.PersonaEditor.Chattiness>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.SaveFallback>Save</RimWorldAccess.Compat.RimTalk.PersonaEditor.SaveFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.SmartGenFallback>Smart Gen</RimWorldAccess.Compat.RimTalk.PersonaEditor.SmartGenFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.RollGenFallback>Roll Gen</RimWorldAccess.Compat.RimTalk.PersonaEditor.RollGenFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.ClearFallback>Clear</RimWorldAccess.Compat.RimTalk.PersonaEditor.ClearFallback>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.EvolveComplete>Evolução concluída.</RimWorldAccess.Compat.RimTalk.PersonaEditor.EvolveComplete>
 
   <!-- RimTalkDebugScope: RimTalk's DebugWindow (the log console: By Time / By Pawn / Talk Requests
@@ -827,17 +824,21 @@
   <RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>Busca de texto</RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>
   <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>Solicitações de {0}</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>{0}, tick {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>{0}, tick {1}, {2} para {3}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>Diretriz: {0}. Trauma: {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>{0} para {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>{0}, {1}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>
   <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>Enable RimTalk</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>Mod Settings</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>Export Logs</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>Reset Logs</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>Escolher modelo de voz, voz atual {0}</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>
 
   <!-- RimTalkTtsVoiceSelectionScope: the TTS addon's per-pawn voice picker (VoiceSelectionWindow),
        speech mods campaign S10. -->
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow>Escolher modelo de voz</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow>
   <RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>ID do modelo: {0}</RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened>Voz de {0}</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>Voz de {0}. {1}</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>Idioma personalizado</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>Save</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>Cancel</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>
@@ -857,43 +858,29 @@
 
   <!-- RimTalkMemoryMainTabScope: ExpandMemory's "Mind Stream" main tab (per-pawn
        four-layer memory timeline), speech mods campaign S12. -->
-  <RimWorldAccess.Compat.RimTalk.Memory.Opened>Mind Stream.</RimWorldAccess.Compat.RimTalk.Memory.Opened>
-  <RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName>Filtros</RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName>
-  <RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>Memórias</RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo>Informações</RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo>
+  <RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>Linha do tempo</RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>
+  <RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName>Crônica</RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory>Memória</RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer>Camada</RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnContent>Conteúdo</RimWorldAccess.Compat.RimTalk.Memory.ColumnContent>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance>Importância</RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity>Atividade</RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected>Selecionado</RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned>Fixado</RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit>Editar</RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary>Resumo</RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary>
   <RimWorldAccess.Compat.RimTalk.Memory.Selected>selecionado</RimWorldAccess.Compat.RimTalk.Memory.Selected>
   <RimWorldAccess.Compat.RimTalk.Memory.NotSelected>não selecionado</RimWorldAccess.Compat.RimTalk.Memory.NotSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.Pinned>fixado</RimWorldAccess.Compat.RimTalk.Memory.Pinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.NotPinned>não fixado</RimWorldAccess.Compat.RimTalk.Memory.NotPinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.EditAction>Editar esta memória</RimWorldAccess.Compat.RimTalk.Memory.EditAction>
-  <RimWorldAccess.Compat.RimTalk.Memory.InfoLine>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Memory.InfoLine>
-  <RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn>{0}, {1}, {2}, com {3}</RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn>
-  <RimWorldAccess.Compat.RimTalk.Memory.StatsLabel>Contagem de memórias</RimWorldAccess.Compat.RimTalk.Memory.StatsLabel>
-  <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>nenhum colono selecionado</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent>este personagem não tem componente de memória</RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent>
+  <RimWorldAccess.Compat.RimTalk.Memory.CardTitle>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.CardTitle>
+  <RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn>{0}, {1}, com {2}</RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn>
+  <RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle>{0} a {1}</RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle>
+  <RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>
+  <RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>
+  <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>nenhum personagem selecionado</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
   <RimWorldAccess.Compat.RimTalk.Memory.StatsValue>ativas {0}, situacionais {1}, registro de eventos {2}, arquivo {3}</RimWorldAccess.Compat.RimTalk.Memory.StatsValue>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterAll>Todos</RimWorldAccess.Compat.RimTalk.Memory.FilterAll>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterConversation>Conversa</RimWorldAccess.Compat.RimTalk.Memory.FilterConversation>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterAction>Ação</RimWorldAccess.Compat.RimTalk.Memory.FilterAction>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToActive>Adicionar memória à camada ativa</RimWorldAccess.Compat.RimTalk.Memory.AddToActive>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToSituational>Adicionar memória à camada situacional</RimWorldAccess.Compat.RimTalk.Memory.AddToSituational>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog>Adicionar memória à camada de registro de eventos</RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToArchive>Adicionar memória à camada de arquivo</RimWorldAccess.Compat.RimTalk.Memory.AddToArchive>
+  <RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>
   <RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>Personagem: {0}</RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>
 
   <!-- RimTalkMemoryCompat's read-only "Memories" inspection node (Character
        category), reading FourLayerMemoryComp directly - speech mods campaign S12. -->
   <RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode>Memórias ({0})</RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerActive>Ativo</RimWorldAccess.Compat.RimTalk.Memory.LayerActive>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerSituational>Situacional</RimWorldAccess.Compat.RimTalk.Memory.LayerSituational>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog>Registro de eventos</RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerArchive>Arquivo</RimWorldAccess.Compat.RimTalk.Memory.LayerArchive>
   <RimWorldAccess.Compat.RimTalk.Memory.LayerNode>{0} ({1})</RimWorldAccess.Compat.RimTalk.Memory.LayerNode>
   <RimWorldAccess.Compat.RimTalk.Memory.MemoryLine>{0}: {1} ({2}, importância {3}, atividade {4})</RimWorldAccess.Compat.RimTalk.Memory.MemoryLine>
   <RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn>{0}: {1} ({2}, importância {3}, atividade {4}, com {5})</RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn>
@@ -945,6 +932,10 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>Selecionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>selecionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>não selecionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Selecionar todos os personagens listados</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>Selecionar {0}</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Exportar, copiar para a área de transferência</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Exportar, salvar em arquivo</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:
        PromptEnhance's "Colony Status" main tab (Overview, task list, day-by-day History
        reading, Custom Areas) and its color-picker swatch grid, speech mods campaign S14.
@@ -999,6 +990,7 @@
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>Classificação</RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>Mercado</RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>Busca de assentamentos</RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>
+  <RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>Reverter jogo salvo</RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>Painel administrativo</RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>Ping: {0} milissegundos</RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>
 
@@ -1151,7 +1143,6 @@
   <RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>Posição do ponto: {0}</RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>
   <RimWorldAccess.Compat.SimpleSidearms.CurveYPrompt>Valor do ponto em {0}: {1} por cento</RimWorldAccess.Compat.SimpleSidearms.CurveYPrompt>
   <RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>Conversa</RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.RegionName>Editor de persona</RimWorldAccess.Compat.RimTalk.PersonaEditor.RegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>Vozes</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>
   <RimWorldAccess.Compat.Vfet.EthosLockRow>Bloqueio do ethos</RimWorldAccess.Compat.Vfet.EthosLockRow>
   <RimWorldAccess.Compat.Vfet.EthosEditHint>Pressione Enter para editar.</RimWorldAccess.Compat.Vfet.EthosEditHint>
@@ -1180,6 +1171,8 @@
   <RimWorldAccess.Compat.Wq.RarityUncommon>incomum</RimWorldAccess.Compat.Wq.RarityUncommon>
   <RimWorldAccess.Compat.Wq.RarityRare>rara</RimWorldAccess.Compat.Wq.RarityRare>
   <RimWorldAccess.Compat.Wq.RarityLegendary>lendária</RimWorldAccess.Compat.Wq.RarityLegendary>
+  <RimWorldAccess.Compat.Wq.New>Novo</RimWorldAccess.Compat.Wq.New>
+  <RimWorldAccess.Compat.Wq.WantProgress>{0} concluído</RimWorldAccess.Compat.Wq.WantProgress>
 
   <!-- Rjw: the pseudo-button designations gizmo (src/Compat/Rjw/). -->
   <RimWorldAccess.Compat.Rjw.DesignationsLabel>Designações RJW</RimWorldAccess.Compat.Rjw.DesignationsLabel>
@@ -1211,5 +1204,8 @@
   <RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>Uso automático desativado para todas as habilidades</RimWorldAccess.Compat.AutoCombat.AllAutoCastOff>
   <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
   <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+  <!-- XML Extensions: the settings search box, which draws only a magnifier icon. {0} = the mod's own result count text. -->
+  <RimWorldAccess.Compat.XmlExtensions.Search>Busca</RimWorldAccess.Compat.XmlExtensions.Search>
+  <RimWorldAccess.Compat.XmlExtensions.SearchWithResults>Busca. {0}</RimWorldAccess.Compat.XmlExtensions.SearchWithResults>
 
 </LanguageData>

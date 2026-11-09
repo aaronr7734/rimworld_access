@@ -1021,6 +1021,7 @@
   <RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix> (Придушено)</RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix> (Цікаво)</RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix> (В захваті)</RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix> ({0})</RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix> (не виконано)</RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>
 
   <!-- Skill rows. Disabled form: {0} = skill label, {1} = vanilla
@@ -1322,7 +1323,6 @@
        level (F0), {1} = XP required for next level (F0). The "XP"
        prefix is mod-side because the vanilla Skills.xml exposes only
        the long-form "Experience" word and we want a compact row. -->
-  <RimWorldAccess.Inspection.Tree.SkillXpProgress>Досвід: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
 
   <!-- =================================================================
        RangeEditMenuState announcements. Spoken when the user

@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
-  <RimWorldAccess.Compat.Vse.PassionRates>Learns at {0}, forgets at {1}</RimWorldAccess.Compat.Vse.PassionRates>
-  <RimWorldAccess.Compat.Vse.PassionRatesOther>Learns at {0}, forgets at {1}, other skills learn at {2}</RimWorldAccess.Compat.Vse.PassionRatesOther>
   <!-- Outpost item dialogs. {0} = the outpost's name, {1} = the caravan's name. -->
   <RimWorldAccess.Compat.Vef.OutpostGiveOpen>Give items to {0} from {1}</RimWorldAccess.Compat.Vef.OutpostGiveOpen>
   <RimWorldAccess.Compat.Vef.OutpostTakeOpen>Take items from {0} into {1}</RimWorldAccess.Compat.Vef.OutpostTakeOpen>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Outpost item dialogs. {0} = the outpost's name, {1} = the caravan's name. -->
+  <RimWorldAccess.Compat.Vef.OutpostGiveOpen>{1} grubundan {0} karakolüne eşya ver</RimWorldAccess.Compat.Vef.OutpostGiveOpen>
+  <RimWorldAccess.Compat.Vef.OutpostTakeOpen>{0} karakolundan {1} grubuna eşya al</RimWorldAccess.Compat.Vef.OutpostTakeOpen>
+  <RimWorldAccess.Compat.Vef.OutpostItemsCancelled>Eşya aktarımı iptal edildi</RimWorldAccess.Compat.Vef.OutpostItemsCancelled>
+  <RimWorldAccess.Compat.Vef.OutpostGiveDone>Eşyalar {0} karakoluna verildi</RimWorldAccess.Compat.Vef.OutpostGiveDone>
+  <RimWorldAccess.Compat.Vef.OutpostTakeDone>Eşyalar {0} karakolundan alındı</RimWorldAccess.Compat.Vef.OutpostTakeDone>
+  <!-- Animal genes tab rows. {0} = the mod's own stat name, {1} = its value. -->
+  <RimWorldAccess.Compat.Vef.AnimalGeneStat>{0}: {1}</RimWorldAccess.Compat.Vef.AnimalGeneStat>
+  <RimWorldAccess.Compat.Vef.AnimalGeneFactor>{0}: x{1}</RimWorldAccess.Compat.Vef.AnimalGeneFactor>
+  <!-- An outpost's pawn row. {0} = the pawn's name, {1} = their title. -->
+  <RimWorldAccess.Compat.Vef.OutpostPawnWithTitle>{0}, {1}</RimWorldAccess.Compat.Vef.OutpostPawnWithTitle>
+  <!-- Alpha Memes funeral material choice in the ritual dialog. {0} = the amount, {1} = the material. -->
+  <RimWorldAccess.Compat.AlphaMemes.FuneralStuff>{0} {1}</RimWorldAccess.Compat.AlphaMemes.FuneralStuff>
+</LanguageData>

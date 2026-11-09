@@ -305,11 +305,12 @@ namespace RimWorldAccess.Shell
             this.window = window;
 
             Func<bool> active = delegate { return ScreenActive; };
-            // Left/Right adjust whatever VALUE control has focus: a slider, or one end of a range
-            // (presented as two Slider rows, so the same claims widen rather than gaining siblings).
+            // Left/Right adjust a slider, one end of a range (two Slider rows, so the same claims
+            // widen rather than gaining siblings), or close and open a tree branch.
             Func<bool> adjustableFocused = delegate
             {
-                return active() && (CurrentKind == WidgetKind.Slider || CurrentKind == WidgetKind.Range);
+                return active() && (CurrentKind == WidgetKind.Slider || CurrentKind == WidgetKind.Range
+                    || CurrentKind == WidgetKind.TreeItem);
             };
             Func<bool> stepperFocused = delegate { return active() && CurrentKind == WidgetKind.Stepper; };
             // Cancel is claimed unconditionally once active; the chassis's own Cancel claim is

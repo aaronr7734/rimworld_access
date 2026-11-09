@@ -243,7 +243,7 @@
        below bake VF's own English text (VF_Upgrade, VF_RemoveUpgrade, VF_DisabledFromOtherNode,
        VF_MissingPrerequisiteUpgrade, verified against the mod's own Languages/English/Keyed/
        Upgrades.xml) into keys this ratchet can verify instead. -->
-  <RimWorldAccess.Compat.Vf.UpgradesTab>Yükseltmeler</RimWorldAccess.Compat.Vf.UpgradesTab>
+  <RimWorldAccess.Compat.Vf.UpgradesTab>Özelleştirme</RimWorldAccess.Compat.Vf.UpgradesTab>
   <RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>Yükseltme sürüyor: {0}.</RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>
   <RimWorldAccess.Compat.Vf.UpgradeNodeSection>{0}, {1}</RimWorldAccess.Compat.Vf.UpgradeNodeSection>
   <RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>yükseltme sürüyor</RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>
@@ -254,6 +254,7 @@
   <RimWorldAccess.Compat.Vf.UpgradeStateAvailable>kullanılabilir</RimWorldAccess.Compat.Vf.UpgradeStateAvailable>
   <RimWorldAccess.Compat.Vf.UpgradeCostLine>{0}: gereken {1}, mevcut {2}.</RimWorldAccess.Compat.Vf.UpgradeCostLine>
   <RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>{0}: gereken {1}.</RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>
+  <RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>Ayrıca gerekli: {0}.</RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>
   <RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>Uyumsuz: {0}.</RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>
   <RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>Kaldırılamaz: sonraki yükseltmeler buna bağlı.</RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>
   <RimWorldAccess.Compat.Vf.UpgradeStarted>{0} yükseltmesi başladı. Malzemeler koloniciler tarafından teslim edilecek.</RimWorldAccess.Compat.Vf.UpgradeStarted>
@@ -583,8 +584,11 @@
   <RimWorldAccess.Compat.Hospitality.ResetRentalFee>Kira ücretini varsayılana sıfırla</RimWorldAccess.Compat.Hospitality.ResetRentalFee>
   <RimWorldAccess.Compat.Hospitality.SetAutoPrice>Otomatik fiyata ayarla</RimWorldAccess.Compat.Hospitality.SetAutoPrice>
   <RimWorldAccess.Compat.Hospitality.SetThresholdAuto>Eşiği fiyatın on katına ayarla</RimWorldAccess.Compat.Hospitality.SetThresholdAuto>
-  <RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>Bu yatak tarafından karşılanan kraliyet unvanları: {0}.</RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>
-  <RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>Bu yatak tarafından karşılanan kraliyet unvanı yok.</RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>
+  <!-- One title in the guest bed's royal title box. {0} = title, {1} = the factions that grant it. -->
+  <RimWorldAccess.Compat.Hospitality.RoyalTitleFactions>{0} ({1})</RimWorldAccess.Compat.Hospitality.RoyalTitleFactions>
+  <!-- A title the mod dims because this bed does not satisfy it. {0} = title. -->
+  <RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet>{0} (kabul etmez)</RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet>
+  <RimWorldAccess.Compat.Hospitality.ShowGuestTab>Misafir sekmesinde göster</RimWorldAccess.Compat.Hospitality.ShowGuestTab>
 
   <!-- CashRegisterCompat: CashRegister's register-radius gizmo (Gizmo_Radius), served
        by the same ModifyNumberGizmoHandler as the Hospitality keys above. -->
@@ -599,7 +603,10 @@
        = "No one") since those keys cannot be called via Translate() from our
        C# — see the adapter's class remarks. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Vardiyalar</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>Vardiya {0}. {1}. Saatler: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Vardiya {0}, şu an görevde. {1}. Saatler: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Vardiya {0}, şu an görevde değil. {1}. Saatler: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (müsait değil)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Saat {0}: {1}, şu anki saat</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>Kimse yok</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>yok</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>tüm gün</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
@@ -621,8 +628,6 @@
        calling either vanilla's or the mod's own Translate() key on their
        behalf (the mod's own "AreaNoShopping" reads "No shopping",
        verified against its Languages/English/Keyed/Hospitality.xml). -->
-  <RimWorldAccess.Compat.Hospitality.NoAccommodationArea>Sınırsız</RimWorldAccess.Compat.Hospitality.NoAccommodationArea>
-  <RimWorldAccess.Compat.Hospitality.NoShoppingArea>Alışveriş yok</RimWorldAccess.Compat.Hospitality.NoShoppingArea>
 
   <!-- JecsAbilityCompat / JecsAbilityCommandHandler: JecsTools' AbilityUser
        framework (RimWorld of Magic spells and any other mod built on it).
@@ -803,17 +808,9 @@
        own keys below even where the English text mirrors RimTalk's own wording verbatim
        (Title/Instruct/TalkFrequencyDesc/Chattiness/Save/SmartGen/RollGen/Clear) rather than
        calling RimTalk's own translation keys directly. -->
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.PersonaField>Konuşma tarzı</RimWorldAccess.Compat.RimTalk.PersonaEditor.PersonaField>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.OpenerRow>Konuşma tarzını düzenle</RimWorldAccess.Compat.RimTalk.PersonaEditor.OpenerRow>
+  <RimWorldAccess.Compat.RimTalk.PersonaEditor.DeleteMemory>Anıyı sil: {0}</RimWorldAccess.Compat.RimTalk.PersonaEditor.DeleteMemory>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.GenerationComplete>Üretim tamamlandı.</RimWorldAccess.Compat.RimTalk.PersonaEditor.GenerationComplete>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Title>{0} kişisinin konuşma tarzı</RimWorldAccess.Compat.RimTalk.PersonaEditor.Title>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Instruct>Bu kolonicinin nasıl konuştuğunu ve davrandığını tanımla. En iyi sonuç için kısa tut (300 karakterin altında).</RimWorldAccess.Compat.RimTalk.PersonaEditor.Instruct>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.TalkFrequencyDesc>Bu kolonicinin konuşmayı ne sıklıkla başlattığını kontrol eder. En düşük ayarda bile, başkaları onunla konuştuğunda yanıt verecektir. Bu yalnızca konuşma başlatma sıklığını etkiler.</RimWorldAccess.Compat.RimTalk.PersonaEditor.TalkFrequencyDesc>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Chattiness>Konuşkanlık</RimWorldAccess.Compat.RimTalk.PersonaEditor.Chattiness>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.SaveFallback>Kaydet</RimWorldAccess.Compat.RimTalk.PersonaEditor.SaveFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.SmartGenFallback>Akıllı üretim</RimWorldAccess.Compat.RimTalk.PersonaEditor.SmartGenFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.RollGenFallback>Rastgele üretim</RimWorldAccess.Compat.RimTalk.PersonaEditor.RollGenFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.ClearFallback>Temizle</RimWorldAccess.Compat.RimTalk.PersonaEditor.ClearFallback>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.EvolveComplete>Evrim tamamlandı.</RimWorldAccess.Compat.RimTalk.PersonaEditor.EvolveComplete>
 
   <!-- RimTalkDebugScope: RimTalk's DebugWindow (the log console: By Time / By Pawn / Talk Requests
@@ -827,17 +824,23 @@
   <RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>Metin araması</RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>
   <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>{0} kişisinin istekleri</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>{0}, tik {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>{0}, tik {1}, {2}, hedef {3}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>Direktif: {0}. Travma: {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>{0} değerinden {1} değerine</RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>{0}, {1}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>
   <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>RimTalk'ı etkinleştir</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>Mod ayarları</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>Günlükleri dışa aktar</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>Günlükleri sıfırla</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>
+  <!-- RimTalkTtsVoiceSelectionScope: the TTS addon's per-pawn voice picker (VoiceSelectionWindow),
+       speech mods campaign S10. -->
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>Ses modelini seç, geçerli ses {0}</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>
 
   <!-- RimTalkTtsVoiceSelectionScope: the TTS addon's per-pawn voice picker (VoiceSelectionWindow),
        speech mods campaign S10. -->
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow>Ses modeli seç</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow>
   <RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>Model kimliği: {0}</RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened>{0} kişisinin sesi</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>{0} kişisinin sesi. {1}</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>Özel dil</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>Kaydet</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>İptal et</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>
@@ -857,43 +860,29 @@
 
   <!-- RimTalkMemoryMainTabScope: ExpandMemory's "Mind Stream" main tab (per-pawn
        four-layer memory timeline), speech mods campaign S12. -->
-  <RimWorldAccess.Compat.RimTalk.Memory.Opened>Zihin akışı.</RimWorldAccess.Compat.RimTalk.Memory.Opened>
-  <RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName>Filtreler</RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName>
-  <RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>Anılar</RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo>Bilgi</RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo>
+  <RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>Zaman çizelgesi</RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>
+  <RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName>Kronik</RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory>Anı</RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer>Katman</RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnContent>İçerik</RimWorldAccess.Compat.RimTalk.Memory.ColumnContent>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance>Önem</RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity>Etkinlik</RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected>Seçili</RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned>Sabitlenmiş</RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit>Düzenle</RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary>Özet</RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary>
   <RimWorldAccess.Compat.RimTalk.Memory.Selected>seçili</RimWorldAccess.Compat.RimTalk.Memory.Selected>
   <RimWorldAccess.Compat.RimTalk.Memory.NotSelected>seçili değil</RimWorldAccess.Compat.RimTalk.Memory.NotSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.Pinned>sabitlenmiş</RimWorldAccess.Compat.RimTalk.Memory.Pinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.NotPinned>sabitlenmemiş</RimWorldAccess.Compat.RimTalk.Memory.NotPinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.EditAction>Bu anıyı düzenle</RimWorldAccess.Compat.RimTalk.Memory.EditAction>
-  <RimWorldAccess.Compat.RimTalk.Memory.InfoLine>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Memory.InfoLine>
-  <RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn>{0}, {1}, {2}, {3} ile</RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn>
-  <RimWorldAccess.Compat.RimTalk.Memory.StatsLabel>Anı sayıları</RimWorldAccess.Compat.RimTalk.Memory.StatsLabel>
-  <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>seçili kolonici yok</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent>bu kişinin anı bileşeni yok</RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent>
+  <RimWorldAccess.Compat.RimTalk.Memory.CardTitle>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.CardTitle>
+  <RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn>{0}, {1}, {2} ile</RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn>
+  <RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle>{0} ile {1} arası</RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle>
+  <RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>
+  <RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>
+  <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>seçili kişi yok</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
   <RimWorldAccess.Compat.RimTalk.Memory.StatsValue>etkin {0}, durumsal {1}, olay günlüğü {2}, arşiv {3}</RimWorldAccess.Compat.RimTalk.Memory.StatsValue>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterAll>Tümü</RimWorldAccess.Compat.RimTalk.Memory.FilterAll>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterConversation>Konuşma</RimWorldAccess.Compat.RimTalk.Memory.FilterConversation>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterAction>Eylem</RimWorldAccess.Compat.RimTalk.Memory.FilterAction>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToActive>Anıyı etkin katmana ekle</RimWorldAccess.Compat.RimTalk.Memory.AddToActive>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToSituational>Anıyı durumsal katmana ekle</RimWorldAccess.Compat.RimTalk.Memory.AddToSituational>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog>Anıyı olay günlüğü katmanına ekle</RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToArchive>Anıyı arşiv katmanına ekle</RimWorldAccess.Compat.RimTalk.Memory.AddToArchive>
+  <RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>
   <RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>Kişi: {0}</RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>
 
   <!-- RimTalkMemoryCompat's read-only "Memories" inspection node (Character
        category), reading FourLayerMemoryComp directly — speech mods campaign S12. -->
   <RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode>Anılar ({0})</RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerActive>Etkin</RimWorldAccess.Compat.RimTalk.Memory.LayerActive>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerSituational>Durumsal</RimWorldAccess.Compat.RimTalk.Memory.LayerSituational>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog>Olay günlüğü</RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerArchive>Arşiv</RimWorldAccess.Compat.RimTalk.Memory.LayerArchive>
   <RimWorldAccess.Compat.RimTalk.Memory.LayerNode>{0} ({1})</RimWorldAccess.Compat.RimTalk.Memory.LayerNode>
   <RimWorldAccess.Compat.RimTalk.Memory.MemoryLine>{0}: {1} ({2}, önem {3}, etkinlik {4})</RimWorldAccess.Compat.RimTalk.Memory.MemoryLine>
   <RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn>{0}: {1} ({2}, önem {3}, etkinlik {4}, {5} ile)</RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn>
@@ -945,6 +934,10 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>Seçili</RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>seçili</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>seçili değil</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Listelenen tüm kişileri seç</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>{0} kişisini seç</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Dışa aktar, panoya kopyala</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Dışa aktar, dosyaya kaydet</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:
        PromptEnhance's "Colony Status" main tab (Overview, task list, day-by-day History
        reading, Custom Areas) and its color-picker swatch grid, speech mods campaign S14.
@@ -999,6 +992,7 @@
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>Lider tablosu</RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>Pazar</RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>Yerleşim araması</RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>
+  <RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>Kaydı geri al</RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>Yönetici paneli</RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>Gecikme: {0} milisaniye</RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>
 
@@ -1151,7 +1145,6 @@
   <RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>Nokta konumu: {0}</RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>
   <RimWorldAccess.Compat.SimpleSidearms.CurveYPrompt>{0} noktasının değeri: yüzde {1}</RimWorldAccess.Compat.SimpleSidearms.CurveYPrompt>
   <RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>Sohbet</RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.RegionName>Kişilik düzenleyici</RimWorldAccess.Compat.RimTalk.PersonaEditor.RegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>Sesler</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>
   <RimWorldAccess.Compat.Vfet.EthosLockRow>Etos kilidi</RimWorldAccess.Compat.Vfet.EthosLockRow>
   <RimWorldAccess.Compat.Vfet.EthosEditHint>Düzenlemek için Enter'a basın.</RimWorldAccess.Compat.Vfet.EthosEditHint>
@@ -1180,6 +1173,8 @@
   <RimWorldAccess.Compat.Wq.RarityUncommon>az bulunur</RimWorldAccess.Compat.Wq.RarityUncommon>
   <RimWorldAccess.Compat.Wq.RarityRare>nadir</RimWorldAccess.Compat.Wq.RarityRare>
   <RimWorldAccess.Compat.Wq.RarityLegendary>efsanevi</RimWorldAccess.Compat.Wq.RarityLegendary>
+  <RimWorldAccess.Compat.Wq.New>Yeni</RimWorldAccess.Compat.Wq.New>
+  <RimWorldAccess.Compat.Wq.WantProgress>{0} tamamlandı</RimWorldAccess.Compat.Wq.WantProgress>
 
   <!-- Rjw: the pseudo-button designations gizmo (src/Compat/Rjw/). -->
   <RimWorldAccess.Compat.Rjw.DesignationsLabel>RJW atamaları</RimWorldAccess.Compat.Rjw.DesignationsLabel>
@@ -1212,5 +1207,8 @@
 
   <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
   <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+  <!-- XML Extensions: the settings search box, which draws only a magnifier icon. {0} = the mod's own result count text. -->
+  <RimWorldAccess.Compat.XmlExtensions.Search>Ara</RimWorldAccess.Compat.XmlExtensions.Search>
+  <RimWorldAccess.Compat.XmlExtensions.SearchWithResults>Ara. {0}</RimWorldAccess.Compat.XmlExtensions.SearchWithResults>
 
 </LanguageData>

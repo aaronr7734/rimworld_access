@@ -54,6 +54,10 @@
   <RimWorldAccess.Cmr.Hunting.RefreshAnimals>Actualizar la lista de animales</RimWorldAccess.Cmr.Hunting.RefreshAnimals>
   <RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>Lista de animales actualizada.</RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>
   <RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>Limitar la lista a los animales de este mapa</RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>
+  <RimWorldAccess.Cmr.Overview.ListOptionsRegion>Opciones de la lista de trabajos</RimWorldAccess.Cmr.Overview.ListOptionsRegion>
+  <RimWorldAccess.Cmr.Overview.Search>Buscar trabajos</RimWorldAccess.Cmr.Overview.Search>
+  <RimWorldAccess.Cmr.Production.ReservedStockAction>{0}: {1}</RimWorldAccess.Cmr.Production.ReservedStockAction>
+  <RimWorldAccess.Cmr.Shortcuts.ModifiersTip>{0}+Enter: permitir solo estos. Shift+Enter: permitir también estos. Alt+Enter: dejar de permitir estos.</RimWorldAccess.Cmr.Shortcuts.ModifiersTip>
 
   <!-- The three controls the mod's threshold details window draws around its item
        filter, none of which it labels: a button showing only a comparison glyph,

@@ -243,7 +243,7 @@
        below bake VF's own English text (VF_Upgrade, VF_RemoveUpgrade, VF_DisabledFromOtherNode,
        VF_MissingPrerequisiteUpgrade, verified against the mod's own Languages/English/Keyed/
        Upgrades.xml) into keys this ratchet can verify instead. -->
-  <RimWorldAccess.Compat.Vf.UpgradesTab>Покращення</RimWorldAccess.Compat.Vf.UpgradesTab>
+  <RimWorldAccess.Compat.Vf.UpgradesTab>Налаштування</RimWorldAccess.Compat.Vf.UpgradesTab>
   <RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>Покращення триває: {0}.</RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>
   <RimWorldAccess.Compat.Vf.UpgradeNodeSection>{0}, {1}</RimWorldAccess.Compat.Vf.UpgradeNodeSection>
   <RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>покращення триває</RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>
@@ -254,6 +254,7 @@
   <RimWorldAccess.Compat.Vf.UpgradeStateAvailable>доступно</RimWorldAccess.Compat.Vf.UpgradeStateAvailable>
   <RimWorldAccess.Compat.Vf.UpgradeCostLine>{0}: потрібно {1}, наявно {2}.</RimWorldAccess.Compat.Vf.UpgradeCostLine>
   <RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>{0}: потрібно {1}.</RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>
+  <RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>Також потребує: {0}.</RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>
   <RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>Несумісно з: {0}.</RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>
   <RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>Неможливо видалити: наступні покращення залежать від цього.</RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>
   <RimWorldAccess.Compat.Vf.UpgradeStarted>Покращення {0} розпочато. Матеріали доставлять колоністи.</RimWorldAccess.Compat.Vf.UpgradeStarted>
@@ -583,8 +584,11 @@
   <RimWorldAccess.Compat.Hospitality.ResetRentalFee>Скинути плату за оренду до типової</RimWorldAccess.Compat.Hospitality.ResetRentalFee>
   <RimWorldAccess.Compat.Hospitality.SetAutoPrice>Встановити автоматичну ціну</RimWorldAccess.Compat.Hospitality.SetAutoPrice>
   <RimWorldAccess.Compat.Hospitality.SetThresholdAuto>Встановити поріг удесятеро більшим за ціну</RimWorldAccess.Compat.Hospitality.SetThresholdAuto>
-  <RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>Королівські титули, яким відповідає це ліжко: {0}.</RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>
-  <RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>Це ліжко не відповідає жодному королівському титулу.</RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>
+  <!-- One title in the guest bed's royal title box. {0} = title, {1} = the factions that grant it. -->
+  <RimWorldAccess.Compat.Hospitality.RoyalTitleFactions>{0} ({1})</RimWorldAccess.Compat.Hospitality.RoyalTitleFactions>
+  <!-- A title the mod dims because this bed does not satisfy it. {0} = title. -->
+  <RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet>{0} (не прийме)</RimWorldAccess.Compat.Hospitality.RoyalTitleUnmet>
+  <RimWorldAccess.Compat.Hospitality.ShowGuestTab>Показувати у вкладці «Гості»</RimWorldAccess.Compat.Hospitality.ShowGuestTab>
 
   <!-- CashRegisterCompat: CashRegister's register-radius gizmo (Gizmo_Radius), served
        by the same ModifyNumberGizmoHandler as the Hospitality keys above. -->
@@ -599,7 +603,10 @@
        = "No one") since those keys cannot be called via Translate() from our
        C# — see the adapter's class remarks. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Зміни</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>Зміна {0}. {1}. Години: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Зміна {0}, зараз на службі. {1}. Години: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Зміна {0}, зараз не на службі. {1}. Години: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (недоступно)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Година {0}: {1}, поточна година</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>Ніхто</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>немає</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>увесь день</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
@@ -621,8 +628,6 @@
        calling either vanilla's or the mod's own Translate() key on their
        behalf (the mod's own "AreaNoShopping" reads "No shopping",
        verified against its Languages/English/Keyed/Hospitality.xml). -->
-  <RimWorldAccess.Compat.Hospitality.NoAccommodationArea>Без обмежень</RimWorldAccess.Compat.Hospitality.NoAccommodationArea>
-  <RimWorldAccess.Compat.Hospitality.NoShoppingArea>Без покупок</RimWorldAccess.Compat.Hospitality.NoShoppingArea>
 
   <!-- JecsAbilityCompat / JecsAbilityCommandHandler: JecsTools' AbilityUser
        framework (RimWorld of Magic spells and any other mod built on it).
@@ -798,17 +803,9 @@
        calling RimTalk's own translation keys directly. -->
   <RimWorldAccess.Compat.RimTalk.OverlayOn>Оверлей RimTalk увімкнено.</RimWorldAccess.Compat.RimTalk.OverlayOn>
   <RimWorldAccess.Compat.RimTalk.OverlayOff>Оверлей RimTalk вимкнено.</RimWorldAccess.Compat.RimTalk.OverlayOff>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.PersonaField>Стиль спілкування</RimWorldAccess.Compat.RimTalk.PersonaEditor.PersonaField>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.OpenerRow>Редагувати стиль спілкування</RimWorldAccess.Compat.RimTalk.PersonaEditor.OpenerRow>
+  <RimWorldAccess.Compat.RimTalk.PersonaEditor.DeleteMemory>Видалити спогад: {0}</RimWorldAccess.Compat.RimTalk.PersonaEditor.DeleteMemory>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.GenerationComplete>Генерацію завершено.</RimWorldAccess.Compat.RimTalk.PersonaEditor.GenerationComplete>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Title>Стиль спілкування: {0}</RimWorldAccess.Compat.RimTalk.PersonaEditor.Title>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Instruct>Опишіть, як цей колоніст говорить і поводиться. Для найкращого результату пишіть стисло (до 300 символів).</RimWorldAccess.Compat.RimTalk.PersonaEditor.Instruct>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.TalkFrequencyDesc>Визначає, як часто цей колоніст сам починає розмову. Відповідь на репліки інших відбувається завжди, навіть за найнижчого значення. Це впливає лише на частоту, з якою колоніст починає розмову.</RimWorldAccess.Compat.RimTalk.PersonaEditor.TalkFrequencyDesc>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.Chattiness>Балакучість</RimWorldAccess.Compat.RimTalk.PersonaEditor.Chattiness>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.SaveFallback>Зберегти</RimWorldAccess.Compat.RimTalk.PersonaEditor.SaveFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.SmartGenFallback>Розумна генерація</RimWorldAccess.Compat.RimTalk.PersonaEditor.SmartGenFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.RollGenFallback>Випадкова генерація</RimWorldAccess.Compat.RimTalk.PersonaEditor.RollGenFallback>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.ClearFallback>Очистити</RimWorldAccess.Compat.RimTalk.PersonaEditor.ClearFallback>
   <RimWorldAccess.Compat.RimTalk.PersonaEditor.EvolveComplete>Еволюцію завершено.</RimWorldAccess.Compat.RimTalk.PersonaEditor.EvolveComplete>
 
   <!-- RimTalkDebugScope: RimTalk's DebugWindow (the log console: By Time / By Pawn / Talk Requests
@@ -822,17 +819,23 @@
   <RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>Пошук за текстом</RimWorldAccess.Compat.RimTalk.Debug.TextSearchLabel>
   <RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>Запити: {0}</RimWorldAccess.Compat.RimTalk.Debug.PawnRequestsHeader>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>{0}, тік {1}, {2}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeader>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>{0}, тік {1}, {2} до {3}</RimWorldAccess.Compat.RimTalk.Debug.MemoryDetailHeaderWithTarget>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>Директива: {0}. Травма: {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>
+  <RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>{0} до {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>{0}, {1}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>
   <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>Увімкнути RimTalk</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>Налаштування мода</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>Експортувати журнали</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>Скинути журнали</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>
+  <!-- RimTalkTtsVoiceSelectionScope: the TTS addon's per-pawn voice picker (VoiceSelectionWindow),
+       speech mods campaign S10. -->
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>Вибрати голосову модель, поточний голос {0}</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRowWithCurrent>
 
   <!-- RimTalkTtsVoiceSelectionScope: the TTS addon's per-pawn voice picker (VoiceSelectionWindow),
        speech mods campaign S10. -->
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow>Вибрати голосову модель</RimWorldAccess.Compat.RimTalk.TTS.VoiceOpenerRow>
   <RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>ID моделі: {0}</RimWorldAccess.Compat.RimTalk.TTS.ModelIdPrefix>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened>Голос: {0}</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.Opened>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>Голос: {0}. {1}</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.OpenedWithDescription>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>Власна мова</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CustomLanguageField>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>Зберегти</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.SaveFallback>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>Скасувати</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.CancelFallback>
@@ -852,43 +855,29 @@
 
   <!-- RimTalkMemoryMainTabScope: ExpandMemory's "Mind Stream" main tab (per-pawn
        four-layer memory timeline), speech mods campaign S12. -->
-  <RimWorldAccess.Compat.RimTalk.Memory.Opened>Потік свідомості.</RimWorldAccess.Compat.RimTalk.Memory.Opened>
-  <RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName>Фільтри</RimWorldAccess.Compat.RimTalk.Memory.FiltersRegionName>
-  <RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>Спогади</RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo>Інформація</RimWorldAccess.Compat.RimTalk.Memory.ColumnInfo>
+  <RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>Хронологія</RimWorldAccess.Compat.RimTalk.Memory.TimelineRegionName>
+  <RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName>Хроніка</RimWorldAccess.Compat.RimTalk.Memory.ChronicleRegionName>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory>Спогад</RimWorldAccess.Compat.RimTalk.Memory.ColumnMemory>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer>Шар</RimWorldAccess.Compat.RimTalk.Memory.ColumnLayer>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnContent>Вміст</RimWorldAccess.Compat.RimTalk.Memory.ColumnContent>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance>Важливість</RimWorldAccess.Compat.RimTalk.Memory.ColumnImportance>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity>Активність</RimWorldAccess.Compat.RimTalk.Memory.ColumnActivity>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected>Вибрано</RimWorldAccess.Compat.RimTalk.Memory.ColumnSelected>
   <RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned>Закріплено</RimWorldAccess.Compat.RimTalk.Memory.ColumnPinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit>Редагувати</RimWorldAccess.Compat.RimTalk.Memory.ColumnEdit>
+  <RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary>Підсумок</RimWorldAccess.Compat.RimTalk.Memory.ColumnSummary>
   <RimWorldAccess.Compat.RimTalk.Memory.Selected>вибрано</RimWorldAccess.Compat.RimTalk.Memory.Selected>
   <RimWorldAccess.Compat.RimTalk.Memory.NotSelected>не вибрано</RimWorldAccess.Compat.RimTalk.Memory.NotSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.Pinned>закріплено</RimWorldAccess.Compat.RimTalk.Memory.Pinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.NotPinned>не закріплено</RimWorldAccess.Compat.RimTalk.Memory.NotPinned>
-  <RimWorldAccess.Compat.RimTalk.Memory.EditAction>Редагувати цей спогад</RimWorldAccess.Compat.RimTalk.Memory.EditAction>
-  <RimWorldAccess.Compat.RimTalk.Memory.InfoLine>{0}, {1}, {2}</RimWorldAccess.Compat.RimTalk.Memory.InfoLine>
-  <RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn>{0}, {1}, {2}, з {3}</RimWorldAccess.Compat.RimTalk.Memory.InfoLineWithPawn>
-  <RimWorldAccess.Compat.RimTalk.Memory.StatsLabel>Кількість спогадів</RimWorldAccess.Compat.RimTalk.Memory.StatsLabel>
-  <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>колоніста не вибрано</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
-  <RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent>у цього персонажа немає компонента пам'яті</RimWorldAccess.Compat.RimTalk.Memory.NoMemoryComponent>
+  <RimWorldAccess.Compat.RimTalk.Memory.CardTitle>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.CardTitle>
+  <RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn>{0}, {1}, з {2}</RimWorldAccess.Compat.RimTalk.Memory.CardTitleWithPawn>
+  <RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle>{0} до {1}</RimWorldAccess.Compat.RimTalk.Memory.ChronicleCardTitle>
+  <RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>{0}, {1}</RimWorldAccess.Compat.RimTalk.Memory.LayerAndType>
+  <RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.DetailStatus>
+  <RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>персонажа не вибрано</RimWorldAccess.Compat.RimTalk.Memory.NoPawnSelected>
   <RimWorldAccess.Compat.RimTalk.Memory.StatsValue>активних {0}, ситуативних {1}, у журналі подій {2}, в архіві {3}</RimWorldAccess.Compat.RimTalk.Memory.StatsValue>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterAll>Усі</RimWorldAccess.Compat.RimTalk.Memory.FilterAll>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterConversation>Розмова</RimWorldAccess.Compat.RimTalk.Memory.FilterConversation>
-  <RimWorldAccess.Compat.RimTalk.Memory.FilterAction>Дія</RimWorldAccess.Compat.RimTalk.Memory.FilterAction>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToActive>Додати спогад до активного шару</RimWorldAccess.Compat.RimTalk.Memory.AddToActive>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToSituational>Додати спогад до ситуативного шару</RimWorldAccess.Compat.RimTalk.Memory.AddToSituational>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog>Додати спогад до шару журналу подій</RimWorldAccess.Compat.RimTalk.Memory.AddToEventLog>
-  <RimWorldAccess.Compat.RimTalk.Memory.AddToArchive>Додати спогад до шару архіву</RimWorldAccess.Compat.RimTalk.Memory.AddToArchive>
+  <RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>{0}. {1}</RimWorldAccess.Compat.RimTalk.Memory.StatsWithSelection>
   <RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>Персонаж: {0}</RimWorldAccess.Compat.RimTalk.Memory.PawnSelector>
 
   <!-- RimTalkMemoryCompat's read-only "Memories" inspection node (Character
        category), reading FourLayerMemoryComp directly — speech mods campaign S12. -->
   <RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode>Спогади ({0})</RimWorldAccess.Compat.RimTalk.Memory.MemoriesNode>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerActive>Активний шар</RimWorldAccess.Compat.RimTalk.Memory.LayerActive>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerSituational>Ситуативний шар</RimWorldAccess.Compat.RimTalk.Memory.LayerSituational>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog>Журнал подій</RimWorldAccess.Compat.RimTalk.Memory.LayerEventLog>
-  <RimWorldAccess.Compat.RimTalk.Memory.LayerArchive>Архів</RimWorldAccess.Compat.RimTalk.Memory.LayerArchive>
   <RimWorldAccess.Compat.RimTalk.Memory.LayerNode>{0} ({1})</RimWorldAccess.Compat.RimTalk.Memory.LayerNode>
   <RimWorldAccess.Compat.RimTalk.Memory.MemoryLine>{0}: {1} ({2}, важливість {3}, активність {4})</RimWorldAccess.Compat.RimTalk.Memory.MemoryLine>
   <RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn>{0}: {1} ({2}, важливість {3}, активність {4}, з {5})</RimWorldAccess.Compat.RimTalk.Memory.MemoryLineWithPawn>
@@ -940,6 +929,10 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>Вибрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>вибрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>не вибрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Вибрати всіх персонажів зі списку</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>Вибрати: {0}</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Експорт, копіювати в буфер обміну</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Експорт, зберегти у файл</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:
        PromptEnhance's "Colony Status" main tab (Overview, task list, day-by-day History
        reading, Custom Areas) and its color-picker swatch grid, speech mods campaign S14.
@@ -994,6 +987,7 @@
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>Таблиця лідерів</RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>Ринок</RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>Пошук поселень</RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>
+  <RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>Відкотити збереження</RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>Панель адміністратора</RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>Пінг: {0} мілісекунд</RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>
 
@@ -1146,7 +1140,6 @@
   <RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>Положення точки: {0}</RimWorldAccess.Compat.SimpleSidearms.CurveXPrompt>
   <RimWorldAccess.Compat.SimpleSidearms.CurveYPrompt>Значення точки {0}: {1} відсотків</RimWorldAccess.Compat.SimpleSidearms.CurveYPrompt>
   <RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>Чат</RimWorldAccess.Compat.RimTalk.CustomDialogue.RegionName>
-  <RimWorldAccess.Compat.RimTalk.PersonaEditor.RegionName>Редактор персони</RimWorldAccess.Compat.RimTalk.PersonaEditor.RegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>Голоси</RimWorldAccess.Compat.RimTalk.TTS.VoiceSelection.RegionName>
   <RimWorldAccess.Compat.Vfet.EthosLockRow>Блокування етосу</RimWorldAccess.Compat.Vfet.EthosLockRow>
   <RimWorldAccess.Compat.Vfet.EthosEditHint>Натисніть Enter для редагування.</RimWorldAccess.Compat.Vfet.EthosEditHint>
@@ -1175,6 +1168,8 @@
   <RimWorldAccess.Compat.Wq.RarityUncommon>незвичайна</RimWorldAccess.Compat.Wq.RarityUncommon>
   <RimWorldAccess.Compat.Wq.RarityRare>рідкісна</RimWorldAccess.Compat.Wq.RarityRare>
   <RimWorldAccess.Compat.Wq.RarityLegendary>легендарна</RimWorldAccess.Compat.Wq.RarityLegendary>
+  <RimWorldAccess.Compat.Wq.New>Нове</RimWorldAccess.Compat.Wq.New>
+  <RimWorldAccess.Compat.Wq.WantProgress>{0} виконано</RimWorldAccess.Compat.Wq.WantProgress>
 
   <!-- Rjw: the pseudo-button designations gizmo (src/Compat/Rjw/). -->
   <RimWorldAccess.Compat.Rjw.DesignationsLabel>Призначення RJW</RimWorldAccess.Compat.Rjw.DesignationsLabel>
@@ -1207,5 +1202,8 @@
 
   <!-- Carry Different Medicine Types: one carried medicine in the Assign tab's Carry cell. {0} = medicine label, {1} = count. -->
   <RimWorldAccess.Compat.Cdmt.CarryEntry>{0} {1}</RimWorldAccess.Compat.Cdmt.CarryEntry>
+  <!-- XML Extensions: the settings search box, which draws only a magnifier icon. {0} = the mod's own result count text. -->
+  <RimWorldAccess.Compat.XmlExtensions.Search>Пошук</RimWorldAccess.Compat.XmlExtensions.Search>
+  <RimWorldAccess.Compat.XmlExtensions.SearchWithResults>Пошук. {0}</RimWorldAccess.Compat.XmlExtensions.SearchWithResults>
 
 </LanguageData>

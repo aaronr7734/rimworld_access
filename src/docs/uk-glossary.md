@@ -433,3 +433,12 @@ forbidden per this glossary's standing rule, so the Watermill keys use the flat 
 | unshared / shared with another watermill | не використовується спільно / використовується спільно з іншим водяним млином | Coined |
 | placement spot (scanner category/item) | Місця розміщення: {0} / Місце | Mirrors `Abilities.Plant.ScannerCategory`/`ScannerItemLabel` ("Місця посадки: {0}" / "Місце для посадки") |
 | facing {0} (trailing fragment) | обличчям до {0} | Mirrors `Building.ArchitectPlace.GravshipFacing` ("Гравікорабель обличчям до {0}") |
+
+## Term rulings (compat delta sync, 2026-11-09)
+
+| English | Українська | Basis |
+|---|---|---|
+| work shift (Cash Register) | зміна / зараз на службі | Existing `CashRegisterShifts.TabName` «Зміни» |
+| timeline / chronicle (RimTalk memory) | Хронологія / Хроніка | Coined; «Спогади» stays the memory nodes |
+| memory layer | шар | Matches existing `LayerActive` «Активний шар» |
+| Customize (Vehicle Framework tab) | Налаштування | Mod-neutral tab noun |

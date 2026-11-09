@@ -357,7 +357,7 @@ namespace RimWorldAccess.Shell
                 ActionCategory.Map, new List<KeyChord> { KeyChord.Of(KeyCode.Alpha7), KeyChord.Of(KeyCode.Keypad7) }));
 
             // ---- GenericWindowScope (src/Shell/Screens/GenericWindowScope.Game.cs) ----
-            // Left/Right step the focused row's value when it is a Slider; SharedMenuGrammar
+            // Left/Right step a Slider's value or close/open a tree branch; SharedMenuGrammar
             // already covers Up/Down/Home/End/Enter/Escape/search-backspace for every scope.
             c.Register(InputAction.ForScreen("genericWindow", "genericWindow.setting.decrease",
                 new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow) }));

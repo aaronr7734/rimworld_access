@@ -54,6 +54,20 @@
   <RimWorldAccess.Cmr.Hunting.RefreshAnimals>Оновити список тварин</RimWorldAccess.Cmr.Hunting.RefreshAnimals>
   <RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>Список тварин оновлено.</RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>
   <RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>Обмежити список тваринами цієї мапи</RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>
+  <!-- The Overview tab's controls above its job list (search box, group-by button,
+       collapse-all button, job type filter icons), which the mod draws as one strip
+       with no heading of its own. -->
+  <RimWorldAccess.Cmr.Overview.ListOptionsRegion>Параметри списку завдань</RimWorldAccess.Cmr.Overview.ListOptionsRegion>
+  <!-- The Overview search box, which the mod draws with only a magnifier icon. -->
+  <RimWorldAccess.Cmr.Overview.Search>Пошук завдань</RimWorldAccess.Cmr.Overview.Search>
+  <!-- The delete icon beside a reserved stock row, which has only a tooltip.
+       {0} is the mod's own tooltip ("Reset to the default reserved stock amount" or
+       "Remove this job's reserved stock amount"), {1} the ingredient. -->
+  <RimWorldAccess.Cmr.Production.ReservedStockAction>{0}: {1}</RimWorldAccess.Cmr.Production.ReservedStockAction>
+  <!-- Keyboard twin of the modifier-click line the mod adds to every shortcut row's
+       tooltip ("Ctrl+click: allow only these" and so on). {0} is the key that plays
+       Ctrl on this platform (Ctrl, or Command on a Mac). -->
+  <RimWorldAccess.Cmr.Shortcuts.ModifiersTip>{0}+Enter: дозволити лише ці. Shift+Enter: дозволити також ці. Alt+Enter: більше не дозволяти ці.</RimWorldAccess.Cmr.Shortcuts.ModifiersTip>
 
   <!-- The three controls the mod's threshold details window draws around its item
        filter, none of which it labels: a button showing only a comparison glyph,

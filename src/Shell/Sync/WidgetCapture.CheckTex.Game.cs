@@ -151,11 +151,11 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// GUI.DrawTexture(Rect, Texture, ScaleMode) tap: records a CheckTexMarker when the drawn
-        /// texture reference-matches a vanilla checkbox or radio texture — RadioButtonDraw picks
-        /// one of the pair from its `chosen` argument (decompiled Verse/Widgets.cs:1420-1431), so
-        /// the texture reference IS the state. Only this overload is patched: the DrawTexture
-        /// chain is a pure argument forward, so every 2-arg call site converges here unchanged.
+        /// GUI.DrawTexture tap (every overload; see WidgetCaptureCheckTexMarkerPatch): records a
+        /// CheckTexMarker when the drawn texture reference-matches a vanilla checkbox or radio
+        /// texture — RadioButtonDraw picks one of the pair from its `chosen` argument (decompiled
+        /// Verse/Widgets.cs:1420-1431), so the texture reference IS the state. Order relative to
+        /// the hotspot is irrelevant: markers are matched geometrically after the pass.
         /// </summary>
         internal static void RecordCheckTexMarker(Rect rect, Texture image)
         {
@@ -395,6 +395,11 @@ namespace RimWorldAccess.Shell
                     return;
                 }
             }
+            AddPendingTipTextureLabel(sink);
+        }
+
+        private static void AddPendingTipTextureLabel(List<CapturedWidget> sink)
+        {
             string label = pendingTipTextureResolve();
             if (string.IsNullOrEmpty(label))
             {

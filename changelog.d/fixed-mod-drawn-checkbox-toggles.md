@@ -1,0 +1,1 @@
+Mod settings toggles drawn as a label with a checkbox picture, such as Colony Manager Redux's, now read as checkboxes with their state, and the performance warning on its expensive settings can be read too.

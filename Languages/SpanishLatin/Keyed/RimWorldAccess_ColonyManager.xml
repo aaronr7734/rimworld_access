@@ -55,6 +55,23 @@
   <RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>Lista de animales actualizada.</RimWorldAccess.Cmr.Hunting.AnimalsRefreshed>
   <RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>Limitar la lista a los animales de este mapa</RimWorldAccess.Cmr.Hunting.LockAnimalsToMap>
 
+  <!-- The Overview tab's controls above its job list (search box, group-by button,
+       collapse-all button, job type filter icons), which the mod draws as one strip
+       with no heading of its own. -->
+  <RimWorldAccess.Cmr.Overview.ListOptionsRegion>Opciones de la lista de trabajos</RimWorldAccess.Cmr.Overview.ListOptionsRegion>
+  <!-- The Overview search box, which the mod draws with only a magnifier icon. -->
+  <RimWorldAccess.Cmr.Overview.Search>Buscar trabajos</RimWorldAccess.Cmr.Overview.Search>
+
+  <!-- The delete icon beside a reserved stock row, which has only a tooltip.
+       {0} is the mod's own tooltip ("Reset to the default reserved stock amount" or
+       "Remove this job's reserved stock amount"), {1} the ingredient. -->
+  <RimWorldAccess.Cmr.Production.ReservedStockAction>{0}: {1}</RimWorldAccess.Cmr.Production.ReservedStockAction>
+
+  <!-- Keyboard twin of the modifier-click line the mod adds to every shortcut row's
+       tooltip ("Ctrl+click: allow only these" and so on). {0} is the key that plays
+       Ctrl on this platform (Ctrl, or Command on a Mac). -->
+  <RimWorldAccess.Cmr.Shortcuts.ModifiersTip>{0}+Enter: permitir solo estos. Shift+Enter: permitir también estos. Alt+Enter: dejar de permitir estos.</RimWorldAccess.Cmr.Shortcuts.ModifiersTip>
+
   <!-- The three controls the mod's threshold details window draws around its item
        filter, none of which it labels: a button showing only a comparison glyph,
        a bare number field beside it, and a grid of stockpile cells. The window's

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- VisibleWealthScope: the wealth breakdown window. Region names. -->
+  <RimWorldAccess.Compat.VisibleWealth.OverviewRegion>概览</RimWorldAccess.Compat.VisibleWealth.OverviewRegion>
+  <RimWorldAccess.Compat.VisibleWealth.NestedRegion>按类别划分的财富</RimWorldAccess.Compat.VisibleWealth.NestedRegion>
+  <RimWorldAccess.Compat.VisibleWealth.FlatRegion>财富列表</RimWorldAccess.Compat.VisibleWealth.FlatRegion>
+  <RimWorldAccess.Compat.VisibleWealth.SliceRegion>饼图扇区</RimWorldAccess.Compat.VisibleWealth.SliceRegion>
+  <RimWorldAccess.Compat.VisibleWealth.OptionsRegion>图表选项</RimWorldAccess.Compat.VisibleWealth.OptionsRegion>
+  <RimWorldAccess.Compat.VisibleWealth.Search>搜索</RimWorldAccess.Compat.VisibleWealth.Search>
+  <!-- Names for the two toolbar pickers the mod captions with an icon only. -->
+  <RimWorldAccess.Compat.VisibleWealth.ChartTypeOption>图表类型</RimWorldAccess.Compat.VisibleWealth.ChartTypeOption>
+  <RimWorldAccess.Compat.VisibleWealth.PercentOption>百分比</RimWorldAccess.Compat.VisibleWealth.PercentOption>
+  <!-- Flat list column headers. -->
+  <RimWorldAccess.Compat.VisibleWealth.ItemColumn>物品</RimWorldAccess.Compat.VisibleWealth.ItemColumn>
+  <RimWorldAccess.Compat.VisibleWealth.ValueColumn>价值</RimWorldAccess.Compat.VisibleWealth.ValueColumn>
+  <RimWorldAccess.Compat.VisibleWealth.PercentColumn>占比</RimWorldAccess.Compat.VisibleWealth.PercentColumn>
+  <!-- A row's market value as the mod prints it. {0} = the whole-number amount. -->
+  <RimWorldAccess.Compat.VisibleWealth.Money>${0}</RimWorldAccess.Compat.VisibleWealth.Money>
+  <!-- {0} = a percentage such as 3.4%, {1} = the parent category's name. -->
+  <RimWorldAccess.Compat.VisibleWealth.PercentOfTotal>占总财富的 {0}</RimWorldAccess.Compat.VisibleWealth.PercentOfTotal>
+  <RimWorldAccess.Compat.VisibleWealth.PercentOfParent>占 {1} 的 {0}</RimWorldAccess.Compat.VisibleWealth.PercentOfParent>
+  <!-- A pie slice's parent category. {0} = category name. -->
+  <RimWorldAccess.Compat.VisibleWealth.InParent>属于 {0}</RimWorldAccess.Compat.VisibleWealth.InParent>
+  <RimWorldAccess.Compat.VisibleWealth.NotMatching>与搜索不匹配</RimWorldAccess.Compat.VisibleWealth.NotMatching>
+  <RimWorldAccess.Compat.VisibleWealth.ChartLockedWhileSearching>搜索时无法打开或关闭饼图</RimWorldAccess.Compat.VisibleWealth.ChartLockedWhileSearching>
+  <!-- The pause menu's mod toolbar entry. {0} = the window's name, {1} = a key chord. -->
+  <RimWorldAccess.Compat.VisibleWealth.OpenWithHotkey>{0}，快捷键 {1}</RimWorldAccess.Compat.VisibleWealth.OpenWithHotkey>
+  <!-- {0} = a key name. -->
+  <RimWorldAccess.Compat.VisibleWealth.ShiftChord>Shift+{0}</RimWorldAccess.Compat.VisibleWealth.ShiftChord>
+</LanguageData>

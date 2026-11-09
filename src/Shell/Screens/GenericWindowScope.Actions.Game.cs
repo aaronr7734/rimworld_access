@@ -713,7 +713,7 @@ namespace RimWorldAccess.Shell
             AdjustFocusedValue(-1);
         }
 
-        /// <summary>Left/Right on a slider row, or one thumb of a range row: the same grammar and deferred announcement.</summary>
+        /// <summary>Left/Right on a slider row, one thumb of a range row, or a tree branch: the same grammar and deferred announcement.</summary>
         private void AdjustFocusedValue(int direction)
         {
             int focused = RowIndex;
@@ -722,6 +722,19 @@ namespace RimWorldAccess.Shell
                 return;
             }
             PresentationRow row = presentationRows[focused];
+            if (row.Kind == WidgetKind.TreeItem)
+            {
+                if (row.Expanded.HasValue && row.Expanded.Value != direction > 0)
+                {
+                    PostActivate(row.ActivateCaptureIndex);
+                    ArmPendingStateChange(focused);
+                }
+                else
+                {
+                    AnnounceCurrent();
+                }
+                return;
+            }
             if (row.Kind == WidgetKind.Range)
             {
                 PostAdjustRange(row.ActivateCaptureIndex, row.RangeHigh, direction);
