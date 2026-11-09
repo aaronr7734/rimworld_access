@@ -1,0 +1,1 @@
+With Dubs Bad Hygiene, the resources key (3) now tells you the groundwater and deep groundwater under the cursor, plus subsurface ice, sewage contamination, irrigation and fertilizer where there is any.

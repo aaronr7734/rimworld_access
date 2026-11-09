@@ -1,0 +1,156 @@
+using System;
+using System.Globalization;
+using System.Reflection;
+using HarmonyLib;
+using RimWorld;
+using RimWorldAccess.Shell;
+using UnityEngine;
+using Verse;
+
+namespace RimWorldAccess
+{
+    /// <summary>
+    /// Speaks what Bad Hygiene's well ghosts show at the placement cursor: the water-table, ice and
+    /// sewage overlays its grid place workers switch on (as the level under the cursor), and the capacity label its
+    /// user-grid place workers float beside it. Both arrive through the placement-help outline
+    /// harvest, which runs the ghost draw at the keyboard cursor and keeps a note per cell.
+    /// </summary>
+    internal static class DubsPlacementGhostNotes
+    {
+        private static readonly Type[] DrawGhostParams =
+        {
+            typeof(ThingDef), typeof(IntVec3), typeof(Rot4), typeof(Color), typeof(Thing),
+        };
+
+        private static DubsGroundwater groundwater;
+        private static FieldInfo wellCapacityText;
+        private static FieldInfo iceCapacityText;
+
+        public static void Register(Harmony harmony, DubsGroundwater source)
+        {
+            var surface = new ReflectionSurface("DubsPlacementGhostNotes");
+            Type waterWorker = surface.Type("DubsBadHygiene.PlaceWorker_WaterGrid");
+            Type deepWorker = surface.Type("DubsBadHygiene.PlaceWorker_DeepWaterGrid");
+            Type iceWorker = surface.Type("DubsBadHygiene.PlaceWorker_IceGrid");
+            Type sewageWorker = surface.Type("DubsBadHygiene.PlaceWorker_SewageGrid");
+            Type wellUsersWorker = surface.Type("DubsBadHygiene.PlaceWorker_UserGrid");
+            Type iceUsersWorker = surface.Type("DubsBadHygiene.PlaceWorker_IceUserGrid");
+            MethodInfo waterGhost = surface.Method(waterWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo deepGhost = surface.Method(deepWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo iceGhost = surface.Method(iceWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo sewageGhost = surface.Method(sewageWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo wellUsersGhost = surface.Method(wellUsersWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo iceUsersGhost = surface.Method(iceUsersWorker, "DrawGhost", DrawGhostParams);
+            FieldInfo wellText = surface.Field(wellUsersWorker, "strongk");
+            FieldInfo iceText = surface.Field(iceUsersWorker, "capacityDisplayText");
+            if (!surface.Ready || !source.Ready)
+                return;
+
+            groundwater = source;
+            wellCapacityText = wellText;
+            iceCapacityText = iceText;
+            harmony.Patch(waterGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(WaterPostfix)));
+            harmony.Patch(deepGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(DeepPostfix)));
+            harmony.Patch(iceGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(IcePostfix)));
+            harmony.Patch(sewageGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(SewagePostfix)));
+            harmony.Patch(wellUsersGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(WellCapacityPostfix)));
+            harmony.Patch(iceUsersGhost, postfix: new HarmonyMethod(typeof(DubsPlacementGhostNotes), nameof(IceCapacityPostfix)));
+        }
+
+        // Positional binding: the DrawGhost overrides are free to rename their parameters.
+        internal static void WaterPostfix([HarmonyArgument(1)] IntVec3 center)
+        {
+            CollectLevel(center, groundwater.Water,
+                "RimWorldAccess.Compat.Dubs.Groundwater.Shallow", "RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone");
+        }
+
+        internal static void DeepPostfix([HarmonyArgument(1)] IntVec3 center)
+        {
+            CollectLevel(center, groundwater.DeepWater,
+                "RimWorldAccess.Compat.Dubs.Groundwater.Deep", "RimWorldAccess.Compat.Dubs.Groundwater.DeepNone");
+        }
+
+        internal static void IcePostfix([HarmonyArgument(1)] IntVec3 center)
+        {
+            CollectLevel(center, groundwater.Ice,
+                "RimWorldAccess.Compat.Dubs.Groundwater.Ice", "RimWorldAccess.Compat.Dubs.Groundwater.IceNone");
+        }
+
+        // The sewage overlay is mostly empty, so only contamination actually under the cursor is spoken.
+        internal static void SewagePostfix([HarmonyArgument(1)] IntVec3 center)
+        {
+            try
+            {
+                if (!PlacementHelpSpeech.CollectingOutlines)
+                    return;
+                Map map = Find.CurrentMap;
+                PlacementHelpSpeech.CollectOutline(DubsGroundwater.PresentPhrase(
+                    groundwater.Sewage(map), map, center, "RimWorldAccess.Compat.Dubs.Groundwater.Sewage", tintOnly: true).CapitalizeFirst());
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("Bad Hygiene ghost level error", ex);
+            }
+        }
+
+        internal static void WellCapacityPostfix()
+        {
+            CollectCapacity(wellCapacityText);
+        }
+
+        internal static void IceCapacityPostfix()
+        {
+            CollectCapacity(iceCapacityText);
+        }
+
+        private static void CollectLevel(IntVec3 center, Func<Map, DubsGroundwater.Grid> grid, string levelKey, string noneKey)
+        {
+            try
+            {
+                if (!PlacementHelpSpeech.CollectingOutlines)
+                    return;
+                Map map = Find.CurrentMap;
+                PlacementHelpSpeech.CollectOutline(DubsGroundwater.LevelPhrase(grid(map), map, center, levelKey, noneKey).CapitalizeFirst());
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("Bad Hygiene ghost level error", ex);
+            }
+        }
+
+        private static void CollectCapacity(FieldInfo ghostText)
+        {
+            try
+            {
+                // Lite mode returns from DrawGhost before the label is written, leaving a stale one.
+                if (!PlacementHelpSpeech.CollectingOutlines || !groundwater.Water(Find.CurrentMap).IsValid)
+                    return;
+                PlacementHelpSpeech.CollectOutline(CapacityPhrase(ghostText.GetValue(null) as string));
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("Bad Hygiene ghost capacity error", ex);
+            }
+        }
+
+        /// <summary>
+        /// The ghost's capacity exists only as its formatted label ("Cap: 1234.5L"): the preview rule,
+        /// each cell's water split with the wells already drawing on it, is a local inside DrawGhost.
+        /// The number is lifted out and spoken through the mod's own inspect-string key, as a built
+        /// well reports the same quantity; an unexpected shape is spoken as drawn.
+        /// </summary>
+        private static string CapacityPhrase(string label)
+        {
+            if (string.IsNullOrEmpty(label))
+                return null;
+            string number = label.Trim();
+            int colon = number.IndexOf(':');
+            if (colon >= 0)
+                number = number.Substring(colon + 1);
+            number = number.Trim().TrimEnd('L').Trim();
+            return float.TryParse(number, NumberStyles.Float, CultureInfo.InvariantCulture, out float liters)
+                ? CompatText.ModArgs("GroundCapacity", liters.ToString("0"))
+                : label;
+        }
+    }
+}

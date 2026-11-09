@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Bad Hygiene ground layers: resources key, placement cursor -->
+  <RimWorldAccess.Compat.Dubs.Groundwater.Shallow>eau souterraine : {0}</RimWorldAccess.Compat.Dubs.Groundwater.Shallow>
+  <RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>pas d'eau souterraine</RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Deep>eau souterraine profonde : {0}</RimWorldAccess.Compat.Dubs.Groundwater.Deep>
+  <RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>pas d'eau souterraine profonde</RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Ice>glace souterraine : {0}</RimWorldAccess.Compat.Dubs.Groundwater.Ice>
+  <RimWorldAccess.Compat.Dubs.Groundwater.IceNone>pas de glace souterraine</RimWorldAccess.Compat.Dubs.Groundwater.IceNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Sewage>contamination par les eaux usées : {0}</RimWorldAccess.Compat.Dubs.Groundwater.Sewage>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>irrigation : {0}</RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>fertilisé</RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>
+
+  <!-- Bad Hygiene scanner category -->
+  <RimWorldAccess.Compat.Dubs.Scanner.Category>Eau souterraine</RimWorldAccess.Compat.Dubs.Scanner.Category>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>Peu profonde</RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>Profonde</RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>Glace souterraine</RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>eau souterraine</RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>eau souterraine profonde</RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>glace souterraine</RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>
+</LanguageData>

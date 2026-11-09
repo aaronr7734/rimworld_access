@@ -21,6 +21,7 @@ namespace RimWorldAccess
             VefDialogCompat.RegisterDialogScopes();
             VefOutpostItemsAdapter.PatchClose(harmony);
             VefOutpostInspectCompat.Register();
+            VefDeepResourceReveal.Register();
         }
     }
 }

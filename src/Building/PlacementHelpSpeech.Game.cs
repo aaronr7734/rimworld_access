@@ -49,13 +49,16 @@ namespace RimWorldAccess
             get { return collectingOutlines; }
         }
 
-        internal static void Begin()
+        internal static void Begin(IntVec3 cell, Rot4 rot)
         {
+            // Outlines (Update) seed the attachment pass (OnGUI) as ONE announcement; a step taken
+            // since the ghost pass leaves them stale, so the held tile waits a frame for fresh ones.
+            if (cell != outlineCell || rot != outlineRot)
+            {
+                return;
+            }
             collecting = true;
             collected.Clear();
-            // The ghost pass runs in Update and the attachment pass in OnGUI, so the outlines
-            // already describe the cell this pass is about to describe. Seeding them here keeps
-            // ONE announcement with one changed-since-last-time test.
             collected.AddRange(outlines);
         }
 
@@ -267,11 +270,12 @@ namespace RimWorldAccess
             {
                 // Only while the keyboard owns the placement: a mouse-driven placement already puts
                 // this text where the player is looking, and harvesting it would speak over hover.
-                if (!PlacementAidCursorPatch.KeyboardPlacementCursor(__instance).IsValid)
+                IntVec3 cell = PlacementAidCursorPatch.KeyboardPlacementCursor(__instance);
+                if (!cell.IsValid)
                 {
                     return;
                 }
-                PlacementHelpSpeech.Begin();
+                PlacementHelpSpeech.Begin(cell, BuildingReflection.GetPlacingRot(__instance));
             }
             catch (Exception ex)
             {

@@ -467,3 +467,4 @@ Watermill keys keeps the established `_numCase` three-form tag, matching `Outlin
 | read only (BrowsingField) | только для чтения | Reuses `Shell.State.ReadOnly`'s full standalone form (vs. Biotech/UI's shorter inline "только чтение") |
 
 - Delta wave (2026-11): "Customize" tab (Vehicle Framework) = Настройка; RimTalk memory "Timeline" = Хронология, "Chronicle" = Летопись; "pawn" in new RimTalk strings = персонаж (not колонист); gender-safe "{0} (недоступно)" for unavailable pawns.
+- Bad Hygiene (from DBH Russian): groundwater = грунтовые воды, deep = глубинные воды, sewage = нечистоты, irrigation = орошение, fertilized = удобрен-.

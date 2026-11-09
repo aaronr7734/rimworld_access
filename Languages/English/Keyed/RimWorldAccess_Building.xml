@@ -298,6 +298,16 @@
        where the building has to go (a geothermal generator highlights every steam geyser).
        {0} = the thing, {1} = distance in tiles from the cursor, {2} = compass direction. -->
 
+  <!-- A wind turbine (or modded wind pump) ghost outlines the cells its wind must cross; a roof
+       or a wind-blocking thing on one cuts output. {0} = the blockers, each with "x count" when
+       more than one cell, e.g. "oak tree x3 and constructed roof"; {1} = the output reduction
+       as a percentage. -->
+  <RimWorldAccess.Building.Place.WindPathClear>Wind path clear</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>Wind path blocked by {0}, output down {1}</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Wind path blocked by {0}, no output</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- {0} = blocker label, {1} = how many wind cells it blocks (always 2 or more). -->
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
+
   <!-- A part of the ghost the game outlines in its own can-place / cannot-place color during
        placement, which is how a multi-part footprint like a water mill's wheel is shown at all.
        {0} = width, {1} = height, {2} = distance in tiles from the cursor, {3} = compass direction. -->

@@ -48,7 +48,8 @@ namespace RimWorldAccess
                 || onlyCategory == "Orders";
             bool wantCells = onlyCategory == null
                 || onlyCategory == "Terrain" || onlyCategory == "Roofs"
-                || onlyCategory == "Mineable" || onlyCategory == "Unexplored";
+                || onlyCategory == "Mineable" || onlyCategory == "Unexplored"
+                || ScannerCellLayerRegistry.Find(onlyCategory) != null;
             Func<string, bool> want = name => onlyCategory == null || onlyCategory == name;
 
             // One-shot lookups for the cell/designation/zone/room/plan sweeps below. The per-thing
@@ -217,6 +218,8 @@ namespace RimWorldAccess
                     RefreshRegionDistances(cachedFogItems, cursorPosition);
                     RefreshRegionDistances(cachedRoofsThick, cursorPosition);
                     RefreshRegionDistances(cachedRoofsThin, cursorPosition);
+                    foreach (var kvp in cachedCellLayers)
+                        RefreshRegionDistances(kvp.Value, cursorPosition);
 
                     // Reuse cached cell data, mirroring each list into the category's "All".
                     terrainNaturalSubcat.Items.AddRange(cachedTerrainNatural);
@@ -238,6 +241,12 @@ namespace RimWorldAccess
                     roofsThinSubcat.Items.AddRange(cachedRoofsThin);
                     roofsCategory.Subcategories[0].Items.AddRange(cachedRoofsThick);
                     roofsCategory.Subcategories[0].Items.AddRange(cachedRoofsThin);
+
+                    foreach (var kvp in cachedCellLayers)
+                    {
+                        foreach (var layerItem in kvp.Value)
+                            buckets.AddItem(kvp.Key, layerItem);
+                    }
                 }
                 else
                 {
@@ -257,6 +266,8 @@ namespace RimWorldAccess
                     // thousands of terrain cells, too many to re-sort and re-group on every refresh.
                     var naturalTerrainByLabel = new Dictionary<string, List<IntVec3>>();
                     var constructedTerrainByLabel = new Dictionary<string, List<IntVec3>>();
+
+                    List<CellLayerSweep> layerSweeps = BeginCellLayerSweeps(map);
 
                     foreach (var cell in allCells)
                     {
@@ -325,6 +336,9 @@ namespace RimWorldAccess
                                 }
                                 roofList.Add(cell);
                             }
+
+                            foreach (var sweep in layerSweeps)
+                                sweep.Visit(cell);
                         }
                         else
                         {
@@ -426,6 +440,23 @@ namespace RimWorldAccess
                     cachedMineableScanned = new List<ScannerItem>(mineableScannedSubcat.Items);
                     cachedRoofsThick = new List<ScannerItem>(roofsThickSubcat.Items);
                     cachedRoofsThin = new List<ScannerItem>(roofsThinSubcat.Items);
+
+                    cachedCellLayers.Clear();
+                    foreach (var sweep in layerSweeps)
+                    {
+                        for (int i = 0; i < sweep.Cells.Length; i++)
+                        {
+                            if (sweep.Cells[i].Count == 0)
+                                continue;
+                            var sublayer = sweep.Layer.Sublayers[i];
+                            string subFullName = sweep.Layer.CategoryName + "-" + sublayer.Name;
+                            var layerItem = new ScannerItem(
+                                GroupTerrainByAdjacency(sweep.Cells[i], cursorPosition),
+                                sublayer.ItemLabelKey.Translate(), cursorPosition);
+                            buckets.AddItem(subFullName, layerItem);
+                            cachedCellLayers[subFullName] = new List<ScannerItem> { layerItem };
+                        }
+                    }
                     cachedFogItems = new List<ScannerItem>(unexploredCategory.Subcategories[0].Items);
                     fogDirty = false;
 
@@ -1098,7 +1129,49 @@ namespace RimWorldAccess
             return true;
         }
 
-        // Cell-walk cache: terrain, mineables, deep ore, roofs, fog.
+        private sealed class CellLayerSweep
+        {
+            public ScannerCellLayer Layer;
+            public Func<IntVec3, bool>[] Tests;
+            public List<IntVec3>[] Cells;
+
+            public void Visit(IntVec3 cell)
+            {
+                for (int i = 0; i < Tests.Length; i++)
+                {
+                    if (Tests[i](cell))
+                        Cells[i].Add(cell);
+                }
+            }
+        }
+
+        private static List<CellLayerSweep> BeginCellLayerSweeps(Map map)
+        {
+            var sweeps = new List<CellLayerSweep>();
+            foreach (var layer in ScannerCellLayerRegistry.Layers)
+            {
+                Func<IntVec3, bool>[] tests;
+                try
+                {
+                    tests = layer.BeginSweep(map);
+                }
+                catch (Exception ex)
+                {
+                    ModLogger.LimitedError("Scanner cell layer error", ex);
+                    continue;
+                }
+                if (tests == null || tests.Length != layer.Sublayers.Count)
+                    continue;
+
+                var cells = new List<IntVec3>[tests.Length];
+                for (int i = 0; i < cells.Length; i++)
+                    cells[i] = new List<IntVec3>();
+                sweeps.Add(new CellLayerSweep { Layer = layer, Tests = tests, Cells = cells });
+            }
+            return sweeps;
+        }
+
+        // Cell-walk cache: terrain, mineables, deep ore, roofs, registered cell layers, fog.
         private static List<ScannerItem> cachedTerrainNatural = null;
         private static List<ScannerItem> cachedTerrainConstructed = null;
         private static List<ScannerItem> cachedMineableRare = null;
@@ -1108,6 +1181,7 @@ namespace RimWorldAccess
         private static List<ScannerItem> cachedPollutedItems = null;
         private static List<ScannerItem> cachedRoofsThick = null;
         private static List<ScannerItem> cachedRoofsThin = null;
+        private static readonly Dictionary<string, List<ScannerItem>> cachedCellLayers = new Dictionary<string, List<ScannerItem>>();
         private static bool fogDirty = true;
         private static int lastCellHash = 0;
         private static int lastPollutionCount = 0;
@@ -1133,6 +1207,7 @@ namespace RimWorldAccess
             cachedPollutedItems = null;
             cachedRoofsThick = null;
             cachedRoofsThin = null;
+            cachedCellLayers.Clear();
             fogDirty = true;
             lastCellHash = 0;
             lastPollutionCount = 0;

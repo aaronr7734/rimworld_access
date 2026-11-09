@@ -329,3 +329,4 @@ direction-before-distance word order already established by `OutlineOkAt`/`Highl
 | placement spot (scanner category/item) | {0}放置点 / 位置 | Mirrors `Abilities.Plant.ScannerCategory`/`ScannerItemLabel` ("{0}种植点" / "可种植位置") |
 | facing {0} (trailing fragment) | 朝向 {0} | Reuses `Building.Architect.Facing`'s established term verbatim |
 | read only (BrowsingField) | 只读 | Reuses `Shell.State.ReadOnly`'s established term |
+- Bad Hygiene groundwater (DBH zh-Hans terms): 地下水 groundwater, 污水 sewage, 灌溉 irrigation, 肥料/施肥 fertilizer; subsurface ice 地下冰.

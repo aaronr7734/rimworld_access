@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Bad Hygiene ground layers: resources key, placement cursor -->
+  <RimWorldAccess.Compat.Dubs.Groundwater.Shallow>грунтовые воды: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Shallow>
+  <RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>нет грунтовых вод</RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Deep>глубинные воды: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Deep>
+  <RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>нет глубинных вод</RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Ice>подземный лёд: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Ice>
+  <RimWorldAccess.Compat.Dubs.Groundwater.IceNone>нет подземного льда</RimWorldAccess.Compat.Dubs.Groundwater.IceNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Sewage>загрязнение нечистотами: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Sewage>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>орошение: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>удобрено</RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>
+
+  <!-- Bad Hygiene scanner category -->
+  <RimWorldAccess.Compat.Dubs.Scanner.Category>Грунтовые воды</RimWorldAccess.Compat.Dubs.Scanner.Category>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>Неглубокие</RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>Глубинные</RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>Подземный лёд</RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>грунтовые воды</RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>глубинные воды</RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>подземный лёд</RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>
+</LanguageData>

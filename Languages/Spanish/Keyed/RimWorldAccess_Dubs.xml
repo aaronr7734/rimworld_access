@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Bad Hygiene ground layers: resources key, placement cursor -->
+  <RimWorldAccess.Compat.Dubs.Groundwater.Shallow>agua subterránea: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Shallow>
+  <RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>sin agua subterránea</RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Deep>agua subterránea profunda: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Deep>
+  <RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>sin agua subterránea profunda</RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Ice>hielo subterráneo: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Ice>
+  <RimWorldAccess.Compat.Dubs.Groundwater.IceNone>sin hielo subterráneo</RimWorldAccess.Compat.Dubs.Groundwater.IceNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Sewage>contaminación por aguas residuales: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Sewage>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>riego: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>fertilizado</RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>
+
+  <!-- Bad Hygiene scanner category -->
+  <RimWorldAccess.Compat.Dubs.Scanner.Category>Aguas subterráneas</RimWorldAccess.Compat.Dubs.Scanner.Category>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>Superficiales</RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>Profundas</RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>Hielo subterráneo</RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>agua subterránea</RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>agua subterránea profunda</RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>hielo subterráneo</RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>
+</LanguageData>

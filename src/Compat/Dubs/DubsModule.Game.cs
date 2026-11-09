@@ -12,6 +12,15 @@ namespace RimWorldAccess
         public override void Activate(Harmony harmony)
         {
             CompatRegistration.GizmoHandler("DubsBadHygiene.Gizmo_BoilerStatus", t => new DubsBoilerStatusGizmoHandler(t));
+            DubsWindPumpGhostNote.Register(harmony);
+
+            var groundwater = new DubsGroundwater();
+            if (groundwater.Ready)
+            {
+                TileResourceReadouts.Register(groundwater.TileReadout);
+                ScannerCellLayerRegistry.Register(groundwater.ScannerLayer());
+                DubsPlacementGhostNotes.Register(harmony, groundwater);
+            }
         }
     }
 }

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Bad Hygiene ground layers: resources key, placement cursor -->
+  <RimWorldAccess.Compat.Dubs.Groundwater.Shallow>地下水: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Shallow>
+  <RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>无地下水</RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Deep>深层地下水: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Deep>
+  <RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>无深层地下水</RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Ice>地下冰: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Ice>
+  <RimWorldAccess.Compat.Dubs.Groundwater.IceNone>无地下冰</RimWorldAccess.Compat.Dubs.Groundwater.IceNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Sewage>污水: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Sewage>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>灌溉: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>已施肥</RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>
+
+  <!-- Bad Hygiene scanner category -->
+  <RimWorldAccess.Compat.Dubs.Scanner.Category>地下水</RimWorldAccess.Compat.Dubs.Scanner.Category>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>浅层</RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>深层</RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>地下冰</RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>地下水</RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>深层地下水</RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>地下冰</RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>
+</LanguageData>

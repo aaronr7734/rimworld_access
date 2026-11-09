@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RimWorld;
 using Verse;
@@ -13,8 +14,9 @@ namespace RimWorldAccess
     ///
     /// No vanilla API precomputes legal cells, so the sweep walks GenRadial's nearest-first pattern
     /// and asks the designator's own CanDesignateCell about each cell. Blueprints and frames are
-    /// Things at their cells, so a just-placed blueprint is honored for free — except by the water
-    /// mill's place worker, mirrored separately below.
+    /// Things at their cells, so a just-placed blueprint is honored for free. Buildings the gate
+    /// accepts where they would not work (the water mill's overlap rule, mod rules) are filtered by
+    /// <see cref="PlacementUsefulnessRegistry"/>.
     ///
     /// Distances are recomputed only on rebuild; the scanner re-derives live distance and direction
     /// per announcement, so a single cursor step is not a rebuild trigger. Rebuilds happen when the
@@ -278,14 +280,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>What the per-cell test needs resolved once per sweep: the designator whose gate
-        /// decides, plus the two exclusions that gate does not cover.</summary>
+        /// decides, plus the exclusions that gate does not cover.</summary>
         private sealed class SweepContext
         {
             private readonly Designator_Place designator;
             private readonly ThingDef def;
             private readonly Map map;
             private readonly bool checkMeditationProtection;
-            private readonly List<Thing> waterMills;
+            private readonly List<Func<IntVec3, Rot4, bool>> usefulnessTests;
 
             public SweepContext(Designator_Place designator, ThingDef def, Map map)
             {
@@ -295,19 +297,22 @@ namespace RimWorldAccess
 
                 checkMeditationProtection =
                     MeditationProtectionHelper.IsArtificialBuilding(def, Faction.OfPlayer);
-                waterMills = UsesWatermillPlaceWorker(def) ? CollectWaterMills(def, map) : null;
+                usefulnessTests = PlacementUsefulnessRegistry.TestsFor(def, map);
             }
 
-            /// <summary>Cheapest exclusion first: vanilla's validator, then the water-mill spacing
-            /// mirror, then meditation/Gauranlen protection.</summary>
+            /// <summary>Cheapest exclusion first: vanilla's validator, then the registered usefulness
+            /// rules, then meditation/Gauranlen protection.</summary>
             public bool Fits(IntVec3 cell, Rot4 rotation)
             {
                 BuildingReflection.SetPlacingRot(designator, rotation);
                 if (!designator.CanDesignateCell(cell).Accepted)
                     return false;
 
-                if (waterMills != null && OverlapsExistingWaterUse(cell, rotation))
-                    return false;
+                for (int i = 0; i < usefulnessTests.Count; i++)
+                {
+                    if (!UsefulAt(usefulnessTests[i], cell, rotation))
+                        return false;
+                }
 
                 // HandleSpaceKey refuses these cells outright, so listing them would be a lie. Safe per
                 // candidate: the helper reads two small lister groups, never a per-cell cache.
@@ -316,46 +321,18 @@ namespace RimWorldAccess
                         .CheckProtection(map, def, Faction.OfPlayer, cell, rotation).IsProtected;
             }
 
-            /// <summary>The water mill's spacing rule. <c>PlaceWorker_WatermillGenerator.AllowsPlacing</c>
-            /// checks only terrain affordance and moving water; the overlap against other mills lives
-            /// solely in its DrawGhost, so mirroring that test with the comp's own rect function is the
-            /// only way a listed spot means a mill that would actually run.</summary>
-            private bool OverlapsExistingWaterUse(IntVec3 cell, Rot4 rotation)
+            // A throwing rule must not empty the whole list, so it counts as no objection.
+            private static bool UsefulAt(Func<IntVec3, Rot4, bool> test, IntVec3 cell, Rot4 rotation)
             {
-                CellRect rect = CompPowerPlantWater.WaterUseRect(cell, rotation);
-                for (int i = 0; i < waterMills.Count; i++)
+                try
                 {
-                    Thing mill = waterMills[i];
-                    if (rect.Overlaps(CompPowerPlantWater.WaterUseRect(mill.Position, mill.Rotation)))
-                        return true;
+                    return test(cell, rotation);
                 }
-                return false;
-            }
-
-            private static bool UsesWatermillPlaceWorker(ThingDef def)
-            {
-                return def.placeWorkers != null
-                    && def.placeWorkers.Contains(typeof(PlaceWorker_WatermillGenerator));
-            }
-
-            // The three sources DrawGhost collects, generalized to whatever def is being placed.
-            private static List<Thing> CollectWaterMills(ThingDef def, Map map)
-            {
-                var mills = new List<Thing>();
-                mills.AddRange(map.listerBuildings.AllBuildingsColonistOfDef(def));
-
-                foreach (Thing thing in map.listerThings.ThingsInGroup(ThingRequestGroup.Blueprint))
+                catch (Exception ex)
                 {
-                    if (thing.def.entityDefToBuild == def)
-                        mills.Add(thing);
+                    ModLogger.LimitedError("Placement usefulness rule error", ex);
+                    return true;
                 }
-                foreach (Thing thing in map.listerThings.ThingsInGroup(ThingRequestGroup.BuildingFrame))
-                {
-                    if (thing.def.entityDefToBuild == def)
-                        mills.Add(thing);
-                }
-
-                return mills;
             }
         }
     }

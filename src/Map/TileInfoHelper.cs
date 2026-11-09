@@ -359,8 +359,8 @@ namespace RimWorldAccess
         /// <summary>
         /// Resources at a tile, for key 3: plants (species, growth, harvestable), Odyssey fish
         /// (species and current/max population, as vanilla's mouseover shows), and deep mineral
-        /// deposits. Deep ore appears only under an active powered scanner, and the empty message
-        /// names only the resource types this tile's context makes relevant.
+        /// deposits (only where <see cref="DeepResourceReveal"/> allows), then <see cref="TileResourceReadouts"/>.
+        /// The empty message names only the resource types this tile's context makes relevant.
         /// </summary>
         public static string GetPlantsInfo(IntVec3 position, Map map)
         {
@@ -371,7 +371,7 @@ namespace RimWorldAccess
             var plants = things.OfType<Plant>().ToList();
             bool hasPlants = plants.Count > 0;
 
-            bool scannerActive = map.deepResourceGrid.AnyActiveDeepScannersOnMap();
+            bool scannerActive = DeepResourceReveal.Revealed(map);
             string deepOreInfo = scannerActive ? GetDeepOreInfo(position, map) : null;
             bool hasDeepOre = !string.IsNullOrEmpty(deepOreInfo);
 
@@ -381,18 +381,24 @@ namespace RimWorldAccess
                 && waterBody != null;
             bool hasFish = onWaterBody && waterBody.HasFish;
 
+            List<string> modLines = TileResourceReadouts.Collect(position, map);
+
+            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
+
             if (!hasPlants && !hasDeepOre && !hasFish)
             {
                 if (onWaterBody && scannerActive)
-                    return "RimWorldAccess.Map.Tile.Plants.NonePlusFishMinerals".Translate();
-                if (onWaterBody)
-                    return "RimWorldAccess.Map.Tile.Plants.NonePlusFish".Translate();
-                if (scannerActive)
-                    return "RimWorldAccess.Map.Tile.Plants.NoneNoMinerals".Translate();
-                return "RimWorldAccess.Map.Tile.Plants.None".Translate();
+                    builder.Add("RimWorldAccess.Map.Tile.Plants.NonePlusFishMinerals".Translate());
+                else if (onWaterBody)
+                    builder.Add("RimWorldAccess.Map.Tile.Plants.NonePlusFish".Translate());
+                else if (scannerActive)
+                    builder.Add("RimWorldAccess.Map.Tile.Plants.NoneNoMinerals".Translate());
+                else
+                    builder.Add("RimWorldAccess.Map.Tile.Plants.None".Translate());
+                foreach (string line in modLines)
+                    builder.Add(line, Separator.Period);
+                return builder.Build();
             }
-
-            var builder = new AnnouncementBuilder().DefaultSep(Separator.Comma);
 
             if (hasPlants)
             {
@@ -429,6 +435,9 @@ namespace RimWorldAccess
 
             if (hasDeepOre)
                 builder.Add("RimWorldAccess.Map.Tile.Plants.DeepHeader".Translate(deepOreInfo), Separator.Period);
+
+            foreach (string line in modLines)
+                builder.Add(line, Separator.Period);
 
             return builder.Build();
         }
@@ -1104,15 +1113,15 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Deep ore at a tile ("gold, 300 remaining"), or null. Gated on a powered scanner
-        /// existing, matching what a sighted player can see.
+        /// Deep ore at a tile ("gold, 300 remaining"), or null. Gated on <see cref="DeepResourceReveal"/>,
+        /// matching what a sighted player can see.
         /// </summary>
         public static string GetDeepOreInfo(IntVec3 position, Map map)
         {
             if (map == null || !position.InBounds(map))
                 return null;
 
-            if (!map.deepResourceGrid.AnyActiveDeepScannersOnMap())
+            if (!DeepResourceReveal.Revealed(map))
                 return null;
 
             ThingDef oreDef = map.deepResourceGrid.ThingDefAt(position);
@@ -1126,14 +1135,15 @@ namespace RimWorldAccess
             return "RimWorldAccess.Map.Tile.Plants.DeepOreInfo".Translate(oreDef.label, count);
         }
 
-        /// <summary>
-        /// Whether the architect designator now in placement mode reveals deep resources,
-        /// as a deep drill does.
-        /// </summary>
+        /// <summary>Whether the placement cursor shows deep resources: from the selection, whatever is placed, or for a deep drill.</summary>
         public static bool ShouldShowDeepOreForCurrentDesignator()
         {
             if (!ArchitectState.IsInPlacementMode)
                 return false;
+
+            Map map = Find.CurrentMap;
+            if (map != null && (SelectionShowsDeepResources(map) || DeepResourceReveal.ModRevealed(map)))
+                return true;
 
             Designator designator = ArchitectState.SelectedDesignator;
             if (designator == null)
@@ -1153,6 +1163,16 @@ namespace RimWorldAccess
             }
 
             return false;
+        }
+
+        /// <summary>Mirrors the gate of <c>DeepResourceGrid.DeepResourcesOnGUI</c>, which draws the readout at the pointer during placement too.</summary>
+        private static bool SelectionShowsDeepResources(Map map)
+        {
+            Thing selected = Find.Selector.SingleSelectedThing;
+            if (selected == null)
+                return false;
+            return (selected.TryGetComp<CompDeepScanner>() != null || selected.TryGetComp<CompDeepDrill>() != null)
+                && map.deepResourceGrid.AnyActiveDeepScannersOnMap();
         }
     }
 }

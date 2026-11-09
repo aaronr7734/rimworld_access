@@ -101,9 +101,10 @@ namespace RimWorldAccess
         public static string LocalizeCategoryName(string name)
         {
             if (string.IsNullOrEmpty(name)) return name;
-            return CategoryKeys.TryGetValue(name, out string suffix)
-                ? ("RimWorldAccess.Map.Scanner.CatName." + suffix).Translate().ToString()
-                : name;
+            if (CategoryKeys.TryGetValue(name, out string suffix))
+                return ("RimWorldAccess.Map.Scanner.CatName." + suffix).Translate().ToString();
+            ScannerCellLayer layer = ScannerCellLayerRegistry.Find(name);
+            return layer != null ? layer.CategoryLabelKey.Translate().ToString() : name;
         }
 
         /// <summary>
@@ -122,6 +123,18 @@ namespace RimWorldAccess
 
             string catPart = fullName.Substring(0, dash);
             string subPart = fullName.Substring(dash + 1);
+
+            ScannerCellLayer layer = ScannerCellLayerRegistry.Find(catPart);
+            if (layer != null)
+            {
+                if (subPart == "All")
+                    return LocalizeCategoryName(catPart);
+                string layerSubKey = ScannerCellLayerRegistry.SubcategoryLabelKey(layer, subPart);
+                return layerSubKey == null
+                    ? fullName
+                    : "RimWorldAccess.Map.Scanner.SubFullName".Translate(
+                        LocalizeCategoryName(catPart), layerSubKey.Translate().ToString()).ToString();
+            }
 
             // Anything dynamic (search "Search: foo-All", "Uncategorized-{defName}") falls
             // through to the original string.
@@ -164,14 +177,16 @@ namespace RimWorldAccess
         private readonly Dictionary<ScannerSubcategory, ScannerCategory> _parentByChild = new Dictionary<ScannerSubcategory, ScannerCategory>();
 
         /// <summary>
-        /// Builds every category and subcategory from the declarative schema. Uncategorized
-        /// is created empty; the caller populates its def-driven subcategories at runtime.
+        /// Builds every category and subcategory from the declarative schema, then one per
+        /// registered <see cref="ScannerCellLayer"/>. Uncategorized is created empty; the caller populates its def-driven subcategories at runtime.
         /// </summary>
         public static ScannerBuckets BuildFromSchema()
         {
             var buckets = new ScannerBuckets();
             foreach (var schema in ScannerCategorySchemas.All)
                 buckets.AddCategory(schema.Build());
+            foreach (var layer in ScannerCellLayerRegistry.Layers)
+                buckets.AddCategory(layer.Schema().Build());
 
             // Still gets an "All" subcategory at index 0 via ScannerCategory.Create.
             buckets.AddCategory(ScannerCategory.Create("Uncategorized"));
