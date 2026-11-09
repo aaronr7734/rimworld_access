@@ -935,7 +935,8 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>seçili</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>seçili değil</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Listelenen tüm kişileri seç</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>{0} kişisini seç</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>Ayarlar</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>Liste kontrolleri</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Dışa aktar, panoya kopyala</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Dışa aktar, dosyaya kaydet</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:

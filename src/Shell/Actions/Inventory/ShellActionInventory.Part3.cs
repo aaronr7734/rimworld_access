@@ -114,6 +114,12 @@ namespace RimWorldAccess.Shell
             c.Register(InputAction.ForScreen("rimTalkTtsVoiceSelection", "rimTalkTtsVoiceSelection.activateFocused",
                 new List<KeyChord> { KeyChord.Of(KeyCode.Space) }));
 
+            // ---- PersonaDirector's two PawnRosterList windows: the row icon's info card ----
+            c.Register(InputAction.ForScreen("rimTalkPersonaDirectorBatch", "rimTalkPersonaDirectorBatch.infoCard",
+                new List<KeyChord> { KeyChord.Of(KeyCode.I, alt: true) }));
+            c.Register(InputAction.ForScreen("rimTalkPersonaDirectorAutoEvolve", "rimTalkPersonaDirectorAutoEvolve.infoCard",
+                new List<KeyChord> { KeyChord.Of(KeyCode.I, alt: true) }));
+
             // The pause menu registers nothing: pure shared menu grammar.
 
             // ---- extra menus -> map.menu.extras (opens a real FloatMenu) ----

@@ -286,6 +286,16 @@
   <RimWorldAccess.Building.Place.SpotFacing>orientado al {0}</RimWorldAccess.Building.Place.SpotFacing>
   <RimWorldAccess.Building.Place.SpacingInRange>{0} cuadros de separación, espaciado correcto</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>{0} cuadros de separación, espaciado incorrecto</RimWorldAccess.Building.Place.SpacingOutOfRange>
+
+  <!-- A wind turbine (or modded wind pump) ghost outlines the cells its wind must cross; a roof
+       or a wind-blocking thing on one cuts output. {0} = the blockers, each with "x count" when
+       more than one cell, e.g. "oak tree x3 and constructed roof"; {1} = the output reduction
+       as a percentage. -->
+  <RimWorldAccess.Building.Place.WindPathClear>Trayectoria del viento libre</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>Trayectoria del viento bloqueada por {0}, producción reducida {1}</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Trayectoria del viento bloqueada por {0}, sin producción</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- {0} = blocker label, {1} = how many wind cells it blocks (always 2 or more). -->
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>Área necesaria, {0} por {1}, {2} cuadros {3}, adecuada</RimWorldAccess.Building.Place.OutlineOkAt>
   <RimWorldAccess.Building.Place.OutlineOkHere>Área necesaria, {0} por {1}, en el cursor, adecuada</RimWorldAccess.Building.Place.OutlineOkHere>
   <RimWorldAccess.Building.Place.OutlineBadAt>Área necesaria, {0} por {1}, {2} cuadros {3}, no adecuada</RimWorldAccess.Building.Place.OutlineBadAt>

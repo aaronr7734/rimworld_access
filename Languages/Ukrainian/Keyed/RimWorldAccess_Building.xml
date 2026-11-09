@@ -286,6 +286,10 @@
   <RimWorldAccess.Building.Place.SpotFacing>обличчям до {0}</RimWorldAccess.Building.Place.SpotFacing>
   <RimWorldAccess.Building.Place.SpacingInRange>{0} клітинок одне від одного, інтервал правильний</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>{0} клітинок одне від одного, інтервал неправильний</RimWorldAccess.Building.Place.SpacingOutOfRange>
+  <RimWorldAccess.Building.Place.WindPathClear>Шлях вітру вільний</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>Шлях вітру заблоковано: {0}, вихід знижено на {1}</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Шлях вітру заблоковано: {0}, виходу немає</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>Необхідна область, {0} на {1}, {2} клітинок {3}, придатна</RimWorldAccess.Building.Place.OutlineOkAt>
   <RimWorldAccess.Building.Place.OutlineOkHere>Необхідна область, {0} на {1}, під курсором, придатна</RimWorldAccess.Building.Place.OutlineOkHere>
   <RimWorldAccess.Building.Place.OutlineBadAt>Необхідна область, {0} на {1}, {2} клітинок {3}, непридатна</RimWorldAccess.Building.Place.OutlineBadAt>

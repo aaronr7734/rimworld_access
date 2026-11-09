@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <RimWorldAccess.Styling.Opened>正在为 {0} 设计造型。按 Tab 切换分区。按回车键应用造型并选择其颜色。按 Alt S 应用所有更改，右方括号重置，Escape 取消。</RimWorldAccess.Styling.Opened>
+  <RimWorldAccess.Styling.Opened>正在为 {0} 设计造型。按回车键应用造型并选择其颜色。按 Alt S 应用所有更改，右方括号重置，Escape 取消。</RimWorldAccess.Styling.Opened>
   <RimWorldAccess.Styling.TabPosition>第 {0} 个标签页，共 {1} 个</RimWorldAccess.Styling.TabPosition>
   <RimWorldAccess.Styling.TabHeader>{0}. {1} 项。</RimWorldAccess.Styling.TabHeader>
   <RimWorldAccess.Styling.TabEmpty>{0}. 无可用项。</RimWorldAccess.Styling.TabEmpty>

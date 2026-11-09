@@ -930,7 +930,8 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>вибрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>не вибрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Вибрати всіх персонажів зі списку</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>Вибрати: {0}</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>Налаштування</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>Керування списком</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Експорт, копіювати в буфер обміну</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Експорт, зберегти у файл</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:

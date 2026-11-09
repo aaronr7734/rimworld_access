@@ -701,7 +701,8 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>выбрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>не выбрано</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Выбрать всех персонажей из списка</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>Выбрать: {0}</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>Настройки</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>Управление списком</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Экспорт, копирование в буфер обмена</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Экспорт, сохранение в файл</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:

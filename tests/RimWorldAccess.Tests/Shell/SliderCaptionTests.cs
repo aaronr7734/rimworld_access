@@ -127,3 +127,20 @@ public class SliderCaptionFractionalTests
         Assert.Equal(expected, SliderCaption.CaptionImpliesFractional(caption, value, min, max));
     }
 }
+
+public class SliderCaptionTrailingValueTests
+{
+    [Theory]
+    [InlineData("Speed Multiplier 2", 2f, "Speed Multiplier")]
+    [InlineData("Meditation Focus Strength 0.75", 0.75f, "Meditation Focus Strength")]
+    [InlineData("Facteur 1,5", 1.5f, "Facteur")]
+    [InlineData("Speed Multiplier 2", 3f, null)]
+    [InlineData("Cooldown 3h", 3f, null)]
+    [InlineData("Version 1,000", 1f, null)]
+    [InlineData("2", 2f, null)]
+    [InlineData("", 2f, null)]
+    public void NameBeforeTrailingValue_StripsOnlyTheSlidersOwnValue(string caption, float value, string expected)
+    {
+        Assert.Equal(expected, SliderCaption.NameBeforeTrailingValue(caption, value));
+    }
+}

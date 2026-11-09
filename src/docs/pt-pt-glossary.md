@@ -349,3 +349,18 @@ Mod strings that had slipped through in Brazilian wording or untranslated Englis
 | around | em redor de | ao redor de |
 
 Pre-AO90 spellings applied across Keyed: activo, actual, acção, selecção, direcção, directo, afectar, eléctrico, objecto, protecção, correcção, óptimo, selector, leccionar, recto.
+
+## Rulings from the StyleDescriptions pt-BR to pt-PT rewrite (2026-11-09)
+
+Hair, beard and tattoo descriptions (`RimWorldAccess_StyleDescriptions.xml`); keep these in later waves.
+
+| English | Português (EU) | Not |
+|---|---|---|
+| hair part / parting (noun) | risca ("repartido" stays fine as the participle) | divisão |
+| shaved / shorn | rapado | raspado |
+| scalp stubble | cabelo rapado / cabelo muito curto | barba rala (keep "barba rala" for facial stubble only) |
+| handlebar (mustache) | bigode estilo guiador | guidão |
+| fin (shape) | barbatana | nadadeira |
+| look / appearance | aspecto (pre-AO90) | aspeto, visual |
+| mop (of hair) | cabeleira | mecha, madeixa ("madeixa" is a single lock) |
+| progressive participle clauses | a + infinitive ("a cair", "a emoldurar") or a relative clause; bare gerunds read Brazilian | caindo, emoldurando |

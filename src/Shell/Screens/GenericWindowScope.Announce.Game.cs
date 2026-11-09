@@ -137,8 +137,7 @@ namespace RimWorldAccess.Shell
         /// </summary>
         private string SectionPrefixFor(PresentationRow row)
         {
-            // Cross before the title suppression: a title-suppressed section is still recorded, so it
-            // stays silent on its later rows too.
+            // Cross first: a title-suppressed section is still recorded, so its later rows stay silent.
             string section = sectionPrefix.Cross(row.Section);
             if (section == null)
             {
@@ -159,7 +158,12 @@ namespace RimWorldAccess.Shell
         {
             ElementDescription d = new ElementDescription();
             d.Label = row.Label;
-            d.Disabled = row.Source != null && row.Source.Disabled;
+            // Strips often draw the current tab inert; on a selected tab that is its state, not a gate.
+            d.Disabled = row.Source != null && row.Source.Disabled
+                && !(row.Kind == WidgetKind.Tab && row.EffectiveSelected);
+            d.SearchMatch = (row.Source != null && row.Source.SearchMatch)
+                || (row.RingCaptureIndex >= 0 && row.RingCaptureIndex < captureRows.Count
+                    && captureRows[row.RingCaptureIndex].SearchMatch);
             if (row.SuppressGenericTip)
             {
                 // One toggle of a multi-icon WidgetRow run whose registered tooltip resolved

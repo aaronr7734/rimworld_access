@@ -16,10 +16,7 @@ namespace RimWorldAccess.Shell
     /// bounds case can be recognised without guessing, and
     /// <see cref="AreBoundMarkers"/> is that test.
     /// </summary>
-    /// <summary>
-    /// A slider's name, and what the reader may do with it — see
-    /// <see cref="SliderCaption.ResolveName"/>.
-    /// </summary>
+    /// <summary>A slider's name, and what the reader may do with it (<see cref="SliderCaption.ResolveName"/>).</summary>
     public struct SliderName
     {
         /// <summary>The name, or "" when nothing named the slider.</summary>
@@ -119,6 +116,45 @@ namespace RimWorldAccess.Shell
                 return false;
             }
             return Math.Abs(shown - (double)value * 100.0) <= 1.0;
+        }
+
+        /// <summary>"Speed 2.5" at 2.5 gives "Speed"; null unless the whole last word is the
+        /// slider's current value.</summary>
+        public static string NameBeforeTrailingValue(string caption, float value)
+        {
+            if (string.IsNullOrWhiteSpace(caption))
+            {
+                return null;
+            }
+            string text = caption.TrimEnd();
+            int space = text.LastIndexOf(' ');
+            if (space < 1)
+            {
+                return null;
+            }
+            double shown;
+            if (!TryParseNumberToken(text.Substring(space + 1), out shown)
+                || Math.Abs(shown - value) > 0.0001 * Math.Max(1.0, Math.Abs((double)value)))
+            {
+                return null;
+            }
+            string name = text.Substring(0, space).TrimEnd();
+            return name.Length > 0 ? name : null;
+        }
+
+        // A comma before exactly three digits may be thousands grouping, so it is refused.
+        private static bool TryParseNumberToken(string token, out double number)
+        {
+            System.Globalization.CultureInfo invariant = System.Globalization.CultureInfo.InvariantCulture;
+            const System.Globalization.NumberStyles style = System.Globalization.NumberStyles.AllowLeadingSign
+                | System.Globalization.NumberStyles.AllowDecimalPoint;
+            if (double.TryParse(token, style, invariant, out number))
+            {
+                return true;
+            }
+            int comma = token.IndexOf(',');
+            return comma >= 0 && token.Length - comma - 1 != 3 && token.IndexOf('.') < 0
+                && double.TryParse(token.Replace(',', '.'), style, invariant, out number);
         }
 
         /// <summary>The last number in <paramref name="text"/>, read with either decimal separator.</summary>

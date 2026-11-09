@@ -52,8 +52,7 @@ namespace RimWorldAccess.Shell
             float uiScale = Prefs.UIScale > 0f ? Prefs.UIScale : 1f;
             IReadOnlyList<OptionBackgroundMarker> markers = WidgetCapture.OptionBackgroundMarkers;
             List<TabStripRow> probe = new List<TabStripRow>();
-            // Probe index -> presentationRows index; the two diverge because real tab rows are
-            // left out of the probe.
+            // Probe index -> presentationRows index; real tab rows are left out of the probe.
             List<int> probeRows = new List<int>();
             for (int i = 0; i < presentationRows.Count; i++)
             {
@@ -126,6 +125,45 @@ namespace RimWorldAccess.Shell
                 // Null, not false, without a tint verdict, so EffectiveSelected falls through to
                 // the captured row's own flag rather than asserting a selection.
                 row.Selected = selected < 0 ? (bool?)null : (i == selected);
+            }
+        }
+
+        /// <summary>A registered window's current-page button and the consecutive plain buttons on its clip and line become a tab strip (<see cref="WindowPageButtonRegistry"/>).</summary>
+        private void PromoteRegisteredPageButtons()
+        {
+            string current = WindowPageButtonRegistry.CurrentCaption(window);
+            if (string.IsNullOrEmpty(current))
+            {
+                return;
+            }
+            IReadOnlyList<OptionBackgroundMarker> markers = WidgetCapture.OptionBackgroundMarkers;
+            int selected = presentationRows.FindIndex(r => ClassifyForTabStrip(r, markers) == TabStripRowKind.Button
+                && r.Source.Kind == WidgetKind.Button && string.Equals(r.Source.Label, current, StringComparison.Ordinal));
+            if (selected < 0)
+            {
+                return;
+            }
+            PresentationRow anchor = presentationRows[selected];
+            Func<PresentationRow, bool> isMember = r => ClassifyForTabStrip(r, markers) == TabStripRowKind.Button
+                && r.Source.Kind == WidgetKind.Button && r.Clip.Equals(anchor.Clip) && SharesBand(r.ScreenRect, anchor.ScreenRect);
+            int first = selected;
+            while (first > 0 && isMember(presentationRows[first - 1]))
+            {
+                first--;
+            }
+            int last = selected;
+            while (last + 1 < presentationRows.Count && isMember(presentationRows[last + 1]))
+            {
+                last++;
+            }
+            if (first == last)
+            {
+                return;
+            }
+            for (int i = first; i <= last; i++)
+            {
+                presentationRows[i].Kind = WidgetKind.Tab;
+                presentationRows[i].Selected = i == selected;
             }
         }
 
@@ -568,7 +606,16 @@ namespace RimWorldAccess.Shell
                     clipId = clipIds.Count;
                     clipIds.Add(clip, clipId);
                 }
-                paneRows[i] = new PaneOrderRow { ClipId = clipId, X = effectiveRect[i].xMin, Y = effectiveRect[i].yMin };
+                CapturedWidget source = presentationRows[i].Source;
+                paneRows[i] = new PaneOrderRow
+                {
+                    ClipId = clipId,
+                    ContainerId = source != null && source.ContainerIndex >= 0 ? source.ContainerIndex : (int?)null,
+                    X = effectiveRect[i].xMin,
+                    XMax = effectiveRect[i].xMax,
+                    Y = effectiveRect[i].yMin,
+                    YMax = effectiveRect[i].yMax,
+                };
             }
             IReadOnlyList<int> paneRank = PaneOrder.ComputePaneRanks(paneRows);
 

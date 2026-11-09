@@ -28,7 +28,7 @@
 
   <!-- Window lifecycle (HistoryState / HistoryPatch). Intro is spoken when
        the History tab opens; it orients the user to Tab switching. -->
-  <RimWorldAccess.History.Intro>Historial. Tab alterna entre las pestañas Estadísticas y Mensajes.</RimWorldAccess.History.Intro>
+  <RimWorldAccess.History.Intro>Historial.</RimWorldAccess.History.Intro>
   <RimWorldAccess.History.Closed>Historial cerrado</RimWorldAccess.History.Closed>
   <RimWorldAccess.History.Tab.Graph>Gráfico</RimWorldAccess.History.Tab.Graph>
 

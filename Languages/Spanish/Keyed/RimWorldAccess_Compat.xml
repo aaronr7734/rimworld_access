@@ -931,7 +931,8 @@
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>seleccionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>no seleccionado</RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>Seleccionar todos los personajes de la lista</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed>
-  <RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>Seleccionar {0}</RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectPawn>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>Configuración</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.SettingsRegionName>
+  <RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>Controles de la lista</RimWorldAccess.Compat.RimTalk.PersonaDirector.AutoEvolve.ListControlsRegionName>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>Exportar, copiar al portapapeles</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToClipboard>
   <RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>Exportar, guardar en archivo</RimWorldAccess.Compat.RimTalk.PersonaDirector.ExportToFile>
   <!-- PromptEnhanceCompat / PromptEnhanceAnnouncementScope / PromptEnhanceColorPickerScope:

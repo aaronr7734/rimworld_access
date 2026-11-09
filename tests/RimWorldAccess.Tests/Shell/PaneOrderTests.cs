@@ -119,4 +119,92 @@ public class PaneOrderTests
         Assert.Empty(PaneOrder.ComputePaneRanks(new List<PaneOrderRow>()));
         Assert.Empty(PaneOrder.ComputePaneRanks(null));
     }
+
+    private static PaneOrderRow Scrolled(int clip, int container, float x, float xMax, float y, float height = 22f)
+    {
+        return new PaneOrderRow { ClipId = clip, ContainerId = container, X = x, XMax = xMax, Y = y, YMax = y + height };
+    }
+
+    private static PaneOrderRow Chrome(int clip, float x, float xMax, float y, float height)
+    {
+        return new PaneOrderRow { ClipId = clip, X = x, XMax = xMax, Y = y, YMax = y + height };
+    }
+
+    [Fact]
+    public void CollapsibleSectionsNestedInOneScrollView_ShareOnePane_ChromeOutsideStaysApart()
+    {
+        var rows = new List<PaneOrderRow>
+        {
+            Chrome(clip: 0, x: 208f, xMax: 905f, y: 68f, height: 35f),
+            Scrolled(clip: 1, container: 0, x: 208f, xMax: 1052f, y: 161f),
+            Scrolled(clip: 1, container: 0, x: 208f, xMax: 1052f, y: 183f),
+            Scrolled(clip: 2, container: 0, x: 208f, xMax: 1052f, y: 242f),
+            Scrolled(clip: 3, container: 0, x: 208f, xMax: 1052f, y: 280f),
+            Scrolled(clip: 2, container: 0, x: 208f, xMax: 1052f, y: 712f),
+            Scrolled(clip: 1, container: 0, x: 208f, xMax: 1052f, y: 978f),
+            Chrome(clip: 4, x: 580f, xMax: 700f, y: 695f, height: 40f),
+        };
+
+        IReadOnlyList<int> ranks = PaneOrder.ComputePaneRanks(rows);
+
+        Assert.Equal(0, ranks[0]);
+        for (int i = 1; i <= 6; i++)
+        {
+            Assert.Equal(1, ranks[i]);
+        }
+        Assert.Equal(2, ranks[7]);
+    }
+
+    [Fact]
+    public void SideBySideGroupsInOneScrollView_StayApart()
+    {
+        var rows = new List<PaneOrderRow>
+        {
+            Scrolled(clip: 1, container: 0, x: 0f, xMax: 800f, y: 0f),
+            Scrolled(clip: 2, container: 0, x: 0f, xMax: 390f, y: 40f),
+            Scrolled(clip: 3, container: 0, x: 410f, xMax: 800f, y: 40f),
+            Scrolled(clip: 2, container: 0, x: 0f, xMax: 390f, y: 80f),
+            Scrolled(clip: 3, container: 0, x: 410f, xMax: 800f, y: 80f),
+        };
+
+        IReadOnlyList<int> ranks = PaneOrder.ComputePaneRanks(rows);
+
+        Assert.Equal(ranks[0], ranks[1]);
+        Assert.NotEqual(ranks[1], ranks[2]);
+        Assert.Equal(ranks[1], ranks[3]);
+        Assert.Equal(ranks[2], ranks[4]);
+        Assert.True(ranks[1] < ranks[2]);
+    }
+
+    [Fact]
+    public void StackedGroupsInDifferentScrollViews_StayApart()
+    {
+        var rows = new List<PaneOrderRow>
+        {
+            Scrolled(clip: 1, container: 0, x: 0f, xMax: 400f, y: 100f),
+            Scrolled(clip: 2, container: 1, x: 0f, xMax: 400f, y: 50f),
+        };
+
+        IReadOnlyList<int> ranks = PaneOrder.ComputePaneRanks(rows);
+
+        Assert.Equal(1, ranks[0]);
+        Assert.Equal(0, ranks[1]);
+    }
+
+    [Fact]
+    public void StackedGroupsOutsideAnyScrollView_StayApart()
+    {
+        var rows = new List<PaneOrderRow>
+        {
+            Chrome(clip: 1, x: 0f, xMax: 800f, y: 0f, height: 35f),
+            Chrome(clip: 2, x: 340f, xMax: 460f, y: 600f, height: 40f),
+            Chrome(clip: 1, x: 0f, xMax: 800f, y: 300f, height: 22f),
+        };
+
+        IReadOnlyList<int> ranks = PaneOrder.ComputePaneRanks(rows);
+
+        Assert.Equal(0, ranks[0]);
+        Assert.Equal(1, ranks[1]);
+        Assert.Equal(0, ranks[2]);
+    }
 }

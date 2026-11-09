@@ -28,7 +28,7 @@
        OpenInstructions: appended after "ChooseNextColonySite".Translate().
        MustChooseValid: spoken when the player presses Escape (cannot cancel).
        ErrorSelectingTile: spoken on exception during tile confirmation. -->
-  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Стрілки для навігації, PageUp і PageDown для сканера, Enter для підтвердження. Скасувати не можна — потрібно обрати придатну плитку.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
+  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Стрілки для навігації, PageUp і PageDown для сканера, Enter для підтвердження. Скасувати не можна: потрібно обрати придатну плитку.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
   <RimWorldAccess.Archonexus.TilePick.MustChooseValid>Щоб продовжити, потрібно обрати придатну плитку.</RimWorldAccess.Archonexus.TilePick.MustChooseValid>
   <RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>Помилка вибору плитки</RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>
 

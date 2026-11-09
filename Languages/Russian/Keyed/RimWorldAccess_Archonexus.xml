@@ -28,7 +28,7 @@
        OpenInstructions: appended after "ChooseNextColonySite".Translate().
        MustChooseValid: spoken when the player presses Escape (cannot cancel).
        ErrorSelectingTile: spoken on exception during tile confirmation. -->
-  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Используйте стрелки для навигации, PageUp и PageDown для сканера, Enter — подтвердить. Отменить нельзя — вы должны выбрать подходящую клетку.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
+  <RimWorldAccess.Archonexus.TilePick.OpenInstructions>Используйте стрелки для навигации, PageUp и PageDown для сканера, Enter — подтвердить. Отменить нельзя: нужно выбрать подходящую клетку.</RimWorldAccess.Archonexus.TilePick.OpenInstructions>
   <RimWorldAccess.Archonexus.TilePick.MustChooseValid>Чтобы продолжить, вы должны выбрать подходящую клетку.</RimWorldAccess.Archonexus.TilePick.MustChooseValid>
   <RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>Ошибка при выборе клетки</RimWorldAccess.Archonexus.TilePick.ErrorSelectingTile>
 

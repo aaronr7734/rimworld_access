@@ -39,6 +39,7 @@
   <RimWorldAccess.Shell.State.Sortable>sortable</RimWorldAccess.Shell.State.Sortable>
   <RimWorldAccess.Shell.State.SortedAscending>sorted ascending</RimWorldAccess.Shell.State.SortedAscending>
   <RimWorldAccess.Shell.State.SortedDescending>sorted descending</RimWorldAccess.Shell.State.SortedDescending>
+  <RimWorldAccess.Shell.State.SearchMatch>search match</RimWorldAccess.Shell.State.SearchMatch>
 
   <!-- ScreenScope shared screen shape (screen-model refactor): the
        automatic Toolbar region name and the empty-region word. -->

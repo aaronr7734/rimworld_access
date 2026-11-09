@@ -85,6 +85,8 @@ namespace RimWorldAccess.Shell
                     return "RimWorldAccess.Shell.State.SortedAscending".Translate();
                 case ElementStateWord.SortedDescending:
                     return "RimWorldAccess.Shell.State.SortedDescending".Translate();
+                case ElementStateWord.SearchMatch:
+                    return "RimWorldAccess.Shell.State.SearchMatch".Translate();
                 default:
                     return string.Empty;
             }

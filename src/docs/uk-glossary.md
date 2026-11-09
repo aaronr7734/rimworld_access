@@ -442,3 +442,4 @@ forbidden per this glossary's standing rule, so the Watermill keys use the flat 
 | timeline / chronicle (RimTalk memory) | Хронологія / Хроніка | Coined; «Спогади» stays the memory nodes |
 | memory layer | шар | Matches existing `LayerActive` «Активний шар» |
 | Customize (Vehicle Framework tab) | Налаштування | Mod-neutral tab noun |
+| wind path (turbine placement) | шлях вітру | Coined; blocker shown after a colon to keep it nominative |

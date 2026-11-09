@@ -1,0 +1,1 @@
+Settings inside an open section now read in place, right under the section heading, instead of after every other section and the Close button. This helps XML Extensions settings pages and any other settings page built from nested sections.

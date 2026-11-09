@@ -5,7 +5,7 @@ namespace RimWorldAccess
 {
     /// <summary>
     /// Tech Advancing. Its config window and settings page ride the generic reader, raw GUI calls
-    /// included. The window's only in-game entry point, an icon button the mod patches onto the
+    /// included, with the window's page buttons registered as tabs. The window's only in-game entry point, an icon button the mod patches onto the
     /// research tab that our research menu cannot see, is mirrored here as a
     /// <see cref="CompatScreenActions"/> row.
     /// </summary>
@@ -22,6 +22,8 @@ namespace RimWorldAccess
             {
                 return;
             }
+
+            TechAdvancingCompat.RegisterPageButtons();
 
             // The button sits on the research window's left pane, visible from either view.
             CompatScreenActions.Register("research-menu", ConfigAction);

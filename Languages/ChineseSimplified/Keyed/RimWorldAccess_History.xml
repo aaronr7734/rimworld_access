@@ -28,7 +28,7 @@
 
   <!-- Window lifecycle (HistoryState / HistoryPatch). Intro is spoken when
        the History tab opens; it orients the user to Tab switching. -->
-  <RimWorldAccess.History.Intro>历史。Tab 键在统计数据和消息选项卡之间切换。</RimWorldAccess.History.Intro>
+  <RimWorldAccess.History.Intro>历史。</RimWorldAccess.History.Intro>
   <RimWorldAccess.History.Closed>历史已关闭</RimWorldAccess.History.Closed>
   <RimWorldAccess.History.Tab.Graph>统计图表</RimWorldAccess.History.Tab.Graph>
 

@@ -39,6 +39,7 @@
   <RimWorldAccess.Shell.State.Sortable>sıralanabilir</RimWorldAccess.Shell.State.Sortable>
   <RimWorldAccess.Shell.State.SortedAscending>artan sıralı</RimWorldAccess.Shell.State.SortedAscending>
   <RimWorldAccess.Shell.State.SortedDescending>azalan sıralı</RimWorldAccess.Shell.State.SortedDescending>
+  <RimWorldAccess.Shell.State.SearchMatch>arama eşleşmesi</RimWorldAccess.Shell.State.SearchMatch>
 
   <!-- ScreenScope shared screen shape (screen-model refactor): the
        automatic Toolbar region name and the empty-region word. -->

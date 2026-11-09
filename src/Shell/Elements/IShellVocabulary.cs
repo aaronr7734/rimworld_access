@@ -22,6 +22,7 @@ namespace RimWorldAccess.Shell
         Sortable,
         SortedAscending,
         SortedDescending,
+        SearchMatch,
     }
 
     /// <summary>

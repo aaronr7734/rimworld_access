@@ -286,6 +286,10 @@
   <RimWorldAccess.Building.Place.SpotFacing>orientado al {0}</RimWorldAccess.Building.Place.SpotFacing>
   <RimWorldAccess.Building.Place.SpacingInRange>{0} casillas de separación, espaciado correcto</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>{0} casillas de separación, espaciado incorrecto</RimWorldAccess.Building.Place.SpacingOutOfRange>
+  <RimWorldAccess.Building.Place.WindPathClear>Trayectoria del viento despejada</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>Trayectoria del viento bloqueada por {0}, producción reducida {1}</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Trayectoria del viento bloqueada por {0}, sin producción</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>Área necesaria, {0} por {1}, {2} casillas {3}, adecuada</RimWorldAccess.Building.Place.OutlineOkAt>
   <RimWorldAccess.Building.Place.OutlineOkHere>Área necesaria, {0} por {1}, en el cursor, adecuada</RimWorldAccess.Building.Place.OutlineOkHere>
   <RimWorldAccess.Building.Place.OutlineBadAt>Área necesaria, {0} por {1}, {2} casillas {3}, no adecuada</RimWorldAccess.Building.Place.OutlineBadAt>

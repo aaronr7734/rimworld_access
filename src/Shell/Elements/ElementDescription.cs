@@ -57,6 +57,8 @@ namespace RimWorldAccess.Shell
 
         public bool AtMaximum;
 
+        public bool SearchMatch;
+
         public bool Disabled;
 
         /// <summary>

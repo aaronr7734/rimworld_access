@@ -252,6 +252,8 @@ namespace RimWorldAccess.Shell
 
         public bool HighlightSelected;
 
+        public bool SearchMatch;
+
         /// <summary>
         /// Button rows only: the live <c>GUI.color</c> tint set when this button was drawn.
         /// IMGUI has no "selected button" concept, so a caller hand-rolling

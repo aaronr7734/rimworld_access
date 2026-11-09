@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -9,30 +10,52 @@ namespace RimWorldAccess.Shell
         /// <summary>Opaque identity of the row's clipping context — only equality is used, exactly like <see cref="BandLabelCandidate.ClipId"/>.</summary>
         public int ClipId;
 
+        /// <summary>Opaque identity of the innermost scroll view the row drew in, or null outside every scroll view.</summary>
+        public int? ContainerId;
+
         public float X;
+        public float XMax;
         public float Y;
+        public float YMax;
     }
 
     /// <summary>
-    /// Groups presentation rows by their capture clip (Colony Manager
-    /// Redux's three side-by-side scroll panes read zipper-fashion because the existing sort
-    /// orders every row by raw screen Y-then-X across the WHOLE window, with no notion that
-    /// different clips are different visual panes). Computes, for each row, the RANK of the
-    /// pane (clip) it belongs to — panes ordered top-to-bottom then left-to-right by the
-    /// minimum (Y, X) among the rows captured in that clip.
+    /// Ranks each row's pane, so a window of side-by-side scroll panes (Colony Manager Redux's
+    /// three columns) reads pane by pane instead of zipper-interleaved by raw Y-then-X. A pane
+    /// is a capture clip, ordered by the minimum (Y, X) of its rows; clip visible rects are in
+    /// local space, so the rows' screen rects are the only reliable position.
     ///
-    /// <see cref="GuiSpace.ClipKey.VisibleRect"/> is in the clip's own LOCAL space (see that
-    /// class's remarks), not screen space, so a clip cannot supply its own screen-space
-    /// position directly — the member rows' own (already screen-space) rects are the only
-    /// reliable source of where a pane sits, which is why this never looks past them.
+    /// Every BeginGroup opens a clip, so a listing nested inside a scroll view (a collapsible
+    /// section, Listing_Standard.BeginSection) is a clip of its own though it is a stretch of
+    /// the same column. Clips of one scroll view whose X spans overlap are one pane, unless
+    /// that would join two clips side by side (overlapping in Y, disjoint in X).
     ///
-    /// Callers combine the returned rank as the PRIMARY sort key ahead of their existing
-    /// Y-then-X visual key; two rows sharing a clip always tie here, so their relative order is
-    /// decided entirely by that secondary key — today's sort is unchanged for a single-pane
-    /// window and unchanged WITHIN any one pane of a multi-pane window.
+    /// The rank is the caller's PRIMARY sort key; rows of one pane tie, so their order is left
+    /// entirely to the caller's secondary Y-then-X key.
     /// </summary>
     public static class PaneOrder
     {
+        private sealed class Clip
+        {
+            public int? ContainerId;
+            public float MinX = float.MaxValue;
+            public float MaxX = float.MinValue;
+            public float MinY = float.MaxValue;
+            public float MaxY = float.MinValue;
+            public Clip Parent;
+            public List<Clip> Members;
+
+            public Clip Root()
+            {
+                Clip root = this;
+                while (root.Parent != null)
+                {
+                    root = root.Parent;
+                }
+                return root;
+            }
+        }
+
         /// <summary>
         /// Computes one pane rank per row in <paramref name="rows"/>, index-aligned with the
         /// input. Never null. A single distinct <see cref="PaneOrderRow.ClipId"/> across every
@@ -49,29 +72,66 @@ namespace RimWorldAccess.Shell
                 return ranks;
             }
 
-            var clipMinY = new Dictionary<int, float>();
-            var clipMinX = new Dictionary<int, float>();
+            var clips = new Dictionary<int, Clip>();
+            var order = new List<Clip>();
             for (int i = 0; i < n; i++)
             {
                 PaneOrderRow row = rows[i];
-                float y;
-                if (!clipMinY.TryGetValue(row.ClipId, out y) || row.Y < y)
+                Clip clip;
+                if (!clips.TryGetValue(row.ClipId, out clip))
                 {
-                    clipMinY[row.ClipId] = row.Y;
+                    clip = new Clip { ContainerId = row.ContainerId };
+                    clip.Members = new List<Clip> { clip };
+                    clips.Add(row.ClipId, clip);
+                    order.Add(clip);
                 }
-                float x;
-                if (!clipMinX.TryGetValue(row.ClipId, out x) || row.X < x)
+                clip.MinX = Math.Min(clip.MinX, row.X);
+                clip.MaxX = Math.Max(clip.MaxX, Math.Max(row.X, row.XMax));
+                clip.MinY = Math.Min(clip.MinY, row.Y);
+                clip.MaxY = Math.Max(clip.MaxY, Math.Max(row.Y, row.YMax));
+            }
+
+            for (int a = 0; a < order.Count; a++)
+            {
+                for (int b = a + 1; b < order.Count; b++)
                 {
-                    clipMinX[row.ClipId] = row.X;
+                    if (!SameColumnOfOneScrollView(order[a], order[b]))
+                    {
+                        continue;
+                    }
+                    Clip rootA = order[a].Root();
+                    Clip rootB = order[b].Root();
+                    if (rootA != rootB && !AnySideBySide(rootA.Members, rootB.Members))
+                    {
+                        rootB.Parent = rootA;
+                        rootA.Members.AddRange(rootB.Members);
+                    }
                 }
             }
 
-            List<int> paneOrder = clipMinY.Keys
-                .OrderBy(id => clipMinY[id])
-                .ThenBy(id => clipMinX[id])
+            var paneMinY = new Dictionary<Clip, float>();
+            var paneMinX = new Dictionary<Clip, float>();
+            foreach (Clip clip in order)
+            {
+                Clip pane = clip.Root();
+                float y;
+                if (!paneMinY.TryGetValue(pane, out y) || clip.MinY < y)
+                {
+                    paneMinY[pane] = clip.MinY;
+                }
+                float x;
+                if (!paneMinX.TryGetValue(pane, out x) || clip.MinX < x)
+                {
+                    paneMinX[pane] = clip.MinX;
+                }
+            }
+
+            List<Clip> paneOrder = paneMinY.Keys
+                .OrderBy(pane => paneMinY[pane])
+                .ThenBy(pane => paneMinX[pane])
                 .ToList();
 
-            var rank = new Dictionary<int, int>();
+            var rank = new Dictionary<Clip, int>();
             for (int i = 0; i < paneOrder.Count; i++)
             {
                 rank[paneOrder[i]] = i;
@@ -79,9 +139,32 @@ namespace RimWorldAccess.Shell
 
             for (int i = 0; i < n; i++)
             {
-                ranks[i] = rank[rows[i].ClipId];
+                ranks[i] = rank[clips[rows[i].ClipId].Root()];
             }
             return ranks;
+        }
+
+        private static bool SameColumnOfOneScrollView(Clip a, Clip b)
+        {
+            return a.ContainerId.HasValue && a.ContainerId == b.ContainerId
+                && a.MinX < b.MaxX && b.MinX < a.MaxX;
+        }
+
+        private static bool AnySideBySide(List<Clip> left, List<Clip> right)
+        {
+            foreach (Clip a in left)
+            {
+                foreach (Clip b in right)
+                {
+                    bool sharedBand = a.MinY < b.MaxY && b.MinY < a.MaxY;
+                    bool disjointX = a.MaxX <= b.MinX || b.MaxX <= a.MinX;
+                    if (sharedBand && disjointX)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }

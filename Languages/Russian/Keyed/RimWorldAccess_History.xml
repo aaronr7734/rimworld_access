@@ -28,7 +28,7 @@
 
   <!-- Window lifecycle (HistoryState / HistoryPatch). Intro is spoken when
        the History tab opens; it orients the user to Tab switching. -->
-  <RimWorldAccess.History.Intro>История. Tab переключает между вкладками «Статистика» и «Сообщения».</RimWorldAccess.History.Intro>
+  <RimWorldAccess.History.Intro>История.</RimWorldAccess.History.Intro>
   <RimWorldAccess.History.Closed>История закрыта</RimWorldAccess.History.Closed>
   <RimWorldAccess.History.Tab.Graph>График</RimWorldAccess.History.Tab.Graph>
 

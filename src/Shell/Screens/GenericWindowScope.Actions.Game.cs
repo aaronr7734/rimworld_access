@@ -745,8 +745,15 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
-            PostAdjust(row.ActivateCaptureIndex, direction, CaptionProvesFractional(row));
+            bool fractional = CaptionProvesFractional(row);
+            PostAdjust(row.ActivateCaptureIndex, direction, fractional);
             ArmPendingStateChange(focused);
+            if (fractional)
+            {
+                PendingStateChange pending = pendingStateChange.Value;
+                pending.FractionalAdjustDirection = direction;
+                pendingStateChange = pending;
+            }
         }
 
         /// <summary>The fused caption's evidence that a whole-number-bounded slider is fractional (see <see cref="SliderCaption.CaptionImpliesFractional"/>).</summary>

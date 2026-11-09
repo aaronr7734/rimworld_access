@@ -146,8 +146,8 @@
        {0} = tab count, {1} = passion count, {2} = passion total. -->
   <RimWorldAccess.Biotech.GrowthMoment.TabCount>{0} pestañas</RimWorldAccess.Biotech.GrowthMoment.TabCount>
   <RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>Presiona Enter para confirmar</RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>
-  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>Elige {0} de {1} pasiones y 1 rasgo. {2}. Tab para cambiar de página, Alt+S para confirmar</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
-  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>Elige 1 rasgo. {0}. Tab para cambiar de página, Alt+S para confirmar</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
+  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>Elige {0} de {1} pasiones y 1 rasgo. {2}. Alt+S para confirmar</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>Elige 1 rasgo. {0}. Alt+S para confirmar</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
 
   <!-- Confirm / postpone. {0} = pawn short label. -->
   <RimWorldAccess.Biotech.GrowthMoment.Confirmed>Decisiones de crecimiento confirmadas para {0}</RimWorldAccess.Biotech.GrowthMoment.Confirmed>

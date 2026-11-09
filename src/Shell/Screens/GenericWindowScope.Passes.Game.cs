@@ -163,6 +163,15 @@ namespace RimWorldAccess.Shell
                 return;
             }
             pendingStateChange = null;
+            if (!changed && pending.FractionalAdjustDirection != 0 && row.Kind == WidgetKind.Slider
+                && (pending.FractionalAdjustDirection > 0
+                    ? row.Source.SliderValue < row.Source.SliderMax
+                    : row.Source.SliderValue > row.Source.SliderMin))
+            {
+                PostAdjust(row.ActivateCaptureIndex, pending.FractionalAdjustDirection, false);
+                ArmPendingStateChange(pending.PresentationIndex);
+                return;
+            }
             if (!changed && valueControl && TryAnnounceSwappedLabels(pending))
             {
                 // Deadline reached with the acted control unchanged but a sibling label moved: the

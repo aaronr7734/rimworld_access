@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using HarmonyLib;
 using RimWorld;
 using Verse;
 
@@ -14,19 +13,20 @@ namespace RimWorldAccess.Shell
     /// persona-authoring layer over RimTalk's persona editor. The assembly is never referenced at
     /// compile time; its <c>PersonalityData</c> tasks pass through as boxed objects.
     ///
-    /// Two surfaces:
+    /// Three surfaces:
     /// 1. The F12 extras hub's three-way opener for <c>MainButtonWorker_Director</c>, mirroring
     ///    each Activate() branch as its own labeled entry, since the hub's generic per-def entry
     ///    can only replay the plain-click branch.
     /// 2. <see cref="PersonaDirectorBatchScope"/>, the bespoke table for <c>Window_BatchDirector</c>,
     ///    whose pawn list is a <c>PawnRosterList</c> with a raw-mouse selection column.
+    /// 3. <see cref="PersonaDirectorAutoEvolveScope"/> for <c>Window_AutoEvolveConfig</c>, the
+    ///    other roster window, on its own surface (<see cref="PersonaDirectorAutoEvolveCompat"/>).
     ///
     /// The buttons PersonaDirector adds to RimTalk's persona editor (Edit Notes, Evolve, Set Time)
     /// are plain Widgets drawn inside the editor's own draw, so the generic reader reaches them as
     /// real clicks. Every other window opts into the generic reader
     /// (<see cref="ScopeForWindow.TryRegisterGenericReaderForWindow"/>) or is already eligible by
-    /// absorbing input. Both roster windows get a keyboard selection box per row from
-    /// <see cref="PersonaDirectorRosterSelectionPatch"/>.
+    /// absorbing input.
     /// </summary>
     internal static class PersonaDirectorCompat
     {
@@ -75,7 +75,6 @@ namespace RimWorldAccess.Shell
         private static readonly MethodInfo rosterJumpToPawnMethod;
         private static readonly MethodInfo rosterGetPawnTagMethod;
         private static readonly MethodInfo rosterIsAvailableFilterMethod;
-        private static readonly MethodInfo rosterDrawSelectionMethod;
         private static readonly FieldInfo evolveTaskField;
         private static readonly FieldInfo evolvingWindowField;
         private static readonly Type importExportType;
@@ -144,7 +143,6 @@ namespace RimWorldAccess.Shell
             rosterJumpToPawnMethod = batch.Method(rosterType, "JumpToPawn", new[] { typeof(Pawn) });
             rosterGetPawnTagMethod = batch.Method(rosterType, "GetPawnTag", new[] { typeof(Pawn) });
             rosterIsAvailableFilterMethod = batch.Method(rosterType, "IsAvailableFilter", new[] { typeof(string) });
-            rosterDrawSelectionMethod = batch.Method(rosterType, "DrawSelection", new[] { typeof(UnityEngine.Rect), typeof(int), typeof(Pawn) });
             importExportType = batch.Type("RimPersonaDirector.Window_ImportExport");
             Type featuresPatchType = batch.Type("RimPersonaDirector.Patch_PersonaEditorWindow_DirectorFeatures");
             evolveTaskField = batch.Field(featuresPatchType, "evolveTask");
@@ -155,7 +153,7 @@ namespace RimWorldAccess.Shell
             batchReady = ready && batch.Ready;
         }
 
-        private static object Settings()
+        internal static object Settings()
         {
             return settingsField.GetValue(null);
         }
@@ -253,7 +251,6 @@ namespace RimWorldAccess.Shell
             ScopeForWindow.TryRegisterGenericReaderForWindow("RimPersonaDirector.Window_DirectorNotesEditor");
             ScopeForWindow.TryRegisterGenericReaderForWindow("RimPersonaDirector.Window_LibraryManager");
             ScopeForWindow.TryRegisterGenericReaderForWindow("RimPersonaDirector.Window_PersonaHistory");
-            ScopeForWindow.TryRegisterGenericReaderForWindow("RimPersonaDirector.Window_AutoEvolveConfig");
 
             if (batchReady)
             {
@@ -264,17 +261,15 @@ namespace RimWorldAccess.Shell
             {
                 ScopeForWindow.TryRegisterGenericReaderForWindow("RimPersonaDirector.Window_ImportExport");
             }
-        }
 
-        /// <summary>The roster selection capture (<see cref="PersonaDirectorRosterSelectionPatch"/>), shared by the batch director and the auto evolution config.</summary>
-        public static void ApplyPatches(Harmony harmony)
-        {
-            if (!batchReady || !Ready)
+            if (batchReady && PersonaDirectorAutoEvolveCompat.Ready)
             {
-                return;
+                ScopeForWindow.Register(PersonaDirectorAutoEvolveCompat.WindowType, w => new PersonaDirectorAutoEvolveScope(w));
             }
-            harmony.Patch(rosterDrawSelectionMethod,
-                prefix: new HarmonyMethod(typeof(PersonaDirectorRosterSelectionPatch), nameof(PersonaDirectorRosterSelectionPatch.Prefix)));
+            else
+            {
+                ScopeForWindow.TryRegisterGenericReaderForWindow("RimPersonaDirector.Window_AutoEvolveConfig");
+            }
         }
 
         /// <summary>True while an Evolve started from <paramref name="editor"/> is running; the persona editor's Evolve button reads "Generating" for exactly this span.</summary>
@@ -454,6 +449,13 @@ namespace RimWorldAccess.Shell
         {
             batchWindow.Close(true);
             Find.WindowStack.Add((Window)autoEvolveCtor.Invoke(null));
+        }
+
+        /// <summary>Vehicle A: the auto evolution window's Manual Generation button body, closing it for the batch director.</summary>
+        internal static void SwitchToBatch(Window autoEvolveWindow)
+        {
+            autoEvolveWindow.Close(true);
+            Find.WindowStack.Add((Window)batchDirectorCtor.Invoke(null));
         }
 
         internal static IDictionary BatchFilters()

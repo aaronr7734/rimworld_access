@@ -11,6 +11,33 @@ namespace RimWorldAccess.Shell
 {
     public static partial class WidgetCapture
     {
+        internal static int RowSpanStart()
+        {
+            return passOpen ? CurrentSink.Count : -1;
+        }
+
+        /// <summary>Search-hit outlines are drawn after the rows they surround, so they are applied to a recorded span.</summary>
+        internal static void MarkSearchMatches(int spanStart, List<Rect> highlightScreenRects)
+        {
+            if (!passOpen || spanStart < 0 || highlightScreenRects.Count == 0)
+            {
+                return;
+            }
+            List<CapturedWidget> sink = CurrentSink;
+            for (int i = spanStart; i < sink.Count; i++)
+            {
+                Vector2 center = sink[i].ScreenRect.center;
+                for (int j = 0; j < highlightScreenRects.Count; j++)
+                {
+                    if (highlightScreenRects[j].Contains(center))
+                    {
+                        sink[i].SearchMatch = true;
+                        break;
+                    }
+                }
+            }
+        }
+
         internal static int ExitCustomButtonAndRecord(Rect rect, string label, bool disabled)
         {
             ExitSelfCaptioned();
@@ -133,9 +160,8 @@ namespace RimWorldAccess.Shell
             }
             else if (selectableRowDepth > 0)
             {
-                // Draw order decides which target this is: vanilla draws the row-select hotspot
-                // first and only while unselected, then always the check toggle
-                // (Verse/Widgets.cs:1287-1296).
+                // Draw order decides the target: vanilla draws the row-select hotspot first and only
+                // while unselected, then always the check toggle (Verse/Widgets.cs:1287-1296).
                 row.Composite = (!selectableRowSelected && selectableRowOrdinal == 0)
                     ? CompositeMember.SelectableRowSelect
                     : CompositeMember.SelectableRowCheck;

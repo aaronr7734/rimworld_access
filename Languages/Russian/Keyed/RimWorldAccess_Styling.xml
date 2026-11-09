@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <RimWorldAccess.Styling.Opened>Стилизация: {0}. Tab переключает разделы. Enter применяет стиль и выбирает его цвет. Alt S применяет все изменения, правая квадратная скобка сбрасывает, Escape отменяет.</RimWorldAccess.Styling.Opened>
+  <RimWorldAccess.Styling.Opened>Стилизация: {0}. Enter применяет стиль и выбирает его цвет. Alt S применяет все изменения, правая квадратная скобка сбрасывает, Escape отменяет.</RimWorldAccess.Styling.Opened>
   <RimWorldAccess.Styling.TabPosition>Вкладка {0} из {1}</RimWorldAccess.Styling.TabPosition>
   <RimWorldAccess.Styling.TabHeader>{0}. {1} элементов.</RimWorldAccess.Styling.TabHeader>
   <RimWorldAccess.Styling.TabEmpty>{0}. Ничего не доступно.</RimWorldAccess.Styling.TabEmpty>

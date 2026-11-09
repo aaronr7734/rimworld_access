@@ -41,6 +41,7 @@ internal sealed class FakeVocabulary : IShellVocabulary
             case ElementStateWord.Sortable: return "sortable";
             case ElementStateWord.SortedAscending: return "sorted ascending";
             case ElementStateWord.SortedDescending: return "sorted descending";
+            case ElementStateWord.SearchMatch: return "search match";
             default: return "";
         }
     }

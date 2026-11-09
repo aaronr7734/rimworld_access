@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LanguageData>
 
-  <RimWorldAccess.Styling.Opened>Стилізація {0}. Tab перемикає секції. Enter застосовує стиль і обирає його колір. Alt S застосовує всі зміни, права квадратна дужка скидає, Escape скасовує.</RimWorldAccess.Styling.Opened>
+  <RimWorldAccess.Styling.Opened>Стилізація {0}. Enter застосовує стиль і обирає його колір. Alt S застосовує всі зміни, права квадратна дужка скидає, Escape скасовує.</RimWorldAccess.Styling.Opened>
   <RimWorldAccess.Styling.TabPosition>Вкладка {0} з {1}</RimWorldAccess.Styling.TabPosition>
   <RimWorldAccess.Styling.TabHeader>{0}. {1} елементів.</RimWorldAccess.Styling.TabHeader>
   <RimWorldAccess.Styling.TabEmpty>{0}. Немає доступних.</RimWorldAccess.Styling.TabEmpty>

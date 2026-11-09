@@ -776,7 +776,7 @@
 
   <!-- Capsule slots (same submenu-over-numbered-slots shape as the main editor's own pawn
        presets, S4). {0} = 1-based slot number, {1} = the mod's own stored text or "empty". -->
-  <RimWorldAccess.CharEd.Capsule.SlotLabel>Slot {0}: {1}</RimWorldAccess.CharEd.Capsule.SlotLabel>
+  <RimWorldAccess.CharEd.Capsule.SlotLabel>Compartimento {0}: {1}</RimWorldAccess.CharEd.Capsule.SlotLabel>
   <RimWorldAccess.CharEd.Capsule.SlotEmpty>vazio</RimWorldAccess.CharEd.Capsule.SlotEmpty>
   <!-- Save feedback reuses the shared RimWorldAccess.CharEd.Saved. -->
   <RimWorldAccess.CharEd.Capsule.SlotLoaded>Carregado.</RimWorldAccess.CharEd.Capsule.SlotLoaded>

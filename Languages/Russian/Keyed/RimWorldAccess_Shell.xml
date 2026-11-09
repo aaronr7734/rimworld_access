@@ -33,6 +33,7 @@
   <RimWorldAccess.Shell.State.Sortable>сортируемый</RimWorldAccess.Shell.State.Sortable>
   <RimWorldAccess.Shell.State.SortedAscending>отсортировано по возрастанию</RimWorldAccess.Shell.State.SortedAscending>
   <RimWorldAccess.Shell.State.SortedDescending>отсортировано по убыванию</RimWorldAccess.Shell.State.SortedDescending>
+  <RimWorldAccess.Shell.State.SearchMatch>совпадение поиска</RimWorldAccess.Shell.State.SearchMatch>
 
   <!-- ScreenScope shared screen shape (screen-model refactor): the
        automatic Buttons region name and the empty-region word. -->

@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Reflection;
 using HarmonyLib;
 using RimWorldAccess.Shell;
@@ -26,7 +28,12 @@ namespace RimWorldAccess
     ///
     /// Searchbox is a bare text field whose only caption is a magnifier icon, and whose result
     /// count is drawn only after every setting has drawn. The field is named, and the count rides
-    /// that name rather than landing as a stray row at the end of the page.
+    /// that name rather than landing as a stray row at the end of the page. Search hits show only
+    /// as outline boxes drawn after every setting, so each row inside one is marked a match once
+    /// the page has drawn.
+    ///
+    /// Slider and Range store their value rounded to their own <c>decimals</c>, which their
+    /// vanilla widget calls never declare, so the keyboard steps on that grid.
     /// </summary>
     internal static class XmlExtensionsSettingsCompat
     {
@@ -45,6 +52,10 @@ namespace RimWorldAccess
         private static FieldInfo searchTextField;
         private static FieldInfo foundResultsField;
         private static FieldInfo showCountField;
+        private static FieldInfo sliderDecimalsField;
+        private static FieldInfo rangeDecimalsField;
+        private static FieldInfo postDrawRectField;
+        private static FieldInfo childCollectionsField;
         private static MethodInfo translateIfTKeyAvailable;
         private static object stateOpen;
         private static object stateClosed;
@@ -61,6 +72,9 @@ namespace RimWorldAccess
         /// </summary>
         private static object searchCountOwner;
         private static string searchCountText;
+
+        /// <summary>The search-hit outlines drawn during the settings page now drawing, in screen space.</summary>
+        private static readonly List<Rect> searchHitRects = new List<Rect>();
 
         public static void Register(Harmony harmony)
         {
@@ -89,6 +103,12 @@ namespace RimWorldAccess
                 searchTextField = surface.Field(menuDefType, "searchText");
                 foundResultsField = surface.Field(menuDefType, "foundResults");
                 showCountField = surface.Field(searchboxType, "showCount");
+                Type sliderType = surface.Type("XmlExtensions.Setting.Slider");
+                Type rangeType = surface.Type("XmlExtensions.Setting.Range");
+                sliderDecimalsField = surface.Field(sliderType, "decimals");
+                rangeDecimalsField = surface.Field(rangeType, "decimals");
+                postDrawRectField = surface.Field(surface.Type("XmlExtensions.Container"), "postDrawRect");
+                childCollectionsField = surface.Field(surface.Type("XmlExtensions.Container"), "initializedContainerCollections");
                 translateIfTKeyAvailable = surface.Method(surface.Type("XmlExtensions.StringExtensions"),
                     "TranslateIfTKeyAvailable", new[] { typeof(string), typeof(string) });
 
@@ -101,6 +121,10 @@ namespace RimWorldAccess
                 MethodInfo drawSettingsList = surface.Method(containerType, "DrawSettingsList", null);
                 MethodInfo drawSearchbox = surface.Method(searchboxType, "DrawSettingContents", new[] { typeof(Rect) });
                 MethodInfo postDrawSearchbox = surface.Method(searchboxType, "PostDrawSettingContents", new[] { typeof(Rect) });
+                MethodInfo drawSlider = surface.Method(sliderType, "DrawSettingContents", new[] { typeof(Rect) });
+                MethodInfo drawRange = surface.Method(rangeType, "DrawSettingContents", new[] { typeof(Rect) });
+                MethodInfo filterBox = surface.Method(containerType, "FilterBox", new[] { typeof(Rect) });
+                MethodInfo drawSettingsMenu = surface.Method(menuDefType, "DrawSettingsMenu", new[] { typeof(Rect) });
                 if (!surface.Ready || !stateType.IsEnum
                     || !Enum.IsDefined(stateType, "Open") || !Enum.IsDefined(stateType, "Closed"))
                 {
@@ -131,6 +155,17 @@ namespace RimWorldAccess
                 harmony.Patch(postDrawSearchbox,
                     prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SearchCountPrefix)),
                     finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SearchCountFinalizer)));
+                harmony.Patch(drawSlider,
+                    prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SliderPrefix)),
+                    finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(StepGridFinalizer)));
+                harmony.Patch(drawRange,
+                    prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(RangePrefix)),
+                    finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(StepGridFinalizer)));
+                harmony.Patch(filterBox,
+                    prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(FilterBoxPrefix)));
+                harmony.Patch(drawSettingsMenu,
+                    prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SettingsMenuPrefix)),
+                    finalizer: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(SettingsMenuFinalizer)));
             }
             catch (Exception ex)
             {
@@ -307,6 +342,58 @@ namespace RimWorldAccess
         {
             WidgetCapture.ExitFilterPanelSuppression();
             return __exception;
+        }
+
+        private static void SliderPrefix(object __instance)
+        {
+            WidgetCapture.EnterDeclaredStepGrid(DecimalGrid(sliderDecimalsField, __instance));
+        }
+
+        private static void RangePrefix(object __instance)
+        {
+            WidgetCapture.EnterDeclaredStepGrid(DecimalGrid(rangeDecimalsField, __instance));
+        }
+
+        /// <summary>The setting saves Math.Round(value, decimals), so one unit in that last place is its grid.</summary>
+        private static double DecimalGrid(FieldInfo decimalsField, object setting)
+        {
+            int decimals = Mathf.Clamp((int)decimalsField.GetValue(setting), 0, 15);
+            return Math.Pow(10.0, -decimals);
+        }
+
+        private static Exception StepGridFinalizer(Exception __exception)
+        {
+            WidgetCapture.ExitDeclaredStepGrid();
+            return __exception;
+        }
+
+        private static void SettingsMenuPrefix(out int __state)
+        {
+            searchHitRects.Clear();
+            __state = WidgetCapture.RowSpanStart();
+        }
+
+        private static Exception SettingsMenuFinalizer(Exception __exception, int __state)
+        {
+            WidgetCapture.MarkSearchMatches(__state, searchHitRects);
+            searchHitRects.Clear();
+            return __exception;
+        }
+
+        /// <summary>
+        /// A container with settings of its own outlines its whole rect when any of them matched;
+        /// those settings outline themselves, so only the narrower outlines (a matched setting, a
+        /// collapsible header, a tab) say which row matched.
+        /// </summary>
+        private static void FilterBoxPrefix(object __instance, Rect inRect)
+        {
+            Rect? whole = (Rect?)postDrawRectField.GetValue(__instance);
+            bool enclosesChildren = ((IDictionary)childCollectionsField.GetValue(__instance)).Count > 0
+                && whole.HasValue && whole.Value == inRect;
+            if (!enclosesChildren)
+            {
+                searchHitRects.Add(GuiSpace.ToScreen(inRect));
+            }
         }
     }
 }

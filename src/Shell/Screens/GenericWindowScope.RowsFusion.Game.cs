@@ -277,7 +277,11 @@ namespace RimWorldAccess.Shell
 
         private static LineBox LineBoxOf(CapturedWidget row)
         {
-            Rect r = row.ScreenRect;
+            return ToLineBox(row.ScreenRect);
+        }
+
+        private static LineBox ToLineBox(Rect r)
+        {
             return new LineBox { X = r.x, Y = r.y, Width = r.width, Height = r.height };
         }
 
@@ -416,20 +420,34 @@ namespace RimWorldAccess.Shell
 
         /// <summary>
         /// The value-button-in-a-labeled-row search: the bounded backward walk of
-        /// <see cref="FindFusableLabel"/>, admitting only a non-blank Label whose rect hosts the
-        /// button as its row line (<see cref="RowBandHostsValueButton"/>) — plain text buttons
-        /// need a stricter gate than rule (c)'s overlap.
+        /// <see cref="FindFusableLabel"/>, admitting only a non-blank Label that
+        /// <see cref="ValueButtonCaption"/> accepts. Plain text buttons need a stricter gate than
+        /// rule (c)'s overlap, so a bottom-row or corner button never steals a paragraph it merely
+        /// neighbors.
         /// </summary>
-        private static int FindRowCaptionForValueButton(List<CapturedWidget> rows, bool[] consumed, int fromIndexExclusive, int headingBoundary, CapturedWidget control)
+        private static int FindRowCaptionForValueButton(List<CapturedWidget> rows, bool[] consumed, bool[] windowChrome, int fromIndexExclusive, int headingBoundary)
         {
+            CapturedWidget control = rows[fromIndexExclusive];
+            bool leadsCluster = LeadsButtonCluster(rows, fromIndexExclusive);
             for (int j = fromIndexExclusive - 1; j > headingBoundary; j--)
             {
                 CapturedWidget label = rows[j];
-                if (!IsStealableCaption(label) || consumed[j] || string.IsNullOrWhiteSpace(label.Label))
+                if (!IsStealableCaption(label) || consumed[j] || string.IsNullOrWhiteSpace(label.Label)
+                    || !MayFuse(control, label))
                 {
                     continue;
                 }
-                if (MayFuse(control, label) && RowBandHostsValueButton(label, control))
+                bool sameClip = control.Clip.Equals(label.Clip);
+                // Cross-clip pairs compare visible rects, both required non-empty (see MayFuse).
+                Rect l = sameClip ? label.ScreenRect : label.VisibleScreenRect;
+                Rect c = sameClip ? control.ScreenRect : control.VisibleScreenRect;
+                if (!sameClip && (l.width <= 0f || c.width <= 0f))
+                {
+                    continue;
+                }
+                ValueButtonPart labelPart = new ValueButtonPart { Box = ToLineBox(l), ClipId = label.Clip.GetHashCode(), IsChrome = windowChrome[j] };
+                ValueButtonPart controlPart = new ValueButtonPart { Box = ToLineBox(c), ClipId = control.Clip.GetHashCode(), IsChrome = windowChrome[fromIndexExclusive] };
+                if (ValueButtonCaption.Captions(labelPart, controlPart, j == fromIndexExclusive - 1, leadsCluster))
                 {
                     return j;
                 }
@@ -437,41 +455,17 @@ namespace RimWorldAccess.Shell
             return -1;
         }
 
-        /// <summary>
-        /// Whether <paramref name="label"/> is the row a value button lives in: label wider than
-        /// the button and starting left of it, horizontal overlap (the button may hang past the
-        /// label's right edge — rows that trim the label for a scrollbar still anchor the button
-        /// to the untrimmed edge), and the button's vertical center inside the label's line.
-        /// Cross-clip pairs compare visible rects, both required non-empty.
-        /// </summary>
-        private static bool RowBandHostsValueButton(CapturedWidget label, CapturedWidget control)
+        /// <summary>The next captured row is another text button continuing this one's line to the right.</summary>
+        private static bool LeadsButtonCluster(List<CapturedWidget> rows, int buttonIndex)
         {
-            Rect l;
-            Rect c;
-            if (control.Clip.Equals(label.Clip))
-            {
-                l = label.ScreenRect;
-                c = control.ScreenRect;
-            }
-            else if (control.VisibleScreenRect.width > 0f && label.VisibleScreenRect.width > 0f)
-            {
-                l = label.VisibleScreenRect;
-                c = control.VisibleScreenRect;
-            }
-            else
+            if (buttonIndex + 1 >= rows.Count)
             {
                 return false;
             }
-            if (l.width <= c.width || c.xMin <= l.xMin)
-            {
-                return false;
-            }
-            if (c.xMin >= l.xMax || l.xMin >= c.xMax)
-            {
-                return false;
-            }
-            float centerY = c.y + c.height / 2f;
-            return centerY >= l.yMin && centerY <= l.yMax;
+            CapturedWidget button = rows[buttonIndex];
+            CapturedWidget next = rows[buttonIndex + 1];
+            return next.Kind == WidgetKind.Button && next.Clip.Equals(button.Clip)
+                && ValueLabeledSlider.CaptionsOnRow(LineBoxOf(button), LineBoxOf(next));
         }
 
         /// <summary>
@@ -628,16 +622,26 @@ namespace RimWorldAccess.Shell
             for (int i = 0; i < markers.Count; i++)
             {
                 CheckTexMarker m = markers[i];
-                bool sameClipHit = (m.Clip.Equals(control.Clip) && m.ScreenRect.Overlaps(control.ScreenRect))
-                    || (m.Clip.Equals(label.Clip) && m.ScreenRect.Overlaps(label.ScreenRect));
+                bool sameClipHit = (m.Clip.Equals(control.Clip) && MarkerSitsOn(m.ScreenRect, control.ScreenRect))
+                    || (m.Clip.Equals(label.Clip) && MarkerSitsOn(m.ScreenRect, label.ScreenRect));
                 bool crossClipHit = m.VisibleScreenRect.width > 0f
-                    && (m.VisibleScreenRect.Overlaps(control.VisibleScreenRect) || m.VisibleScreenRect.Overlaps(label.VisibleScreenRect));
+                    && (MarkerSitsOn(m.VisibleScreenRect, control.VisibleScreenRect) || MarkerSitsOn(m.VisibleScreenRect, label.VisibleScreenRect));
                 if (sameClipHit || crossClipHit)
                 {
                     return m;
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// CheckboxLabeled centres a 24px texture on a 22px line, bleeding a pixel into a row drawn
+        /// flush beneath; only a marker centred on the row is its state.
+        /// </summary>
+        private static bool MarkerSitsOn(Rect marker, Rect row)
+        {
+            float centre = marker.center.y;
+            return marker.Overlaps(row) && centre >= row.yMin && centre <= row.yMax;
         }
 
         /// <summary>

@@ -348,6 +348,8 @@ namespace RimWorldAccess.Shell
             ApplyTinyFontHeadings();
 
             bool hasCloseTwin = HasNonChromeCloseTwin();
+            string closeCaption = "CloseButton".Translate();
+            bool[] windowChrome = ResolveWindowChromeRows();
 
             // ---- Phase 1: analysis ----
             int headingBoundary = -1;
@@ -638,17 +640,15 @@ namespace RimWorldAccess.Shell
                         fusion[i].LabelIndex = i - 1;
                     }
                 }
-                else if (row.Kind == WidgetKind.Button && !string.IsNullOrWhiteSpace(row.Label) && i > 0)
+                else if (row.Kind == WidgetKind.Button && !string.IsNullOrWhiteSpace(row.Label) && i > 0
+                    && !string.Equals(row.Label, closeCaption, StringComparison.Ordinal))
                 {
-                    // A VALUE BUTTON hosted inside a labeled row: one row-wide caption Label
-                    // plus a text button at the row's right edge on that label's own line, whose
-                    // caption is the row's value or verb, not its name. Unfused, every such row
-                    // reads as a nameless pair. The geometry gate (RowBandHostsValueButton) is
-                    // deliberately stricter than rule (c)'s bare overlap — the label must be the
-                    // ROW (wider than the button, starting left of it) and the button must sit
-                    // on its line — so a bottom-row or corner button can never steal a paragraph
-                    // it merely neighbors. The button's caption is spoken as the row's value.
-                    int captionIndex = FindRowCaptionForValueButton(captureRows, consumed, i, headingBoundary, row);
+                    // A VALUE BUTTON on a labeled row: a row-wide caption Label hosting the button
+                    // on its line, or a Label immediately left of it on the same line. The
+                    // button's caption is the row's value or verb, not its name, so it is spoken
+                    // as the row's value. The window's Close button is the dialog's own verb and
+                    // never names a row, whichever layer drew it.
+                    int captionIndex = FindRowCaptionForValueButton(captureRows, consumed, windowChrome, i, headingBoundary);
                     if (captionIndex >= 0)
                     {
                         consumed[captionIndex] = true;
@@ -852,7 +852,6 @@ namespace RimWorldAccess.Shell
                 Rect r = captureRows[i].ScreenRect;
                 effectiveCaptureRect[i] = HasUsableRect(r) ? r : (i > 0 ? effectiveCaptureRect[i - 1] : r);
             }
-            bool[] windowChrome = ResolveWindowChromeRows();
             string[] ownerSections = ComputeSectionOwners(heading, windowChrome, effectiveCaptureRect);
 
             presentationRows.Clear();
@@ -905,9 +904,11 @@ namespace RimWorldAccess.Shell
                     pr.LabelClip = label.Clip;
                     pr.Kind = fusion[i].KindOverride ?? row.Kind;
                     pr.Check = ResolveCheckState(fusion[i], row);
-                    // "Name: 100%"-style captions carry the value in one string, which the
-                    // pair-fold can never see; a digit right after the colon is the evidence.
-                    pr.CaptionCarriesValue = label.LabelPairFolded || CaptionTextCarriesValue(label.Label);
+                    // "Name: 100%" and "Speed 2.5" captions carry the value in one string, which the
+                    // pair-fold can never see: a digit after the colon, or the slider's own value last.
+                    pr.CaptionCarriesValue = label.LabelPairFolded || CaptionTextCarriesValue(label.Label)
+                        || (row.Kind == WidgetKind.Slider
+                            && SliderCaption.NameBeforeTrailingValue(label.Label, row.SliderValue) != null);
                 }
                 else
                 {
@@ -1000,6 +1001,7 @@ namespace RimWorldAccess.Shell
             // exclusively into the tab order and leave presentationRows — tabRows, extracted
             // here before any exclusion, is what HasTabBar and CycleTab read. The empty-content
             // guard keeps a window that is nothing BUT a tab strip navigable.
+            PromoteRegisteredPageButtons();
             PromoteHandRolledTabStrip();
             MarkTintSelectedButtonClusters();
             tabRows.Clear();
@@ -1076,7 +1078,9 @@ namespace RimWorldAccess.Shell
                     // The caption is a folded "name: value" pair, and the drag
                     // reader supplies its own live value — so it wants the
                     // name half, never the composite's stale number.
-                    name = captureRows[row.RingCaptureIndex].LabelPairName ?? row.Label;
+                    name = captureRows[row.RingCaptureIndex].LabelPairName
+                        ?? SliderCaption.NameBeforeTrailingValue(row.Label, row.Source.SliderValue)
+                        ?? row.Label;
                 }
                 SliderCaptionIndex.Publish(row.Source.SliderControlId, name, row.CaptionCarriesValue);
             }

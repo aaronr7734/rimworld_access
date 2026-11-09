@@ -286,6 +286,16 @@
   <RimWorldAccess.Building.Place.SpotFacing>朝向 {0}</RimWorldAccess.Building.Place.SpotFacing>
   <RimWorldAccess.Building.Place.SpacingInRange>相距 {0} 格，间距正确</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>相距 {0} 格，间距错误</RimWorldAccess.Building.Place.SpacingOutOfRange>
+
+  <!-- A wind turbine (or modded wind pump) ghost outlines the cells its wind must cross; a roof
+       or a wind-blocking thing on one cuts output. {0} = the blockers, each with "x count" when
+       more than one cell, e.g. "oak tree x3 and constructed roof"; {1} = the output reduction
+       as a percentage. -->
+  <RimWorldAccess.Building.Place.WindPathClear>风路畅通</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>风路被 {0} 阻挡，输出降低 {1}</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>风路被 {0} 阻挡，无输出</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <!-- {0} = blocker label, {1} = how many wind cells it blocks (always 2 or more). -->
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>所需区域，{0} 乘 {1}，{3} {2} 格，合适</RimWorldAccess.Building.Place.OutlineOkAt>
   <RimWorldAccess.Building.Place.OutlineOkHere>所需区域，{0} 乘 {1}，光标处，合适</RimWorldAccess.Building.Place.OutlineOkHere>
   <RimWorldAccess.Building.Place.OutlineBadAt>所需区域，{0} 乘 {1}，{3} {2} 格，不合适</RimWorldAccess.Building.Place.OutlineBadAt>

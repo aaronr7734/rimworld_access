@@ -191,11 +191,7 @@ namespace RimWorldAccess.Shell
 
         private readonly HashSet<string> highlightToggleLabels = new HashSet<string>();
 
-        /// <summary>
-        /// Snapshot of the acted-on row's comparable state at request time, armed by
-        /// <see cref="ArmPendingStateChange"/> and resolved by
-        /// <see cref="ResolvePendingStateChange"/>.
-        /// </summary>
+        /// <summary>The acted-on row's comparable state at request time, for <see cref="ResolvePendingStateChange"/>.</summary>
         private struct PendingStateChange
         {
             public int PresentationIndex;
@@ -215,6 +211,10 @@ namespace RimWorldAccess.Shell
             public float RangeLow;
             public float RangeHigh;
             public int PassesLeft;
+
+            // Direction of a caption-proven fractional step, else 0. A caller rounding the result
+            // to whole numbers erases it, so an unchanged value retries once at the whole size.
+            public int FractionalAdjustDirection;
 
             /// <summary>
             /// presentationRows.Count at arm time, for <see cref="TryAnnounceContentChange"/>'s

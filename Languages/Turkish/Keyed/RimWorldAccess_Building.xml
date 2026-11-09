@@ -287,6 +287,10 @@
   <RimWorldAccess.Building.Place.SpotFacing>{0} yönünde</RimWorldAccess.Building.Place.SpotFacing>
   <RimWorldAccess.Building.Place.SpacingInRange>{0} kare arayla, doğru boşluk</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>{0} kare arayla, yanlış boşluk</RimWorldAccess.Building.Place.SpacingOutOfRange>
+  <RimWorldAccess.Building.Place.WindPathClear>Rüzgâr yolu açık</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>Rüzgâr yolu {0} tarafından engelleniyor, verim {1} düştü</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Rüzgâr yolu {0} tarafından engelleniyor, verim yok</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
   <RimWorldAccess.Building.Place.OutlineOkAt>Gerekli alan, {0} çarpı {1}, {3} yönünde {2} kare, uygun</RimWorldAccess.Building.Place.OutlineOkAt>
   <RimWorldAccess.Building.Place.OutlineOkHere>Gerekli alan, {0} çarpı {1}, imleçte, uygun</RimWorldAccess.Building.Place.OutlineOkHere>
   <RimWorldAccess.Building.Place.OutlineBadAt>Gerekli alan, {0} çarpı {1}, {3} yönünde {2} kare, uygun değil</RimWorldAccess.Building.Place.OutlineBadAt>

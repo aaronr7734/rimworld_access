@@ -175,4 +175,23 @@ public class SliderStepFractionalHintTests
     {
         Assert.Equal(2f, SliderStep.Stepped(1f, 1, 0f, 5f, 1f, fractional: true));
     }
+
+    [Fact]
+    public void DeclaredGrid_StepsOneGridUnit_OverWholeNumberBounds()
+    {
+        Assert.Equal(2.6f, SliderStep.Stepped(2.5f, 1, 1f, 10f, -1f, grid: 0.1));
+        Assert.Equal(0.49f, SliderStep.Stepped(0.5f, -1, 0f, 5f, -1f, fractional: true, grid: 0.01));
+    }
+
+    [Fact]
+    public void DeclaredGrid_TooFineToWalk_CoarsensOnTheGrid()
+    {
+        Assert.Equal(0.05f, SliderStep.Stepped(0f, 1, 0f, 1f, -1f, grid: 0.000001));
+    }
+
+    [Fact]
+    public void DeclaredRoundTo_OutranksTheGrid()
+    {
+        Assert.Equal(2f, SliderStep.Stepped(1f, 1, 0f, 5f, 1f, grid: 0.1));
+    }
 }

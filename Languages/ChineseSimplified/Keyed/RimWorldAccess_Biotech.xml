@@ -146,8 +146,8 @@
        {0} = tab count, {1} = passion count, {2} = passion total. -->
   <RimWorldAccess.Biotech.GrowthMoment.TabCount>{0} 个选项卡</RimWorldAccess.Biotech.GrowthMoment.TabCount>
   <RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>按 Enter 确认</RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>
-  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>从 {1} 项中选择 {0} 项兴趣度和 1 项特性。{2}. 按 Tab 切换页面，按 Alt+S 确认</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
-  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>选择 1 项特性。{0}. 按 Tab 切换页面，按 Alt+S 确认</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
+  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>从 {1} 项中选择 {0} 项兴趣度和 1 项特性。{2}. 按 Alt+S 确认</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>选择 1 项特性。{0}. 按 Alt+S 确认</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
 
   <!-- Confirm / postpone. {0} = pawn short label. -->
   <RimWorldAccess.Biotech.GrowthMoment.Confirmed>已为 {0} 确认成长选择</RimWorldAccess.Biotech.GrowthMoment.Confirmed>

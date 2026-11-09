@@ -302,6 +302,8 @@ namespace RimWorldAccess.Shell
                 words.Add(v.Word(ElementStateWord.AtMinimum));
             if (d.AtMaximum)
                 words.Add(v.Word(ElementStateWord.AtMaximum));
+            if (d.SearchMatch)
+                words.Add(v.Word(ElementStateWord.SearchMatch));
         }
 
         /// <summary>Joins fragments with ". ", skipping the period when one already ends in sentence punctuation.</summary>

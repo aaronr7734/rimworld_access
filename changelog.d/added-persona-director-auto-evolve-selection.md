@@ -1,1 +1,1 @@
-You can now select pawns from the keyboard in Persona Director's auto evolution window, so its batch buttons can be used.
+Persona Director's auto evolution window now works fully from the keyboard, including every pawn in its roster, and Alt+I opens a pawn's info card there and in the batch director.

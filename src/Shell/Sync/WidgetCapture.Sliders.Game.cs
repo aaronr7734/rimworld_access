@@ -11,6 +11,20 @@ namespace RimWorldAccess.Shell
 {
     public static partial class WidgetCapture
     {
+        // The precision the caller rounds a roundTo-less slider's result to, or 0: a finer
+        // keyboard step would be rounded away, a coarser one skips values it stores.
+        private static double declaredStepGrid;
+
+        internal static void EnterDeclaredStepGrid(double grid)
+        {
+            declaredStepGrid = grid;
+        }
+
+        internal static void ExitDeclaredStepGrid()
+        {
+            declaredStepGrid = 0.0;
+        }
+
         internal static int RecordSlider(Rect rect, string label, string leftAlignedLabel, string rightAlignedLabel, float value, float min, float max, float roundTo, int controlId = 0)
         {
             if (!passOpen)
@@ -51,20 +65,18 @@ namespace RimWorldAccess.Shell
             }
             if (detachedPass)
             {
-                // Armed detached channel: step or set exactly this one slider. Sliders draw no
-                // gate to honor and nothing spawns, so no InjectedClickGuard is needed.
+                // Armed detached channel: a slider has no gate and spawns nothing, so no InjectedClickGuard.
                 if (armedActive && !armedFired && armedFireIndex == index)
                 {
                     if (armedAction == ArmedAction.Adjust)
                     {
-                        result = SliderStep.Stepped(result, armedAdjustDirection, min, max, roundTo);
+                        result = SliderStep.Stepped(result, armedAdjustDirection, min, max, roundTo, grid: declaredStepGrid);
                         armedFired = true;
                     }
                     else if (armedAction == ArmedAction.SetSlider)
                     {
-                        // Not the live step above: this quantizes an EXTERNALLY supplied value
-                        // onto the grid, never the slider's own current value.
-                        result = SliderStep.Snapped(armedSetValue, min, max, roundTo);
+                        // Quantizes an EXTERNALLY supplied value, never the slider's own current one.
+                        result = SliderStep.Snapped(armedSetValue, min, max, roundTo, declaredStepGrid);
                         armedFired = true;
                     }
                 }
@@ -75,7 +87,7 @@ namespace RimWorldAccess.Shell
                 // Exactly one step from the CURRENT value, never snapped onto a grid first:
                 // snapping the live value breaks reversibility for a non-grid-aligned start.
                 float before = result;
-                result = SliderStep.Stepped(result, pendingAdjustDirection, min, max, roundTo, pendingAdjustFractional);
+                result = SliderStep.Stepped(result, pendingAdjustDirection, min, max, roundTo, pendingAdjustFractional, declaredStepGrid);
                 ClearPendingAdjust();
                 if (FlightRecorder.Active)
                 {
@@ -167,8 +179,8 @@ namespace RimWorldAccess.Shell
         {
             if (adjustHigh)
             {
-                float value = SliderStep.Stepped(high, direction, limitMin, limitMax, roundTo);
-                high = Mathf.Max(value, limitMin + gap);
+                float value = SliderStep.Stepped(high, direction, limitMin, limitMax, roundTo, grid: declaredStepGrid);
+                high =Mathf.Max(value, limitMin + gap);
                 if (low > high - gap)
                 {
                     low = high - gap;
@@ -176,7 +188,7 @@ namespace RimWorldAccess.Shell
             }
             else
             {
-                float value = SliderStep.Stepped(low, direction, limitMin, limitMax, roundTo);
+                float value = SliderStep.Stepped(low, direction, limitMin, limitMax, roundTo, grid: declaredStepGrid);
                 low = Mathf.Min(value, limitMax - gap);
                 if (high < low + gap)
                 {

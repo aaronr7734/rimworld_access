@@ -123,6 +123,7 @@ namespace RimWorldAccess.Shell
             labeledButtonDepth = 0;
             numericFieldDepth = 0;
             fieldLabelDepth = 0;
+            declaredStepGrid = 0.0;
             percentFieldDepth = 0;
             vectorFieldDepth = 0;
             intEntryDepth = 0;

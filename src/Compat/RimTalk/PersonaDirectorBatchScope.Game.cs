@@ -10,9 +10,8 @@ namespace RimWorldAccess.Shell
     /// Keyboard support for PersonaDirector's <c>RimPersonaDirector.Window_BatchDirector</c>: a
     /// <c>PawnRosterList</c> table (multi-select, sortable Name/Race/Faction/Tag headers,
     /// category filters, search) with per-row Talk/Quick Gen/Deep Edit actions and batch/single
-    /// LLM generation. The roster's selection column answers only raw mouse presses and drags
-    /// (<c>Widgets.CheckboxDraw</c> plus <c>Mouse.IsOver</c>), so the row's default Activate
-    /// toggles that one pawn, reaching the same set one row at a time.
+    /// LLM generation. The roster columns, sort, filters and selection are the shared
+    /// <see cref="PersonaDirectorRosterTable"/>; the row's default Activate toggles that pawn.
     ///
     /// Everything else -- Switch to Simple, Auto Evolution (while experimental features are on),
     /// the Scene Notes Clear button, Select All, Refresh, the prompt-slot picker, the filter
@@ -39,25 +38,23 @@ namespace RimWorldAccess.Shell
             Search,
         }
 
-        private const int ColSelected = 0;
-        private const int ColName = 1;
-        private const int ColRace = 2;
-        private const int ColFaction = 3;
-        private const int ColTag = 4;
-        private const int ColTalk = 5;
-        private const int ColQuickGen = 6;
-        private const int ColDeepEdit = 7;
+        private const int ColTalk = PersonaDirectorRosterTable.ColumnCount;
+        private const int ColQuickGen = ColTalk + 1;
+        private const int ColDeepEdit = ColTalk + 2;
 
         private readonly Window dialog;
         private readonly TextFieldEditSession session = new TextFieldEditSession();
-        private readonly List<Pawn> pawns = new List<Pawn>();
         private readonly List<ScreenAction> actions = new List<ScreenAction>();
+        private readonly PersonaDirectorRosterTable table;
 
         public PersonaDirectorBatchScope(Window dialog)
         {
             this.dialog = dialog;
+            table = new PersonaDirectorRosterTable(() => PersonaDirectorCompat.Roster(dialog), RefreshModel);
 
             RegisterPopTeardown(session.CancelIfActive);
+            Claim("rimTalkPersonaDirectorBatch.infoCard", e => table.OpenInfoCard(CurrentPawnRow()),
+                when: () => Model.RegionIndex == PawnsRegion);
         }
 
         public override string Name
@@ -67,7 +64,13 @@ namespace RimWorldAccess.Shell
 
         private object Roster
         {
-            get { return PersonaDirectorCompat.Roster(dialog); }
+            get { return table.Roster; }
+        }
+
+        private int CurrentPawnRow()
+        {
+            TableModel model = Model.CurrentTable;
+            return model == null ? -1 : model.Rows.Index - 1;
         }
 
         protected override int ContentRegionCount
@@ -84,22 +87,17 @@ namespace RimWorldAccess.Shell
 
         protected override void RefreshContent()
         {
-            pawns.Clear();
-            object roster = Roster;
-            if (roster != null)
-            {
-                pawns.AddRange(PersonaDirectorCompat.VisiblePawns(roster));
-            }
+            table.Refresh();
         }
 
         protected override int ContentItemCount(int region)
         {
-            return region == TextFieldsRegion ? 2 : pawns.Count;
+            return region == TextFieldsRegion ? 2 : table.Count;
         }
 
         protected override int ContentColumnCount(int region)
         {
-            return region == PawnsRegion ? 8 : 0;
+            return region == PawnsRegion ? ColDeepEdit + 1 : 0;
         }
 
         protected override TableColumnInfo ContentColumnInfo(int region, int column)
@@ -107,14 +105,10 @@ namespace RimWorldAccess.Shell
             if (region != PawnsRegion) return null;
             switch (column)
             {
-                case ColSelected: return new TableColumnInfo("RimWorldAccess.Compat.RimTalk.PersonaDirector.HeaderSelected".Translate());
-                case ColName: return new TableColumnInfo(H("RPD_Batch_Header_Name"), null, true);
-                case ColRace: return new TableColumnInfo(H("RPD_Batch_Header_Race"), null, true);
-                case ColFaction: return new TableColumnInfo(H("RPD_Batch_Header_Faction"), null, true);
-                case ColTag: return new TableColumnInfo(H("RPD_Batch_Header_Tag"), null, true);
                 case ColTalk: return new TableColumnInfo(H("RPD_Batch_Button_Talk"));
                 case ColQuickGen: return new TableColumnInfo(H("RPD_Batch_Button_QuickGen"));
-                default: return new TableColumnInfo(H("RPD_Batch_Button_DeepEdit"));
+                case ColDeepEdit: return new TableColumnInfo(H("RPD_Batch_Button_DeepEdit"));
+                default: return PersonaDirectorRosterTable.ColumnInfo(column);
             }
         }
 
@@ -125,33 +119,15 @@ namespace RimWorldAccess.Shell
 
         protected override string ContentCellText(int region, int row, int column)
         {
-            if (region != PawnsRegion || row < 0 || row >= pawns.Count) return "";
-            Pawn pawn = pawns[row];
-            switch (column)
-            {
-                case ColSelected:
-                    return IsSelected(pawn)
-                        ? "RimWorldAccess.Compat.RimTalk.PersonaDirector.Selected".Translate()
-                        : "RimWorldAccess.Compat.RimTalk.PersonaDirector.NotSelected".Translate();
-                case ColName:
-                    return pawn.LabelShortCap;
-                case ColRace:
-                    return pawn.genes != null && pawn.genes.Xenotype != null ? pawn.genes.XenotypeLabel : pawn.def.label;
-                case ColFaction:
-                    return pawn.Faction != null ? pawn.Faction.Name : H("RPD_Faction_None");
-                case ColTag:
-                    return PersonaDirectorCompat.PawnTag(pawn);
-                default:
-                    return IsGenerating(pawn) ? H("RPD_Batch_Status_Generating") : H(ButtonKey(column));
-            }
+            Pawn pawn = table.PawnAt(row);
+            if (region != PawnsRegion || pawn == null) return "";
+            if (column < PersonaDirectorRosterTable.ColumnCount) return table.CellText(row, column);
+            return IsGenerating(pawn) ? H("RPD_Batch_Status_Generating") : H(ButtonKey(column));
         }
 
-        /// <summary>The name cell's own hover tooltip, the pawn's current persona.</summary>
         protected override string ContentCellTip(int region, int row, int column)
         {
-            if (region != PawnsRegion || column != ColName || row < 0 || row >= pawns.Count) return null;
-            return TranslatorFormattedStringExtensions.Translate("RPD_Batch_PawnTooltip",
-                PersonaDirectorCompat.CurrentPersonality(pawns[row]));
+            return region == PawnsRegion ? table.CellTip(row, column) : null;
         }
 
         private static string ButtonKey(int column)
@@ -162,12 +138,6 @@ namespace RimWorldAccess.Shell
                 case ColQuickGen: return "RPD_Batch_Button_QuickGen";
                 default: return "RPD_Batch_Button_DeepEdit";
             }
-        }
-
-        private bool IsSelected(Pawn pawn)
-        {
-            HashSet<Pawn> selected = PersonaDirectorCompat.SelectedPawns(Roster);
-            return selected != null && selected.Contains(pawn);
         }
 
         /// <summary>Mirrors DrawPawnActions' own test for drawing "Generating" instead of the row's buttons.</summary>
@@ -205,7 +175,7 @@ namespace RimWorldAccess.Shell
                 return d;
             }
 
-            d.Label = ContentCellText(PawnsRegion, index, ColName);
+            d.Label = table.CellText(index, PersonaDirectorRosterTable.ColName);
             return d;
         }
 
@@ -216,33 +186,17 @@ namespace RimWorldAccess.Shell
                 BeginEditTextField((TextFieldItem)index);
                 return;
             }
-            ToggleSelection(index);
-        }
-
-        /// <summary>MUTATION-C: mirrors DrawSelection's single-row paint (`_selectedPawns.Add`/`Remove`), which only a raw mouse press reaches.</summary>
-        private void ToggleSelection(int index)
-        {
-            HashSet<Pawn> selected = PersonaDirectorCompat.SelectedPawns(Roster);
-            if (selected == null || index < 0 || index >= pawns.Count) return;
-            Pawn pawn = pawns[index];
-            if (!selected.Add(pawn))
-            {
-                selected.Remove(pawn);
-            }
+            table.ToggleSelection(index);
             AnnounceCurrentItem();
         }
 
         protected override bool ActivateContentCell(int region, int row, int column)
         {
-            if (region != PawnsRegion || row < 0 || row >= pawns.Count) return false;
-            Pawn pawn = pawns[row];
+            Pawn pawn = table.PawnAt(row);
+            if (region != PawnsRegion || pawn == null) return false;
 
             switch (column)
             {
-                case ColName:
-                    PersonaDirectorCompat.JumpToPawn(Roster, pawn);
-                    RefreshModel();
-                    return true;
                 case ColTalk:
                     if (!IsGenerating(pawn)) PersonaDirectorCompat.OpenRimTalkDialog(pawn);
                     return true;
@@ -260,44 +214,20 @@ namespace RimWorldAccess.Shell
                     if (!IsGenerating(pawn)) PersonaDirectorCompat.OpenPersonaEditorPin(pawn);
                     return true;
                 default:
-                    return false;
+                    return table.ActivateCell(row, column);
             }
         }
-
-        // Sort: the roster's own 2-state header toggle against this codebase's 3-state cycle;
-        // Cleared maps back to its constructed default, Name ascending.
 
         protected override bool TryGetLiveSort(int region, out int column, out bool descending)
         {
             column = -1;
             descending = false;
-            object roster = Roster;
-            if (region != PawnsRegion || roster == null) return false;
-            bool ascending;
-            column = ColName + PersonaDirectorCompat.SortOrdinal(roster, out ascending);
-            descending = !ascending;
-            return true;
+            return region == PawnsRegion && table.TryGetLiveSort(out column, out descending);
         }
 
         protected override int ApplyContentSort(int region, int column, SortCycleResult cycle, int currentRow)
         {
-            int ordinal = column - ColName;
-            object roster = Roster;
-            if (region != PawnsRegion || roster == null || ordinal < 0 || ordinal > 3) return -1;
-
-            Pawn current = currentRow >= 0 && currentRow < pawns.Count ? pawns[currentRow] : null;
-            if (cycle == SortCycleResult.Cleared)
-            {
-                PersonaDirectorCompat.SetSort(roster, 0, true);
-            }
-            else
-            {
-                PersonaDirectorCompat.SetSort(roster, ordinal, cycle == SortCycleResult.SortedAscending);
-            }
-            RefreshContent();
-
-            int index = current == null ? 0 : pawns.IndexOf(current);
-            return index >= 0 ? index : 0;
+            return region == PawnsRegion ? table.ApplySort(column, cycle, currentRow) : -1;
         }
 
         // Text fields. Scene Notes is DirectorSettings.directorNotes, shared with the notes
@@ -307,7 +237,7 @@ namespace RimWorldAccess.Shell
         {
             string current = item == TextFieldItem.SceneNotes
                 ? PersonaDirectorCompat.DirectorNotesText()
-                : PersonaDirectorCompat.SearchText(Roster);
+                : table.SearchText;
             string label = item == TextFieldItem.SceneNotes
                 ? H("RPD_Batch_SceneNotes")
                 : (string)"RimWorldAccess.Compat.RimTalk.PersonaDirector.SearchLabel".Translate();
@@ -323,8 +253,7 @@ namespace RimWorldAccess.Shell
                 PersonaDirectorCompat.SetDirectorNotes(value);
                 return;
             }
-            PersonaDirectorCompat.SetSearchText(Roster, value);
-            RefreshModel();
+            table.ApplySearch(value);
         }
 
         protected override bool CaptureWindowButtons
@@ -343,30 +272,11 @@ namespace RimWorldAccess.Shell
                     actions.Add(new ScreenAction(H("RPD_Tab_AutoEvolution"), () => PersonaDirectorCompat.SwitchToAutoEvolve(dialog)));
                 }
                 actions.Add(new ScreenAction(H("RPD_Button_Clear"), ClearNotes, "rimTalkPersonaDirectorBatch.clearNotes"));
-                actions.Add(new ScreenAction(H("RPD_Batch_SelectAll"), SelectAllFilters, "rimTalkPersonaDirectorBatch.selectAll"));
-                actions.Add(new ScreenAction(H("RPD_Batch_Refresh"), Refresh, "rimTalkPersonaDirectorBatch.refresh"));
+                actions.Add(table.SelectAllFiltersAction("rimTalkPersonaDirectorBatch.selectAll"));
+                actions.Add(table.RefreshAction("rimTalkPersonaDirectorBatch.refresh"));
                 actions.Add(new ScreenAction(PromptSlotLabel(), OpenPromptSlotMenu, "rimTalkPersonaDirectorBatch.promptSlot"));
-
-                object roster = Roster;
-                IDictionary filters = PersonaDirectorCompat.BatchFilters();
-                if (roster != null && filters != null)
-                {
-                    foreach (string key in PersonaDirectorCompat.AvailableFilterKeys(roster))
-                    {
-                        if (!filters.Contains(key)) continue;
-                        string filterKey = key;
-                        actions.Add(new ScreenAction(
-                            H("RPD_Filter_" + filterKey),
-                            () => ToggleFilter(filterKey),
-                            "rimTalkPersonaDirectorBatch.filter." + filterKey,
-                            check: (bool)filters[filterKey] ? CheckState.Checked : CheckState.Unchecked));
-                    }
-                }
-
-                actions.Add(new ScreenAction(
-                    "RimWorldAccess.Compat.RimTalk.PersonaDirector.SelectAllListed".Translate(),
-                    ToggleAllListed,
-                    check: AllListedSelected() ? CheckState.Checked : CheckState.Unchecked));
+                table.AddFilterActions(actions, "rimTalkPersonaDirectorBatch.filter.");
+                actions.Add(table.SelectAllListedAction());
                 actions.Add(new ScreenAction(BatchGenLabel(), BatchGen, "rimTalkPersonaDirectorBatch.batchGen"));
                 actions.Add(new ScreenAction(ModeToggleLabel(), ToggleMode, "rimTalkPersonaDirectorBatch.modeToggle"));
                 return actions;
@@ -403,59 +313,6 @@ namespace RimWorldAccess.Shell
         private void ClearNotes()
         {
             PersonaDirectorCompat.SetDirectorNotes("");
-        }
-
-        /// <summary>MUTATION-C: mirrors DrawFilters' Select All click (every available filter set to "any was off", then Refresh).</summary>
-        private void SelectAllFilters()
-        {
-            object roster = Roster;
-            IDictionary filters = PersonaDirectorCompat.BatchFilters();
-            if (roster == null || filters == null) return;
-            List<string> keys = PersonaDirectorCompat.AvailableFilterKeys(roster).Where(filters.Contains).ToList();
-            bool value = keys.Any(key => !(bool)filters[key]);
-            foreach (string key in keys)
-            {
-                filters[key] = value;
-            }
-            PersonaDirectorCompat.RefreshRoster(roster);
-            RefreshModel();
-        }
-
-        /// <summary>MUTATION-C: mirrors DrawFilters' per-filter checkbox and label click (flip the BatchFilters entry, then Refresh).</summary>
-        private void ToggleFilter(string key)
-        {
-            object roster = Roster;
-            IDictionary filters = PersonaDirectorCompat.BatchFilters();
-            if (roster == null || filters == null || !filters.Contains(key)) return;
-            filters[key] = !(bool)filters[key];
-            PersonaDirectorCompat.RefreshRoster(roster);
-            RefreshModel();
-        }
-
-        private bool AllListedSelected()
-        {
-            HashSet<Pawn> selected = PersonaDirectorCompat.SelectedPawns(Roster);
-            return pawns.Count > 0 && selected != null && pawns.All(selected.Contains);
-        }
-
-        /// <summary>MUTATION-C: mirrors DrawList's header checkbox (add or remove every listed pawn); the header box is a bare Widgets.Checkbox with no caption to address.</summary>
-        private void ToggleAllListed()
-        {
-            HashSet<Pawn> selected = PersonaDirectorCompat.SelectedPawns(Roster);
-            if (selected == null) return;
-            bool select = !AllListedSelected();
-            foreach (Pawn pawn in pawns)
-            {
-                if (select) selected.Add(pawn); else selected.Remove(pawn);
-            }
-        }
-
-        private void Refresh()
-        {
-            object roster = Roster;
-            if (roster == null) return;
-            PersonaDirectorCompat.RefreshRoster(roster);
-            RefreshModel();
         }
 
         /// <summary>MUTATION-C: mirrors the prompt-slot button's own FloatMenu (index 3, "Evolution", is reserved and skipped).</summary>

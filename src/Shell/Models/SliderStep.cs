@@ -50,10 +50,11 @@ namespace RimWorldAccess.Shell
         /// coarser whole step only for very large ranges. Genuinely fractional
         /// sliders (non-integer bounds) keep the twentieth-of-range default both
         /// engines have always used, as does one the caller proved <paramref name="fractional"/>.
+        /// A <paramref name="grid"/> (the precision the owner stores at) outranks all but roundTo.
         /// </summary>
-        public static float Stepped(float value, int direction, float min, float max, float roundTo, bool fractional = false)
+        public static float Stepped(float value, int direction, float min, float max, float roundTo, bool fractional = false, double grid = 0.0)
         {
-            double step = ResolveStep(min, max, roundTo, fractional);
+            double step = ResolveStep(min, max, roundTo, fractional, grid);
             if (step <= 0.0)
             {
                 return value;
@@ -80,9 +81,9 @@ namespace RimWorldAccess.Shell
         /// since here the caller-supplied value is a fresh external input with no
         /// "current position" to preserve.
         /// </summary>
-        public static float Snapped(float value, float min, float max, float roundTo)
+        public static float Snapped(float value, float min, float max, float roundTo, double grid = 0.0)
         {
-            double step = ResolveStep(min, max, roundTo);
+            double step = ResolveStep(min, max, roundTo, false, grid);
             if (step <= 0.0)
             {
                 return Math.Max(min, Math.Min(max, value));
@@ -121,33 +122,40 @@ namespace RimWorldAccess.Shell
             return Math.Round(value, decimals);
         }
 
-        private static double ResolveStep(float min, float max, float roundTo, bool fractional = false)
+        private static double ResolveStep(float min, float max, float roundTo, bool fractional, double grid)
         {
             if (roundTo > 0f)
             {
                 return roundTo;
             }
+            double range = (double)max - (double)min;
+            if (grid > 0.0)
+            {
+                return GridStep(range, grid);
+            }
             bool integerBounds = !fractional
                 && Math.Abs(min - Math.Round((double)min)) < 1e-6
                 && Math.Abs(max - Math.Round((double)max)) < 1e-6;
-            double range = (double)max - (double)min;
             // Range >= 2 is what tells an integer COUNT (e.g. 1..64 settlements)
             // apart from a fractional slider that merely has whole-number
             // bounds -- most notably a 0..1 factor/percent, which must keep its
             // fine twentieth-of-range step, not snap to whole numbers.
             if (integerBounds && range >= 2.0)
             {
-                // Keep every stop on a whole number so the announced integer
-                // is always reachable; only coarsen (still whole) past a range
-                // too large to walk one integer at a time.
-                double step = range <= 500.0 ? 1.0 : Math.Round(range / 20.0);
-                if (step < 1.0)
-                {
-                    step = 1.0;
-                }
-                return step;
+                return GridStep(range, 1.0);
             }
             return range / 20.0;
+        }
+
+        /// <summary>One grid unit up to 500 stops, else a whole multiple of it near a twentieth of the range.</summary>
+        private static double GridStep(double range, double grid)
+        {
+            double stops = range / grid;
+            if (stops <= 500.0)
+            {
+                return grid;
+            }
+            return grid * Math.Max(1.0, Math.Round(stops / 20.0));
         }
     }
 }

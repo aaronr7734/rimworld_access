@@ -146,8 +146,8 @@
        {0} = tab count, {1} = passion count, {2} = passion total. -->
   <RimWorldAccess.Biotech.GrowthMoment.TabCount>{0_numCase ? вкладка : вкладки : вкладок}</RimWorldAccess.Biotech.GrowthMoment.TabCount>
   <RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>Нажмите Enter для подтверждения</RimWorldAccess.Biotech.GrowthMoment.PressEnterToConfirm>
-  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>Выберите {0} из {1} интересов и 1 черту. {2}. Tab — переключение страниц, Alt+S — подтвердить</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
-  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>Выберите 1 черту. {0}. Tab — переключение страниц, Alt+S — подтвердить</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
+  <RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>Выберите {0} из {1} интересов и 1 черту. {2}. Alt+S — подтвердить</RimWorldAccess.Biotech.GrowthMoment.ChoosePassionsAndTrait>
+  <RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>Выберите 1 черту. {0}. Alt+S — подтвердить</RimWorldAccess.Biotech.GrowthMoment.ChooseTraitOnly>
 
   <!-- Confirm / postpone. {0} = pawn short label. -->
   <RimWorldAccess.Biotech.GrowthMoment.Confirmed>Выбор развития подтверждён для {0}</RimWorldAccess.Biotech.GrowthMoment.Confirmed>
