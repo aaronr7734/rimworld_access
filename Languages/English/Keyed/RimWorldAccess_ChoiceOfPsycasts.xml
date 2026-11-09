@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Choice Of Psycasts: the level a Learn a Psycast gizmo offers, also spoken on rows of a multi-level menu. -->
+  <RimWorldAccess.Compat.ChoiceOfPsycasts.Level>Level {0}</RimWorldAccess.Compat.ChoiceOfPsycasts.Level>
+  <RimWorldAccess.Compat.ChoiceOfPsycasts.LevelRange>Levels {0} to {1}</RimWorldAccess.Compat.ChoiceOfPsycasts.LevelRange>
+</LanguageData>

@@ -21,6 +21,7 @@ namespace RimWorldAccess.Shell
         private void BeginEdit(PresentationRow row, bool announcePrompt)
         {
             editingIndex = row.ActivateCaptureIndex;
+            editingTypeIn = false;
             session.EnterEdit(
                 row.Source.Text,
                 BuildEditSpec(row.Source),
@@ -211,6 +212,7 @@ namespace RimWorldAccess.Shell
         {
             WidgetCapture.ClearTextOverride();
             editingIndex = -1;
+            editingTypeIn = false;
             pendingAnnounce = true;
             editExitAnnounceQueued = true;
         }
@@ -238,6 +240,12 @@ namespace RimWorldAccess.Shell
             if (typableField && !char.IsControl(c) && !char.IsWhiteSpace(c))
             {
                 BeginEdit(row, announcePrompt: false);
+                session.FeedChar(c);
+                return true;
+            }
+            if (HasTypeIn(row) && StartsNumber(c))
+            {
+                BeginTypeInEdit(row, announcePrompt: false);
                 session.FeedChar(c);
                 return true;
             }

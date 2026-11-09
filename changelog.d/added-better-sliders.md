@@ -1,0 +1,1 @@
+[BetterSliders](https://steamcommunity.com/sharedfiles/filedetails/?id=2218078784) is now supported. On any slider or range, type a number or press Enter to set it through the mod's number box. This works with the default "Hover" style, and with "Always on" the box no longer adds a second stop after every slider.

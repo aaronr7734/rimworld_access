@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using RimWorld;
+using RimWorldAccess.Shell;
 using Verse;
 using Verse.Sound;
 
@@ -83,21 +84,18 @@ namespace RimWorldAccess
 
         public override TabHandlerType Handler => TabHandlerType.RichNavigation;
 
-        // The cargo tab's own labelKey ("VF_TabCargo", English "Cargo") for vehicles; the airdrop
-        // container tab reuses vanilla's own "TabStorage" unchanged, exactly what its labelKey
-        // resolves to.
+        // Each tab's own labelKey: VF's cargo tab for vehicles, vanilla's "TabStorage" for the
+        // airdrop container.
+        private static string CargoTabLabel => CompatText.ResolveOrFallback("VF_TabCargo", "RimWorldAccess.Compat.Vf.CargoTab");
+
         public override string DisplayName(InspectTabBase tab)
         {
-            return cargoTabType.IsInstanceOfType(tab)
-                ? "RimWorldAccess.Compat.Vf.CargoTab".Translate()
-                : "TabStorage".Translate();
+            return cargoTabType.IsInstanceOfType(tab) ? CargoTabLabel : "TabStorage".Translate().Resolve();
         }
 
         public override string CategoryDisplayName(object obj)
         {
-            return vehiclePawnType.IsInstanceOfType(obj)
-                ? "RimWorldAccess.Compat.Vf.CargoTab".Translate()
-                : "TabStorage".Translate();
+            return vehiclePawnType.IsInstanceOfType(obj) ? CargoTabLabel : "TabStorage".Translate().Resolve();
         }
 
         public override bool CanExpand(object obj)

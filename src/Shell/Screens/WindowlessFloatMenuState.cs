@@ -179,12 +179,16 @@ namespace RimWorldAccess
 
             // A checkbox row toggles in place: the menu stays open with the cursor held on
             // the row, and the refreshed state is the whole announcement.
-            if (selectedOption is CheckboxFloatMenuOption checkboxRow)
+            System.Func<bool> checkState = FloatMenuOptionFacets.CheckStateOf(selectedOption);
+            if (checkState != null)
             {
-                checkboxRow.action?.Invoke();
-                bool nowOn = checkboxRow.StateGetter();
-                (nowOn ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff)
-                    .PlayOneShotOnCamera();
+                selectedOption.action?.Invoke();
+                // A mod's own check row plays its own toggle sound from its action.
+                if (selectedOption is CheckboxFloatMenuOption)
+                {
+                    (checkState() ? SoundDefOf.Checkbox_TurnedOn : SoundDefOf.Checkbox_TurnedOff)
+                        .PlayOneShotOnCamera();
+                }
                 TolkHelper.SpeakData(AnnouncementComposer.ComposeStateChange(
                     DescribeOption(selectedOption), TranslatedShellVocabulary.Instance));
                 return;
@@ -319,7 +323,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// One option as an <see cref="ElementRole.MenuItem"/> row: label, the standard disabled
-        /// state word when vanilla drew it unclickable, and its tooltip in Extras. Position is left
+        /// state word when vanilla drew it unclickable, and its tooltip (or a registered
+        /// <see cref="FloatMenuOptionDetails"/> source's text) in Extras. Position is left
         /// to the caller. Shared by this state's opening announcement and
         /// <see cref="Shell.FloatMenuOverlayScope"/>'s row describe, so the two cannot drift.
         /// </summary>
@@ -327,17 +332,18 @@ namespace RimWorldAccess
         {
             var d = new ElementDescription();
             d.Label = option.Label;
-            if (option is CheckboxFloatMenuOption checkbox)
+            System.Func<bool> checkState = FloatMenuOptionFacets.CheckStateOf(option);
+            if (checkState != null)
             {
                 d.Role = ElementRole.Checkbox;
-                d.Check = checkbox.StateGetter() ? CheckState.Checked : CheckState.Unchecked;
+                d.Check = checkState() ? CheckState.Checked : CheckState.Unchecked;
             }
             else
             {
                 d.Role = ElementRole.MenuItem;
             }
             d.Disabled = option.Disabled;
-            d.Extras = GetTooltipText(option);
+            d.Extras = GetTooltipText(option) ?? FloatMenuOptionDetails.ExtrasFor(option);
             return d;
         }
 
@@ -357,7 +363,7 @@ namespace RimWorldAccess
         private static string GetTooltipText(FloatMenuOption option)
         {
             if (option.tooltip == null || !option.tooltip.HasValue)
-                return null;
+                return FloatMenuOptionFacets.TooltipOf(option);
 
             var tip = option.tooltip.Value;
 
@@ -384,7 +390,8 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Opens an info card for the selected option, resolving its Def from the caller-supplied
-        /// list, then the option's private shownItem, iconThing and revalidateClickTarget.
+        /// list, then the option's private shownItem, iconThing and revalidateClickTarget, then a
+        /// registered FloatMenuOptionDetails source.
         /// </summary>
         public static void TryOpenInfoCardForSelected()
         {
@@ -413,6 +420,11 @@ namespace RimWorldAccess
             if (def == null && option.revalidateClickTarget?.def != null)
             {
                 def = option.revalidateClickTarget.def;
+            }
+
+            if (def == null)
+            {
+                def = FloatMenuOptionDetails.InfoDefFor(option);
             }
 
             InfoCardState.TryOpenInfoCardForDef(def);

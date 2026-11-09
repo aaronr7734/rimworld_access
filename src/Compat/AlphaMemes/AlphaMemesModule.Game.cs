@@ -9,6 +9,7 @@ namespace RimWorldAccess
         public override void Activate(Harmony harmony)
         {
             AlphaMemesDialogCompat.RegisterDialogScopes();
+            AlphaMemesFuneralStuffCompat.Register();
         }
     }
 }

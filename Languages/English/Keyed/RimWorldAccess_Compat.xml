@@ -230,20 +230,14 @@
   <RimWorldAccess.Compat.Vf.PassengersMoved>{0} moved to {1}.</RimWorldAccess.Compat.Vf.PassengersMoved>
   <RimWorldAccess.Compat.Vf.PassengersSwapped>{0} swapped seats with {1}.</RimWorldAccess.Compat.Vf.PassengersSwapped>
 
-  <!-- VfUpgradesTabAdapter / VfUpgradesTabCompat: text for Vehicle Framework's Upgrades tab
-       (ITab_Vehicle_Upgrades), which lists each node on a vehicle's upgrade grid with its
-       cost, effects, incompatibilities and current state. UpgradesTab mirrors VF_TabUpgrades
-       ("Upgrades"), verified against the mod's own Languages/English/Keyed XML. CancelButton
-       reuses Core's own key directly (check_l10n_keys.py can verify it there). VF's own keys
-       cannot be reused as literal Translate() calls the same way, since Vehicle Framework does
-       not ship inside the local game install's Core/DLC Keyed XML tree the ratchet scans, so
-       calling them would either go unchecked (without a game dir) or be flagged as fake (with
-       one), exactly like VfStashDialogAdapter's documented rationale. UpgradeActionLabel,
-       RemoveUpgradeActionLabel, UpgradeDisabledMessage and UpgradeMissingPrerequisiteMessage
-       below bake VF's own English text (VF_Upgrade, VF_RemoveUpgrade, VF_DisabledFromOtherNode,
-       VF_MissingPrerequisiteUpgrade, verified against the mod's own Languages/English/Keyed/
-       Upgrades.xml) into keys this ratchet can verify instead. -->
-  <RimWorldAccess.Compat.Vf.UpgradesTab>Upgrades</RimWorldAccess.Compat.Vf.UpgradesTab>
+  <!-- VfUpgradesTabAdapter / VfUpgradesTabCompat: text for Vehicle Framework's upgrade tab
+       (ITab_Vehicle_Upgrades), which nests each node of a vehicle's upgrade grid under its
+       prerequisite with its cost, effects, incompatibilities and current state. UpgradesTab,
+       UpgradeActionLabel, RemoveUpgradeActionLabel, UpgradeDisabledMessage and
+       UpgradeMissingPrerequisiteMessage are fallbacks for VF's own VF_TabUpgrades, VF_Upgrade,
+       VF_RemoveUpgrade, VF_DisabledFromOtherNode and VF_MissingPrerequisiteUpgrade, which the
+       adapter reads through CompatText.ResolveOrFallback whenever VF's Keyed data has them. -->
+  <RimWorldAccess.Compat.Vf.UpgradesTab>Customize</RimWorldAccess.Compat.Vf.UpgradesTab>
   <RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>Upgrade in progress: {0}.</RimWorldAccess.Compat.Vf.UpgradeInProgressSummary>
   <RimWorldAccess.Compat.Vf.UpgradeNodeSection>{0}, {1}</RimWorldAccess.Compat.Vf.UpgradeNodeSection>
   <RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>upgrade in progress</RimWorldAccess.Compat.Vf.UpgradeStateUpgradeInProgress>
@@ -254,6 +248,7 @@
   <RimWorldAccess.Compat.Vf.UpgradeStateAvailable>available</RimWorldAccess.Compat.Vf.UpgradeStateAvailable>
   <RimWorldAccess.Compat.Vf.UpgradeCostLine>{0}: need {1}, have {2}.</RimWorldAccess.Compat.Vf.UpgradeCostLine>
   <RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>{0}: need {1}.</RimWorldAccess.Compat.Vf.UpgradeCostLineNoMap>
+  <RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>Also requires: {0}.</RimWorldAccess.Compat.Vf.UpgradeAlsoRequires>
   <RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>Incompatible with: {0}.</RimWorldAccess.Compat.Vf.UpgradeIncompatibleWith>
   <RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>Cannot remove: later upgrades depend on this one.</RimWorldAccess.Compat.Vf.UpgradeLockedByDependents>
   <RimWorldAccess.Compat.Vf.UpgradeStarted>{0} upgrade started. Materials will be delivered by colonists.</RimWorldAccess.Compat.Vf.UpgradeStarted>
@@ -570,10 +565,7 @@
 
   <!-- HospitalityCompat / ModifyNumberGizmoHandler: Hospitality's guest-bed rental fee
        and vending-machine price/threshold gizmos (Gizmo_GuestBed, Gizmo_VendingMachine,
-       Gizmo_VendingMachineContent). These never call the mod's own translation keys
-       directly (that would build-fail as an unverifiable fake key even though it
-       resolves fine at runtime with Hospitality loaded), so status/title text is
-       composed fresh here from the mod's own numeric values. -->
+       Gizmo_VendingMachineContent), composed from the mod's own live values. -->
   <RimWorldAccess.Compat.Hospitality.BedFeeStatus>Rental fee: {0}. Attractiveness: {1}.</RimWorldAccess.Compat.Hospitality.BedFeeStatus>
   <RimWorldAccess.Compat.Hospitality.VendingPriceStatus>Price: {0}.</RimWorldAccess.Compat.Hospitality.VendingPriceStatus>
   <RimWorldAccess.Compat.Hospitality.VendingContentStatus>Empty at: {0}. Contains: {1}.</RimWorldAccess.Compat.Hospitality.VendingContentStatus>
@@ -585,6 +577,7 @@
   <RimWorldAccess.Compat.Hospitality.SetThresholdAuto>Set threshold to ten times the price</RimWorldAccess.Compat.Hospitality.SetThresholdAuto>
   <RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>Royal titles satisfied by this bed: {0}.</RimWorldAccess.Compat.Hospitality.RoyalTitlesSatisfied>
   <RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>No royal titles are satisfied by this bed.</RimWorldAccess.Compat.Hospitality.NoRoyalTitlesSatisfied>
+  <RimWorldAccess.Compat.Hospitality.ShowGuestTab>Show in Guest tab</RimWorldAccess.Compat.Hospitality.ShowGuestTab>
 
   <!-- CashRegisterCompat: CashRegister's register-radius gizmo (Gizmo_Radius), served
        by the same ModifyNumberGizmoHandler as the Hospitality keys above. -->
@@ -594,12 +587,13 @@
 
   <!-- CashRegisterShiftsAdapter: the Shifts tab's staff/hour scheduling grid,
        served as a structured tree instead of the tab's own invisible bare
-       GUI.DrawTexture hour cells. Wording baked from CashRegister's own
-       English strings ("TabRegisterShifts" = "Shifts", "TabRegisterShiftsEmpty"
-       = "No one") since those keys cannot be called via Translate() from our
-       C# — see the adapter's class remarks. -->
+       GUI.DrawTexture hour cells. TabName and NoOne are fallbacks for the
+       mod's own TabRegisterShifts / TabRegisterShiftsEmpty. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Shifts</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>Shift {0}. {1}. Hours: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Shift {0}, on duty now. {1}. Hours: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Shift {0}, off duty now. {1}. Hours: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (unavailable)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Hour {0}: {1}, current hour</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>No one</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>none</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>all day</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
@@ -615,14 +609,6 @@
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>Shift added.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>This register already has the maximum of {0} shifts.</RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>
   <RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>Action failed.</RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>
-
-  <!-- HospitalityAreaColumnHandler: the Guests table's area-of-accommodation
-       and shopping-area columns. Both null-area words are ours rather than
-       calling either vanilla's or the mod's own Translate() key on their
-       behalf (the mod's own "AreaNoShopping" reads "No shopping",
-       verified against its Languages/English/Keyed/Hospitality.xml). -->
-  <RimWorldAccess.Compat.Hospitality.NoAccommodationArea>Unrestricted</RimWorldAccess.Compat.Hospitality.NoAccommodationArea>
-  <RimWorldAccess.Compat.Hospitality.NoShoppingArea>No shopping</RimWorldAccess.Compat.Hospitality.NoShoppingArea>
 
   <!-- JecsAbilityCompat / JecsAbilityCommandHandler: JecsTools' AbilityUser
        framework (RimWorld of Magic spells and any other mod built on it).
@@ -1002,6 +988,7 @@
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>Leaderboard</RimWorldAccess.Compat.RimworldTogether.Toolbar.Leaderboard>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>Market</RimWorldAccess.Compat.RimworldTogether.Toolbar.Market>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>Settlement search</RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch>
+  <RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>Roll back save</RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>Admin panel</RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin>
   <RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>Ping: {0} milliseconds</RimWorldAccess.Compat.RimworldTogether.Toolbar.Ping>
 
@@ -1186,6 +1173,8 @@
   <RimWorldAccess.Compat.Wq.RarityUncommon>uncommon</RimWorldAccess.Compat.Wq.RarityUncommon>
   <RimWorldAccess.Compat.Wq.RarityRare>rare</RimWorldAccess.Compat.Wq.RarityRare>
   <RimWorldAccess.Compat.Wq.RarityLegendary>legendary</RimWorldAccess.Compat.Wq.RarityLegendary>
+  <RimWorldAccess.Compat.Wq.New>New</RimWorldAccess.Compat.Wq.New>
+  <RimWorldAccess.Compat.Wq.WantProgress>{0} complete</RimWorldAccess.Compat.Wq.WantProgress>
 
   <!-- Rjw: the pseudo-button designations gizmo (src/Compat/Rjw/). -->
   <RimWorldAccess.Compat.Rjw.DesignationsLabel>RJW designations</RimWorldAccess.Compat.Rjw.DesignationsLabel>

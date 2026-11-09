@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RimWorld;
@@ -26,6 +27,24 @@ namespace RimWorldAccess
         /// </summary>
         private static List<WorldObject> pendingWorldObjects;
 
+        private static readonly List<KeyValuePair<Predicate<WorldObject>, Action<InspectionTreeItem, WorldObject>>> childrenBuilders =
+            new List<KeyValuePair<Predicate<WorldObject>, Action<InspectionTreeItem, WorldObject>>>();
+
+        public static void RegisterChildrenBuilder(Predicate<WorldObject> claims, Action<InspectionTreeItem, WorldObject> build)
+        {
+            childrenBuilders.Add(new KeyValuePair<Predicate<WorldObject>, Action<InspectionTreeItem, WorldObject>>(claims, build));
+        }
+
+        private static Action<InspectionTreeItem, WorldObject> ChildrenBuilderFor(WorldObject obj)
+        {
+            foreach (var entry in childrenBuilders)
+            {
+                if (entry.Key(obj))
+                    return entry.Value;
+            }
+            return null;
+        }
+
         /// <summary>
         /// Opens world object inspection for a tile, going straight to the object when only one
         /// is inspectable.
@@ -51,7 +70,7 @@ namespace RimWorldAccess
                 return;
             }
 
-            if (worldObjects.Count == 1)
+            if (worldObjects.Count == 1 && ChildrenBuilderFor(worldObjects[0]) == null)
             {
                 ActivateWorldObject(worldObjects[0]);
                 return;
@@ -163,6 +182,13 @@ namespace RimWorldAccess
         {
             if (objectNode.Children.Count > 0)
                 return; // Already built
+
+            Action<InspectionTreeItem, WorldObject> claimed = ChildrenBuilderFor(obj);
+            if (claimed != null)
+            {
+                claimed(objectNode, obj);
+                return;
+            }
 
             if (obj is Settlement settlement)
             {

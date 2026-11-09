@@ -8,9 +8,9 @@ namespace RimWorldAccess
     /// <c>VEF.Planet.Dialog_Hire</c> via <see cref="VefHireCompat"/>/<see cref="VefHireScope"/>,
     /// <c>VEF.Storyteller.Window_Contracts</c> via <see cref="VefContractsCompat"/>/
     /// <see cref="VefContractsScope"/>, and <c>VEF.Graphics.Dialog_GraphicCustomization</c> via
-    /// <see cref="VefGraphicCustomizationCompat"/>/<see cref="VefGraphicCustomizationScope"/>,
-    /// and <c>VEF.Memes.Dialog_FloatMenuOptions</c> via <see cref="VefPreceptOptionsCompat"/>/
-    /// <see cref="VefPreceptOptionsScope"/>), mirroring <see cref="VfDialogCompat"/>'s hub for
+    /// <see cref="VefGraphicCustomizationCompat"/>/<see cref="VefGraphicCustomizationScope"/>, the outpost item
+    /// dialogs via <see cref="VefOutpostItemsAdapter"/>, and <c>VEF.Memes.Dialog_FloatMenuOptions</c> via
+    /// <see cref="VefPreceptOptionsCompat"/>/<see cref="VefPreceptOptionsScope"/>), mirroring <see cref="VfDialogCompat"/>'s hub for
     /// Vehicle Framework.
     /// </summary>
     internal static class VefDialogCompat
@@ -46,6 +46,18 @@ namespace RimWorldAccess
                 ScopeForWindow.RegisterHierarchy(VefCreateOutpostCompat.DialogType, delegate (Window w)
                 {
                     return new VefCreateOutpostScope(w);
+                });
+            }
+
+            if (VefOutpostItemsAdapter.Ready)
+            {
+                ScopeForWindow.RegisterHierarchy(VefOutpostItemsAdapter.GiveDialogType, delegate (Window w)
+                {
+                    return new TransportPodLoadingScope(w, new VefOutpostItemsAdapter(w));
+                });
+                ScopeForWindow.RegisterHierarchy(VefOutpostItemsAdapter.TakeDialogType, delegate (Window w)
+                {
+                    return new TransportPodLoadingScope(w, new VefOutpostItemsAdapter(w));
                 });
             }
 

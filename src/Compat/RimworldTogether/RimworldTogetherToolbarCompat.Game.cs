@@ -1,13 +1,14 @@
 using System;
 using System.Reflection;
 using RimWorld.Planet;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess.Shell
 {
     /// <summary>
     /// Declares Rimworld Together's HUD icon strip to <see cref="ModHudToolbarRegistry"/>. The
-    /// mod draws seven tooltip-less <c>Widgets.ButtonImageWithBG</c> buttons plus a ping label
+    /// mod draws tooltip-less <c>Widgets.ButtonImageWithBG</c> buttons plus a ping label
     /// straight onto the map UI (<c>Patch_GlobalControls_GlobalControlsOnGUI</c>) and world UI
     /// (<c>Patch_WorldInterface_WorldInterfaceOnGUI</c>, where Search replaces Market), gated on
     /// <c>SessionManager.IsReadyToPlay</c> — no window, no labels, nothing to capture. Each
@@ -62,16 +63,24 @@ namespace RimWorldAccess.Shell
 
         private static readonly PropertyInfo isReadyToPlayProperty;
         private static readonly PropertyInfo isAdminProperty;
-        private static readonly PropertyInfo hasGuildProperty;
         private static readonly PropertyInfo currentActionValuesProperty;
         private static readonly PropertyInfo guildActionProperty;
         private static readonly PropertyInfo leaderboardActionProperty;
         private static readonly PropertyInfo marketActionProperty;
+        private static readonly PropertyInfo rollbackActionProperty;
         private static readonly PropertyInfo actionIsEnabledProperty;
         private static readonly PropertyInfo currentPingProperty;
         private static readonly MethodInfo pushNewDialogMethod;
         private static readonly ConstructorInfo messageCtor;
-        private static readonly MethodInfo onNoGuildOpenMethod;
+        private static readonly ConstructorInfo waitCtor;
+        private static readonly ConstructorInfo yesNoCtor;
+        private static readonly ConstructorInfo guildPacketCtor;
+        private static readonly PropertyInfo guildStepModeProperty;
+        private static readonly object guildInformationStep;
+        private static readonly object guildPacketHeader;
+        private static readonly PropertyInfo serverEndpointProperty;
+        private static readonly MethodInfo enqueuePacketMethod;
+        private static readonly MethodInfo getSaveNameMethod;
         private static readonly MethodInfo leaderboardAskMethod;
         private static readonly DialogHandle optionsDialog;
         private static readonly DialogHandle chatDialog;
@@ -91,13 +100,13 @@ namespace RimWorldAccess.Shell
             Type sessionManagerType = surface.Type("RTClient.Managers.SessionManager");
             isReadyToPlayProperty = surface.Property(sessionManagerType, "IsReadyToPlay");
             isAdminProperty = surface.Property(sessionManagerType, "IsAdmin");
-            hasGuildProperty = surface.Property(sessionManagerType, "HasGuild");
             currentActionValuesProperty = surface.Property(sessionManagerType, "CurrentActionValues");
 
-            Type actionsConfigType = surface.Type("RTShared.Files.FL_ActionsConfig");
+            Type actionsConfigType = surface.Type("RTShared.Files.Default.FL_ActionsConfig");
             guildActionProperty = surface.Property(actionsConfigType, "GuildAction");
             leaderboardActionProperty = surface.Property(actionsConfigType, "LeaderboardAction");
             marketActionProperty = surface.Property(actionsConfigType, "MarketAction");
+            rollbackActionProperty = surface.Property(actionsConfigType, "RollbackAction");
             actionIsEnabledProperty = surface.Property(surface.Type("RTShared.Files.Actions.ACT_Base"), "IsEnabled");
 
             currentPingProperty = surface.Property(surface.Type("RTNetwork.PacketManagers.PM_KeepAlive"), "CurrentPing");
@@ -106,19 +115,37 @@ namespace RimWorldAccess.Shell
             pushNewDialogMethod = surface.Method(dlgBaseType, "PushNewDialog", new[] { typeof(Window) });
             messageCtor = surface.Constructor(surface.Type("RTClient.Dialogs.Default.DLG_Message"),
                 new[] { typeof(string), typeof(string[]), typeof(Action) });
+            waitCtor = surface.Constructor(surface.Type("RTClient.Dialogs.Default.DLG_Wait"), new[] { typeof(string) });
+            yesNoCtor = surface.Constructor(surface.Type("RTClient.Dialogs.Default.DLG_YesNo"),
+                new[] { typeof(string), typeof(Action), typeof(Action), typeof(string), typeof(string), typeof(Color?), typeof(Color?) });
 
-            onNoGuildOpenMethod = surface.Method(surface.Type("RTClient.PacketManagers.PM_Guilds"), "OnNoGuildOpen", Type.EmptyTypes);
+            Type guildPacketType = surface.Type("RTNetwork.Packets.PKT_PlayerGuild");
+            guildPacketCtor = surface.Constructor(guildPacketType, Type.EmptyTypes);
+            guildStepModeProperty = surface.Property(guildPacketType, "StepMode");
+            guildInformationStep = EnumValue(surface.Type("RTNetwork.Packets.PKT_PlayerGuild+GuildStepMode"), "Information");
+            Type packetHeaderType = surface.Type("RTShared.Misc.PacketHeader");
+            guildPacketHeader = EnumValue(packetHeaderType, "Guild");
+            serverEndpointProperty = surface.Property(surface.Type("RTNetwork.Components.Network"), "ServerEndpoint");
+            enqueuePacketMethod = surface.Method(surface.Type("RTNetwork.Components.Listener"), "EnqueuePacket",
+                new[] { packetHeaderType, typeof(object) });
+            getSaveNameMethod = surface.Method(surface.Type("RTClient.PacketManagers.PM_Saves"), "GetSaveName", Type.EmptyTypes);
+
             leaderboardAskMethod = surface.Method(surface.Type("RTClient.PacketManagers.PM_Leaderboard"), "Ask", Type.EmptyTypes);
 
             optionsDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_Options");
             chatDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_Chat");
             guildDialog = new DialogHandle(surface, "RTClient.Dialogs.Guild.DLG_Guild");
             leaderboardDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_Leaderboard", constructible: false);
-            marketDialog = new DialogHandle(surface, "RTClient.Dialogs.Marketplace.DLG_Market");
+            marketDialog = new DialogHandle(surface, "RTClient.Dialogs.Marketplace.DLG_Marketplace");
             searchDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_SettlementFinder");
             adminDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_Admin");
 
-            ready = surface.Ready;
+            ready = surface.Ready && guildInformationStep != null && guildPacketHeader != null;
+        }
+
+        private static object EnumValue(Type enumType, string name)
+        {
+            return enumType != null && enumType.IsEnum && Enum.IsDefined(enumType, name) ? Enum.Parse(enumType, name) : null;
         }
 
         public static void Register()
@@ -130,10 +157,8 @@ namespace RimWorldAccess.Shell
 
             ModHudToolbarRegistry.Register(ToolbarId, Title, IsReadyToPlay);
 
-            // Entries in InterfaceDrawer's own call order (Options first, Admin last), each
-            // mirroring that Draw*Button's click body. Every button is an open/close toggle in
-            // the mod; only chat can actually be open while this menu is (the other dialogs
-            // absorb input), so only its label carries the state.
+            // InterfaceDrawer's call order, each mirroring its Draw*Button. Only chat can be open while
+            // this menu is (other dialogs absorb input), so only its label carries open/closed state.
             ModHudToolbarRegistry.AddEntry(ToolbarId,
                 () => "RimWorldAccess.Compat.RimworldTogether.Toolbar.Options".Translate(),
                 () => Toggle(optionsDialog));
@@ -156,6 +181,10 @@ namespace RimWorldAccess.Shell
                 () => "RimWorldAccess.Compat.RimworldTogether.Toolbar.SettlementSearch".Translate(),
                 () => Toggle(searchDialog),
                 () => WorldRendererUtility.WorldSelected);
+            ModHudToolbarRegistry.AddEntry(ToolbarId,
+                () => "RimWorldAccess.Compat.RimworldTogether.Toolbar.Rollback".Translate(),
+                ActivateRollback,
+                () => !WorldRendererUtility.WorldSelected);
             ModHudToolbarRegistry.AddEntry(ToolbarId,
                 () => "RimWorldAccess.Compat.RimworldTogether.Toolbar.Admin".Translate(),
                 () => Toggle(adminDialog),
@@ -202,7 +231,7 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        /// <summary>Mirrors <c>InterfaceDrawer.DrawGuildButton</c>'s click body branch for branch, including its server-side feature gate and its no-guild hand-off.</summary>
+        /// <summary>Mirrors <c>InterfaceDrawer.DrawGuildButton</c>: a wait dialog, then a guild information request whose reply (<c>PM_Guilds</c>) opens the guild dialog.</summary>
         private static void ActivateGuild()
         {
             if (guildDialog.IsOpen())
@@ -215,14 +244,31 @@ namespace RimWorldAccess.Shell
                 PushDisabledMessage();
                 return;
             }
-            if ((bool)hasGuildProperty.GetValue(null))
+            object waitDescription = waitCtor.GetParameters()[0].DefaultValue;
+            pushNewDialogMethod.Invoke(null, new[] { waitCtor.Invoke(new[] { waitDescription }) });
+            object packet = guildPacketCtor.Invoke(null);
+            // MUTATION-C: mirrors InterfaceDrawer.DrawGuildButton; the request packet is built inline in the click body, with no method to call instead.
+            guildStepModeProperty.SetValue(packet, guildInformationStep);
+            enqueuePacketMethod.Invoke(serverEndpointProperty.GetValue(null), new[] { guildPacketHeader, packet });
+        }
+
+        private static void ActivateRollback()
+        {
+            if (!ActionEnabled(rollbackActionProperty))
             {
-                pushNewDialogMethod.Invoke(null, new object[] { guildDialog.Create() });
+                PushDisabledMessage();
+                return;
             }
-            else
+            Action reload = delegate
             {
-                onNoGuildOpenMethod.Invoke(null, null);
-            }
+                GameDataSaveLoader.LoadGame((string)getSaveNameMethod.Invoke(null, null));
+            };
+            // l10n-exempt: the target mod's own hardcoded dialog strings (InterfaceDrawer.cs), mirrored byte-for-byte.
+            object dialog = yesNoCtor.Invoke(new object[]
+            {
+                "Are you sure you want to rollback your save?", reload, null, "Yes", "No", (Color?)Color.red, null
+            });
+            pushNewDialogMethod.Invoke(null, new[] { dialog });
         }
 
         /// <summary>Mirrors <c>InterfaceDrawer.DrawLeaderboardButton</c>: the open branch asks the server (<c>PM_Leaderboard.Ask</c>) rather than constructing the dialog locally.</summary>

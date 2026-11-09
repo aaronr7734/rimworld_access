@@ -8,11 +8,10 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Compat for ISEKAI RPG LEVELING. The mod draws its screens with custom styles, hand-rolled
-    /// buttons and a bitmap title font, so nothing there is capturable; every surface here reads
-    /// the mod's own data objects and drives its own gated methods instead. This class holds the
-    /// core surface (component, stats, ranks) and the registrations; the tree, forge and window
-    /// surfaces live in their own <c>Isekai*Compat</c> siblings.
+    /// Compat for ISEKAI RPG LEVELING. The mod draws with custom styles, hand-rolled buttons and a
+    /// bitmap title font, so nothing is capturable; every surface reads the mod's data objects and
+    /// drives its gated methods. This class holds the core surface (component, stats, ranks) and the
+    /// registrations; the tree, forge and window surfaces live in their Isekai*Compat siblings.
     /// </summary>
     internal static class IsekaiCompat
     {
@@ -64,6 +63,9 @@ namespace RimWorldAccess
         private static PropertyInfo weaponMasteryEnabledProperty;
         private static PropertyInfo forgeEnabledProperty;
         private static MethodInfo initializePawnStatsMethod;
+        private static float? eliteStatFactor;
+        private static float? eliteArmorBonus;
+        private static float? eliteHealthFactor;
 
         internal static readonly LazyReflectionGate CoreGate =
             new LazyReflectionGate("Isekai core", surface =>
@@ -171,6 +173,12 @@ namespace RimWorldAccess
                 weaponMasteryEnabledProperty = masteryEnabled;
                 forgeEnabledProperty = forgeEnabled;
                 initializePawnStatsMethod = initializeStats;
+
+                // Version-optional: the elite constants arrived with the creature window's tooltip.
+                Type statPatches = AccessTools.TypeByName("IsekaiLeveling.MobRanking.MobRankStatPatches");
+                eliteStatFactor = ConstOf(statPatches, "EliteStatFactor");
+                eliteArmorBonus = ConstOf(statPatches, "EliteArmorBonus");
+                eliteHealthFactor = ConstOf(statPatches, "EliteHealthFactor");
                 return true;
             });
 
@@ -290,6 +298,23 @@ namespace RimWorldAccess
         internal static object MobStats(object comp) => mobStatsField.GetValue(comp);
         internal static bool MobIsElite(object comp) => (bool)mobIsEliteProperty.GetValue(comp, null);
         internal static string MobRankString(object comp) => rankStringMethod.Invoke(null, new[] { mobRankProperty.GetValue(comp, null) }) as string;
+
+        internal static string EliteTooltip()
+        {
+            if (eliteStatFactor == null || eliteArmorBonus == null || eliteHealthFactor == null)
+                return "RimWorldAccess.Compat.Isekai.Elite".Translate();
+            return Shell.CompatText.ModArgs("Isekai_CreatureStats_EliteTooltip",
+                ((eliteStatFactor.Value - 1f) * 100f).ToString("F0"),
+                (eliteArmorBonus.Value * 100f).ToString("F0"),
+                ((eliteHealthFactor.Value - 1f) * 100f).ToString("F0"));
+        }
+
+        private static float? ConstOf(Type type, string name)
+        {
+            FieldInfo field = type == null ? null : AccessTools.Field(type, name);
+            return field != null && field.IsLiteral ? (float?)(float)field.GetRawConstantValue() : null;
+        }
+
         internal static string MobRankTitle(object comp) => rankTitleMethod.Invoke(null, new[] { mobRankProperty.GetValue(comp, null) }) as string;
 
         // ---- Registration ----

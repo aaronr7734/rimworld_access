@@ -32,8 +32,8 @@ namespace RimWorldAccess.Shell
             Claim("tree.jumpToNextSection", e => PerformJumpToAdjacentSection(true));
 
 
-            // No node this tree builds ever sets LinkedDef, so Alt+I always falls through to the
-            // "no info card" fallback; the spoken announcement, not silence, is the right answer.
+            // Only compat-built nodes set LinkedDef; every other row falls through to the
+            // "no info card" fallback, where the spoken announcement, not silence, is the right answer.
             Claim(SharedMenuGrammar.Info, e => PerformInfoCard());
 
             // The base's guarded claim, registered ahead of this one, clears an active search

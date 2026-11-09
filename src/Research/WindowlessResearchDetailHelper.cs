@@ -871,6 +871,8 @@ namespace RimWorldAccess
                     reasons.Add("NotStudied".Translate(analyzed.LabelCap).ToString());
             }
 
+            ResearchLockedReasonProviders.AppendTo(project, reasons);
+
             return reasons.Count > 0
                 ? string.Join(". ", reasons)
                 : "RimWorldAccess.Research.MissingPrereqs.Unknown".Translate().ToString();

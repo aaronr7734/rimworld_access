@@ -460,6 +460,8 @@ namespace RimWorldAccess
                             passion = "RimWorldAccess.Pawns.Character.PassionMinor".Translate();
                         else if (skill.passion == Passion.Major)
                             passion = "RimWorldAccess.Pawns.Character.PassionMajor".Translate();
+                        else if (skill.passion != Passion.None)
+                            passion = "RimWorldAccess.Pawns.Character.PassionNamed".Translate(skill.passion.GetLabel());
 
                         ab.Add("RimWorldAccess.Pawns.Character.SkillLine".Translate(skill.def.LabelCap, skill.Level, passion));
                     }
@@ -491,15 +493,17 @@ namespace RimWorldAccess
 
             foreach (var skill in topSkills)
             {
-                string entryKey;
+                string entry;
                 if (skill.passion == Passion.Minor)
-                    entryKey = "RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion";
+                    entry = "RimWorldAccess.Pawns.TopSkills.SkillEntryMinorPassion".Translate(skill.def.LabelCap, skill.Level);
                 else if (skill.passion == Passion.Major)
-                    entryKey = "RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion";
+                    entry = "RimWorldAccess.Pawns.TopSkills.SkillEntryMajorPassion".Translate(skill.def.LabelCap, skill.Level);
+                else if (skill.passion != Passion.None)
+                    entry = "RimWorldAccess.Pawns.TopSkills.SkillEntryNamedPassion".Translate(skill.def.LabelCap, skill.Level, skill.passion.GetLabel());
                 else
-                    entryKey = "RimWorldAccess.Pawns.TopSkills.SkillEntry";
+                    entry = "RimWorldAccess.Pawns.TopSkills.SkillEntry".Translate(skill.def.LabelCap, skill.Level);
 
-                ab.Add(entryKey.Translate(skill.def.LabelCap, skill.Level));
+                ab.Add(entry);
             }
 
             return ab.Build();

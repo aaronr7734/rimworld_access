@@ -13,6 +13,7 @@ namespace RimWorldAccess
         {
             AllowToolCompat.RegisterRectDesignationHandler();
             AllowToolCompat.RegisterContextMenuProvider();
+            AllowToolMenuOptionFacets.Register(harmony);
         }
     }
 }

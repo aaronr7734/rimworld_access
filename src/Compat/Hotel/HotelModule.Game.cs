@@ -13,13 +13,14 @@ namespace RimWorldAccess
 
         public override void Activate(Harmony harmony)
         {
-            // CashRegister's gizmo handlers ride Hospitality's ModifyNumberGizmoHandler;
-            // Hospitality registers first.
             HospitalityCompat.Register(harmony);
             HospitalityCompat.RegisterGizmoHandlers();
+            HospitalityAreaColumnHandler.Register();
+            HospitalityMoreColumnHandler.Register();
+            CustomCheckboxLabeledTap.Patch(harmony, "Hospitality.CustomWidget", "Hospitality.Utilities.CustomWidget");
+            CustomCheckboxLabeledTap.Patch(harmony, "CashRegister.CustomWidget");
             CashRegisterCompat.RegisterGizmoHandlers();
             CashRegisterShiftsAdapter.TryRegister();
-            HospitalityAreaColumnHandler.RegisterHospitalityColumns();
         }
     }
 }

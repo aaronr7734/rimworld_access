@@ -38,6 +38,7 @@ namespace RimWorldAccess.Shell
                 SliderValueText = SliderCaption.EffectiveValueText(leftAlignedLabel, rightAlignedLabel, min, max),
                 SliderControlId = controlId,
             });
+            NoteValueControl(sink, index);
             DrawFocusRingIfFocused(index, rect);
             return index;
         }
@@ -121,6 +122,7 @@ namespace RimWorldAccess.Shell
                 RangeRoundTo = roundTo,
                 RangeStyle = style,
             });
+            NoteValueControl(sink, index);
             DrawFocusRingIfFocused(index, rect);
             return index;
         }
@@ -275,7 +277,11 @@ namespace RimWorldAccess.Shell
             {
                 row.StepperValueField = true;
             }
-            if (vectorFieldDepth > 0 && numericFieldDepth > 0)
+            if (sliderTypeInDepth > 0)
+            {
+                StampSliderTypeIn(row);
+            }
+            else if (vectorFieldDepth > 0 && numericFieldDepth > 0)
             {
                 row.FieldLabel = vectorAxisLabel ?? "";
             }

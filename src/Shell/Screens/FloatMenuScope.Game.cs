@@ -178,6 +178,10 @@ namespace RimWorldAccess.Shell
             {
                 d.Extras = TooltipCapture.TryResolveAt(rect);
             }
+            if (string.IsNullOrEmpty(d.Extras))
+            {
+                d.Extras = FloatMenuOptionDetails.ExtrasFor(option);
+            }
             return d;
         }
 
@@ -340,7 +344,7 @@ namespace RimWorldAccess.Shell
 
         /// <summary>
         /// The focused option's info-card subject, by precedence: the icon item, the icon thing, then
-        /// the click target the option revalidates against. Shared with the compat scopes driving a
+        /// the click target the option revalidates against, then a registered FloatMenuOptionDetails source. Shared with the compat scopes driving a
         /// mod's own window of FloatMenuOptions.
         /// </summary>
         internal static Def ResolveInfoDef(FloatMenuOption option)
@@ -358,7 +362,7 @@ namespace RimWorldAccess.Shell
             {
                 return option.revalidateClickTarget.def;
             }
-            return null;
+            return FloatMenuOptionDetails.InfoDefFor(option);
         }
     }
 

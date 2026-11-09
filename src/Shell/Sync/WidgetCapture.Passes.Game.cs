@@ -77,6 +77,8 @@ namespace RimWorldAccess.Shell
             lastBareTipValid = false;
             pendingTipTextureValid = false;
             WidgetCapture.focusedIndex = focusedIndex;
+            focusedControlIndex = -1;
+            lastValueControlIndex = -1;
             passOpen = true;
             passOpenFrame = Time.frameCount;
             // An unbalanced BeginScrollView/EndScrollView from a mod that threw mid-body must
@@ -135,6 +137,7 @@ namespace RimWorldAccess.Shell
             listingTreeLabelDepth = 0;
             rangeDepth = 0;
             rangeTypeInDepth = 0;
+            sliderTypeInDepth = 0;
             labelEllipsesDepth = 0;
             iconDepth = 0;
             widgetRowDefIconDepth = 0;
@@ -230,6 +233,9 @@ namespace RimWorldAccess.Shell
             rangeDepth = 0;
             savedRangeTypeInDepth = rangeTypeInDepth;
             rangeTypeInDepth = 0;
+            // Detached passes never nest inside a live widget body, so these need no restore.
+            sliderTypeInDepth = 0;
+            lastValueControlIndex = -1;
             savedLabelEllipsesDepth = labelEllipsesDepth;
             labelEllipsesDepth = 0;
             savedIconDepth = iconDepth;
@@ -403,6 +409,7 @@ namespace RimWorldAccess.Shell
             ResolvePendingTipTexture(CurrentSink);
             passOpen = false;
             focusedIndex = -1;
+            focusedControlIndex = -1;
             // Unconsumed live descriptor posts deliberately SURVIVE EndPass and expire by frame
             // deadline in BeginPass instead: clearing here races the dispatcher against the
             // Layout/Repaint pairing, killing a post that lands between a frame's two passes.

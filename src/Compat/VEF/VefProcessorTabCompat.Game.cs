@@ -3,8 +3,8 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Registers the inspection-tree tab adapter for Vanilla Expanded Framework's PipeSystem
-    /// processor tab (PipeSystem.ITab_Processor).
+    /// Registers the inspection-tree tab adapters for Vanilla Expanded Framework's PipeSystem
+    /// processor tab and animal Genes tab.
     /// </summary>
     internal static class VefProcessorTabCompat
     {
@@ -18,6 +18,10 @@ namespace RimWorldAccess
                     return adapter;
                 },
                 "VEF processor tab compat");
+
+            CompatRegistration.TabAdapter("VEF.AnimalGenes.ITab_AnimalGenes",
+                t => new VefAnimalGenesTabAdapter(t),
+                "VEF animal genes tab compat");
         }
     }
 }

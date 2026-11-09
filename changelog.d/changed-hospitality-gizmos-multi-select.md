@@ -1,0 +1,1 @@
+Hospitality's guest bed rental fee and Cash Register's radius can now be adjusted with several beds or registers selected at once, and the readout gives the range across the whole selection like the gizmo does.

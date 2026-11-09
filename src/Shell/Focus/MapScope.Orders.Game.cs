@@ -328,6 +328,11 @@ namespace RimWorldAccess.Shell
             List<Pawn> pawns, Vector3 clickPos, out FloatMenuContext context)
         {
             context = null;
+            List<FloatMenuOption> replaced = OrderOptionOverrides.TryGet(pawns, clickPos.ToIntVec3());
+            if (replaced != null)
+            {
+                return replaced;
+            }
             try
             {
                 return FloatMenuMakerMap.GetOptions(pawns, clickPos, out context);

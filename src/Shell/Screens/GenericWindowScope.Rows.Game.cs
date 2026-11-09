@@ -124,6 +124,8 @@ namespace RimWorldAccess.Shell
 
             public bool OwnLabelIsValue;
 
+            public int TypeInCaptureIndex = -1;
+
             public Rect ScreenRect;
             public Rect LabelScreenRect;
 
@@ -192,8 +194,8 @@ namespace RimWorldAccess.Shell
             public int RangeTextIndex;
 
             /// <summary>
-            /// Set by <see cref="FuseToggleableIconRun"/> on a ToggleableIcon row a preceding
-            /// same-row Label folded into: the composed name to use instead of
+            /// Set by <see cref="FuseToggleableIconRun"/> on a ToggleableIcon row a same-row
+            /// caption Label folded into: the composed name to use instead of
             /// <see cref="ResolvePresentationLabel"/>'s default.
             /// </summary>
             public string LabelOverride;
@@ -205,6 +207,8 @@ namespace RimWorldAccess.Shell
             public bool ReadOnlyCheckbox;
 
             public bool OwnLabelIsValue;
+            public int TypeInIndex;
+            public int TypeInHighIndex;
         }
 
         /// <summary>
@@ -307,7 +311,11 @@ namespace RimWorldAccess.Shell
                 fusion[i].ActivateIndex = -1;
                 fusion[i].SecondaryIndex = -1;
                 fusion[i].RangeTextIndex = -1;
+                fusion[i].TypeInIndex = -1;
+                fusion[i].TypeInHighIndex = -1;
             }
+
+            FoldSliderTypeIns(consumed, fusion);
 
             // A TextField drawn twice at one rect is the password idiom: the real field first,
             // then mask glyphs painted over it. One control, one row: the mask twin is consumed
@@ -450,10 +458,12 @@ namespace RimWorldAccess.Shell
                     // one tooltip, so without this fold each toggle reads indistinguishably.
                     // Forward-consuming: the label is the anchor and is folded away here, so the
                     // loop cannot re-enter this decision.
+                    // Icons on a lower line that carry their own same-line caption belong to it.
                     int runLength = CountToggleableIconRun(captureRows, consumed, i, n);
-                    if (runLength > 0)
+                    if (runLength > 0 && (captureRows[i + 1].Rect.y == row.Rect.y
+                        || CountTrailingCaptionedIconRun(captureRows, consumed, i + 1, n) == 0))
                     {
-                        FuseToggleableIconRun(fusion, captureRows, i, runLength);
+                        FuseToggleableIconRun(fusion, captureRows, i, i + 1, runLength);
                         consumed[i] = true;
                         continue;
                     }
@@ -540,9 +550,17 @@ namespace RimWorldAccess.Shell
                     // Verse.WidgetRow.ToggleableIcon: a ButtonImage whose on/off state is a
                     // bare GUI.DrawTexture overlay that marker promotion cannot reach (it only
                     // runs against InvisibleButton rows). The capture bracket read the state off
-                    // the caller's ref bool, so this promotion is evidence, not geometry. It
-                    // consumes nothing and writes only its own index, so it needs no re-entry
-                    // guard.
+                    // the caller's ref bool, so this promotion is evidence, not geometry. A run
+                    // with no leading caption may take a same-line caption drawn after it.
+                    if (fusion[i].LabelOverride == null)
+                    {
+                        int runLength = CountTrailingCaptionedIconRun(captureRows, consumed, i, n);
+                        if (runLength > 0)
+                        {
+                            FuseToggleableIconRun(fusion, captureRows, i + runLength, i, runLength);
+                            consumed[i + runLength] = true;
+                        }
+                    }
                     fusion[i].KindOverride = WidgetKind.Checkbox;
                     fusion[i].CheckOverride = row.Checked ? CheckState.Checked : CheckState.Unchecked;
                     continue;
@@ -840,8 +858,12 @@ namespace RimWorldAccess.Shell
                     // posts against); PresentationRow.RangeHigh is what tells
                     // them apart everywhere downstream.
                     string caption = ResolveRangeCaption(fusion[i]);
-                    presentationRows.Add(BuildRangeRow(row, i, caption, high: false, section: ownerSection));
-                    presentationRows.Add(BuildRangeRow(row, i, caption, high: true, section: ownerSection));
+                    PresentationRow lowRow = BuildRangeRow(row, i, caption, high: false, section: ownerSection);
+                    lowRow.TypeInCaptureIndex = fusion[i].TypeInIndex;
+                    presentationRows.Add(lowRow);
+                    PresentationRow highRow = BuildRangeRow(row, i, caption, high: true, section: ownerSection);
+                    highRow.TypeInCaptureIndex = fusion[i].TypeInHighIndex;
+                    presentationRows.Add(highRow);
                     continue;
                 }
 
@@ -936,6 +958,7 @@ namespace RimWorldAccess.Shell
                 pr.SuppressGenericTip = fusion[i].SuppressGenericTip;
                 pr.ReadOnlyCheckbox = fusion[i].ReadOnlyCheckbox;
                 pr.OwnLabelIsValue = fusion[i].OwnLabelIsValue;
+                pr.TypeInCaptureIndex = fusion[i].TypeInIndex;
                 pr.SpeechMasked = fusion[i].SpeechMasked;
                 presentationRows.Add(pr);
             }

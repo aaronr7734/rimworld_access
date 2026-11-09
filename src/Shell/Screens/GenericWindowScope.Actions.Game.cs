@@ -485,9 +485,16 @@ namespace RimWorldAccess.Shell
                     break;
                 case WidgetKind.Slider:
                 case WidgetKind.Range:
-                    // A slider owns Left/Right and nothing else; Enter re-reads the row.
-                    // Range rows follow the same rule.
-                    AnnounceCurrent();
+                    // Left/Right step the value. Enter edits through a folded type-in box when
+                    // the control drew one, and otherwise re-reads the row.
+                    if (HasTypeIn(row))
+                    {
+                        BeginTypeInEdit(row, announcePrompt: true);
+                    }
+                    else
+                    {
+                        AnnounceCurrent();
+                    }
                     break;
                 case WidgetKind.Button:
                     // Silent otherwise: the click's own side effect announces itself. The

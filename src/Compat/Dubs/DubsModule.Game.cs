@@ -11,7 +11,7 @@ namespace RimWorldAccess
 
         public override void Activate(Harmony harmony)
         {
-            DubsBadHygieneCompat.RegisterGizmoHandlers();
+            CompatRegistration.GizmoHandler("DubsBadHygiene.Gizmo_BoilerStatus", t => new DubsBoilerStatusGizmoHandler(t));
         }
     }
 }

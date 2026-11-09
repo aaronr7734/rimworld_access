@@ -20,13 +20,13 @@ namespace RimWorldAccess.Shell
             TooltipCapture.BeginPass();
             // The ring must outline a CAPTURE row: RingCaptureIndex, not the presentation index.
             int focused = RowIndex;
-            int ringIndex = (focused >= 0 && focused < presentationRows.Count)
-                ? presentationRows[focused].RingCaptureIndex
-                : -1;
+            bool hasRow = focused >= 0 && focused < presentationRows.Count;
+            int ringIndex = hasRow ? presentationRows[focused].RingCaptureIndex : -1;
             // The Prefix runs at InnerWindowOnGUI entry, so this is the window's own clip level;
             // everything DoWindowContents draws sits at least one group deeper.
             passRootClipDepth = GuiSpace.CurrentClip().Depth;
             WidgetCapture.BeginPass(ringIndex);
+            WidgetCapture.SetFocusedControl(hasRow ? presentationRows[focused].ActivateCaptureIndex : -1);
         }
 
         internal void OnGuiPass()
@@ -50,6 +50,7 @@ namespace RimWorldAccess.Shell
                 // Re-post the live buffer as this pass's forced TextField result every frame, per
                 // TextFieldEditSession's per-pass contract, routed through
                 // WidgetCapture.RequestTextOverride rather than a reflected backing field.
+                RetargetTypeInEdit();
                 session.MirrorLive();
             }
 

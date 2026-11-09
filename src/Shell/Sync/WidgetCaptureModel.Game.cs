@@ -341,6 +341,9 @@ namespace RimWorldAccess.Shell
         public float NumericMax;
         public bool NumericPercent;
 
+        public int SliderTypeInOwner = -1;
+        public bool SliderTypeInHigh;
+
         /// <summary>
         /// TextField/TextArea/FillableBar rows only: the caption a labeled wrapper's bracket
         /// carried onto this row. Deliberately NOT stored in <see cref="Label"/>: a text

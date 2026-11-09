@@ -763,8 +763,7 @@ namespace RimWorldAccess.Shell
         /// Counts the same-row Verse.WidgetRow run of ToggleableIcon controls starting right after
         /// <paramref name="labelIndex"/>. Such runs are contiguous in the capture stream by
         /// construction (a WidgetRow.Gap records no row), but <see cref="IsAdjacent"/> is still
-        /// checked so an unrelated icon drawn after an unrelated label never folds. Returns 0 when
-        /// the next row is not such an icon, leaving the single-row promotion to handle it.
+        /// checked so an unrelated icon drawn after an unrelated label never folds; 0 when none follows.
         /// </summary>
         private static int CountToggleableIconRun(List<CapturedWidget> rows, bool[] consumed, int labelIndex, int n)
         {
@@ -780,16 +779,36 @@ namespace RimWorldAccess.Shell
             return count;
         }
 
+        // Mirror shape: icons first, then a plain Label at the same WidgetRow y; 0 when none follows.
+        private static int CountTrailingCaptionedIconRun(List<CapturedWidget> rows, bool[] consumed, int firstIcon, int n)
+        {
+            int j = firstIcon;
+            while (j < n && !consumed[j] && rows[j].Composite == CompositeMember.ToggleableIcon)
+            {
+                j++;
+            }
+            if (j >= n || consumed[j])
+            {
+                return 0;
+            }
+            CapturedWidget caption = rows[j];
+            bool plainCaption = caption.Kind == WidgetKind.Label && caption.Composite == CompositeMember.None
+                && !caption.Heading && !string.IsNullOrEmpty(caption.Label);
+            return plainCaption && caption.Rect.y == rows[firstIcon].Rect.y && caption.Clip.Equals(rows[firstIcon].Clip)
+                ? j - firstIcon
+                : 0;
+        }
+
         /// <summary>
-        /// Folds a Label+ToggleableIcon(s) run (see <see cref="CountToggleableIconRun"/>) by giving
-        /// each toggle its own <see cref="FusionResult.LabelOverride"/>: the shared caption alone
+        /// Folds a caption+ToggleableIcon(s) run by giving each toggle its own
+        /// <see cref="FusionResult.LabelOverride"/>: the shared caption alone
         /// for a lone toggle, "caption: icon name" when there are several, since the icon texture
         /// is the only thing that tells same-tooltip toggles apart. A toggle whose resolved tooltip
         /// exactly matches a run-mate's is marked <see cref="FusionResult.SuppressGenericTip"/> so
         /// <see cref="BuildDescription"/> does not repeat boilerplate. Tooltip resolution is safe
         /// here because this runs after the capture pass has closed.
         /// </summary>
-        private static void FuseToggleableIconRun(FusionResult[] fusion, List<CapturedWidget> rows, int labelIndex, int runLength)
+        private static void FuseToggleableIconRun(FusionResult[] fusion, List<CapturedWidget> rows, int labelIndex, int firstIcon, int runLength)
         {
             CapturedWidget label = rows[labelIndex];
             string[] tips = null;
@@ -798,13 +817,13 @@ namespace RimWorldAccess.Shell
                 tips = new string[runLength];
                 for (int k = 0; k < runLength; k++)
                 {
-                    CapturedWidget icon = rows[labelIndex + 1 + k];
+                    CapturedWidget icon = rows[firstIcon + k];
                     tips[k] = TooltipCapture.TryResolveAtScreen(icon.ScreenRect, icon.Clip);
                 }
             }
             for (int k = 0; k < runLength; k++)
             {
-                int iconIndex = labelIndex + 1 + k;
+                int iconIndex = firstIcon + k;
                 fusion[iconIndex].LabelOverride = runLength == 1
                     ? (label.Label ?? "")
                     : ComposeToggleableIconLabel(label.Label, rows[iconIndex].IconTexName);

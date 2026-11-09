@@ -2,17 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
+using HarmonyLib;
 using RimWorld;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess
 {
-    /// <summary>
-    /// Reflection-only surface for Character Development (WantsAndQuirks): the static reward
-    /// state, the reward-bubble nodes, the Characters main tab's own gated claim path, and the
-    /// per-pawn wants data. Consumed by <see cref="Shell.WqCharactersTabScope"/> and
-    /// <see cref="WqWantsTabAdapter"/>.
-    /// </summary>
+    /// <summary>Reflection-only surface for Character Development (WantsAndQuirks).</summary>
     internal static class WqCompat
     {
         private static readonly Type stateType;
@@ -67,6 +64,15 @@ namespace RimWorldAccess
         private static readonly PropertyInfo quirkLabelCapProp;
         private static readonly PropertyInfo quirkDescriptionProp;
         private static readonly FieldInfo quirkDefField;
+
+        private static readonly FieldInfo wantViewedField;
+        private static readonly FieldInfo wantGlowField;
+        private static readonly FieldInfo nodeViewedField;
+        private static readonly FieldInfo nodeGlowField;
+        private static readonly float wantGlowSeconds;
+        private static readonly float nodeGlowSeconds;
+        private static readonly PropertyInfo wantWorkerProp;
+        private static readonly MethodInfo tryGetProgressMethod;
 
         private static readonly FieldInfo charactersMenuDefField;
         private static readonly FieldInfo rerollSoundField;
@@ -138,6 +144,23 @@ namespace RimWorldAccess
             rerollSoundField = surface.Field(defsOfType, "WQ_RerollSound");
 
             ready = surface.Ready;
+
+            // Version-optional: the first-view glow and the per-want progress bar.
+            wantViewedField = ReflectionSurface.TryFieldOrProperty(activeWantType, "hasBeenViewed") as FieldInfo;
+            wantGlowField = ReflectionSurface.TryFieldOrProperty(activeWantType, "glowStartRealTime") as FieldInfo;
+            nodeViewedField = ReflectionSurface.TryFieldOrProperty(rewardNodeType, "hasBeenViewed") as FieldInfo;
+            nodeGlowField = ReflectionSurface.TryFieldOrProperty(rewardNodeType, "glowStartRealTime") as FieldInfo;
+            wantGlowSeconds = ConstSeconds(itabType, "NewWantGlowDuration");
+            nodeGlowSeconds = ConstSeconds(mainTabType, "NewRewardGlowDuration");
+            wantWorkerProp = ReflectionSurface.TryFieldOrProperty(wantDefType, "Worker") as PropertyInfo;
+            tryGetProgressMethod = wantWorkerProp == null ? null
+                : AccessTools.Method(wantWorkerProp.PropertyType, "TryGetProgress");
+        }
+
+        private static float ConstSeconds(Type type, string name)
+        {
+            FieldInfo field = type == null ? null : AccessTools.Field(type, name);
+            return field != null && field.IsLiteral ? (float)field.GetRawConstantValue() : 0f;
         }
 
         public static int RewardPoints() => ready ? (int)rewardPointsField.GetValue(null) : 0;
@@ -219,6 +242,61 @@ namespace RimWorldAccess
         public static int WantRerollCount(object want) => (int)wantRerollCountField.GetValue(want);
         public static int WantReward(object want) => (int)wantRewardField.GetValue(wantDefField.GetValue(want));
         public static bool WantIsMentalBreak(object want) => (bool)wantMentalBreakField.GetValue(wantDefField.GetValue(want));
+
+        /// <summary>The tab's progress bar, drawn only for a positive target.</summary>
+        public static bool TryWantProgress(Pawn pawn, object want, out float fraction)
+        {
+            fraction = 0f;
+            if (tryGetProgressMethod == null)
+            {
+                return false;
+            }
+            object worker = wantWorkerProp.GetValue(wantDefField.GetValue(want), null);
+            var args = new object[] { pawn, want, 0f, 0f };
+            if (worker == null || !(bool)tryGetProgressMethod.Invoke(worker, args))
+            {
+                return false;
+            }
+            float target = (float)args[3];
+            if (target <= 0f)
+            {
+                return false;
+            }
+            fraction = Mathf.Clamp01((float)args[2] / target);
+            return true;
+        }
+
+        /// <summary>Whether the first-view glow is on this want; stamps it viewed, since this tree can be read without the tab drawing.</summary>
+        public static bool TakeWantIsNew(object want)
+        {
+            if (wantViewedField == null || wantGlowField == null || wantGlowSeconds <= 0f)
+            {
+                return false;
+            }
+            if (!(bool)wantViewedField.GetValue(want))
+            {
+                // MUTATION-C: mirrors ITab_Pawn_WantsAndQuirks.DrawWants's first-draw stamp; no method behind it.
+                wantViewedField.SetValue(want, true);
+                wantGlowField.SetValue(want, Time.realtimeSinceStartup);
+                return true;
+            }
+            return IsGlowing((float)wantGlowField.GetValue(want), wantGlowSeconds);
+        }
+
+        public static bool NodeIsNew(object node)
+        {
+            if (nodeViewedField == null || nodeGlowField == null || nodeGlowSeconds <= 0f)
+            {
+                return false;
+            }
+            return !(bool)nodeViewedField.GetValue(node)
+                || IsGlowing((float)nodeGlowField.GetValue(node), nodeGlowSeconds);
+        }
+
+        private static bool IsGlowing(float glowStart, float seconds)
+        {
+            return glowStart >= 0f && Time.realtimeSinceStartup - glowStart < seconds;
+        }
 
         public static string QuirkLabel(object quirk) => quirkLabelCapProp.GetValue(quirk) as string ?? "";
         public static string QuirkDescription(object quirk) => quirkDescriptionProp.GetValue(quirk) as string ?? "";

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HarmonyLib;
 using RimWorld;
@@ -13,9 +14,11 @@ namespace RimWorldAccess
     /// <summary>
     /// Inspection-tree adapter for Vehicle Framework's Vehicles.ITab_Vehicle_Upgrades — the
     /// upgrade-tree tab that lets a player spend resources to unlock nodes on a vehicle's upgrade
-    /// grid. One section per upgrade node (author order, hidden nodes skipped, same as the tab's
-    /// own draw loop), each carrying its cost, effect and incompatibility detail plus the one
-    /// action the drawn node's button would perform. Structure is read straight from
+    /// grid. The grid's prerequisite lines become the tree: each visible node nests under its
+    /// first visible prerequisite (the tab draws no line to a hidden one), nodes with none are
+    /// roots, siblings keep the def's author order, and every further prerequisite is spoken as
+    /// "also requires". Each node carries its cost, effect and incompatibility detail plus the
+    /// one action the drawn node's button would perform. Structure is read straight from
     /// CompUpgradeTree.Props.def.nodes.
     ///
     /// The in-progress operation's "Removal" flag is the one OPTIONAL member: if it fails to
@@ -40,10 +43,6 @@ namespace RimWorldAccess
     /// DEVIATION: a node unlocked but not the last-unlocked node in its chain draws a live Upgrade
     /// button in the vanilla tab whose click is a no-op (guarded by "not already unlocked"). This
     /// adapter replaces that dead button with a read-only explanatory line.
-    ///
-    /// DEVIATION: the Upgrade/Remove button labels and the reject messages are VF's own English
-    /// text baked into this mod's keys, because Workshop-mod Keyed XML is invisible to
-    /// check_l10n_keys.py.
     /// </summary>
     internal sealed class VfUpgradesTabAdapter : InspectNodeAdapter
     {
@@ -75,6 +74,7 @@ namespace RimWorldAccess
         private readonly MethodInfo getNodeMethod;
 
         private readonly Type upgradeNodeType;
+        private readonly FieldInfo keyField;
         private readonly FieldInfo labelField;
         private readonly FieldInfo descriptionField;
         private readonly FieldInfo upgradeExplanationField;
@@ -141,9 +141,7 @@ namespace RimWorldAccess
             nodesField = surface.Field(upgradeTreeDefType, "nodes");
             getNodeMethod = surface.Method(upgradeTreeDefType, "GetNode", new[] { typeof(string) });
 
-            // "key" is only ever consumed as a raw string already carried by the referencing
-            // fields below, so it is validated for the ready gate without being kept as a field.
-            surface.Field(upgradeNodeType, "key");
+            keyField = surface.Field(upgradeNodeType, "key");
             labelField = surface.Field(upgradeNodeType, "label");
             descriptionField = surface.Field(upgradeNodeType, "description");
             upgradeExplanationField = surface.Field(upgradeNodeType, "upgradeExplanation");
@@ -170,12 +168,12 @@ namespace RimWorldAccess
 
         public override TabHandlerType Handler => TabHandlerType.RichNavigation;
 
-        // The tab's own labelKey ("VF_TabUpgrades", English "Upgrades") — the same word a sighted
-        // player reads on the tab strip, so this bypasses InspectionCategoryLocalizer rather than
-        // adding an entry for a name only VF ever renders.
-        public override string DisplayName(InspectTabBase tab) => "RimWorldAccess.Compat.Vf.UpgradesTab".Translate();
+        // The tab's own labelKey, the word a sighted player reads on the tab strip.
+        private static string TabLabel => CompatText.ResolveOrFallback("VF_TabUpgrades", "RimWorldAccess.Compat.Vf.UpgradesTab");
 
-        public override string CategoryDisplayName(object obj) => "RimWorldAccess.Compat.Vf.UpgradesTab".Translate();
+        public override string DisplayName(InspectTabBase tab) => TabLabel;
+
+        public override string CategoryDisplayName(object obj) => TabLabel;
 
         public override bool CanExpand(object obj)
         {
@@ -234,23 +232,115 @@ namespace RimWorldAccess
             if (nodes == null)
                 return;
 
-            foreach (object node in nodes)
-            {
-                if ((bool)hiddenField.GetValue(node))
-                    continue;
-
-                BuildNodeSection(categoryItem, vehicle, comp, def, node, mode);
-            }
+            var graph = new UpgradeGraph(this, def, nodes);
+            foreach (object root in graph.Roots)
+                BuildNodeSection(categoryItem, categoryItem, vehicle, comp, def, root, graph, mode);
         }
 
-        private void BuildNodeSection(InspectionTreeItem categoryItem, Pawn vehicle, object comp, object def, object node, InspectionMode mode)
+        private void BuildNodeSection(InspectionTreeItem categoryItem, InspectionTreeItem parentItem, Pawn vehicle, object comp, object def, object node, UpgradeGraph graph, InspectionMode mode)
         {
             string nodeLabel = labelField.GetValue(node) as string ?? "";
             string stateClause = ComputeStateClause(comp, def, node);
             string label = "RimWorldAccess.Compat.Vf.UpgradeNodeSection".Translate(nodeLabel, stateClause);
 
-            InspectNodeFactory.Section(categoryItem, label, node, secItem =>
-                BuildNodeChildren(categoryItem, secItem, vehicle, comp, def, node, mode));
+            InspectNodeFactory.Section(parentItem, label, node, secItem =>
+                BuildNodeChildren(categoryItem, secItem, vehicle, comp, def, node, graph, mode));
+        }
+
+        /// <summary>
+        /// The tree the tab's prerequisite lines draw. A node whose first visible prerequisite
+        /// sits in a cycle is never reached from a root, so unreached nodes are promoted to roots
+        /// in author order; every node therefore appears exactly once.
+        /// </summary>
+        private sealed class UpgradeGraph
+        {
+            internal readonly List<object> Roots = new List<object>();
+            private readonly Dictionary<string, List<object>> children = new Dictionary<string, List<object>>();
+            private readonly Dictionary<string, string> parentKey = new Dictionary<string, string>();
+            private readonly VfUpgradesTabAdapter owner;
+
+            internal UpgradeGraph(VfUpgradesTabAdapter owner, object def, IList nodes)
+            {
+                this.owner = owner;
+                var visible = new List<object>();
+                foreach (object node in nodes)
+                {
+                    if (!(bool)owner.hiddenField.GetValue(node))
+                        visible.Add(node);
+                }
+
+                var candidates = new List<object>();
+                foreach (object node in visible)
+                {
+                    string parent = FirstVisiblePrerequisite(def, node);
+                    if (parent == null)
+                    {
+                        candidates.Add(node);
+                        continue;
+                    }
+                    parentKey[Key(node)] = parent;
+                    if (!children.TryGetValue(parent, out List<object> list))
+                        children[parent] = list = new List<object>();
+                    list.Add(node);
+                }
+
+                var reached = new HashSet<string>();
+                foreach (object node in candidates)
+                    AddRoot(node, reached);
+                foreach (object node in visible)
+                {
+                    if (!reached.Contains(Key(node)))
+                    {
+                        parentKey.Remove(Key(node));
+                        AddRoot(node, reached);
+                    }
+                }
+            }
+
+            internal IEnumerable<object> ChildrenOf(object node)
+            {
+                return children.TryGetValue(Key(node), out List<object> list) ? list : Enumerable.Empty<object>();
+            }
+
+            internal string ParentKeyOf(object node)
+            {
+                return parentKey.TryGetValue(Key(node), out string parent) ? parent : null;
+            }
+
+            private void AddRoot(object root, HashSet<string> reached)
+            {
+                Roots.Add(root);
+                var queue = new Queue<object>();
+                reached.Add(Key(root));
+                queue.Enqueue(root);
+                while (queue.Count > 0)
+                {
+                    object node = queue.Dequeue();
+                    if (!children.TryGetValue(Key(node), out List<object> list))
+                        continue;
+                    list.RemoveAll(child => reached.Contains(Key(child)));
+                    foreach (object child in list)
+                    {
+                        reached.Add(Key(child));
+                        queue.Enqueue(child);
+                    }
+                }
+            }
+
+            private string FirstVisiblePrerequisite(object def, object node)
+            {
+                if (!(owner.prerequisiteNodesField.GetValue(node) is List<string> keys))
+                    return null;
+                foreach (string key in keys)
+                {
+                    object prereq = owner.getNodeMethod.Invoke(def, new object[] { key });
+                    if (prereq != null && !(bool)owner.hiddenField.GetValue(prereq) && key != Key(node))
+                        return key;
+                }
+                return null;
+            }
+
+            private string Key(object node) => owner.keyField.GetValue(node) as string ?? "";
         }
 
         /// <summary>Mirrors DrawNodeCondition's border priority: in-progress beats unlocked beats disabled beats missing-prerequisites beats available.</summary>
@@ -348,7 +438,7 @@ namespace RimWorldAccess
             }
         }
 
-        private void BuildNodeChildren(InspectionTreeItem categoryItem, InspectionTreeItem secItem, Pawn vehicle, object comp, object def, object node, InspectionMode mode)
+        private void BuildNodeChildren(InspectionTreeItem categoryItem, InspectionTreeItem secItem, Pawn vehicle, object comp, object def, object node, UpgradeGraph graph, InspectionMode mode)
         {
             string description = descriptionField.GetValue(node) as string;
             if (!string.IsNullOrEmpty(description))
@@ -356,10 +446,36 @@ namespace RimWorldAccess
 
             BuildCostLines(secItem, vehicle, node);
             BuildEffectLines(secItem, vehicle, node);
+            BuildAlsoRequiresLine(secItem, def, node, graph.ParentKeyOf(node));
             BuildIncompatibilityLine(secItem, def, node);
 
             if (mode != InspectionMode.ReadOnly)
                 BuildActionRow(categoryItem, secItem, vehicle, comp, node, mode);
+
+            foreach (object child in graph.ChildrenOf(node))
+                BuildNodeSection(categoryItem, secItem, vehicle, comp, def, child, graph, mode);
+        }
+
+        /// <summary>Every prerequisite except the one the node nests under, met or not: the drawn lines show them all.</summary>
+        private void BuildAlsoRequiresLine(InspectionTreeItem secItem, object def, object node, string parentKey)
+        {
+            if (!(prerequisiteNodesField.GetValue(node) is List<string> keys))
+                return;
+
+            var labels = new List<string>();
+            foreach (string key in keys)
+            {
+                if (key == parentKey)
+                    continue;
+                object prereq = getNodeMethod.Invoke(def, new object[] { key });
+                string l = prereq != null ? labelField.GetValue(prereq) as string : null;
+                if (!string.IsNullOrEmpty(l))
+                    labels.Add(l);
+            }
+
+            if (labels.Count > 0)
+                InspectNodeFactory.DetailLine(secItem,
+                    "RimWorldAccess.Compat.Vf.UpgradeAlsoRequires".Translate(string.Join(", ", labels)));
         }
 
         private void BuildCostLines(InspectionTreeItem secItem, Pawn vehicle, object node)
@@ -459,14 +575,14 @@ namespace RimWorldAccess
 
             if (unlocked && lastUnlocked)
             {
-                InspectionTreeItem item = InspectNodeFactory.ActionRow(secItem, "RimWorldAccess.Compat.Vf.RemoveUpgradeActionLabel".Translate(), node, null);
+                InspectionTreeItem item = InspectNodeFactory.ActionRow(secItem, CompatText.ResolveOrFallback("VF_RemoveUpgrade", "RimWorldAccess.Compat.Vf.RemoveUpgradeActionLabel"), node, null);
                 item.OnActivate = () => OnRemoveUpgrade(categoryItem, vehicle, comp, node, mode);
                 return;
             }
 
             if (!unlocked)
             {
-                InspectionTreeItem item = InspectNodeFactory.ActionRow(secItem, "RimWorldAccess.Compat.Vf.UpgradeActionLabel".Translate(), node, null);
+                InspectionTreeItem item = InspectNodeFactory.ActionRow(secItem, CompatText.ResolveOrFallback("VF_Upgrade", "RimWorldAccess.Compat.Vf.UpgradeActionLabel"), node, null);
                 item.OnActivate = () => OnStartUpgrade(categoryItem, vehicle, comp, node, mode);
                 return;
             }
@@ -541,13 +657,13 @@ namespace RimWorldAccess
 
                 if ((bool)disabledMethod.Invoke(comp, new[] { node }))
                 {
-                    Messages.Message("RimWorldAccess.Compat.Vf.UpgradeDisabledMessage".Translate(), MessageTypeDefOf.RejectInput, false);
+                    Messages.Message(CompatText.ResolveOrFallback("VF_DisabledFromOtherNode", "RimWorldAccess.Compat.Vf.UpgradeDisabledMessage"), MessageTypeDefOf.RejectInput, false);
                     return;
                 }
 
                 if (!(bool)prerequisitesMetMethod.Invoke(comp, new[] { node }))
                 {
-                    Messages.Message("RimWorldAccess.Compat.Vf.UpgradeMissingPrerequisiteMessage".Translate(), MessageTypeDefOf.RejectInput, false);
+                    Messages.Message(CompatText.ResolveOrFallback("VF_MissingPrerequisiteUpgrade", "RimWorldAccess.Compat.Vf.UpgradeMissingPrerequisiteMessage"), MessageTypeDefOf.RejectInput, false);
                     return;
                 }
 

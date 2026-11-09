@@ -26,6 +26,7 @@ namespace RimWorldAccess.Shell
         private readonly List<string> infoRows = new List<string>();
         private readonly List<object> rewardNodes = new List<object>();
         private readonly List<Pawn> characterRows = new List<Pawn>();
+        private readonly HashSet<object> newRewards = new HashSet<object>();
         private bool pawnSpecific;
         private bool anyRecipientHasPoints;
 
@@ -64,6 +65,13 @@ namespace RimWorldAccess.Shell
 
             rewardNodes.Clear();
             rewardNodes.AddRange(WqCompat.RewardNodes());
+            for (int i = 0; i < rewardNodes.Count; i++)
+            {
+                if (WqCompat.NodeIsNew(rewardNodes[i]))
+                {
+                    newRewards.Add(rewardNodes[i]);
+                }
+            }
 
             infoRows.Clear();
             if (!pawnSpecific)
@@ -166,6 +174,10 @@ namespace RimWorldAccess.Shell
                 d.Label = WqCompat.NodeLabel(node);
                 d.Role = ElementRole.Button;
                 d.Value = RarityWord(WqCompat.NodeRarity(node));
+                if (newRewards.Contains(node))
+                {
+                    d.Value = CompatText.JoinSentences(new List<string> { d.Value, "RimWorldAccess.Compat.Wq.New".Translate() });
+                }
                 d.Extras = CompatText.Flatten(WqCompat.NodeDescription(node));
                 string refusal = ClaimRefusal();
                 if (refusal != null)

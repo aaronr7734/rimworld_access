@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text.RegularExpressions;
 using HarmonyLib;
 using RimWorld;
 using RimWorldAccess.Shell;
@@ -325,20 +324,13 @@ namespace RimWorldAccess
                 return "";
 
             // Null when the blob was tags and whitespace only.
-            string flattened = SpeechFlatten.ToSentences(StripTags(tooltip)) ?? "";
+            string flattened = SpeechFlatten.ToSentences(tooltip.StripTags()) ?? "";
 
-            string labelPrefix = StripTags(label).Trim() + ". ";
+            string labelPrefix = (label ?? "").StripTags().Trim() + ". ";
             if (flattened.StartsWith(labelPrefix, StringComparison.OrdinalIgnoreCase))
                 flattened = flattened.Substring(labelPrefix.Length);
 
             return flattened.Trim();
-        }
-
-        private static string StripTags(string text)
-        {
-            if (string.IsNullOrEmpty(text))
-                return text;
-            return Regex.Replace(text, @"</?[a-zA-Z][^>]*>", "");
         }
     }
 }

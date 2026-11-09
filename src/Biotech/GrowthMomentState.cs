@@ -898,7 +898,7 @@ namespace RimWorldAccess
                 case Passion.None: return "RimWorldAccess.Biotech.GrowthMoment.PassionNone".Translate();
                 case Passion.Minor: return "RimWorldAccess.Biotech.GrowthMoment.PassionMinor".Translate();
                 case Passion.Major: return "RimWorldAccess.Biotech.GrowthMoment.PassionMajor".Translate();
-                default: return passion.ToString();
+                default: return passion.GetLabel();
             }
         }
 

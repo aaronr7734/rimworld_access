@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using RimWorld;
 using UnityEngine;
+using RimWorldAccess.Shell;
 using Verse;
 
 namespace RimWorldAccess
@@ -92,12 +93,12 @@ namespace RimWorldAccess
 
         public override TabHandlerType Handler => TabHandlerType.RichNavigation;
 
-        // The tab's own labelKey ("VF_TabPassengers", English "Pawns") — the same word a sighted
-        // player reads on the tab strip, so this bypasses InspectionCategoryLocalizer rather than
-        // adding an entry for a name only VF ever renders.
-        public override string DisplayName(InspectTabBase tab) => "RimWorldAccess.Compat.Vf.PassengersTab".Translate();
+        // The tab's own labelKey, the word a sighted player reads on the tab strip.
+        private static string TabLabel => CompatText.ResolveOrFallback("VF_TabPassengers", "RimWorldAccess.Compat.Vf.PassengersTab");
 
-        public override string CategoryDisplayName(object obj) => "RimWorldAccess.Compat.Vf.PassengersTab".Translate();
+        public override string DisplayName(InspectTabBase tab) => TabLabel;
+
+        public override string CategoryDisplayName(object obj) => TabLabel;
 
         public override bool CanExpand(object obj)
         {

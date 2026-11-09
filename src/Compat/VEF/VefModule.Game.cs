@@ -19,6 +19,8 @@ namespace RimWorldAccess
             VefGizmoCompat.RegisterGizmoHandlers();
             VefProcessorTabCompat.RegisterTabAdapters();
             VefDialogCompat.RegisterDialogScopes();
+            VefOutpostItemsAdapter.PatchClose(harmony);
+            VefOutpostInspectCompat.Register();
         }
     }
 }

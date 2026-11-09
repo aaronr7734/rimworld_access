@@ -48,6 +48,29 @@ namespace RimWorldAccess
     /// </summary>
     public static class TabRegistry
     {
+        private sealed class ReachableHiddenTab
+        {
+            public Func<bool> Reachable;
+            public Func<string> DisplayName;
+        }
+
+        private static readonly Dictionary<Type, ReachableHiddenTab> reachableHiddenTabs = new Dictionary<Type, ReachableHiddenTab>();
+
+        /// <summary>Lists a Hidden tab that, like ITab_Genes, opens from a control elsewhere, while <paramref name="reachable"/> holds.</summary>
+        public static void RegisterReachableHiddenTab(Type tabType, Func<bool> reachable, Func<string> displayName)
+        {
+            if (tabType != null && reachable != null && displayName != null)
+            {
+                reachableHiddenTabs[tabType] = new ReachableHiddenTab { Reachable = reachable, DisplayName = displayName };
+            }
+        }
+
+        private static bool HiddenTabReachable(InspectTabBase tab)
+        {
+            ReachableHiddenTab entry;
+            return reachableHiddenTabs.TryGetValue(tab.GetType(), out entry) && entry.Reachable();
+        }
+
         /// <summary>
         /// Gets the user-friendly (translated) display name for a tab.
         /// Prefers the game's own labelKey so the user sees the label in their
@@ -77,6 +100,10 @@ namespace RimWorldAccess
             if (InspectNodeRegistry.TryResolve(tab.GetType(), out InspectNodeAdapter adapter))
                 return adapter.DisplayName(tab);
 
+            ReachableHiddenTab hidden;
+            if (reachableHiddenTabs.TryGetValue(tab.GetType(), out hidden))
+                return hidden.DisplayName();
+
             // Last resort: use type name cleaned up
             return tab.GetType().Name.Replace("ITab_", "").Replace("_", " ");
         }
@@ -91,13 +118,11 @@ namespace RimWorldAccess
 
             try
             {
-                // Get the inspect string from the thing
                 string inspectString = thing.GetInspectString();
 
                 if (!string.IsNullOrEmpty(inspectString))
                     return inspectString;
 
-                // If no inspect string, provide a helpful message
                 string tabName = GetCategoryNameForTab(tab);
                 return "RimWorldAccess.Inspection.Tree.TabNoTextContent".Translate(tabName);
             }
@@ -190,7 +215,7 @@ namespace RimWorldAccess
                     // Exact type match preserves the historical behavior: ITab_GenesPregnancy
                     // subclasses ITab_Genes but is not exempted from the Hidden check here.
                     bool isGeneTab = tab.GetType() == typeof(ITab_Genes);
-                    if (!tab.IsVisible || (tab.Hidden && !isGeneTab))
+                    if (!tab.IsVisible || (tab.Hidden && !isGeneTab && !HiddenTabReachable(tab)))
                         continue;
 
                     if (InspectNodeRegistry.TryResolve(tab.GetType(), out InspectNodeAdapter adapter))

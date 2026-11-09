@@ -1025,6 +1025,7 @@
   <RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix> (Suppressed)</RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix> (Minor passion)</RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix> (Major passion)</RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix> ({0})</RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix> (not met)</RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>
 
   <!-- Skill rows. Disabled form: {0} = skill label, {1} = vanilla

@@ -1162,8 +1162,10 @@ namespace RimWorldAccess
                     return "PassionMinor".Translate();
                 case Passion.Major:
                     return "PassionMajor".Translate();
-                default:
+                case Passion.None:
                     return "";
+                default:
+                    return passion.GetLabel();
             }
         }
 

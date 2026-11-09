@@ -70,41 +70,12 @@ namespace RimWorldAccess
 
         public static void RegisterGizmoHandlers()
         {
-            try
-            {
-                Type bedGizmoType = AccessTools.TypeByName("Hospitality.Gizmo_GuestBed");
-                Type vendingGizmoType = AccessTools.TypeByName("Hospitality.Gizmo_VendingMachine");
-                Type vendingContentGizmoType = AccessTools.TypeByName("Hospitality.Gizmo_VendingMachineContent");
-                if (bedGizmoType == null && vendingGizmoType == null && vendingContentGizmoType == null)
-                {
-                    return;
-                }
-
-                ModifyNumberGizmoHandler handler = new ModifyNumberGizmoHandler();
-                int registered = 0;
-                if (bedGizmoType != null)
-                {
-                    GizmoHandlerRegistry.Register(bedGizmoType, handler);
-                    registered++;
-                }
-
-                if (vendingGizmoType != null)
-                {
-                    GizmoHandlerRegistry.Register(vendingGizmoType, handler);
-                    registered++;
-                }
-
-                if (vendingContentGizmoType != null)
-                {
-                    GizmoHandlerRegistry.Register(vendingContentGizmoType, handler);
-                    registered++;
-                }
-
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"Hospitality compat (gizmo handlers) registration failed: {ex.Message}");
-            }
+            CompatRegistration.GizmoHandler("Hospitality.Gizmo_GuestBed",
+                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.GuestBed));
+            CompatRegistration.GizmoHandler("Hospitality.Gizmo_VendingMachine",
+                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.VendingPrice));
+            CompatRegistration.GizmoHandler("Hospitality.Gizmo_VendingMachineContent",
+                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.VendingThreshold));
         }
 
         // -----------------------------------------------------------------

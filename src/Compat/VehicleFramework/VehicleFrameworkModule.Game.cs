@@ -30,6 +30,7 @@ namespace RimWorldAccess
             VfDialogCompat.RegisterDialogScopes();
             VfDialogCompat.ApplyPostClosePatches(harmony);
             VfCaravanCompat.Register();
+            VfGroupBoardCompat.Register();
         }
     }
 }

@@ -86,9 +86,12 @@ namespace RimWorldAccess.Shell
             if (index == 0)
             {
                 d.Label = "RimWorldAccess.Compat.Isekai.PointsAvailable".Translate(AvailableNow());
+                var extras = new List<string>();
                 int spent = adapter.PointsSpent(window);
                 if (spent > 0)
-                    d.Extras = "RimWorldAccess.Compat.Isekai.PointsToApply".Translate(spent);
+                    extras.Add("RimWorldAccess.Compat.Isekai.PointsToApply".Translate(spent));
+                extras.Add(adapter.LevelRankLine(window));
+                d.Extras = CompatText.JoinSentences(extras);
                 d.ReadOnly = true;
                 return d;
             }

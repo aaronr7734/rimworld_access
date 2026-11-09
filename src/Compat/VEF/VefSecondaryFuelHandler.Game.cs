@@ -37,22 +37,12 @@ namespace RimWorldAccess
         {
             this.gizmoType = gizmoType;
 
-            // Gizmo_SetSecondaryFuelLevel.refuelable is private; its declared
-            // FieldType is CompRefuelable_DualFuel, which we reuse below to
-            // resolve allowAutoRefuelSecondary without a second TypeByName call.
-            refuelableField = AccessTools.Field(gizmoType, "refuelable");
-            Type compType = refuelableField?.FieldType;
-            if (compType == null)
-            {
-                ModLogger.Error("VefSecondaryFuelHandler: could not resolve Gizmo_SetSecondaryFuelLevel.refuelable field; declining all facets.");
-                ready = false;
-                return;
-            }
-
-            allowAutoRefuelSecondaryField = AccessTools.Field(compType, "allowAutoRefuelSecondary");
-            ready = allowAutoRefuelSecondaryField != null;
-            if (!ready)
-                ModLogger.Error("VefSecondaryFuelHandler: could not resolve CompRefuelable_DualFuel.allowAutoRefuelSecondary; declining all facets.");
+            var surface = new ReflectionSurface("VefSecondaryFuelHandler");
+            surface.Supplied("VEF.Buildings.Gizmo_SetSecondaryFuelLevel", gizmoType);
+            // The private field's declared type is CompRefuelable_DualFuel, which the toggle field resolves against.
+            refuelableField = surface.Field(gizmoType, "refuelable");
+            allowAutoRefuelSecondaryField = surface.Field(refuelableField?.FieldType, "allowAutoRefuelSecondary");
+            ready = surface.Ready;
         }
 
         private ThingComp GetRefuelable(Gizmo gizmo)

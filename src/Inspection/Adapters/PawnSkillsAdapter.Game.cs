@@ -100,11 +100,10 @@ namespace RimWorldAccess
             // Passion
             if (skill.passion != Passion.None)
             {
-                string passionKey = skill.passion == Passion.Major ? "PassionMajor" : "PassionMinor";
                 InspectNodeFactory.Attach(skillItem, new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.DetailText,
-                    Label = passionKey.Translate().ToString(),
+                    Label = skill.passion.GetLabel(),
                     IndentLevel = childIndent,
                     IsExpandable = false
                 });

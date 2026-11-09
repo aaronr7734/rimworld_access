@@ -1,0 +1,1 @@
+Inspecting an outpost on the world map from [Vanilla Outposts Expanded](https://steamcommunity.com/sharedfiles/filedetails/?id=2688941031) now opens a tree with its status, every pawn living there with their health, mood, needs and gear, and the items it has stored, the same information its tabs show.

@@ -1,0 +1,1 @@
+The Give items and Take items windows from [Vanilla Outposts Expanded](https://steamcommunity.com/sharedfiles/filedetails/?id=2688941031) now work like the caravan and transport pod loading screens: browse the items, set how many to move, and accept or cancel from the Buttons region.

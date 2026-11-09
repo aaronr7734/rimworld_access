@@ -704,6 +704,8 @@ namespace RimWorldAccess
                         passionStr = "RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix".Translate();
                     else if (passion == Passion.Major)
                         passionStr = "RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix".Translate();
+                    else if (passion != Passion.None)
+                        passionStr = "RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix".Translate(passion.GetLabel());
 
                     string skillName = def.skillLabel.CapitalizeFirst();
                     string label = disabled

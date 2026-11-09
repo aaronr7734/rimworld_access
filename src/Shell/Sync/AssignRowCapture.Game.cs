@@ -28,7 +28,7 @@ namespace RimWorldAccess.Shell
         public Pawn Pawn;
         public Rect Rect;
 
-        /// <summary>pawn.LabelCap, with vanilla's own baked "(reason)" suffix for Rejected rows.</summary>
+        /// <summary>The pawn label the row drew, so a mod's rewrite of it (a relation suffix) is heard; Rejected rows carry vanilla's baked "(reason)".</summary>
         public string PawnLabel = "";
 
         /// <summary>"Unassign"/"Assign"/"Reassign", translated. Empty for IdeoForbidden/Rejected.</summary>
@@ -50,9 +50,8 @@ namespace RimWorldAccess.Shell
     /// <summary>
     /// Prefix/postfix taps on Dialog_AssignBuildingOwner's private
     /// DrawAssignedRow/DrawUnassignedRow, bracketed to AssignScope's DoWindowContents pass. Row
-    /// identity is RE-DERIVED from the same public CompAssignableToPawn API vanilla consults, never
-    /// scraped from rendered text, so it cannot disagree with what ButtonTextCapture recorded for
-    /// the same row's button.
+    /// identity is RE-DERIVED from the public CompAssignableToPawn API vanilla consults; only the
+    /// spoken pawn label is the text the row drew.
     ///
     /// ROW RECT: both methods take the running cursor as a `ref float y` and advance it by the row
     /// height, or leave it untouched when DrawUnassignedRow's early return skips an already-assigned
@@ -81,6 +80,10 @@ namespace RimWorldAccess.Shell
         // for the ideo-forbidden branch only.
         private static Pawn currentUnassignedRowPawn;
         private static Action pendingIdeoIconAction;
+
+        // The last Widgets.LabelEllipses inside the open row: both row methods draw the pawn label last.
+        private static bool rowOpen;
+        private static string drawnRowLabel;
 
         /// <summary>Rows recorded by the current/most recent pass, in draw order.</summary>
         public static IReadOnlyList<CapturedAssignRow> Items
@@ -126,8 +129,31 @@ namespace RimWorldAccess.Shell
 
         // DrawAssignedRow tap.
 
+        internal static void BeginRow()
+        {
+            rowOpen = passOpen;
+            drawnRowLabel = null;
+        }
+
+        internal static void OnRowLabelDrawn(string label)
+        {
+            if (rowOpen)
+            {
+                drawnRowLabel = label;
+            }
+        }
+
+        private static string TakeDrawnLabel(string fallback)
+        {
+            string drawn = drawnRowLabel;
+            rowOpen = false;
+            drawnRowLabel = null;
+            return string.IsNullOrEmpty(drawn) ? fallback : drawn.StripTags();
+        }
+
         internal static void RecordAssignedRow(Dialog_AssignBuildingOwner dialog, Pawn pawn, float yBefore, float yAfter, float rowWidth, int buttonCountBefore)
         {
+            string drawnLabel = TakeDrawnLabel(pawn.LabelCap);
             if (!passOpen)
             {
                 return;
@@ -143,7 +169,7 @@ namespace RimWorldAccess.Shell
                 Kind = AssignRowKind.Assigned,
                 Pawn = pawn,
                 Rect = rect,
-                PawnLabel = pawn.LabelCap,
+                PawnLabel = drawnLabel,
                 ButtonWord = "BuildingUnassign".Translate(),
                 ButtonCaptureIndex = ButtonTextCapture.Items.Count > buttonCountBefore ? buttonCountBefore : -1,
             };
@@ -161,11 +187,13 @@ namespace RimWorldAccess.Shell
             }
             currentUnassignedRowPawn = pawn;
             pendingIdeoIconAction = null;
+            BeginRow();
         }
 
         internal static void RecordUnassignedRow(Dialog_AssignBuildingOwner dialog, Pawn pawn, float yBefore, float yAfter, float rowWidth, int buttonCountBefore)
         {
             Action ideoIconAction = pendingIdeoIconAction;
+            string drawnLabel = TakeDrawnLabel(null);
             currentUnassignedRowPawn = null;
             pendingIdeoIconAction = null;
             if (!passOpen)
@@ -186,19 +214,19 @@ namespace RimWorldAccess.Shell
             if (!report.Accepted)
             {
                 row.Kind = AssignRowKind.Rejected;
-                row.PawnLabel = pawn.LabelCap + " (" + report.Reason.StripTags() + ")";
+                row.PawnLabel = drawnLabel ?? pawn.LabelCap + " (" + report.Reason.StripTags() + ")";
             }
             else if (!Find.IdeoManager.classicMode && assignable.IdeoligionForbids(pawn))
             {
                 row.Kind = AssignRowKind.IdeoForbidden;
-                row.PawnLabel = pawn.LabelCap;
+                row.PawnLabel = drawnLabel ?? pawn.LabelCap;
                 row.ForbidReason = "IdeoligionForbids".Translate();
                 row.IdeoIconAction = ideoIconAction;
             }
             else
             {
                 row.Kind = AssignRowKind.Candidate;
-                row.PawnLabel = pawn.LabelCap;
+                row.PawnLabel = drawnLabel ?? pawn.LabelCap;
                 row.ButtonWord = assignable.AssignedAnything(pawn) ? "BuildingReassign".Translate() : "BuildingAssign".Translate();
                 row.ButtonCaptureIndex = ButtonTextCapture.Items.Count > buttonCountBefore ? buttonCountBefore : -1;
             }
@@ -240,6 +268,7 @@ namespace RimWorldAccess.Shell
         {
             __state.YBefore = y;
             __state.ButtonCountBefore = ButtonTextCapture.Items.Count;
+            AssignRowCapture.BeginRow();
         }
 
         [HarmonyPostfix]
@@ -285,6 +314,16 @@ namespace RimWorldAccess.Shell
     /// a real ideo-icon click would invoke, for AssignScope's Alt+I handler. Gated by
     /// AssignRowCapture's pass/row tracking, so it stays inert for every other DoIdeoIcon call.
     /// </summary>
+    [HarmonyPatch(typeof(Widgets), "LabelEllipses", new Type[] { typeof(Rect), typeof(string) })]
+    internal static class AssignRowLabelTapPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix(string label)
+        {
+            AssignRowCapture.OnRowLabelDrawn(label);
+        }
+    }
+
     [HarmonyPatch(typeof(IdeoUIUtility), "DoIdeoIcon")]
     internal static class AssignIdeoIconTapPatch
     {

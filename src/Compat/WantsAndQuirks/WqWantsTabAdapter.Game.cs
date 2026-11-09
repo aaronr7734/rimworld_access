@@ -91,7 +91,12 @@ namespace RimWorldAccess
             foreach (object want in wants)
             {
                 object row = want;
-                InspectNodeFactory.Section(categoryItem, WqCompat.WantLabel(row), row,
+                string label = WqCompat.WantLabel(row);
+                if (WqCompat.TakeWantIsNew(row))
+                {
+                    label = CompatText.JoinSentences(new List<string> { label, "RimWorldAccess.Compat.Wq.New".Translate() });
+                }
+                InspectNodeFactory.Section(categoryItem, label, row,
                     section => BuildWantChildren(categoryItem, section, pawn, data, row, mode));
             }
         }
@@ -100,6 +105,12 @@ namespace RimWorldAccess
             Pawn pawn, object data, object want, InspectionMode mode)
         {
             InspectNodeFactory.DetailLines(section, WqCompat.WantDescription(want));
+
+            if (WqCompat.TryWantProgress(pawn, want, out float progress))
+            {
+                InspectNodeFactory.DetailLine(section,
+                    "RimWorldAccess.Compat.Wq.WantProgress".Translate(progress.ToStringPercent()));
+            }
 
             bool mentalBreak = WqCompat.WantIsMentalBreak(want);
             InspectNodeFactory.DetailLine(section, mentalBreak

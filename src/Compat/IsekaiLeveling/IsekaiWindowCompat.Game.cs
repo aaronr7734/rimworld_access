@@ -104,7 +104,10 @@ namespace RimWorldAccess
                 return "";
             if (!IsCreature)
                 return IsekaiCompat.LevelRankLine(IsekaiCompat.Level(comp));
-            return Shell.CompatText.ModArgs("Isekai_LevelRankDisplay", IsekaiCompat.MobLevel(comp), IsekaiCompat.MobRankString(comp));
+            string line = Shell.CompatText.ModArgs("Isekai_LevelRankDisplay", IsekaiCompat.MobLevel(comp), IsekaiCompat.MobRankString(comp));
+            if (!IsekaiCompat.MobIsElite(comp))
+                return line;
+            return Shell.CompatText.JoinSentences(new List<string> { line, IsekaiCompat.EliteTooltip() });
         }
 
         internal int Pending(Window window, int ordinal) => (int)pendingFields[ordinal].GetValue(window);

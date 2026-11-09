@@ -1,40 +1,16 @@
-using System;
-using HarmonyLib;
-using Verse;
-
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Compat for CashRegister, the shared register/shift framework underneath
-    /// Gastronomy and Storefront.
-    ///
-    /// CashRegister.Gizmo_Radius is a bare Gizmo_ModifyNumber&lt;Building_CashRegister&gt;
-    /// -- the SAME base class shape (protected Title, protected ButtonUp/ButtonDown/
-    /// ButtonCenter, protected T[] selection) that Hospitality's Gizmo_GuestBed/
-    /// Gizmo_VendingMachine/Gizmo_VendingMachineContent derive from, duplicated
-    /// verbatim into this mod's own assembly rather than shared. So this registers
-    /// CashRegister's one concrete type against the shared
-    /// <see cref="ModifyNumberGizmoHandler"/> instead of copying its plumbing; see
-    /// that class's header for the design.
+    /// Compat for CashRegister, the shared register and shift framework underneath Gastronomy and
+    /// Storefront. Its Gizmo_Radius is a Gizmo_ModifyNumber copy, served by
+    /// <see cref="ModifyNumberGizmoHandler"/>.
     /// </summary>
     internal static class CashRegisterCompat
     {
         public static void RegisterGizmoHandlers()
         {
-            try
-            {
-                Type radiusGizmoType = AccessTools.TypeByName("CashRegister.Gizmo_Radius");
-                if (radiusGizmoType == null)
-                {
-                    return;
-                }
-
-                GizmoHandlerRegistry.Register(radiusGizmoType, new ModifyNumberGizmoHandler());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"CashRegister compat registration failed: {ex.Message}");
-            }
+            CompatRegistration.GizmoHandler("CashRegister.Gizmo_Radius",
+                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.Radius));
         }
     }
 }

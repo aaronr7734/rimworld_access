@@ -1,4 +1,5 @@
 using HarmonyLib;
+using RimWorldAccess.Shell;
 
 namespace RimWorldAccess
 {
@@ -13,6 +14,8 @@ namespace RimWorldAccess
         {
             HugsLibCompat.Register(harmony);
             HugsLibNewsCompat.TryRegister();
+            ScopeForWindow.TryRegisterGenericReaderForWindow("HugsLib.Logs.Dialog_PublishLogs");
+            ScopeForWindow.TryRegisterGenericReaderForWindow("HugsLib.Quickstart.Dialog_QuickstartSettings");
         }
     }
 }

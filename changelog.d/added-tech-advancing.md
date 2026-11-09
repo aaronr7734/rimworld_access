@@ -1,0 +1,1 @@
+Tech Advancing is now supported: its config window can be opened from the research menu, and its descriptions, tech level previews and research summary are read aloud, as is the defaults page in its mod settings.

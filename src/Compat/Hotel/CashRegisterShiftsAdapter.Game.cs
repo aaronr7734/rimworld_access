@@ -22,8 +22,8 @@ namespace RimWorldAccess
     /// Dialog_AssignBuildingOwner): the dialog mutates the comp's assignedPawns list in place,
     /// which is the same List&lt;Pawn&gt; reference as shift.assigned, so no copy-back is needed
     /// and no rebuild follows the modal, asynchronous open.
-    /// The mod's own Keyed strings cannot be reached through Translate(), so every string here is
-    /// baked as a RimWorldAccess.Compat.CashRegisterShifts.* key matching the mod's wording.
+    /// The tab colours each name by whether its shift is on duty now and whether the pawn is
+    /// available, and highlights the current hour; both are spoken.
     /// </summary>
     internal sealed class CashRegisterShiftsAdapter : InspectNodeAdapter
     {
@@ -37,6 +37,8 @@ namespace RimWorldAccess
 
         private readonly FieldInfo shiftsField;       // Building_CashRegister.shifts : List<Shift>
         private readonly MethodInfo markDirtyMethod;   // Building_CashRegister.MarkDirty()
+        private readonly MethodInfo isAvailableMethod; // Building_CashRegister.IsAvailable(Pawn)
+        private readonly PropertyInfo shiftActive;     // Shift.IsActive
 
         private readonly FieldInfo assignedField;      // Shift.assigned : List<Pawn>
         private readonly FieldInfo mapField;           // Shift.map : Map
@@ -62,6 +64,8 @@ namespace RimWorldAccess
 
             shiftsField = surface.Field(buildingType, "shifts");
             markDirtyMethod = surface.Method(buildingType, "MarkDirty", Type.EmptyTypes);
+            isAvailableMethod = surface.Method(buildingType, "IsAvailable", new[] { typeof(Pawn) });
+            shiftActive = surface.Property(shiftType, "IsActive");
 
             assignedField = surface.Field(shiftType, "assigned");
             mapField = surface.Field(shiftType, "map");
@@ -96,10 +100,14 @@ namespace RimWorldAccess
 
         public override TabHandlerType Handler => TabHandlerType.RichNavigation;
 
-        // The tab strip's own word, baked as our own key.
-        public override string DisplayName(InspectTabBase tab) => "RimWorldAccess.Compat.CashRegisterShifts.TabName".Translate();
+        public override string DisplayName(InspectTabBase tab) => TabName();
 
-        public override string CategoryDisplayName(object obj) => "RimWorldAccess.Compat.CashRegisterShifts.TabName".Translate();
+        public override string CategoryDisplayName(object obj) => TabName();
+
+        private static string TabName()
+        {
+            return CompatText.ResolveOrFallback("TabRegisterShifts", "RimWorldAccess.Compat.CashRegisterShifts.TabName");
+        }
 
         public override bool CanExpand(object obj)
         {
@@ -158,7 +166,7 @@ namespace RimWorldAccess
         {
             // Live label, not a snapshot: child rows mutate the roster and the hours in place
             // with no category rebuild. displayIndex is stable, since add/delete rebuild all.
-            InspectNodeFactory.LiveSection(categoryItem, () => BuildShiftLabel(shift, displayIndex), shift,
+            InspectNodeFactory.LiveSection(categoryItem, () => BuildShiftLabel(building, shift, displayIndex), shift,
                 secItem => BuildShiftChildren(categoryItem, building, secItem, shift, mode));
         }
 
@@ -168,7 +176,7 @@ namespace RimWorldAccess
             // this section is built, and no rebuild follows.
             InspectNodeFactory.LiveDetailLine(secItem, () =>
                 "RimWorldAccess.Compat.CashRegisterShifts.AssignedLine"
-                    .Translate(ComposeStaffText((List<Pawn>)assignedField.GetValue(shift))).ToString());
+                    .Translate(ComposeStaffText(building, (List<Pawn>)assignedField.GetValue(shift))).ToString());
 
             if (mode != InspectionMode.ReadOnly)
             {
@@ -186,13 +194,14 @@ namespace RimWorldAccess
             }
 
             int indent = secItem.IndentLevel + 1;
+            Map map = (Map)mapField.GetValue(shift);
             for (int hour = 0; hour < 24; hour++)
             {
-                BuildHourRow(secItem, timetable, hour, indent, mode);
+                BuildHourRow(secItem, timetable, map, hour, indent, mode);
             }
         }
 
-        private void BuildHourRow(InspectionTreeItem secItem, object timetable, int hour, int indent, InspectionMode mode)
+        private void BuildHourRow(InspectionTreeItem secItem, object timetable, Map map, int hour, int indent, InspectionMode mode)
         {
             bool on = (bool)getAssignmentMethod.Invoke(timetable, new object[] { hour });
             bool isReadOnly = mode == InspectionMode.ReadOnly;
@@ -200,20 +209,20 @@ namespace RimWorldAccess
             var item = new InspectionTreeItem
             {
                 Type = isReadOnly ? InspectionTreeItem.ItemType.DetailText : InspectionTreeItem.ItemType.Action,
-                Label = BuildHourLabel(hour, on),
+                Label = BuildHourLabel(map, hour, on),
                 IndentLevel = indent,
                 IsExpandable = false
             };
 
             if (!isReadOnly)
             {
-                item.OnActivate = () => OnToggleHour(item, timetable, hour);
+                item.OnActivate = () => OnToggleHour(item, timetable, map, hour);
             }
 
             InspectNodeFactory.Attach(secItem, item);
         }
 
-        private void OnToggleHour(InspectionTreeItem item, object timetable, int hour)
+        private void OnToggleHour(InspectionTreeItem item, object timetable, Map map, int hour)
         {
             try
             {
@@ -223,7 +232,7 @@ namespace RimWorldAccess
                 // Vehicle A: the mutator DoTimeAssignment's own drag branch calls.
                 setAssignmentMethod.Invoke(timetable, new object[] { hour, next });
 
-                item.Label = BuildHourLabel(hour, next);
+                item.Label = BuildHourLabel(map, hour, next);
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera(null);
                 TolkHelper.Speak("RimWorldAccess.Compat.CashRegisterShifts.HourToggled".Loc(StateWord(next)));
             }
@@ -340,33 +349,38 @@ namespace RimWorldAccess
             return null;
         }
 
-        private string BuildShiftLabel(object shift, int displayIndex)
+        private string BuildShiftLabel(object building, object shift, int displayIndex)
         {
             List<Pawn> assigned = (List<Pawn>)assignedField.GetValue(shift);
-            string staffText = ComposeStaffText(assigned);
+            string staffText = ComposeStaffText(building, assigned);
             string hoursText = ComposeHoursSummary(shift);
-            return "RimWorldAccess.Compat.CashRegisterShifts.ShiftLabel".Translate(displayIndex, staffText, hoursText);
+            string key = (bool)shiftActive.GetValue(shift, null)
+                ? "RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty"
+                : "RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty";
+            return key.Translate(displayIndex, staffText, hoursText);
         }
 
-        private static string ComposeStaffText(List<Pawn> assigned)
+        private string ComposeStaffText(object building, List<Pawn> assigned)
         {
-            if (assigned == null || assigned.Count == 0)
+            var names = new List<string>();
+            if (assigned != null)
             {
-                return "RimWorldAccess.Compat.CashRegisterShifts.NoOne".Translate();
-            }
-
-            var names = new List<string>(assigned.Count);
-            foreach (Pawn pawn in assigned)
-            {
-                if (pawn != null)
+                foreach (Pawn pawn in assigned)
                 {
-                    names.Add(pawn.LabelShort);
+                    if (pawn == null)
+                    {
+                        continue;
+                    }
+                    string name = pawn.Name?.ToStringShort ?? pawn.LabelShort;
+                    names.Add((bool)isAvailableMethod.Invoke(building, new object[] { pawn })
+                        ? name
+                        : "RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable".Translate(name).ToString());
                 }
             }
 
             if (names.Count == 0)
             {
-                return "RimWorldAccess.Compat.CashRegisterShifts.NoOne".Translate();
+                return CompatText.ResolveOrFallback("TabRegisterShiftsEmpty", "RimWorldAccess.Compat.CashRegisterShifts.NoOne");
             }
 
             return names.ToCommaList();
@@ -423,9 +437,13 @@ namespace RimWorldAccess
             return string.Join(", ", parts);
         }
 
-        private string BuildHourLabel(int hour, bool on)
+        // TimetableUtility.DoTimeAssignment highlights the map's current hour.
+        private static string BuildHourLabel(Map map, int hour, bool on)
         {
-            return "RimWorldAccess.Compat.CashRegisterShifts.HourRow".Translate(hour, StateWord(on));
+            string key = map != null && GenLocalDate.HourOfDay(map) == hour
+                ? "RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent"
+                : "RimWorldAccess.Compat.CashRegisterShifts.HourRow";
+            return key.Translate(hour, StateWord(on));
         }
 
         private static string StateWord(bool on)
