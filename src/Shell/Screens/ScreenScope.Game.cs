@@ -106,6 +106,9 @@ namespace RimWorldAccess.Shell
         private int extrasEditingCaptureIndex = -1;
         private ExtrasPendingChange? extrasPendingChange;
         private int buttonClickPassesLeft;
+        private int relabelWatchPasses;
+        private int relabelWatchIndex;
+        private string relabelWatchLabel;
 
         // Empty-region reconciliation (ReconcileEmptyRegion): the guard keeps a subclass's
         // model-refreshing handlers from re-entering the relocation; the flag lets the handler

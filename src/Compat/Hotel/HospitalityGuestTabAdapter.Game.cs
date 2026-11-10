@@ -302,7 +302,7 @@ namespace RimWorldAccess
 
         private void OnRecruit(Pawn pawn, object comp)
         {
-            HotelTreeRows.RunGuarded("HospitalityGuestTabAdapter recruit", () =>
+            Guarded.Run("HospitalityGuestTabAdapter recruit", () =>
             {
                 RecruitButton state = RecruitState(pawn, comp);
                 if (state.DisabledReason != null)
@@ -313,26 +313,26 @@ namespace RimWorldAccess
                 }
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera();
                 recruitDialog.Invoke(null, new object[] { pawn, state.Forced });
-            });
+            }, "RimWorldAccess.Compat.Hospitality.ActionFailed");
         }
 
         private void OnMakeDefault(Pawn pawn)
         {
-            HotelTreeRows.RunGuarded("HospitalityGuestTabAdapter make default", () =>
+            Guarded.Run("HospitalityGuestTabAdapter make default", () =>
             {
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera();
                 setAllDefaults.Invoke(null, new object[] { pawn });
                 TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.DefaultsApplied".Loc());
-            });
+            }, "RimWorldAccess.Compat.Hospitality.ActionFailed");
         }
 
         private void OnSendAway(Pawn pawn)
         {
-            HotelTreeRows.RunGuarded("HospitalityGuestTabAdapter send away", () =>
+            Guarded.Run("HospitalityGuestTabAdapter send away", () =>
             {
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera();
                 sendHomeDialog.Invoke(null, new object[] { pawn.GetLord() });
-            });
+            }, "RimWorldAccess.Compat.Hospitality.ActionFailed");
         }
 
         /// <summary>

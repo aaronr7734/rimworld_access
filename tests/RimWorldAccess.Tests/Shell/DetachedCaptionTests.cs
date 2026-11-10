@@ -77,23 +77,4 @@ public class DetachedCaptionTests
         Assert.True(ValueLabeledSlider.LabelIsValue("100%", 1f));
         Assert.True(ValueLabeledSlider.CaptionsOnRow(Box(812f, 276f, 173f, 22f), Box(985f, 276f, 86f, 22f)));
     }
-
-    [Fact]
-    public void MarksFieldEnd_SearchIconLeftOrRightOfTheField()
-    {
-        LineBox quickSearchField = Box(434f, 140f, 280f, 24f);
-        Assert.True(DetachedCaption.MarksFieldEnd(quickSearchField, Box(412f, 143f, 18f, 18f)));
-        LineBox xmlField = Box(200f, 100f, 300f, 22f);
-        Assert.True(DetachedCaption.MarksFieldEnd(xmlField, Box(500f, 100f, 22f, 22f)));
-    }
-
-    [Fact]
-    public void MarksFieldEnd_RejectsIconsOffTheFieldLineOrFarAway()
-    {
-        LineBox field = Box(200f, 100f, 300f, 22f);
-        Assert.False(DetachedCaption.MarksFieldEnd(field, Box(500f, 140f, 22f, 22f)));
-        Assert.False(DetachedCaption.MarksFieldEnd(field, Box(560f, 100f, 22f, 22f)));
-        Assert.False(DetachedCaption.MarksFieldEnd(field, Box(150f, 100f, 22f, 22f)));
-        Assert.False(DetachedCaption.MarksFieldEnd(field, Box(200f, 100f, 400f, 22f)));
-    }
 }

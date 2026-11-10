@@ -179,15 +179,14 @@ namespace RimWorldAccess
             labelColonistsField = surface.Field(Labels.LabelType, "COLONISTS");
 
             // The two generic accessors are closed over the concrete types read here so no generic
-            // work happens per call; hand-closed and boxed, so neither is resolvable by the
-            // surface's own lookups.
+            // work happens per call; hand-closed, so neither is resolvable by the surface's own lookups.
             listOfPawnsMethod = surface.Required("CEditor.ListOf<Pawn>(EType) closed",
                 CloseGeneric(ceditorType, "ListOf", typeof(Pawn)));
             getBlockPawnList = surface.Required("EditorUI.Get<BlockPawnList>(TabType) closed",
                 CloseGeneric(editorUIType, "Get", blockPawnListType));
             getBlockPerson = surface.Required("EditorUI.Get<BlockPerson>(TabType) closed",
                 CloseGeneric(editorUIType, "Get", blockPersonType));
-            eTypePawns = surface.Required("EType.Pawns boxed", EnumValue(eTypeType, "Pawns"));
+            eTypePawns = surface.EnumValue(eTypeType, "Pawns");
 
             return surface.Ready && EditorCore.Ready && Labels.Ready;
         }

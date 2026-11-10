@@ -12,8 +12,7 @@ namespace RimWorldAccess.Shell
     /// </summary>
     internal static class VanillaBindings
     {
-        /// <summary>True when <paramref name="key"/> is live-bound to <paramref name="def"/>
-        /// in either binding slot.</summary>
+        /// <summary>True when <paramref name="key"/> is live-bound to <paramref name="def"/> in either slot.</summary>
         internal static bool IsBoundTo(KeyBindingDef def, KeyCode key)
         {
             if (def == null || key == KeyCode.None)
@@ -22,6 +21,7 @@ namespace RimWorldAccess.Shell
                 && (key == data.keyBindingA || key == data.keyBindingB);
         }
 
+        // Not KeyPrefsData.GetBoundKeyCode: it logs an error per missing def, and the foreign-key guard polls this per press.
         internal static KeyCode SlotKey(KeyBindingDef def, KeyPrefs.BindingSlot slot)
         {
             if (def == null || !KeyPrefs.KeyPrefsData.keyPrefs.TryGetValue(def, out KeyBindingData data))

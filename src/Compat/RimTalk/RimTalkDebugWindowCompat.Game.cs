@@ -95,8 +95,6 @@ namespace RimWorldAccess.Shell
         private static readonly PropertyInfo segContentProp;
 
         // Settings/UIUtil
-        private static readonly Type rimTalkSettingsType;
-        private static readonly FieldInfo settingsIsEnabledField;
         private static readonly Type uiUtilType;
 
         public static bool Ready => ready;
@@ -110,7 +108,6 @@ namespace RimWorldAccess.Shell
             talkRequestType = surface.Type("RimTalk.Data.TalkRequest");
             pawnStateType = surface.Type("RimTalk.Data.PawnState");
             segmentType = surface.Type("RimTalk.Data.PromptMessageSegment");
-            rimTalkSettingsType = surface.Type("RimTalk.RimTalkSettings");
 
             viewModeField = surface.Field(dialogType, "_viewMode");
             pawnFilterField = surface.Field(dialogType, "_pawnFilter");
@@ -139,8 +136,6 @@ namespace RimWorldAccess.Shell
 
             psPawnField = surface.Field(pawnStateType, "Pawn");
             segContentProp = surface.Property(segmentType, "Content");
-
-            settingsIsEnabledField = surface.Field(rimTalkSettingsType, "IsEnabled");
 
             ready = surface.Ready && RimTalkSettingsFacade.Ready;
 
@@ -563,38 +558,6 @@ namespace RimWorldAccess.Shell
                 MethodInfo export = uiUtilType != null ? AccessTools.Method(uiUtilType, "ExportLogs") : null;
                 object requests = requestsField?.GetValue(w);
                 export?.Invoke(null, new[] { requests });
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("RimTalk debug window compat", ex);
-            }
-        }
-
-        internal static bool GetIsEnabled()
-        {
-            try
-            {
-                object settings = RimTalkSettingsFacade.Get();
-                return settings != null && settingsIsEnabledField != null && (bool)settingsIsEnabledField.GetValue(settings);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("RimTalk debug window compat", ex);
-                return false;
-            }
-        }
-
-        /// <summary>MUTATION-C: mirrors DrawBottomActions' own CheckboxLabeled return-assign verbatim, including its omission of ModSettings.Write() (see RimTalkDebugScope.ToggleEnabled).</summary>
-        internal static void SetIsEnabled(bool value)
-        {
-            try
-            {
-                object settings = RimTalkSettingsFacade.Get();
-                if (settings != null && settingsIsEnabledField != null)
-                {
-                    // MUTATION-C: see method summary above -- DrawBottomActions' own CheckboxLabeled return-assign.
-                    settingsIsEnabledField.SetValue(settings, value);
-                }
             }
             catch (Exception ex)
             {

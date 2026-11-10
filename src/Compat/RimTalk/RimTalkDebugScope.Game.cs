@@ -1037,11 +1037,6 @@ namespace RimWorldAccess.Shell
             get
             {
                 actions.Clear();
-                actions.Add(new ScreenAction(
-                    ResolveOwnLabel("EnableRimTalk", "EnableFallback"),
-                    ToggleEnabled,
-                    "rimTalkDebug.toggleEnabled",
-                    check: RimTalkDebugWindowCompat.GetIsEnabled() ? CheckState.Checked : CheckState.Unchecked));
                 actions.Add(new ScreenAction(ResolveOwnLabel("ModSettings", "ModSettingsFallback"), OpenModSettings, "rimTalkDebug.modSettings"));
                 actions.Add(new ScreenAction(ResolveOwnLabel("Export", "ExportFallback"), ExportLogs, "rimTalkDebug.export"));
                 actions.Add(new ScreenAction(ResolveOwnLabel("ResetLogs", "ResetLogsFallback"), ResetLogs, "rimTalkDebug.resetLogs"));
@@ -1055,22 +1050,28 @@ namespace RimWorldAccess.Shell
             return CompatText.ResolveOrFallback("RimTalk.DebugWindow." + modKey, "RimWorldAccess.Compat.RimTalk.Debug." + fallbackKey);
         }
 
-        /// <summary>These same four resolved labels must never ALSO surface through the captured-extras diff.</summary>
-        protected override IEnumerable<string> AdditionalPresentedTexts
+        private string[] modeledLabels;
+        private LoadedLanguage modeledLabelsLanguage;
+
+        // Cached per language: the extras filter asks per widget per frame.
+        private string[] ModeledLabels()
         {
-            get
+            if (modeledLabels == null || modeledLabelsLanguage != LanguageDatabase.activeLanguage)
             {
-                yield return ResolveOwnLabel("EnableRimTalk", "EnableFallback");
-                yield return ResolveOwnLabel("ModSettings", "ModSettingsFallback");
-                yield return ResolveOwnLabel("Export", "ExportFallback");
-                yield return ResolveOwnLabel("ResetLogs", "ResetLogsFallback");
+                modeledLabelsLanguage = LanguageDatabase.activeLanguage;
+                modeledLabels = new[]
+                {
+                    ResolveOwnLabel("ModSettings", "ModSettingsFallback"),
+                    ResolveOwnLabel("Export", "ExportFallback"),
+                    ResolveOwnLabel("ResetLogs", "ResetLogsFallback"),
+                };
             }
+            return modeledLabels;
         }
 
-        /// <summary>MUTATION-C: mirrors DrawBottomActions' own CheckboxLabeled return-assign (RimTalkSettings.IsEnabled is a bare public field with no gated setter) -- including the mod's own omission of ModSettings.Write() afterward; this checkbox does not persist immediately in vanilla either.</summary>
-        private void ToggleEnabled()
+        protected override IEnumerable<string> AdditionalPresentedTexts
         {
-            RimTalkDebugWindowCompat.SetIsEnabled(!RimTalkDebugWindowCompat.GetIsEnabled());
+            get { return ModeledLabels(); }
         }
 
         private void OpenModSettings()
@@ -1099,10 +1100,15 @@ namespace RimWorldAccess.Shell
             get { return true; }
         }
 
-        /// <summary>Drops every TextField-kind capture; the two hand-built Filters rows own those fields instead.</summary>
+        /// <summary>Drops every TextField-kind capture (the Filters rows own those fields) and the bottom-strip
+        /// buttons the toolbar models. The "RimTalk: ON" toggle stays: Enter clicks the mod's own button.</summary>
         protected override bool ExcludeFromCapturedExtras(CapturedWidget widget)
         {
-            return widget.Kind == WidgetKind.TextField;
+            if (widget.Kind == WidgetKind.TextField)
+            {
+                return true;
+            }
+            return Array.IndexOf(ModeledLabels(), widget.SpokenLabel) >= 0;
         }
 
         // Lifecycle.

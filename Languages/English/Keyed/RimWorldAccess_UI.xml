@@ -424,9 +424,6 @@
   <RimWorldAccess.UI.GenericWindow.GlyphLeft>Left</RimWorldAccess.UI.GenericWindow.GlyphLeft>
   <RimWorldAccess.UI.GenericWindow.GlyphRight>Right</RimWorldAccess.UI.GenericWindow.GlyphRight>
 
-  <!-- Generic reader: a text field whose only label on screen is the game's magnifying-glass search icon. -->
-  <RimWorldAccess.UI.GenericWindow.SearchField>Search</RimWorldAccess.UI.GenericWindow.SearchField>
-
   <!-- Generic reader, range controls (U4 slice 5: Widgets.IntRange /
        FloatRange / QualityRange, each presented as two rows, one per thumb).
        RangeMinimum / RangeMaximum name a thumb on a control that carries no

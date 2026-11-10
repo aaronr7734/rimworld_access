@@ -12,7 +12,6 @@ namespace RimWorldAccess.Shell
     {
         private const string ColorOpen = "<color=";
         private const string ColorClose = "</color>";
-        private const float EdgeSlack = 2f;
 
         /// <summary>The whole text sits inside one colour span: a dimmed note, never a caption with a coloured value.</summary>
         public static bool IsWholeColorSpan(string text)
@@ -70,6 +69,12 @@ namespace RimWorldAccess.Shell
             return runs >= 3 || (runs >= 2 && separated);
         }
 
+        /// <summary>A plain caption line that may name a control: anything but a counter readout.</summary>
+        public static bool NamesControl(string text)
+        {
+            return !IsMultiValueReadout(text);
+        }
+
         // The character before a digit belongs to the same number: a digit, or a decimal/group mark between digits.
         private static bool ContinuesNumber(string text, int index)
         {
@@ -100,9 +105,8 @@ namespace RimWorldAccess.Shell
             {
                 return false;
             }
-            float gap = note.Y - control.YMax;
-            return gap >= -EdgeSlack && gap <= NoteGapMax
-                && note.X < control.XMax && control.X < note.XMax;
+            float gap = note.GapBelow(control);
+            return gap >= -LineBox.EdgeSlack && gap <= NoteGapMax && note.OverlapsColumn(control);
         }
 
         /// <summary>
@@ -116,9 +120,7 @@ namespace RimWorldAccess.Shell
             {
                 return false;
             }
-            bool inside = segment.X >= pair.X - EdgeSlack && segment.XMax <= pair.XMax + EdgeSlack
-                && segment.CenterY >= pair.Y && segment.CenterY <= pair.YMax;
-            if (!inside || string.IsNullOrWhiteSpace(pairName))
+            if (!segment.Inside(pair) || !segment.OnLineOf(pair) || string.IsNullOrWhiteSpace(pairName))
             {
                 return false;
             }

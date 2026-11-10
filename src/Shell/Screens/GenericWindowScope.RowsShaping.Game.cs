@@ -232,7 +232,7 @@ namespace RimWorldAccess.Shell
         {
             return caption.Kind == WidgetKind.Label && caption.Source != null && caption.Source.Kind == WidgetKind.Label
                 && !string.IsNullOrWhiteSpace(caption.Label) && caption.Clip.Equals(first.Clip)
-                && ValueLabeledSlider.CaptionsOnRow(ToLineBox(caption.ScreenRect), ToLineBox(first.ScreenRect));
+                && ValueLabeledSlider.CaptionsOnRow(caption.ScreenRect.ToLineBox(), first.ScreenRect.ToLineBox());
         }
 
         private static bool IsTintClusterCandidate(PresentationRow row)

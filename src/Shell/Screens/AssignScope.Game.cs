@@ -411,7 +411,7 @@ namespace RimWorldAccess.Shell
                     maxLength: widget.maxSearchTextLength,
                     minLength: 0),
                 "RimWorldAccess.Search.Prompt".Loc().ToString(),
-                delegate(string text) { widget.filter.Text = text; },
+                delegate(string text) { widget.filter.Text = text; }, // MUTATION-C: mirrors QuickSearchWidget.OnGUI's text write; the widget's only text writer is its IMGUI field
                 AnnounceCurrentItem);
         }
 

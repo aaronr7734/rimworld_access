@@ -399,9 +399,12 @@ namespace RimWorldAccess.Shell
                     ArmExtrasPendingChange(index);
                     break;
                 default:
-                    // Silence otherwise: the injected click's own side effect announces itself.
+                    // Silence otherwise, unless the button's own caption changes (a toggle drawn as a button).
                     PostExtrasActivate(member);
                     buttonClickPassesLeft = 2;
+                    relabelWatchPasses = 3;
+                    relabelWatchIndex = index;
+                    relabelWatchLabel = extrasRows[index].Label;
                     break;
             }
         }

@@ -19,7 +19,7 @@ namespace RimWorldAccess
 
         public static void Register(NumbersColumnExtension extension)
         {
-            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Skill", new NumbersSkillColumnHandler(extension));
+            CompatRegistration.PawnColumnHandler("Numbers.PawnColumnWorker_Skill", _ => new NumbersSkillColumnHandler(extension));
         }
 
         private SkillRecord SkillFor(PawnColumnDef def, Pawn pawn)

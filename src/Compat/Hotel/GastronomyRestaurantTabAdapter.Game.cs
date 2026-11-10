@@ -202,13 +202,13 @@ namespace RimWorldAccess
 
         private void OnAdd(InspectionTreeItem categoryItem, Thing register, object manager, InspectionMode mode)
         {
-            HotelTreeRows.RunGuarded("GastronomyRestaurantTabAdapter add", () =>
+            Guarded.Run("GastronomyRestaurantTabAdapter add", () =>
             {
                 object added = addRestaurant.Invoke(manager, null);
                 linkRegister.Invoke(added, new object[] { register });
                 Rebuild(categoryItem, register, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Gastronomy.RestaurantAdded".Loc(NameOf(added)));
-            });
+            }, "RimWorldAccess.Compat.Hospitality.ActionFailed");
         }
 
         // MUTATION-C: mirrors ITab_Register_Restaurant.DrawRestaurantSelection's minus button, whose
@@ -216,13 +216,13 @@ namespace RimWorldAccess
         private void OnRemove(InspectionTreeItem categoryItem, Thing register, object manager, object restaurant, InspectionMode mode)
         {
             string text = CompatText.ModArgs("RestaurantDialogConfirmRemove", (string)nameProp.GetValue(restaurant, null));
-            Find.WindowStack.Add(new Dialog_Confirm(text, () => HotelTreeRows.RunGuarded("GastronomyRestaurantTabAdapter remove", () =>
+            Find.WindowStack.Add(new Dialog_Confirm(text, () => Guarded.Run("GastronomyRestaurantTabAdapter remove", () =>
             {
                 deleteRestaurant.Invoke(manager, new[] { restaurant });
                 IList all = (IList)restaurantsField.GetValue(manager);
                 linkRegister.Invoke(all[all.Count - 1], new object[] { register });
                 Rebuild(categoryItem, register, mode);
-            })));
+            }, "RimWorldAccess.Compat.Hospitality.ActionFailed")));
         }
 
         private void BuildSettings(InspectionTreeItem parent, object restaurant, InspectionMode mode)
@@ -263,11 +263,9 @@ namespace RimWorldAccess
 
         private void BuildStats(InspectionTreeItem parent, Thing register, object restaurant, InspectionMode mode)
         {
-            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterActiveStaff", HotelTreeRows.Pawns(activeStaff, restaurant).Count.ToString()),
-                () => HotelTreeRows.Names(HotelTreeRows.Pawns(activeStaff, restaurant)));
+            HotelTreeRows.PawnCountRow(parent, "TabRegisterActiveStaff", activeStaff, restaurant);
             InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterSeats", seats.GetValue(restaurant, null).ToString()));
-            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterPatrons", HotelTreeRows.Pawns(patrons, restaurant).Count.ToString()),
-                () => HotelTreeRows.Names(HotelTreeRows.Pawns(patrons, restaurant)));
+            HotelTreeRows.PawnCountRow(parent, "TabRegisterPatrons", patrons, restaurant);
             AddOrders(parent, restaurant, allOrders, "TabRegisterTotalOrders");
             AddOrders(parent, restaurant, ordersForServing, "TabRegisterNeedsServing");
             AddOrders(parent, restaurant, ordersForCooking, "TabRegisterNeedsCooking");
@@ -374,14 +372,14 @@ namespace RimWorldAccess
 
         private void OnClearDebt(InspectionTreeItem categoryItem, Thing register, object debt, InspectionMode mode)
         {
-            HotelTreeRows.RunGuarded("GastronomyRestaurantTabAdapter clear debt", () =>
+            Guarded.Run("GastronomyRestaurantTabAdapter clear debt", () =>
             {
                 // MUTATION-C: mirrors DrawDebts' icon click, an inline `debt.amount = 0f` with no method behind it.
                 debtAmount.SetValue(debt, 0f);
                 SoundDefOf.Click.PlayOneShotOnCamera();
                 Rebuild(categoryItem, register, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Gastronomy.DebtCleared".Loc());
-            });
+            }, "RimWorldAccess.Compat.Hospitality.ActionFailed");
         }
 
         private void BuildMenu(InspectionTreeItem parent, object restaurant, InspectionMode mode)

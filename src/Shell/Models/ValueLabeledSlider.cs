@@ -3,19 +3,6 @@ using System.Globalization;
 
 namespace RimWorldAccess.Shell
 {
-    /// <summary>A captured row's screen rect, described without any GUI types.</summary>
-    public struct LineBox
-    {
-        public float X;
-        public float Y;
-        public float Width;
-        public float Height;
-
-        public float XMax => X + Width;
-        public float YMax => Y + Height;
-        public float CenterY => Y + Height / 2f;
-    }
-
     /// <summary>
     /// A slider whose own caption is nothing but its value ("3", "40%"), drawn to the right of a
     /// plain Label naming it on the same line, optionally with an icon of the same thing between
@@ -27,7 +14,6 @@ namespace RimWorldAccess.Shell
     /// </summary>
     public static class ValueLabeledSlider
     {
-        private const float EdgeSlack = 2f;
         private const int MaxSuffixLength = 6;
 
         /// <summary>
@@ -97,21 +83,16 @@ namespace RimWorldAccess.Shell
         public static bool CaptionsOnRow(LineBox caption, LineBox control)
         {
             return caption.Width > 0f && control.Width > 0f
-                && OnLine(control, caption) && OnLine(caption, control)
-                && caption.XMax <= control.X + EdgeSlack;
+                && control.OnLineOf(caption) && caption.OnLineOf(control)
+                && control.GapRight(caption) >= -LineBox.EdgeSlack;
         }
 
         /// <summary>The icon sits on the caption's line, between the caption and the control.</summary>
         public static bool IconBetween(LineBox caption, LineBox icon, LineBox control)
         {
-            return icon.Width > 0f && OnLine(icon, caption)
-                && icon.X >= caption.XMax - EdgeSlack
-                && icon.XMax <= control.X + EdgeSlack;
-        }
-
-        private static bool OnLine(LineBox box, LineBox line)
-        {
-            return box.CenterY >= line.Y && box.CenterY <= line.YMax;
+            return icon.Width > 0f && icon.OnLineOf(caption)
+                && icon.GapRight(caption) >= -LineBox.EdgeSlack
+                && control.GapRight(icon) >= -LineBox.EdgeSlack;
         }
     }
 }

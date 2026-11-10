@@ -278,15 +278,30 @@ namespace RimWorldAccess.Shell
         // Label rows only: minted from a tip over a bare texture (an info or warning icon), not drawn text.
         public bool OrphanTip;
 
-        // Label rows only: drawn under a grey or faded GUI.color, the way callers mark a secondary note.
+        // Label rows only: a secondary note, drawn under a grey or faded GUI.color or wrapped whole in one colour span.
         public bool Dimmed;
 
-        // Label rows only: Heading came SOLELY from a weak, revocable tier — "immediately
-        // after a Listing.GapLine", or the Tiny-font tier TinyFontHeadingDetector sets
-        // later — never from the strong GameFont.Medium tier. A GapLine can be a plain
-        // visual rule between unrelated rows, so a caption right after one is only a
-        // heading GUESS, revoked retroactively when a later capture shows it was captioning
-        // something on its own row; the Tiny-font tier is revoked by the same check.
+        private string plainLabel;
+        private string plainLabelSource;
+
+        /// <summary><see cref="Label"/> with its rich-text tags stripped, cached until the label changes.</summary>
+        public string PlainLabel
+        {
+            get
+            {
+                if (plainLabel == null || !ReferenceEquals(plainLabelSource, Label))
+                {
+                    plainLabelSource = Label;
+                    plainLabel = (Label ?? "").StripTags();
+                }
+                return plainLabel;
+            }
+        }
+
+        // Label rows only: Heading came SOLELY from a weak, revocable tier (right after a
+        // Listing.GapLine, or the Tiny-font tier TinyFontHeadingDetector sets later), never from
+        // GameFont.Medium. A GapLine can be a plain rule between unrelated rows, so such a heading
+        // is a GUESS, revoked when a later capture shows it captioning something on its own row.
         public bool HeadingFromGapLineOnly;
 
         // Label rows only: drawn in GameFont.Tiny. A raw capture fact — whether such a

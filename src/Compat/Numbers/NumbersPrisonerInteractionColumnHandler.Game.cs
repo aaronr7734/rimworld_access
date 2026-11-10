@@ -15,7 +15,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_PrisonerInteraction", new NumbersPrisonerInteractionColumnHandler());
+            CompatRegistration.PawnColumnHandler("Numbers.PawnColumnWorker_PrisonerInteraction", _ => new NumbersPrisonerInteractionColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)

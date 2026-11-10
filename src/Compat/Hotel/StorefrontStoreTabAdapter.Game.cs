@@ -83,8 +83,7 @@ namespace RimWorldAccess
             // DrawStats names only the first active staff member.
             InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterActiveStaff",
                 HotelTreeRows.Pawns(activeStaff, store).FirstOrDefault()?.LabelShort ?? ""));
-            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterCustomers", HotelTreeRows.Pawns(customers, store).Count.ToString()),
-                () => HotelTreeRows.Names(HotelTreeRows.Pawns(customers, store)));
+            HotelTreeRows.PawnCountRow(parent, "TabRegisterCustomers", customers, store);
             HotelTreeRows.IncomeRows(parent, store, incomeYesterday, incomeToday);
         }
 

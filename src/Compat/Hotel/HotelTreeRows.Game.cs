@@ -30,23 +30,6 @@ namespace RimWorldAccess
                 onActivate, mode, disabledReason != null);
         }
 
-        /// <summary>
-        /// Runs a row's action; a failure inside the mod's reflected code is logged and spoken
-        /// instead of escaping the key handler.
-        /// </summary>
-        public static void RunGuarded(string context, Action action)
-        {
-            try
-            {
-                action();
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"{context} failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.ActionFailed".Loc());
-            }
-        }
-
         /// <summary>The rename icon beside a register tab's name, opening the mod's own rename dialog.</summary>
         public static InspectionTreeItem RenameButton(InspectionTreeItem parent, string tipKey, Type dialogType,
             object target, InspectionMode mode)
@@ -78,6 +61,13 @@ namespace RimWorldAccess
         public static List<Pawn> Pawns(PropertyInfo property, object owner)
         {
             return property.GetValue(owner, null) is IEnumerable pawns ? pawns.OfType<Pawn>().ToList() : new List<Pawn>();
+        }
+
+        /// <summary>A pawn-list count whose tooltip names the pawns.</summary>
+        public static void PawnCountRow(InspectionTreeItem parent, string labelKey, PropertyInfo property, object owner)
+        {
+            InspectRows.Info(parent, () => StatLine(labelKey, Pawns(property, owner).Count.ToString()),
+                () => Names(Pawns(property, owner)));
         }
 
         public static string Names(List<Pawn> pawns)

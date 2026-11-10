@@ -60,7 +60,7 @@ namespace RimWorldAccess
     {
         public static List<FoldedRow> Fold(List<CapturedWidget> widgets)
         {
-            return Fold(widgets, out _);
+            return Fold(widgets, out int _);
         }
 
         /// <summary>
@@ -70,9 +70,21 @@ namespace RimWorldAccess
         /// </summary>
         public static List<FoldedRow> Fold(List<CapturedWidget> widgets, out int bandCount)
         {
-            var rows = new List<FoldedRow>();
             List<FoldedRow> bands = FoldBands(widgets);
             bandCount = bands.Count;
+            return NonEmpty(bands);
+        }
+
+        /// <summary><see cref="Fold"/>, also handing back the bands each row's <see cref="FoldedRow.BandIndex"/> points into.</summary>
+        public static List<FoldedRow> Fold(List<CapturedWidget> widgets, out List<List<int>> bands)
+        {
+            bands = widgets == null || widgets.Count == 0 ? new List<List<int>>() : BandsFor(widgets);
+            return NonEmpty(FoldBands(widgets, bands));
+        }
+
+        private static List<FoldedRow> NonEmpty(List<FoldedRow> bands)
+        {
+            var rows = new List<FoldedRow>();
             foreach (FoldedRow row in bands)
             {
                 if (row != null)
@@ -84,19 +96,22 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Folds each banded visual row in <see cref="CapturedRowBander.Band"/>'s order: a band that
-        /// folds to nothing readable yields a null slot, so a caller can index by band ordinal. Must
-        /// run at capture time — the tooltip resolution only holds until the next detached pass.
+        /// Folds each band in <see cref="CapturedRowBander.Band"/>'s order, a null slot for one with nothing
+        /// readable, at capture time: tooltip resolution holds only until the next detached pass.
         /// </summary>
         public static List<FoldedRow> FoldBands(List<CapturedWidget> widgets)
         {
-            var rows = new List<FoldedRow>();
             if (widgets == null || widgets.Count == 0)
             {
-                return rows;
+                return new List<FoldedRow>();
             }
+            return FoldBands(widgets, BandsFor(widgets));
+        }
 
-            foreach (List<int> band in BandsFor(widgets))
+        private static List<FoldedRow> FoldBands(List<CapturedWidget> widgets, List<List<int>> bands)
+        {
+            var rows = new List<FoldedRow>();
+            foreach (List<int> band in bands)
             {
                 FoldedRow row = FoldBand(widgets, band);
                 if (row != null)
@@ -570,6 +585,25 @@ namespace RimWorldAccess
                 composed = $"{widget.FieldLabel}: {composed}";
             }
             return composed;
+        }
+
+        public static string CaptionValuePairAt(List<CapturedWidget> widgets, List<int> band, int position)
+        {
+            if (position + 1 >= band.Count)
+            {
+                return null;
+            }
+            CapturedWidget caption = widgets[band[position]];
+            CapturedWidget value = widgets[band[position + 1]];
+            if (caption.Kind != WidgetKind.Label || value.Kind != WidgetKind.Label)
+            {
+                return null;
+            }
+            string captionText = CompatText.Flatten(caption.SpokenLabel).Trim();
+            string valueText = CompatText.Flatten(value.SpokenLabel).Trim();
+            return captionText.EndsWith(":") && valueText.Length > 0
+                ? ComposeCaptionValue(captionText, valueText)
+                : null;
         }
     }
 }

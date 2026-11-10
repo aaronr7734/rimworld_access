@@ -359,6 +359,7 @@ namespace RimWorldAccess.Shell
             // Stamp qualifying GameFont.Tiny panel headings onto
             // captureRows BEFORE Phase 1 reads Heading — see ApplyTinyFontHeadings' remarks.
             ApplyTinyFontHeadings();
+            FoldNotesUnderOwners(consumed, fusion);
 
             bool hasCloseTwin = HasNonChromeCloseTwin();
             string closeCaption = "CloseButton".Translate();
@@ -369,7 +370,12 @@ namespace RimWorldAccess.Shell
             for (int i = 0; i < n; i++)
             {
                 CapturedWidget row = captureRows[i];
-                if (row.Kind == WidgetKind.Label && (RedrawsFoldedPair(consumed, i) || FoldNoteUnderControl(consumed, fusion, i)))
+                if (i > 0 && consumed[i] && consumed[i - 1] && OwnsNoteAsControl(captureRows[i - 1]))
+                {
+                    // A note only describes a control that is still a row of its own.
+                    ReleaseNote(consumed, fusion, i - 1);
+                }
+                if (row.Kind == WidgetKind.Label && (consumed[i] || RedrawsFoldedPair(consumed, i)))
                 {
                     consumed[i] = true;
                     continue;
@@ -390,7 +396,7 @@ namespace RimWorldAccess.Shell
                     // that control's caption, not a section break: stamping it a heading would
                     // consume it, make it a fusion boundary, and orphan the control's hotspot
                     // away entirely.
-                    else if (row.HeadingFromGapLineOnly && (HasOverlappingControlHotspotAhead(captureRows, i, hotspotOverlapOnly: false)
+                    else if (row.HeadingFromGapLineOnly && (HasOverlappingControlHotspotAhead(fusion, i, hotspotOverlapOnly: false)
                         || CaptionsColumnWrappedSlider(i)))
                     {
                         row.Heading = false;
@@ -403,7 +409,7 @@ namespace RimWorldAccess.Shell
                     // overlap arm is trusted: a blank control merely adjacent below stays
                     // weak-guess-only evidence, so a real Medium title above a search field
                     // keeps reading as a title.
-                    else if (HasOverlappingControlHotspotAhead(captureRows, i, hotspotOverlapOnly: true))
+                    else if (HasOverlappingControlHotspotAhead(fusion, i, hotspotOverlapOnly: true))
                     {
                         row.Heading = false;
                         row.HeadingFromGapLineOnly = false;
@@ -413,6 +419,7 @@ namespace RimWorldAccess.Shell
                         heading[i] = true;
                         consumed[i] = true;
                         headingBoundary = i;
+                        ReleaseNote(consumed, fusion, i);
                         continue;
                     }
                 }
@@ -509,14 +516,11 @@ namespace RimWorldAccess.Shell
                     // A caller's OWN caption drawn above the control (the
                     // blank-Slider rule's shape) names it better than the
                     // rendered numbers do, so it wins when both exist.
-                    if (i > 0)
+                    int rangeCaption = CaptionJustBefore(consumed, fusion, i);
+                    if (rangeCaption >= 0)
                     {
-                        CapturedWidget above = captureRows[i - 1];
-                        if (IsStealableCaption(above) && !consumed[i - 1] && IsAdjacent(row, above))
-                        {
-                            consumed[i - 1] = true;
-                            fusion[i].LabelIndex = i - 1;
-                        }
+                        consumed[rangeCaption] = true;
+                        fusion[i].LabelIndex = rangeCaption;
                     }
                     continue;
                 }
@@ -599,31 +603,30 @@ namespace RimWorldAccess.Shell
                     continue;
                 }
 
-                // A blank checkbox is fusable whether or not it is tri-state. The tri-state
-                // restriction was the narrower case that happened to be needed first; the shape
-                // is identical either way -- Widgets.Checkbox draws a bare 24-pixel box with no
-                // caption of its own, so a caller that wants it named draws a Label beside it,
-                // exactly as it does for a blank Slider or TextField.
                 if (row.Kind == WidgetKind.Slider && fusion[i].ValueTextIndex < 0)
                 {
                     FuseTrailingValueReadout(consumed, fusion, i);
                 }
-                bool blankFusable = row.Kind == WidgetKind.Slider || row.Kind == WidgetKind.TextField
-                    || row.Kind == WidgetKind.Checkbox;
+                // Widgets.Checkbox draws a bare box with no caption of its own, tri-state or not,
+                // so a caller that wants it named draws a Label beside it, as for a blank Slider
+                // or TextField.
+                if (row.Kind == WidgetKind.Checkbox && string.IsNullOrWhiteSpace(row.Label))
+                {
+                    FoldBareCheckbox(consumed, fusion, i, headingBoundary);
+                }
                 // A FieldLabel-carrying text field is not blank — its labeled wrapper's bracket
                 // already named it — so the adjacency heuristic must not steal an unrelated
                 // preceding Label for it. KindOverride != null excludes a stepper anchor the
                 // glyph-run rule already fused, whose later visit would otherwise let an
                 // adjacent Label overwrite the caption FuseGlyphStepperRun already consumed.
-                if (blankFusable && fusion[i].KindOverride == null
-                    && string.IsNullOrEmpty(row.Label) && string.IsNullOrEmpty(row.FieldLabel) && i > 0
-                    && !(row.Kind == WidgetKind.Checkbox && TrailsLabeledCheckbox(i)))
+                else if ((row.Kind == WidgetKind.Slider || row.Kind == WidgetKind.TextField) && fusion[i].KindOverride == null
+                    && string.IsNullOrEmpty(row.Label) && string.IsNullOrEmpty(row.FieldLabel) && i > 0)
                 {
                     // Bounded backward scan, not a stop-at-i-1 test: a caller may draw
                     // unrelated rows between a control and its caption, so
                     // FindAdjacentFusableLabel skips past consumed/non-label rows to the true
                     // caption. When the caption IS the preceding row it is the first candidate.
-                    int captionIndex = FindAdjacentFusableLabel(captureRows, consumed, i, headingBoundary, row);
+                    int captionIndex = FindAdjacentFusableLabel(consumed, fusion, i, headingBoundary, row);
                     if (captionIndex < 0 && row.Kind == WidgetKind.Slider
                         && WidgetCapture.ListingColumnBreaks.Contains(i)
                         && !consumed[i - 1] && IsStealableCaption(captureRows[i - 1]))
@@ -636,17 +639,9 @@ namespace RimWorldAccess.Shell
                     {
                         captionIndex = FindValueCaptionAbove(captureRows, consumed, i, headingBoundary, row);
                     }
-                    if (row.Kind == WidgetKind.Checkbox)
-                    {
-                        captionIndex = PreferTrailingCheckboxCaption(consumed, fusion, i, captionIndex);
-                    }
-                    if (captionIndex >= 0 && row.Kind != WidgetKind.Checkbox)
-                    {
-                        captionIndex = SkipNoteUnderCaption(consumed, fusion, i, captionIndex, headingBoundary);
-                    }
                     if (captionIndex >= 0 && row.Kind == WidgetKind.Slider && fusion[i].ValueTextIndex < 0)
                     {
-                        captionIndex = TakeRowLeadName(consumed, fusion, i, captionIndex, headingBoundary);
+                        captionIndex = ResolveSecondaryCaption(consumed, fusion, i, captionIndex, headingBoundary);
                     }
                     if (captionIndex >= 0)
                     {
@@ -656,7 +651,15 @@ namespace RimWorldAccess.Shell
                     else if (row.Kind == WidgetKind.TextField)
                     {
                         // A field sharing a captioned control's row (a mode dropdown, a slider's type-in) shares its name.
-                        fusion[i].LabelOverride = SameLineControlCaption(consumed, fusion, i) ?? SearchIconName(row);
+                        int namer = SameLineCaptionedControl(consumed, fusion, i);
+                        if (namer >= 0)
+                        {
+                            fusion[i].NameFromIndex = namer;
+                        }
+                        else
+                        {
+                            fusion[i].LabelOverride = SearchIconName(row);
+                        }
                     }
                 }
                 else if (row.Kind == WidgetKind.Slider && fusion[i].KindOverride == null && !string.IsNullOrEmpty(row.Label) && i > 0)
@@ -681,12 +684,11 @@ namespace RimWorldAccess.Shell
                     // Labeled dropdown/combo buttons fuse like blankFusable above, but are
                     // never gated on a blank Label: these buttons carry their own caption (the
                     // current choice), which BuildDescription speaks as the combo's value.
-                    CapturedWidget prev = captureRows[i - 1];
-                    if (IsStealableCaption(prev) && !consumed[i - 1]
-                        && IsAdjacent(row, prev))
+                    int dropdownCaption = CaptionJustBefore(consumed, fusion, i);
+                    if (dropdownCaption >= 0)
                     {
-                        consumed[i - 1] = true;
-                        fusion[i].LabelIndex = i - 1;
+                        consumed[dropdownCaption] = true;
+                        fusion[i].LabelIndex = dropdownCaption;
                     }
                 }
                 else if (row.Kind == WidgetKind.Button && !string.IsNullOrWhiteSpace(row.Label) && i > 0
@@ -715,10 +717,6 @@ namespace RimWorldAccess.Shell
                         // would strip the caption off whatever control precedes the run.
                         fusion[i].KindOverride = WidgetKind.RadioButton;
                         fusion[i].SelectedOverride = row.Selected;
-                        continue;
-                    }
-                    if (AbsorbRowClickOverCheckbox(consumed, fusion, i, headingBoundary))
-                    {
                         continue;
                     }
                     if (row.Composite == CompositeMember.SelectableDefRow && i > 0
@@ -778,7 +776,7 @@ namespace RimWorldAccess.Shell
                             if (i > headingBoundary + 1 && !consumed[i - 1]
                                 && IsStealableCaption(captureRows[i - 1])
                                 && captureRows[i - 1].Clip.Equals(row.Clip)
-                                && DetachedCaption.TrailsControl(LineBoxOf(row), LineBoxOf(captureRows[i - 1])))
+                                && DetachedCaption.TrailsControl(row.Box(), captureRows[i - 1].Box()))
                             {
                                 consumed[i - 1] = true;
                                 fusion[i].LabelIndex = i - 1;
@@ -829,6 +827,8 @@ namespace RimWorldAccess.Shell
                     }
                 }
             }
+
+            ReleaseUnclaimedNotes(consumed, fusion);
 
             // ---- Phase 1, second sweep: read-only checkbox textures over plain Labels ----
             // Runs AFTER the main loop has fully settled consumed[], never at each Label's own
@@ -968,7 +968,7 @@ namespace RimWorldAccess.Shell
                     pr.Check = ResolveCheckState(fusion[i], row);
                     // "Name: 100%" and "Speed 2.5" captions carry the value in one string, which the
                     // pair-fold can never see: a digit after the colon, or the slider's own value last.
-                    string shownCaption = label.Label.StripTags();
+                    string shownCaption = label.PlainLabel;
                     pr.CaptionCarriesValue = label.LabelPairFolded || CaptionTextCarriesValue(shownCaption)
                         || (row.Kind == WidgetKind.Slider
                             && SliderCaption.NameBeforeTrailingValue(shownCaption, row.SliderValue) != null);
@@ -999,13 +999,10 @@ namespace RimWorldAccess.Shell
                         // state.
                         pr.Label = "";
                     }
-                    else if (fusion[i].NameFromIndex >= 0 && !string.IsNullOrWhiteSpace(NameOfFusedRow(fusion, fusion[i].NameFromIndex)))
-                    {
-                        pr.Label = NameOfFusedRow(fusion, fusion[i].NameFromIndex);
-                    }
                     else
                     {
-                        pr.Label = ResolvePresentationLabel(row);
+                        string borrowed = fusion[i].NameFromIndex >= 0 ? NameOfFusedRow(fusion, fusion[i].NameFromIndex) : null;
+                        pr.Label = string.IsNullOrWhiteSpace(borrowed) ? ResolvePresentationLabel(row) : borrowed;
                     }
                     pr.RingCaptureIndex = i;
                     pr.ActivateCaptureIndex = i;
@@ -1045,12 +1042,12 @@ namespace RimWorldAccess.Shell
                 pr.OwnLabelIsValue = fusion[i].OwnLabelIsValue;
                 if (fusion[i].ValueTextIndex >= 0)
                 {
-                    pr.ValueText = captureRows[fusion[i].ValueTextIndex].Label.StripTags();
+                    pr.ValueText = captureRows[fusion[i].ValueTextIndex].PlainLabel;
                 }
                 int descriptionIdx = fusion[i].DescriptionIndex >= 0 || labelIdx < 0 ? fusion[i].DescriptionIndex : fusion[labelIdx].DescriptionIndex;
                 if (descriptionIdx >= 0)
                 {
-                    pr.Description = captureRows[descriptionIdx].Label.StripTags();
+                    pr.Description = captureRows[descriptionIdx].PlainLabel;
                 }
                 pr.TypeInCaptureIndex = fusion[i].TypeInIndex;
                 pr.SpeechMasked = fusion[i].SpeechMasked;

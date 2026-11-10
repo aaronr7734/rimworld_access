@@ -825,7 +825,6 @@
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>指令: {0}。创伤: {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>{0} 至 {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>{0}，{1}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>
-  <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>启用 RimTalk</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>模组设置</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>导出日志</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>重置日志</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>

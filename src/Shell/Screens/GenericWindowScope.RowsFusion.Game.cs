@@ -141,15 +141,11 @@ namespace RimWorldAccess.Shell
             fusion[anchor].StepDownIndex = minusSmall;
             fusion[anchor].StepUpIndex = plusSmall;
             fusion[anchor].StepCaptions = BuildStepCaptions(minusBig, minusSmall, plusSmall, plusBig);
-            if (first > 0)
+            int captionIndex = CaptionJustBefore(consumed, fusion, first);
+            if (captionIndex >= 0)
             {
-                CapturedWidget prev = captureRows[first - 1];
-                if (IsStealableCaption(prev) && !consumed[first - 1]
-                    && IsAdjacent(captureRows[first], prev))
-                {
-                    consumed[first - 1] = true;
-                    fusion[anchor].LabelIndex = first - 1;
-                }
+                consumed[captionIndex] = true;
+                fusion[anchor].LabelIndex = captionIndex;
             }
         }
 
@@ -179,8 +175,7 @@ namespace RimWorldAccess.Shell
             if (valueIndex < 0)
             {
                 // Backward: the caller drew its own number as a plain Label. Only the nearest
-                // unconsumed stealable row is considered — a non-matching nearest row ends the
-                // search rather than reaching past to something further back.
+                // unconsumed stealable row counts; a non-matching one ends the search.
                 for (int j = minusIndex - 1; j > headingBoundary; j--)
                 {
                     if (!IsStealableCaption(captureRows[j]) || consumed[j])
@@ -214,7 +209,7 @@ namespace RimWorldAccess.Shell
             }
 
             int runStart = valueIsLabel ? valueIndex : minusIndex;
-            int captionIndex = FindAdjacentFusableLabel(captureRows, consumed, runStart, headingBoundary, captureRows[runStart]);
+            int captionIndex = FindAdjacentFusableLabel(consumed, fusion, runStart, headingBoundary, captureRows[runStart]);
             if (captionIndex >= 0 && SpinnerGlyphs.IsBareNumber(captureRows[captionIndex].Label))
             {
                 // That is the value, not the name.
@@ -227,9 +222,8 @@ namespace RimWorldAccess.Shell
             }
             else if (valueIsLabel)
             {
-                // No name found and the anchor's row IS the bare-number value: keep that number
-                // out of the row's name, which BuildPresentationRows' Stepper fallback would
-                // otherwise take from the anchor's own Label.
+                // The anchor's row IS the bare-number value: keep it out of the row's name, which the
+                // Stepper fallback would otherwise take from the anchor's own Label.
                 fusion[anchor].LabelOverride = "";
             }
         }
@@ -246,7 +240,7 @@ namespace RimWorldAccess.Shell
             CapturedWidget readout = captureRows[next];
             if (IsStealableCaption(readout) && readout.Composite == CompositeMember.None
                 && readout.Clip.Equals(slider.Clip)
-                && ValueLabeledSlider.CaptionsOnRow(LineBoxOf(slider), LineBoxOf(readout))
+                && ValueLabeledSlider.CaptionsOnRow(slider.Box(), readout.Box())
                 && ValueLabeledSlider.LabelIsValue(readout.Label, slider.SliderValue))
             {
                 consumed[next] = true;
@@ -275,7 +269,7 @@ namespace RimWorldAccess.Shell
             CapturedWidget caption = captureRows[captionIndex];
             if (!IsStealableCaption(caption) || caption.Composite != CompositeMember.None
                 || string.IsNullOrWhiteSpace(caption.Label) || !caption.Clip.Equals(slider.Clip)
-                || !ValueLabeledSlider.CaptionsOnRow(LineBoxOf(caption), LineBoxOf(slider)))
+                || !ValueLabeledSlider.CaptionsOnRow(caption.Box(), slider.Box()))
             {
                 return;
             }
@@ -283,8 +277,8 @@ namespace RimWorldAccess.Shell
             {
                 CapturedWidget icon = captureRows[iconIndex];
                 if (!icon.Clip.Equals(slider.Clip)
-                    || !string.Equals((icon.Label ?? "").StripTags().Trim(), caption.Label.StripTags().Trim(), StringComparison.OrdinalIgnoreCase)
-                    || !ValueLabeledSlider.IconBetween(LineBoxOf(caption), LineBoxOf(icon), LineBoxOf(slider)))
+                    || !string.Equals(icon.PlainLabel.Trim(), caption.PlainLabel.Trim(), StringComparison.OrdinalIgnoreCase)
+                    || !ValueLabeledSlider.IconBetween(caption.Box(), icon.Box(), slider.Box()))
                 {
                     return;
                 }
@@ -293,16 +287,6 @@ namespace RimWorldAccess.Shell
             consumed[captionIndex] = true;
             fusion[sliderIndex].LabelIndex = captionIndex;
             fusion[sliderIndex].OwnLabelIsValue = true;
-        }
-
-        private static LineBox LineBoxOf(CapturedWidget row)
-        {
-            return ToLineBox(row.ScreenRect);
-        }
-
-        private static LineBox ToLineBox(Rect r)
-        {
-            return new LineBox { X = r.x, Y = r.y, Width = r.width, Height = r.height };
         }
 
         /// <summary>
@@ -345,8 +329,9 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>A control ahead, before the next real heading, that this heading guess overlaps or captions makes it a caption.</summary>
-        private static bool HasOverlappingControlHotspotAhead(List<CapturedWidget> rows, int labelIndex, bool hotspotOverlapOnly)
+        private bool HasOverlappingControlHotspotAhead(FusionResult[] fusion, int labelIndex, bool hotspotOverlapOnly)
         {
+            List<CapturedWidget> rows = captureRows;
             CapturedWidget label = rows[labelIndex];
             for (int j = labelIndex + 1; j < rows.Count; j++)
             {
@@ -363,15 +348,14 @@ namespace RimWorldAccess.Shell
                 }
                 if (hotspotOverlapOnly)
                 {
-                    // Strong-heading callers accept only the containment-grade evidence above;
-                    // the adjacency arm below is reserved for GapLine-only guesses.
+                    // Strong headings accept only the overlap above; adjacency is for GapLine-only guesses.
                     continue;
                 }
                 // A BLANK control beside/below the label is the rule-(b)/(d) caption shape;
                 // stamping that caption a heading would orphan the control's name.
                 if ((row.Kind == WidgetKind.Slider || row.Kind == WidgetKind.Range || row.Kind == WidgetKind.TextField)
                     && string.IsNullOrWhiteSpace(row.Label)
-                    && (IsAdjacent(row, label) || NoteBridges(rows, labelIndex, j)))
+                    && AdjacentViaNote(fusion, row, labelIndex))
                 {
                     return true;
                 }
@@ -382,18 +366,6 @@ namespace RimWorldAccess.Shell
                 }
             }
             return false;
-        }
-
-        /// <summary>Label, dimmed note, then the control, each directly under the last.</summary>
-        private static bool NoteBridges(List<CapturedWidget> rows, int labelIndex, int controlIndex)
-        {
-            if (controlIndex != labelIndex + 2)
-            {
-                return false;
-            }
-            CapturedWidget note = rows[labelIndex + 1];
-            return note.Kind == WidgetKind.Label && CaptionNote.IsWholeColorSpan(note.Label)
-                && IsAdjacent(note, rows[labelIndex]) && IsAdjacent(rows[controlIndex], note);
         }
 
         /// <summary>Overlap test for a pair <see cref="MayFuse"/> admitted: raw ScreenRects in the same clip, visible rects across clips.</summary>
@@ -465,7 +437,7 @@ namespace RimWorldAccess.Shell
             {
                 CapturedWidget label = rows[j];
                 if (!IsStealableCaption(label) || consumed[j] || string.IsNullOrWhiteSpace(label.Label)
-                    || !MayFuse(control, label) || CaptionNote.IsMultiValueReadout(label.Label.StripTags()))
+                    || !MayFuse(control, label))
                 {
                     continue;
                 }
@@ -475,13 +447,14 @@ namespace RimWorldAccess.Shell
                 Rect c = sameClip ? control.ScreenRect : control.VisibleScreenRect;
                 // A grey line spanning the button's row describes the page, never names the button.
                 if ((!sameClip && (l.width <= 0f || c.width <= 0f))
-                    || (label.Dimmed && ValueButtonCaption.RowHostsButton(ToLineBox(l), ToLineBox(c))))
+                    || (label.Dimmed && ValueButtonCaption.RowHostsButton(l.ToLineBox(), c.ToLineBox())))
                 {
                     continue;
                 }
-                ValueButtonPart labelPart = new ValueButtonPart { Box = ToLineBox(l), ClipId = label.Clip.GetHashCode(), IsChrome = windowChrome[j] };
-                ValueButtonPart controlPart = new ValueButtonPart { Box = ToLineBox(c), ClipId = control.Clip.GetHashCode(), IsChrome = windowChrome[fromIndexExclusive] };
-                if (ValueButtonCaption.Captions(labelPart, controlPart, j == fromIndexExclusive - 1, leadsCluster))
+                ValueButtonPart labelPart = new ValueButtonPart { Box = l.ToLineBox(), ClipId = label.Clip.GetHashCode(), IsChrome = windowChrome[j] };
+                ValueButtonPart controlPart = new ValueButtonPart { Box = c.ToLineBox(), ClipId = control.Clip.GetHashCode(), IsChrome = windowChrome[fromIndexExclusive] };
+                if (ValueButtonCaption.Captions(labelPart, controlPart, j == fromIndexExclusive - 1, leadsCluster)
+                    && CanNameControl(label))
                 {
                     return j;
                 }
@@ -489,27 +462,94 @@ namespace RimWorldAccess.Shell
             return -1;
         }
 
-        /// <summary>A grey note drawn right under a checkbox or button describes it: folded in as its description.</summary>
-        private bool FoldNoteUnderControl(bool[] consumed, FusionResult[] fusion, int noteIndex)
+        /// <summary>Before Phase 1: a grey note right under a checkbox, button or caption becomes that row's description.</summary>
+        private void FoldNotesUnderOwners(bool[] consumed, FusionResult[] fusion)
         {
-            int controlIndex = noteIndex - 1;
-            CapturedWidget note = captureRows[noteIndex];
-            if (controlIndex < 0 || !note.Dimmed || note.Composite != CompositeMember.None
-                || string.IsNullOrWhiteSpace(note.Label) || consumed[controlIndex])
+            for (int i = 1; i < captureRows.Count; i++)
             {
-                return false;
+                CapturedWidget note = captureRows[i];
+                CapturedWidget owner = captureRows[i - 1];
+                if (note.Kind == WidgetKind.Label && note.Dimmed && note.Composite == CompositeMember.None
+                    && !string.IsNullOrWhiteSpace(note.Label) && (OwnsNoteAsControl(owner) || (OwnsNoteAsCaption(owner) && !note.Heading))
+                    && owner.Clip.Equals(note.Clip) && CaptionNote.SitsUnder(owner.Box(), note.Box()))
+                {
+                    consumed[i] = true;
+                    fusion[i - 1].DescriptionIndex = i;
+                }
             }
-            CapturedWidget control = captureRows[controlIndex];
-            if ((control.Kind != WidgetKind.Checkbox && control.Kind != WidgetKind.Button)
-                || control.Composite != CompositeMember.None || control.CloseX
-                || fusion[controlIndex].DescriptionIndex >= 0 || !control.Clip.Equals(note.Clip)
-                || !CaptionNote.SitsUnder(LineBoxOf(control), LineBoxOf(note)))
+        }
+
+        private static bool OwnsNoteAsControl(CapturedWidget row)
+        {
+            return (row.Kind == WidgetKind.Checkbox || row.Kind == WidgetKind.Button)
+                && row.Composite == CompositeMember.None && !row.CloseX;
+        }
+
+        private static bool OwnsNoteAsCaption(CapturedWidget row)
+        {
+            return row.Kind == WidgetKind.Label && !row.Dimmed && row.Composite == CompositeMember.None && !row.OrphanTip
+                && (!row.Heading || row.HeadingFromGapLineOnly);
+        }
+
+        /// <summary>The row holds the grey note drawn right under it, folded by <see cref="FoldNotesUnderOwners"/>.</summary>
+        private bool HoldsNote(FusionResult[] fusion, int ownerIndex)
+        {
+            int note = fusion[ownerIndex].DescriptionIndex;
+            return note == ownerIndex + 1 && captureRows[note].Dimmed;
+        }
+
+        private void ReleaseNote(bool[] consumed, FusionResult[] fusion, int ownerIndex)
+        {
+            if (HoldsNote(fusion, ownerIndex))
             {
-                return false;
+                consumed[ownerIndex + 1] = false;
+                fusion[ownerIndex].DescriptionIndex = -1;
             }
-            consumed[noteIndex] = true;
-            fusion[controlIndex].DescriptionIndex = noteIndex;
-            return true;
+        }
+
+        /// <summary>A caption's note stays folded only when a control that speaks a description took the caption.</summary>
+        private void ReleaseUnclaimedNotes(bool[] consumed, FusionResult[] fusion)
+        {
+            int n = captureRows.Count;
+            bool[] describes = new bool[n];
+            for (int k = 0; k < n; k++)
+            {
+                if (!consumed[k] && fusion[k].LabelIndex >= 0 && fusion[k].DescriptionIndex < 0
+                    && captureRows[k].Kind != WidgetKind.Range)
+                {
+                    describes[fusion[k].LabelIndex] = true;
+                }
+            }
+            for (int j = 0; j < n; j++)
+            {
+                if (captureRows[j].Kind == WidgetKind.Label && !describes[j])
+                {
+                    ReleaseNote(consumed, fusion, j);
+                }
+            }
+        }
+
+        /// <summary>The control sits right under the label, or right under the grey note folded beneath it.</summary>
+        private bool AdjacentViaNote(FusionResult[] fusion, CapturedWidget control, int labelIndex)
+        {
+            return IsAdjacent(control, captureRows[labelIndex])
+                || (HoldsNote(fusion, labelIndex) && IsAdjacent(control, captureRows[labelIndex + 1]));
+        }
+
+        /// <summary>The caption drawn just before the control, past a note folded under it, when it sits right above or beside it; else -1.</summary>
+        private int CaptionJustBefore(bool[] consumed, FusionResult[] fusion, int controlIndex)
+        {
+            int j = controlIndex - 1;
+            if (j > 0 && HoldsNote(fusion, j - 1))
+            {
+                j--;
+            }
+            if (j < 0 || consumed[j] || !IsStealableCaption(captureRows[j])
+                || !AdjacentViaNote(fusion, captureRows[controlIndex], j))
+            {
+                return -1;
+            }
+            return j;
         }
 
         /// <summary>The next captured row is another text button continuing this one's line to the right.</summary>
@@ -522,7 +562,7 @@ namespace RimWorldAccess.Shell
             CapturedWidget button = rows[buttonIndex];
             CapturedWidget next = rows[buttonIndex + 1];
             return next.Kind == WidgetKind.Button && next.Clip.Equals(button.Clip)
-                && ValueLabeledSlider.CaptionsOnRow(LineBoxOf(button), LineBoxOf(next));
+                && ValueLabeledSlider.CaptionsOnRow(button.Box(), next.Box());
         }
 
         /// <summary>
@@ -534,6 +574,12 @@ namespace RimWorldAccess.Shell
         {
             return label.Kind == WidgetKind.Label && !label.Heading
                 && label.Composite != CompositeMember.TreeRowLabel;
+        }
+
+        /// <summary>A row that may name a control: a stealable caption that is not a line of counters. Run after geometry.</summary>
+        private static bool CanNameControl(CapturedWidget label)
+        {
+            return IsStealableCaption(label) && CaptionNote.NamesControl(label.PlainLabel);
         }
 
         /// <summary>Rule (c): the nearest unconsumed Label back to the last heading overlapping the control; skipping misses fuses batched draws.</summary>
@@ -610,18 +656,18 @@ namespace RimWorldAccess.Shell
         /// rect. Skipping non-adjacent labels lets a mod that batches its draws out of
         /// caption-then-control order still fuse.
         /// </summary>
-        private static int FindAdjacentFusableLabel(List<CapturedWidget> rows, bool[] consumed, int fromIndexExclusive, int headingBoundary, CapturedWidget control)
+        private int FindAdjacentFusableLabel(bool[] consumed, FusionResult[] fusion, int fromIndexExclusive, int headingBoundary, CapturedWidget control)
         {
-            bool namesOnly = control.Kind == WidgetKind.TextField || control.Kind == WidgetKind.Checkbox;
             for (int j = fromIndexExclusive - 1; j > headingBoundary; j--)
             {
-                if (!IsStealableCaption(rows[j]) || consumed[j]
-                    || (namesOnly && CaptionNote.IsMultiValueReadout((rows[j].Label ?? "").StripTags())))
+                if (!IsStealableCaption(captureRows[j]) || consumed[j])
                 {
                     continue;
                 }
-                if (IsAdjacent(control, rows[j])
-                    || (j == fromIndexExclusive - 1 && DecorationGapAdjacent(control, rows[j])))
+                int lowest = HoldsNote(fusion, j) ? j + 1 : j;
+                if ((AdjacentViaNote(fusion, control, j)
+                    || (lowest == fromIndexExclusive - 1 && DecorationGapAdjacent(control, captureRows[lowest])))
+                    && CanNameControl(captureRows[j]))
                 {
                     return j;
                 }
@@ -639,8 +685,9 @@ namespace RimWorldAccess.Shell
                 {
                     continue;
                 }
-                if (DetachedCaption.AboveInReach(LineBoxOf(slider), LineBoxOf(caption))
-                    && SliderCaption.NameBeforeTrailingValue(caption.Label, slider.SliderValue) != null)
+                if (DetachedCaption.AboveInReach(slider.Box(), caption.Box())
+                    && SliderCaption.NameBeforeTrailingValue(caption.Label, slider.SliderValue) != null
+                    && CanNameControl(caption))
                 {
                     return j;
                 }
@@ -665,7 +712,7 @@ namespace RimWorldAccess.Shell
                 CapturedWidget pair = captureRows[j];
                 if (pair.LabelPairFolded && !consumed[j] && pair.Clip.Equals(label.Clip))
                 {
-                    return CaptionNote.RedrawsPairSegment(LineBoxOf(pair), pair.Label, pair.LabelPairName, LineBoxOf(label), label.Label);
+                    return CaptionNote.RedrawsPairSegment(pair.Box(), pair.Label, pair.LabelPairName, label.Box(), label.Label);
                 }
             }
             return false;
@@ -680,12 +727,12 @@ namespace RimWorldAccess.Shell
             int prev = iconIndex - 1;
             if (next < captureRows.Count && !consumed[next] && IsStealableCaption(captureRows[next])
                 && !captureRows[next].OrphanTip && captureRows[next].Clip.Equals(icon.Clip)
-                && DetachedCaption.TrailsControl(LineBoxOf(icon), LineBoxOf(captureRows[next])))
+                && DetachedCaption.TrailsControl(icon.Box(), captureRows[next].Box()))
             {
                 target = next;
             }
             else if (prev >= 0 && !consumed[prev] && captureRows[prev].Kind != WidgetKind.Label && captureRows[prev].Clip.Equals(icon.Clip)
-                && DetachedCaption.InsideOnLine(LineBoxOf(captureRows[prev]), LineBoxOf(icon)))
+                && DetachedCaption.InsideOnLine(captureRows[prev].Box(), icon.Box()))
             {
                 target = prev;
             }
@@ -698,39 +745,18 @@ namespace RimWorldAccess.Shell
             return true;
         }
 
-        /// <summary>A dimmed note found as a blank control's caption under the real one: the caption names it, the note describes it.</summary>
-        private int SkipNoteUnderCaption(bool[] consumed, FusionResult[] fusion, int controlIndex, int captionIndex, int headingBoundary)
-        {
-            int above = captionIndex - 1;
-            CapturedWidget note = captureRows[captionIndex];
-            if (above <= headingBoundary || consumed[above] || fusion[controlIndex].DescriptionIndex >= 0
-                || !CaptionNote.IsWholeColorSpan(note.Label))
-            {
-                return captionIndex;
-            }
-            CapturedWidget caption = captureRows[above];
-            if (!IsStealableCaption(caption) || CaptionNote.IsWholeColorSpan(caption.Label)
-                || !caption.Clip.Equals(note.Clip) || !IsAdjacent(note, caption))
-            {
-                return captionIndex;
-            }
-            consumed[captionIndex] = true;
-            fusion[controlIndex].DescriptionIndex = captionIndex;
-            return above;
-        }
-
-        /// <summary>A value caption ("Weight: 10") just right of a name on its line: the name names the slider, the caption reads its value.</summary>
-        private int TakeRowLeadName(bool[] consumed, FusionResult[] fusion, int sliderIndex, int captionIndex, int headingBoundary)
+        /// <summary>After a blank slider's caption search: a value caption ("Weight: 10") just right of a name reads its value; the name names it.</summary>
+        private int ResolveSecondaryCaption(bool[] consumed, FusionResult[] fusion, int sliderIndex, int captionIndex, int headingBoundary)
         {
             int lead = captionIndex - 1;
             CapturedWidget caption = captureRows[captionIndex];
-            if (lead <= headingBoundary || consumed[lead] || !CaptionTextCarriesValue(caption.Label.StripTags()))
+            if (lead <= headingBoundary || consumed[lead] || !CaptionTextCarriesValue(caption.PlainLabel))
             {
                 return captionIndex;
             }
             CapturedWidget name = captureRows[lead];
             if (!IsStealableCaption(name) || name.Composite != CompositeMember.None || caption.Composite != CompositeMember.None
-                || !name.Clip.Equals(caption.Clip) || !DetachedCaption.TrailsControl(LineBoxOf(name), LineBoxOf(caption)))
+                || !name.Clip.Equals(caption.Clip) || !DetachedCaption.TrailsControl(name.Box(), caption.Box()))
             {
                 return captionIndex;
             }
@@ -748,12 +774,12 @@ namespace RimWorldAccess.Shell
             CapturedWidget box = captureRows[boxIndex];
             int next = boxIndex + 1;
             if (next >= captureRows.Count || consumed[next] || !captureRows[next].Clip.Equals(box.Clip)
-                || (backwardIndex >= 0 && ValueLabeledSlider.CaptionsOnRow(LineBoxOf(captureRows[backwardIndex]), LineBoxOf(box))))
+                || (backwardIndex >= 0 && ValueLabeledSlider.CaptionsOnRow(captureRows[backwardIndex].Box(), box.Box())))
             {
                 return backwardIndex;
             }
             CapturedWidget trailing = captureRows[next];
-            if (!DetachedCaption.TrailsControl(LineBoxOf(box), LineBoxOf(trailing)))
+            if (!DetachedCaption.TrailsControl(box.Box(), trailing.Box()))
             {
                 return backwardIndex;
             }
@@ -776,36 +802,67 @@ namespace RimWorldAccess.Shell
             return backwardIndex;
         }
 
-        /// <summary>A row hotspot enclosing a bare checkbox toggles it (a click on the box fires both): folded into the checkbox row.</summary>
-        private bool AbsorbRowClickOverCheckbox(bool[] consumed, FusionResult[] fusion, int hotspotIndex, int headingBoundary)
+        /// <summary>A bare checkbox's caption (above, or text drawn right after it) and any row hotspot enclosing it, which toggles it too.</summary>
+        private void FoldBareCheckbox(bool[] consumed, FusionResult[] fusion, int boxIndex, int headingBoundary)
         {
-            CapturedWidget hotspot = captureRows[hotspotIndex];
-            if (hotspot.DropdownOpener || hotspot.Composite != CompositeMember.None)
+            CapturedWidget box = captureRows[boxIndex];
+            if (fusion[boxIndex].KindOverride == null && string.IsNullOrEmpty(box.Label) && string.IsNullOrEmpty(box.FieldLabel)
+                && boxIndex > 0 && !TrailsLabeledCheckbox(boxIndex))
             {
-                return false;
+                int captionIndex = PreferTrailingCheckboxCaption(consumed, fusion, boxIndex,
+                    FindAdjacentFusableLabel(consumed, fusion, boxIndex, headingBoundary, box));
+                if (captionIndex >= 0)
+                {
+                    consumed[captionIndex] = true;
+                    fusion[boxIndex].LabelIndex = captionIndex;
+                }
             }
-            for (int j = hotspotIndex - 1; j > headingBoundary && j >= hotspotIndex - 3; j--)
+            int hotspotIndex = RowClickOverCheckbox(consumed, boxIndex);
+            if (hotspotIndex < 0)
             {
-                CapturedWidget box = captureRows[j];
-                if (box.Kind != WidgetKind.Checkbox || consumed[j] || !string.IsNullOrWhiteSpace(box.Label)
-                    || !box.Clip.Equals(hotspot.Clip) || box.ScreenRect.width >= hotspot.ScreenRect.width
-                    || !EnclosesForPair(hotspot, box))
+                return;
+            }
+            if (fusion[boxIndex].LabelIndex < 0 && fusion[boxIndex].NameFromIndex < 0)
+            {
+                int labelIndex = FindFusableLabel(captureRows, consumed, hotspotIndex, headingBoundary, captureRows[hotspotIndex]);
+                if (labelIndex >= 0)
+                {
+                    consumed[labelIndex] = true;
+                    fusion[boxIndex].LabelIndex = labelIndex;
+                }
+            }
+            consumed[hotspotIndex] = true;
+        }
+
+        // A plain hotspot drawn within three rows after the box and enclosing it, unless it encloses a bare box nearer it.
+        private int RowClickOverCheckbox(bool[] consumed, int boxIndex)
+        {
+            int last = Math.Min(captureRows.Count - 1, boxIndex + 3);
+            for (int h = boxIndex + 1; h <= last; h++)
+            {
+                CapturedWidget hotspot = captureRows[h];
+                if (hotspot.Kind != WidgetKind.InvisibleButton || consumed[h] || hotspot.DropdownOpener
+                    || hotspot.Composite != CompositeMember.None || !RowClickEncloses(hotspot, boxIndex))
                 {
                     continue;
                 }
-                if (fusion[j].LabelIndex < 0 && fusion[j].NameFromIndex < 0)
+                for (int j = boxIndex + 1; j < h; j++)
                 {
-                    int labelIndex = FindFusableLabel(captureRows, consumed, hotspotIndex, headingBoundary, hotspot);
-                    if (labelIndex >= 0)
+                    if (!consumed[j] && string.IsNullOrWhiteSpace(captureRows[j].Label) && RowClickEncloses(hotspot, j))
                     {
-                        consumed[labelIndex] = true;
-                        fusion[j].LabelIndex = labelIndex;
+                        return -1;
                     }
                 }
-                consumed[hotspotIndex] = true;
-                return true;
+                return h;
             }
-            return false;
+            return -1;
+        }
+
+        private bool RowClickEncloses(CapturedWidget hotspot, int boxIndex)
+        {
+            CapturedWidget box = captureRows[boxIndex];
+            return box.Kind == WidgetKind.Checkbox && box.Clip.Equals(hotspot.Clip)
+                && box.ScreenRect.width < hotspot.ScreenRect.width && EnclosesForPair(hotspot, box);
         }
 
         /// <summary>The game's search magnifier drawn at an uncaptioned field's end names it a search box.</summary>
@@ -814,9 +871,9 @@ namespace RimWorldAccess.Shell
             IReadOnlyList<SearchIconMarker> icons = WidgetCapture.SearchIconMarkers;
             for (int i = 0; i < icons.Count; i++)
             {
-                if (icons[i].Clip.Equals(field.Clip) && DetachedCaption.MarksFieldEnd(LineBoxOf(field), ToLineBox(icons[i].ScreenRect)))
+                if (icons[i].Clip.Equals(field.Clip) && BlankFieldCaption.IconMarksEnd(field.Box(), icons[i].ScreenRect.ToLineBox()))
                 {
-                    return "RimWorldAccess.UI.GenericWindow.SearchField".Translate().ToString();
+                    return "RimWorldAccess.Search.Prompt".Loc().ToString();
                 }
             }
             return null;
@@ -832,23 +889,23 @@ namespace RimWorldAccess.Shell
             return fusion[index].LabelOverride ?? captureRows[index].Label ?? "";
         }
 
-        /// <summary>The caption of the control drawn just before the field, left of it on its line; the field only borrows the text.</summary>
-        private string SameLineControlCaption(bool[] consumed, FusionResult[] fusion, int fieldIndex)
+        /// <summary>The captioned control drawn just before the field, left of it on its line, whose name the field borrows; else -1.</summary>
+        private int SameLineCaptionedControl(bool[] consumed, FusionResult[] fusion, int fieldIndex)
         {
             int prev = fieldIndex - 1;
             if (prev < 0 || consumed[prev] || fusion[prev].LabelIndex < 0)
             {
-                return null;
+                return -1;
             }
             CapturedWidget control = captureRows[prev];
             CapturedWidget field = captureRows[fieldIndex];
             if (control.Kind == WidgetKind.Label || !control.Clip.Equals(field.Clip)
-                || !ValueLabeledSlider.CaptionsOnRow(LineBoxOf(control), LineBoxOf(field)))
+                || !ValueLabeledSlider.CaptionsOnRow(control.Box(), field.Box()))
             {
-                return null;
+                return -1;
             }
-            string caption = captureRows[fusion[prev].LabelIndex].Label;
-            return string.IsNullOrWhiteSpace(caption) ? null : caption;
+            CapturedWidget caption = captureRows[fusion[prev].LabelIndex];
+            return string.IsNullOrWhiteSpace(caption.Label) || !CanNameControl(caption) ? -1 : prev;
         }
 
         /// <summary>"Name: 100%"-style caption carrying its control's value in one string — a digit
@@ -917,7 +974,7 @@ namespace RimWorldAccess.Shell
             CapturedWidget twin = captureRows[checkboxIndex];
             return partner.Kind == WidgetKind.Checkbox && !string.IsNullOrWhiteSpace(partner.Label)
                 && partner.Clip.Equals(twin.Clip)
-                && ValueLabeledSlider.CaptionsOnRow(LineBoxOf(partner), LineBoxOf(twin));
+                && ValueLabeledSlider.CaptionsOnRow(partner.Box(), twin.Box());
         }
 
         // A live checkbox's own box, never the state of a tall text block around it.

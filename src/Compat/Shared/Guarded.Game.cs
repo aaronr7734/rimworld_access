@@ -5,13 +5,11 @@ using System.Reflection;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Invoke-time companion to <see cref="ReflectionSurface"/>: the surface guards
-    /// resolve time, these primitives guard the call itself — null-safe, typed
-    /// fallback on any miss or throw, one failure log per context per session.
-    /// The standard for new facade read plumbing; existing facades migrate when
-    /// their files are next touched. Gated WRITES never route through here: a
-    /// mutation keeps its own vehicle and its MUTATION-C citation at the write
-    /// site, per the mutation doctrine.
+    /// Invoke-time companion to <see cref="ReflectionSurface"/>: the surface guards resolve time,
+    /// these primitives guard the call itself, null-safe, with a typed fallback on any miss or throw
+    /// and one failure log per context per session. The standard for new facade read plumbing.
+    /// Gated WRITES never route through the readers: a mutation keeps its own vehicle and its
+    /// MUTATION-C citation at the write site, per the mutation doctrine.
     /// </summary>
     internal static class Guarded
     {
@@ -68,6 +66,20 @@ namespace RimWorldAccess
             {
                 Fail(context, ex);
                 return null;
+            }
+        }
+
+        /// <summary>Runs a key handler's action; every throw is logged and spoken as <paramref name="failureKey"/>.</summary>
+        public static void Run(string context, Action action, string failureKey)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Error($"{context} failed: {ex.Message}");
+                TolkHelper.Speak(failureKey.Loc());
             }
         }
 

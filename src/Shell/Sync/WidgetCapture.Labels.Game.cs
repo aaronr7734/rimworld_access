@@ -78,7 +78,7 @@ namespace RimWorldAccess.Shell
                             // into name, value and score cells — append as further value text, so
                             // the whole line stays one row and a control below can fuse with all
                             // of it rather than stealing the last cell alone.
-                            prevRow.Label = prevRow.Label + " " + label;
+                            RelabelFoldedPair(prevRow, prevRow.Label + " " + label);
                             prevRow.Rect = GuiSpace.Union(prevRow.Rect, rect);
                             prevRow.ScreenRect = GuiSpace.Union(prevRow.ScreenRect, GuiSpace.ToScreen(rect));
                             prevRow.VisibleScreenRect = RectUnionVisible(prevRow.VisibleScreenRect, GuiSpace.VisibleScreenRect(rect));
@@ -104,7 +104,7 @@ namespace RimWorldAccess.Shell
                             nameHalf = prevRow.Label;
                             valueHalf = label;
                         }
-                        prevRow.Label = ComposeLabelPair(nameHalf, valueHalf);
+                        RelabelFoldedPair(prevRow, ComposeLabelPair(nameHalf, valueHalf));
                         prevRow.LabelPairName = nameHalf;
                         prevRow.Rect = GuiSpace.Union(prevRow.Rect, rect);
                         prevRow.ScreenRect = GuiSpace.Union(prevRow.ScreenRect, GuiSpace.ToScreen(rect));
@@ -123,10 +123,9 @@ namespace RimWorldAccess.Shell
                     }
                 }
             }
-            // Heading detection: Dialog_ModSettings draws its title in GameFont.Medium, and mods
-            // draw section headers after a Listing.GapLine. Read gapLinePending BEFORE clearing it —
-            // this label is the row that consumes it. A composite's own caption is never a heading:
-            // it names the control beside it, not the rows that follow.
+            // Heading detection: Dialog_ModSettings titles are GameFont.Medium; mods draw section headers
+            // after a Listing.GapLine, read BEFORE clearing since this label consumes it. A composite's
+            // own caption is never a heading: it names the control beside it.
             bool notComposite = labelDoubleDepth == 0 && selectableRowDepth == 0 && listingTreeLabelDepth == 0
                 && rangeDepth == 0;
             bool mediumFontHeading = Text.Font == GameFont.Medium && notComposite;
@@ -137,7 +136,7 @@ namespace RimWorldAccess.Shell
             int index = sink.Count;
             CapturedWidget row = new CapturedWidget { Kind = WidgetKind.Label, Label = label, Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), Heading = heading, HeadingFromGapLineOnly = gapLineHeading && !mediumFontHeading, TinyFont = Text.Font == GameFont.Tiny, RecordAnchor = Text.Anchor };
             Color tint = GUI.color;
-            row.Dimmed = CaptionNote.IsDimmedTint(tint.r, tint.g, tint.b, tint.a);
+            row.Dimmed = CaptionNote.IsDimmedTint(tint.r, tint.g, tint.b, tint.a) || CaptionNote.IsWholeColorSpan(label);
             if (rangeDepth > 0)
             {
                 // The range core's own "min - max" text, kept as a row for the inspect-tab reader,
@@ -166,6 +165,14 @@ namespace RimWorldAccess.Shell
             }
             sink.Add(row);
             DrawFocusRingIfFocused(index, rect);
+        }
+
+        // The composed pair is no longer one colour span, so only a dimmed tint keeps it a note.
+        private static void RelabelFoldedPair(CapturedWidget row, string label)
+        {
+            bool tintDimmed = row.Dimmed && !CaptionNote.IsWholeColorSpan(row.Label);
+            row.Label = label;
+            row.Dimmed = tintDimmed || CaptionNote.IsWholeColorSpan(label);
         }
 
         /// <summary>The one place a composite's two text halves become one spoken row; whole-phrase key, never a hardcoded joiner.</summary>

@@ -66,10 +66,7 @@ namespace RimWorldAccess
                 Type dialogType = surface.Type("ColonyManagerRedux.Managers.Dialog_ManualGroupName");
                 groupModeType = surface.Required("ManagerTab_Overview.OverviewGroupMode",
                     tabType != null ? AccessTools.Inner(tabType, "OverviewGroupMode") : null);
-                manualGroupMode = surface.Required("OverviewGroupMode.Manual",
-                    groupModeType != null && Enum.IsDefined(groupModeType, "Manual")
-                        ? Enum.Parse(groupModeType, "Manual")
-                        : null);
+                manualGroupMode = surface.EnumValue(groupModeType, "Manual");
 
                 getFilteredJobsMethod = surface.Method(tabType, "GetFilteredJobs", Type.EmptyTypes);
                 getGroupsMethod = surface.Required("ManagerTab_Overview.GetGroups(List)", NonGeneric(tabType, "GetGroups"));
@@ -296,7 +293,7 @@ namespace RimWorldAccess
                 var widget = Field(quickSearchWidgetField, tab, "SetSearchText") as QuickSearchWidget;
                 if (widget != null)
                 {
-                    widget.filter.Text = text ?? "";
+                    widget.filter.Text = text ?? ""; // MUTATION-C: mirrors QuickSearchWidget.OnGUI's text write; the widget's only text writer is its IMGUI field
                 }
             }
 

@@ -827,7 +827,6 @@
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>Directiva: {0}. Trauma: {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryFlags>
   <RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>{0} a {1}</RimWorldAccess.Compat.RimTalk.Debug.MemoryWeightChange>
   <RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>{0}, {1}</RimWorldAccess.Compat.RimTalk.Debug.DetailHeaderShort>
-  <RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>Activar RimTalk</RimWorldAccess.Compat.RimTalk.Debug.EnableFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>Configuración del mod</RimWorldAccess.Compat.RimTalk.Debug.ModSettingsFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>Exportar registros</RimWorldAccess.Compat.RimTalk.Debug.ExportFallback>
   <RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>Restablecer registros</RimWorldAccess.Compat.RimTalk.Debug.ResetLogsFallback>

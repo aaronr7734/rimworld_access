@@ -13,7 +13,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_InventoryDropAll", new NumbersDropAllColumnHandler());
+            CompatRegistration.PawnColumnHandler("Numbers.PawnColumnWorker_InventoryDropAll", _ => new NumbersDropAllColumnHandler());
         }
 
         private static bool IconShown(PawnColumnDef def, Pawn pawn)

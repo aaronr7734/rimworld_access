@@ -755,9 +755,9 @@ namespace RimWorldAccess
     }
 
     /// <summary>
-    /// Runs pending captures on Repaint frames. Postfix so every real window and focus-scope
-    /// capture pass has drawn and closed before a detached pass opens, which is the ordering
-    /// BeginDetachedPass relies on.
+    /// Runs pending inspect-tab, then gizmo, captures on Repaint frames. Postfix so every real window
+    /// and focus-scope capture pass has drawn and closed before a detached pass opens, which is the
+    /// ordering BeginDetachedPass relies on.
     /// </summary>
     [HarmonyPatch(typeof(UIRoot), "UIRootOnGUI")]
     internal static class InspectTabCaptureServicePumpPatch
@@ -766,6 +766,14 @@ namespace RimWorldAccess
         public static void Postfix()
         {
             InspectTabCaptureService.PumpOnRepaint();
+            try
+            {
+                GizmoDrawCapture.PumpOnRepaint();
+            }
+            catch (Exception ex)
+            {
+                ModLogger.LimitedError("GizmoDrawCapture.PumpOnRepaint", ex);
+            }
         }
     }
 }

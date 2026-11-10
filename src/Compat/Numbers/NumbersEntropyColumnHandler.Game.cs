@@ -9,7 +9,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Entropy", new NumbersEntropyColumnHandler());
+            CompatRegistration.PawnColumnHandler("Numbers.PawnColumnWorker_Entropy", _ => new NumbersEntropyColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)

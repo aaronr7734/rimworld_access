@@ -16,7 +16,7 @@ namespace RimWorldAccess
 
         public static void Register(NumbersColumnExtension extension)
         {
-            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Ability", new NumbersAbilityColumnHandler(extension));
+            CompatRegistration.PawnColumnHandler("Numbers.PawnColumnWorker_Ability", _ => new NumbersAbilityColumnHandler(extension));
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)

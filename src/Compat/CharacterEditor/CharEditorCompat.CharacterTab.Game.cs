@@ -151,7 +151,7 @@ namespace RimWorldAccess
             {
                 ceditorGetHashSetString = surface.Required("CEditor.Get<HashSet<string>>(EType) closed",
                     CloseGeneric(ceditorType, "Get", typeof(HashSet<string>)));
-                eTypeModsTraitDef = surface.Required("EType.ModsTraitDef boxed", EnumValue(eTypeType, "ModsTraitDef"));
+                eTypeModsTraitDef = surface.EnumValue(eTypeType, "ModsTraitDef");
             }
 
             labelAllField = surface.Field(Labels.LabelType, "ALL");

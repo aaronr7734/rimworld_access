@@ -374,63 +374,43 @@ namespace RimWorldAccess
 
         private void OnAddProcess(object comp)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter add-process action", () =>
             {
                 var options = processesOptionsProperty.GetValue(comp) as List<FloatMenuOption>;
                 WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter add-process action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnSettings(object comp)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter settings action", () =>
             {
                 var options = settingsProperty.GetValue(comp) as List<FloatMenuOption>;
                 WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter settings action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnOpenRepeatOptions(object process)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter repeat-options action", () =>
             {
                 var options = optionsProperty.GetValue(process) as List<FloatMenuOption>;
                 WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter repeat-options action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnOpenQualitySelect(object process)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter quality-select action", () =>
             {
                 var options = qualitySelectionsProperty.GetValue(process) as List<FloatMenuOption>;
                 WindowlessFloatMenuState.Open(options, colonistOrders: false);
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter quality-select action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnCopy(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter copy action", () =>
             {
                 IDictionary clipboard = clipboardField.GetValue(null) as IDictionary;
                 if (clipboard == null)
@@ -445,17 +425,12 @@ namespace RimWorldAccess
                 // The Paste row must appear immediately, as vanilla's redraw makes it.
                 RebuildCategory(categoryItem, thing, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorCopied".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter copy action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnPaste(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter paste action", () =>
             {
                 IDictionary clipboard = clipboardField.GetValue(null) as IDictionary;
                 if (clipboard == null || !clipboard.Contains(thing.def))
@@ -496,18 +471,13 @@ namespace RimWorldAccess
 
                 RebuildCategory(categoryItem, thing, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorPasted".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter paste action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         // ResetProcess and Delete are public ProcessStack/Process methods, invoked unmodified.
         private void OnCancelCurrent(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, object process, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter cancel-current action", () =>
             {
                 resetProcessMethod.Invoke(process, new object[] { false });
                 deleteMethod.Invoke(stack, new object[] { process });
@@ -515,17 +485,12 @@ namespace RimWorldAccess
 
                 RebuildCategory(categoryItem, thing, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorCancelled".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter cancel-current action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnIncreaseCount(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, object process, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter increase-count action", () =>
             {
                 if (!ProcessStillPresent(stack, process))
                 {
@@ -556,17 +521,12 @@ namespace RimWorldAccess
 
                 string repeatInfoText = (string)repeatInfoTextProperty.GetValue(process);
                 TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorCountSet".Loc(repeatInfoText));
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter increase-count action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnDecreaseCount(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, object process, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter decrease-count action", () =>
             {
                 if (!ProcessStillPresent(stack, process))
                 {
@@ -597,17 +557,12 @@ namespace RimWorldAccess
 
                 string repeatInfoText = (string)repeatInfoTextProperty.GetValue(process);
                 TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorCountSet".Loc(repeatInfoText));
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter decrease-count action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnToggleSuspend(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, object process, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter suspend action", () =>
             {
                 if (!ProcessStillPresent(stack, process))
                 {
@@ -642,17 +597,12 @@ namespace RimWorldAccess
                 TolkHelper.Speak(suspended
                     ? "RimWorldAccess.Compat.Vef.ProcessorSuspended".Loc()
                     : "RimWorldAccess.Compat.Vef.ProcessorResumed".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter suspend action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnMove(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, object process, int offset, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter move action", () =>
             {
                 if (!ProcessStillPresent(stack, process))
                 {
@@ -672,17 +622,12 @@ namespace RimWorldAccess
                 TolkHelper.Speak(offset < 0
                     ? "RimWorldAccess.Compat.Vef.ProcessorMovedUp".Loc()
                     : "RimWorldAccess.Compat.Vef.ProcessorMovedDown".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter move action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
 
         private void OnDeleteProcess(InspectionTreeItem categoryItem, ThingWithComps thing, object stack, object process, InspectionMode mode)
         {
-            try
+            Guarded.Run("VefProcessorTabAdapter delete action", () =>
             {
                 if (!ProcessStillPresent(stack, process))
                 {
@@ -697,12 +642,7 @@ namespace RimWorldAccess
 
                 RebuildCategory(categoryItem, thing, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorDeleted".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"VefProcessorTabAdapter delete action failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Vef.ProcessorActionFailed".Loc());
-            }
+            }, "RimWorldAccess.Compat.Vef.ProcessorActionFailed");
         }
     }
 }

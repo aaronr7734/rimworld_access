@@ -193,7 +193,7 @@ namespace RimWorldAccess.Shell
             {
                 return true;
             }
-            return member.CaptionLeads && !CaptionNote.IsMultiValueReadout(caption);
+            return member.CaptionLeads && CaptionNote.NamesControl(caption);
         }
 
         /// <summary>The row caption no control took: still on screen, so it reads as a line of its own.</summary>

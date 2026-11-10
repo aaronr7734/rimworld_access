@@ -21,17 +21,19 @@ namespace RimWorldAccess
     /// Reads a gizmo no handler understands from its own GizmoOnGUI, drawn once offscreen through
     /// <see cref="InspectTabCaptureHarness.TryCaptureDraw"/>. Same two-step shape as
     /// <see cref="InspectTabCaptureService"/>: announcements run at key time but capture needs a
-    /// Repaint, so reads only consult the cache and queue a refresh, and the pump draws on the next
-    /// Repaint. The vanilla gizmo grid warms the cache for a single selection, because it rebuilds its
+    /// Repaint, so reads only consult the cache and queue a refresh, and the inspect-tab pump's UIRoot
+    /// postfix draws them on the next Repaint. The vanilla gizmo grid warms the cache for a single selection, because it rebuilds its
     /// gizmos every frame and the G menu snapshots fresh instances: those entries key by
     /// (type, owner), kept only when the owner shows one gizmo of that type.
     /// </summary>
     internal static class GizmoDrawCapture
     {
         private const int RefreshFrames = 15;
+        private const int IdleRefreshFrames = 60;
         private const int MaxRequestsPerFrame = 4;
         private const int MaxCacheEntries = 128;
         private const int MaxTitleLength = 40;
+        private const float ReadWarmSeconds = 1f;
 
         private struct Request
         {
@@ -45,6 +47,8 @@ namespace RimWorldAccess
         private static readonly List<Request> pending = new List<Request>();
         private static readonly Dictionary<Type, bool> eligibleByType = new Dictionary<Type, bool>();
         private static readonly Dictionary<Type, int> gridTypeCounts = new Dictionary<Type, int>();
+        private static readonly List<Gizmo> gridEligible = new List<Gizmo>();
+        private static float lastReadTime = float.NegativeInfinity;
 
         /// <summary>True while a probe draw runs; its sounds are silenced.</summary>
         internal static bool InFlight { get; private set; }
@@ -71,6 +75,7 @@ namespace RimWorldAccess
             {
                 if (!IsEligible(gizmo))
                     return false;
+                lastReadTime = Time.realtimeSinceStartup;
 
                 byInstance.TryGetValue(gizmo, out reading);
                 // The grid refreshes the owner entry continuously; prefer it over a stale instance read.
@@ -91,7 +96,10 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>Warms the owner-keyed cache from the gizmos vanilla's grid just drew for one selected object.</summary>
+        /// <summary>
+        /// Warms the owner-keyed cache from the gizmos vanilla's grid just drew for one selected object.
+        /// Missing entries always queue, so a menu's first read finds one; stale ones refresh only while read.
+        /// </summary>
         internal static void NoteGridDrawn(IEnumerable<Gizmo> gizmos)
         {
             if (Event.current == null || Event.current.type != EventType.Repaint || gizmos == null)
@@ -100,30 +108,34 @@ namespace RimWorldAccess
                 return;
 
             gridTypeCounts.Clear();
+            gridEligible.Clear();
             foreach (Gizmo gizmo in gizmos)
             {
                 if (IsEligible(gizmo))
                 {
+                    gridEligible.Add(gizmo);
                     gridTypeCounts.TryGetValue(gizmo.GetType(), out int count);
                     gridTypeCounts[gizmo.GetType()] = count + 1;
                 }
             }
-            if (gridTypeCounts.Count == 0)
+            if (gridEligible.Count == 0)
                 return;
 
-            foreach (Gizmo gizmo in gizmos)
+            bool refreshStale = GizmoNavigationState.IsActive || Time.realtimeSinceStartup - lastReadTime <= ReadWarmSeconds;
+            foreach (Gizmo gizmo in gridEligible)
             {
-                if (!IsEligible(gizmo))
-                    continue;
                 var key = (gizmo.GetType(), owner);
                 if (gridTypeCounts[gizmo.GetType()] > 1)
                 {
                     byOwner.Remove(key);
                     continue;
                 }
-                if (!byOwner.TryGetValue(key, out GizmoDrawReading cached) || IsStale(cached))
+                // Idle warming stays slow but alive, so the menu's first read is at most a second old.
+                if (!byOwner.TryGetValue(key, out GizmoDrawReading cached)
+                    || Time.frameCount - cached.Frame > (refreshStale ? RefreshFrames : IdleRefreshFrames))
                     Enqueue(new Request { Gizmo = gizmo, Owner = owner, ByOwner = true });
             }
+            gridEligible.Clear();
         }
 
         internal static void PumpOnRepaint()
@@ -154,6 +166,8 @@ namespace RimWorldAccess
             byOwner.Clear();
             pending.Clear();
             eligibleByType.Clear();
+            gridEligible.Clear();
+            lastReadTime = float.NegativeInfinity;
         }
 
         private static bool IsStale(GizmoDrawReading reading)
@@ -253,56 +267,44 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// One visual row as text: labels, a "caption:" label paired with the value beside it, and
-        /// fillable bars. Controls are skipped: activation stays on the gizmo's own ProcessInput.
+        /// One visual row as text: labels and fillable bars folded together, with a "caption:" label
+        /// paired with the value beside it. Controls are skipped: activation stays on the gizmo's own ProcessInput.
         /// </summary>
         private static string ReadBand(List<CapturedWidget> widgets, List<int> band, out bool standaloneLabel)
         {
             standaloneLabel = band.Count == 1 && widgets[band[0]].Kind == WidgetKind.Label;
             var parts = new List<string>();
-            IList<string> noTips = null;
+            var subset = new List<int>();
+            IList<string> noTips = new string[widgets.Count];
             for (int p = 0; p < band.Count; p++)
             {
                 CapturedWidget widget = widgets[band[p]];
-                CapturedWidget next = p + 1 < band.Count ? widgets[band[p + 1]] : null;
-                if (widget.Kind == WidgetKind.Label)
+                string pair = CapturedRowFolder.CaptionValuePairAt(widgets, band, p);
+                if (pair != null)
                 {
-                    string text = CompatText.Flatten(widget.SpokenLabel).Trim();
-                    if (text.Length == 0)
-                        continue;
-                    if (next != null && next.Kind == WidgetKind.FillableBar)
-                    {
-                        noTips = noTips ?? new string[widgets.Count];
-                        AddFolded(parts, widgets, new List<int> { band[p], band[p + 1] }, noTips);
-                        p++;
-                        continue;
-                    }
-                    if (text.EndsWith(":") && next != null && next.Kind == WidgetKind.Label)
-                    {
-                        string value = CompatText.Flatten(next.SpokenLabel).Trim();
-                        if (value.Length > 0)
-                        {
-                            parts.Add(CapturedRowFolder.ComposeCaptionValue(text, value));
-                            p++;
-                            continue;
-                        }
-                    }
-                    parts.Add(text);
+                    AddFolded(parts, widgets, subset, noTips);
+                    parts.Add(pair);
+                    p++;
                 }
-                else if (widget.Kind == WidgetKind.FillableBar)
+                else if (widget.Kind == WidgetKind.FillableBar
+                    || (widget.Kind == WidgetKind.Label && CompatText.Flatten(widget.SpokenLabel).Trim().Length > 0))
                 {
-                    noTips = noTips ?? new string[widgets.Count];
-                    AddFolded(parts, widgets, new List<int> { band[p] }, noTips);
+                    subset.Add(band[p]);
                 }
             }
+            AddFolded(parts, widgets, subset, noTips);
             return string.Join(", ", parts);
         }
 
         private static void AddFolded(List<string> parts, List<CapturedWidget> widgets, List<int> subset, IList<string> tips)
         {
+            if (subset.Count == 0)
+                return;
             FoldedRow row = CapturedRowFolder.FoldSubset(widgets, subset, tips);
-            if (row != null && !string.IsNullOrWhiteSpace(row.Text))
-                parts.Add(row.Text.Trim());
+            subset.Clear();
+            string text = row == null ? "" : CompatText.Flatten(row.Text).Trim();
+            if (text.Length > 0)
+                parts.Add(text);
         }
 
         /// <summary>A short line with a letter in it and no trailing colon reads as a heading, not a field.</summary>
@@ -336,27 +338,6 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 ModLogger.LimitedError("GizmoDrawCaptureGridPatch", ex);
-            }
-        }
-    }
-
-    /// <summary>
-    /// Runs queued gizmo captures on Repaint, from the same UIRoot postfix as the inspect-tab pump,
-    /// so no real window's capture pass is open when the detached one begins.
-    /// </summary>
-    [HarmonyPatch(typeof(UIRoot), "UIRootOnGUI")]
-    internal static class GizmoDrawCapturePumpPatch
-    {
-        [HarmonyPostfix]
-        public static void Postfix()
-        {
-            try
-            {
-                GizmoDrawCapture.PumpOnRepaint();
-            }
-            catch (Exception ex)
-            {
-                ModLogger.LimitedError("GizmoDrawCapturePumpPatch", ex);
             }
         }
     }

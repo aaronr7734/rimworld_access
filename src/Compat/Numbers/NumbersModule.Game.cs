@@ -17,11 +17,6 @@ namespace RimWorldAccess
         public override bool ShouldActivate =>
             ModsConfig.IsActive(TargetPackageId) || AccessTools.TypeByName("Numbers.PawnTable_NumbersMain") != null;
 
-        internal static void RegisterWorker(string workerTypeName, IPawnColumnHandler handler)
-        {
-            CompatRegistration.PawnColumnHandler(workerTypeName, _ => handler);
-        }
-
         public override void Activate(Harmony harmony)
         {
             NumbersColumnExtension extension = NumbersColumnExtension.TryResolve();

@@ -151,8 +151,7 @@ namespace RimWorldAccess
 
             ceditorGetHashSetMethod = surface.Required("CEditor.Get<HashSet<string>>(EType) closed",
                 CharEditorCompat.CloseGeneric(ceditorTypeLocal, "Get", typeof(HashSet<string>)));
-            eTypeModsHediffDef = surface.Required("EType.ModsHediffDef",
-                CharEditorCompat.EnumValue(eTypeTypeLocal, "ModsHediffDef"));
+            eTypeModsHediffDef = surface.EnumValue(eTypeTypeLocal, "ModsHediffDef");
 
             dialogFullhealType = surface.Type("CharacterEditor.DialogFullheal");
             fullhealDicToRemoveField = surface.Field(dialogFullhealType, "dicToRemove");

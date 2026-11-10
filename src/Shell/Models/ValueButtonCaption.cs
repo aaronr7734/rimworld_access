@@ -41,7 +41,7 @@ namespace RimWorldAccess.Shell
             }
             return labelDrawnJustBefore && !buttonLeadsCluster && label.ClipId == button.ClipId
                 && ValueLabeledSlider.CaptionsOnRow(label.Box, button.Box)
-                && button.Box.X - label.Box.XMax <= MaxBesideGap;
+                && button.Box.GapRight(label.Box) <= MaxBesideGap;
         }
 
         /// <summary>
@@ -52,15 +52,8 @@ namespace RimWorldAccess.Shell
         /// </summary>
         public static bool RowHostsButton(LineBox label, LineBox button)
         {
-            if (label.Width <= button.Width || button.X <= label.X)
-            {
-                return false;
-            }
-            if (button.X >= label.XMax || label.X >= button.XMax)
-            {
-                return false;
-            }
-            return button.CenterY >= label.Y && button.CenterY <= label.YMax;
+            return label.Width > button.Width && button.X > label.X
+                && button.OverlapsColumn(label) && button.OnLineOf(label);
         }
     }
 }

@@ -134,8 +134,7 @@ namespace RimWorldAccess
 
             private static void AddOp(ReflectionSurface surface, Type opsType, string name, string labelKey)
             {
-                object value = surface.Required("Trigger_Threshold.Ops." + name,
-                    Enum.IsDefined(opsType, name) ? Enum.Parse(opsType, name) : null);
+                object value = surface.EnumValue(opsType, name);
                 if (value != null)
                 {
                     ops.Add(new OpEntry(value, labelKey));

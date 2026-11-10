@@ -9,7 +9,7 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            NumbersModule.RegisterWorker("Numbers.PawnColumnWorker_Bandwidth", new NumbersBandwidthColumnHandler());
+            CompatRegistration.PawnColumnHandler("Numbers.PawnColumnWorker_Bandwidth", _ => new NumbersBandwidthColumnHandler());
         }
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
