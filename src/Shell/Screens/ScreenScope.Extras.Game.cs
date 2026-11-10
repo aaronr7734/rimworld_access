@@ -127,15 +127,23 @@ namespace RimWorldAccess.Shell
             {
                 ResolveExtrasPendingChange();
             }
+            if (buttonClickPassesLeft > 0)
+            {
+                buttonClickPassesLeft--;
+                OnCapturedButtonPass();
+            }
             widgetPassSinceFocus = true;
             if (awaitingEntryAnnouncement)
             {
-                // The other "populates from a later capture pass" case; runs after
-                // OnButtonPassCompleted in the same draw-bracket postfix, so both snapshots are
-                // fresh by the time RefreshModel re-derives region counts here.
+                // Runs after OnButtonPassCompleted in the same postfix, so both snapshots are fresh.
                 RefreshModel();
                 TryAnnounceEntryIfPending();
             }
+        }
+
+        /// <summary>Runs on both passes after an extras button click posts; the click lands in one, per QA R6.</summary>
+        protected virtual void OnCapturedButtonPass()
+        {
         }
 
         /// <summary>

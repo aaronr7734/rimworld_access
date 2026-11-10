@@ -400,6 +400,7 @@ namespace RimWorldAccess.Shell
                 default:
                     // Silence otherwise: the injected click's own side effect announces itself.
                     PostExtrasActivate(member);
+                    buttonClickPassesLeft = 2;
                     break;
             }
         }

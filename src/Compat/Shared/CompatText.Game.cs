@@ -22,6 +22,11 @@ namespace RimWorldAccess.Shell
             return TranslatorFormattedStringExtensions.Translate(key, args).Resolve();
         }
 
+        public static string ModAdjustedFor(string key, Pawn pawn, params NamedArgument[] args)
+        {
+            return TranslatorFormattedStringExtensions.Translate(key, args).AdjustedFor(pawn).Resolve();
+        }
+
         /// <summary>The mod's own hover text for a control, flattened, resolved lazily -- only the focused row pays for it.</summary>
         public static Func<string> ModTip(string key)
         {

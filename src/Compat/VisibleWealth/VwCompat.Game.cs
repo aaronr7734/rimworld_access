@@ -62,7 +62,6 @@ namespace RimWorldAccess
         private static readonly MethodInfo sorted;
         private static readonly MethodInfo percentText;
         private static readonly MethodInfo flatten;
-        private static readonly FieldInfo percentOfOptionField;
 
         private static readonly object listStyleNested;
         private static readonly object pieStyleNested;
@@ -137,7 +136,6 @@ namespace RimWorldAccess
             percentText = surface.Method(percentOfUtilityType, "Text");
             flatten = surface.Method(pieWorkerType, "Flatten");
             PieDrawMethod = surface.Method(pieWorkerType, "Draw");
-            percentOfOptionField = surface.Field(optionType, "PercentOf");
 
             foreach (string name in new[] { "optionGetter", "optionSetter", "optionName", "allOptionsGetter", "labelGetter", "iconGetter" })
             {
@@ -311,19 +309,14 @@ namespace RimWorldAccess
         /// <summary>The flat list's rows: every leaf, sorted by the mod's own comparer, kept where its draw gate passes.</summary>
         public static List<object> FlatRows(Window window)
         {
-            var leaves = new List<object>();
+            IList typed = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(nodeType));
             object all = Guarded.Call(getAllNodes, null, "VwCompat.GetAllNodes", Guarded.FieldOf<object>(rootNodesField, window, "VwCompat.RootNodes"));
             foreach (object node in Enumerate(all as IEnumerable))
             {
                 if (IsLeaf(node))
                 {
-                    leaves.Add(node);
+                    typed.Add(node);
                 }
-            }
-            IList typed = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(nodeType));
-            foreach (object leaf in leaves)
-            {
-                typed.Add(leaf);
             }
             var rows = new List<object>();
             object ordered = Guarded.Call(sorted, null, "VwCompat.Sorted", sortByField.GetValue(null), typed, SortAscending);
@@ -414,11 +407,6 @@ namespace RimWorldAccess
         public static bool IsChartTypeOption(object option)
         {
             return option != null && ReferenceEquals(option, chartTypeOptionField.GetValue(null));
-        }
-
-        public static bool IsPercentOption(object option)
-        {
-            return option != null && ReferenceEquals(option, percentOfOptionField.GetValue(null));
         }
 
         public static OptionKind KindOf(object option)

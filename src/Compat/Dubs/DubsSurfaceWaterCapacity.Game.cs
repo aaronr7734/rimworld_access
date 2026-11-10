@@ -18,11 +18,6 @@ namespace RimWorldAccess
     /// </summary>
     internal static class DubsSurfaceWaterCapacity
     {
-        private static readonly Type[] DrawGhostParams =
-        {
-            typeof(ThingDef), typeof(IntVec3), typeof(Rot4), typeof(Color), typeof(Thing),
-        };
-
         // CompSurfaceWaterInlet.Kind's codes.
         private const int River = 1;
         private const int Lake = 2;
@@ -32,8 +27,6 @@ namespace RimWorldAccess
         private const float DefaultRadius = 15f;
 
         private static Type surfaceWorker;
-        private static Type inletPropsType;
-        private static FieldInfo radiusField;
         private static Func<Map, IntVec3, Rot4, float, List<IntVec3>> waterCells;
         private static Func<Map, IntVec3, int> kindAt;
         private static float riverPerCell;
@@ -47,14 +40,12 @@ namespace RimWorldAccess
             var surface = new ReflectionSurface("DubsSurfaceWaterCapacity");
             Type inletComp = surface.Type("DubsBadHygiene.CompSurfaceWaterInlet");
             surfaceWorker = surface.Type("DubsBadHygiene.PlaceWorker_SurfaceWater");
-            inletPropsType = surface.Type("DubsBadHygiene.CompProperties_WaterInlet");
             MethodInfo cells = surface.Method(inletComp, "WaterCells", new[] { typeof(Map), typeof(IntVec3), typeof(Rot4), typeof(float) });
             MethodInfo kind = surface.Method(inletComp, "KindAt", new[] { typeof(Map), typeof(IntVec3) });
             FieldInfo river = surface.Field(inletComp, "RiverPerCell");
             FieldInfo lake = surface.Field(inletComp, "LakePerCell");
             FieldInfo marsh = surface.Field(inletComp, "MarshPerCell");
-            MethodInfo ghost = surface.Method(surfaceWorker, "DrawGhost", DrawGhostParams);
-            radiusField = surface.Field(inletPropsType, "Radius");
+            MethodInfo ghost = surface.Method(surfaceWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
             if (!surface.Ready || !river.IsLiteral || !lake.IsLiteral || !marsh.IsLiteral)
                 return;
 
@@ -67,7 +58,7 @@ namespace RimWorldAccess
             marshPerCell = (float)marsh.GetRawConstantValue();
             harmony.Patch(ghost, postfix: new HarmonyMethod(typeof(DubsSurfaceWaterCapacity), nameof(Postfix)));
             PlacementUsefulnessRegistry.Register(
-                def => def.placeWorkers != null && def.placeWorkers.Contains(surfaceWorker),
+                def => PlacementUsefulnessRegistry.HasPlaceWorker(def, surfaceWorker),
                 MakeRating);
         }
 
@@ -93,7 +84,7 @@ namespace RimWorldAccess
 
         private static PlacementQuality Rate(ThingDef def, Map map, IntVec3 center, Rot4 rotation, float pumpCapacity)
         {
-            float radius = Radius(def);
+            float radius = wells.InletRadius(def, DefaultRadius);
             int rivers = 0, lakes = 0, marshes = 0;
             foreach (IntVec3 cell in waterCells(map, center, rotation, radius))
             {
@@ -114,19 +105,6 @@ namespace RimWorldAccess
             // The ceiling is a reach that is all river, the richest kind.
             float score = Mathf.Clamp01(drawn / (GenRadial.NumCellsInRadius(radius) * riverPerCell));
             return new PlacementQuality(score, CompatText.JoinSentences(phrases));
-        }
-
-        private static float Radius(ThingDef def)
-        {
-            if (def.comps != null)
-            {
-                for (int i = 0; i < def.comps.Count; i++)
-                {
-                    if (inletPropsType.IsInstanceOfType(def.comps[i]))
-                        return (float)radiusField.GetValue(def.comps[i]);
-                }
-            }
-            return DefaultRadius;
         }
     }
 }

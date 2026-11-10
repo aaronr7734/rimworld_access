@@ -120,9 +120,9 @@ namespace RimWorldAccess
                 "RimWorldAccess.Compat.Dubs.Groundwater.Shallow", "RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone"));
             builder.Add(LevelPhrase(DeepWater(map), map, cell,
                 "RimWorldAccess.Compat.Dubs.Groundwater.Deep", "RimWorldAccess.Compat.Dubs.Groundwater.DeepNone"));
-            AddIfPresent(builder, PresentPhrase(Ice(map), map, cell, "RimWorldAccess.Compat.Dubs.Groundwater.Ice", tintOnly: false));
-            AddIfPresent(builder, PresentPhrase(Sewage(map), map, cell, "RimWorldAccess.Compat.Dubs.Groundwater.Sewage", tintOnly: true));
-            AddIfPresent(builder, PresentPhrase(Read(map, irrigationGrid), map, cell, "RimWorldAccess.Compat.Dubs.Groundwater.Irrigation", tintOnly: true));
+            builder.Add(PresentPhrase(Ice(map), map, cell, "RimWorldAccess.Compat.Dubs.Groundwater.Ice", tintOnly: false));
+            builder.Add(PresentPhrase(Sewage(map), map, cell, "RimWorldAccess.Compat.Dubs.Groundwater.Sewage", tintOnly: true));
+            builder.Add(PresentPhrase(Read(map, irrigationGrid), map, cell, "RimWorldAccess.Compat.Dubs.Groundwater.Irrigation", tintOnly: true));
 
             // Fertilizer is all-or-nothing to the fertility patch, so it has no strength to speak.
             Grid fertilizer = Read(map, fertilizerGrid);
@@ -150,12 +150,6 @@ namespace RimWorldAccess
             if (!(tintOnly ? grid.TintedAt(map, cell) : grid.HasAt(map, cell)))
                 return null;
             return levelKey.Translate(grid.PercentAt(map, cell)).ToString();
-        }
-
-        private static void AddIfPresent(AnnouncementBuilder builder, string phrase)
-        {
-            if (phrase != null)
-                builder.Add(phrase);
         }
 
         /// <summary>The scanner's Groundwater category: the shallow and deep water tables and subsurface ice.</summary>

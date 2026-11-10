@@ -29,7 +29,7 @@ namespace RimWorldAccess
 
         public override string CellText(PawnColumnDef def, Pawn pawn)
         {
-            return "RimWorldAccess.Compat.Hospitality.ShowGuestTab".Translate();
+            return HeaderLabel(def);
         }
 
         public override bool SuppressCapturedExtras(PawnColumnDef def)

@@ -566,29 +566,16 @@ namespace RimWorldAccess
             return string.Join(". ", parts);
         }
 
-        /// <summary>
-        /// An ability gizmo's range line ("Range: N tiles", "touch", "self"), or null.
-        /// </summary>
+        /// <summary>An ability gizmo's range line ("Range: N tiles", "touch", "self"), or null.</summary>
         internal static string GetAbilityRangeInfo(Ability ability)
         {
             if (ability?.def == null)
                 return null;
 
-            string rangeText;
-            if (!ability.def.targetRequired)
-                rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf".Translate();
-            else if (ability.def.targetWorldCell)
-                rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap".Translate();
-            else if (AbilityTargetingHelper.IsTouchRange(ability))
-                rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch".Translate();
-            else
-            {
-                float range = AbilityTargetingHelper.GetRange(ability);
-                if (range > 0f)
-                    rangeText = "RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles".Translate(range.ToString("F0"));
-                else
-                    return null;
-            }
+            string rangeText = AbilityRangeLine(ability.def, AbilityTargetingHelper.GetRange(ability),
+                AbilityTargetingHelper.IsTouchRange(ability));
+            if (rangeText == null)
+                return null;
 
             float effectRadius = ability.def.EffectRadius;
             if (effectRadius > 0f)
@@ -596,6 +583,20 @@ namespace RimWorldAccess
                     effectRadius.ToString("F0"));
 
             return rangeText;
+        }
+
+        /// <summary>The range ladder alone, for callers that already speak the effect radius.</summary>
+        internal static string AbilityRangeLine(AbilityDef def, float range, bool touch)
+        {
+            if (!def.targetRequired)
+                return "RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf".Translate();
+            if (def.targetWorldCell)
+                return "RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap".Translate();
+            if (touch)
+                return "RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch".Translate();
+            if (range > 0f)
+                return "RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles".Translate(range.ToString("F0"));
+            return null;
         }
 
         /// <summary>

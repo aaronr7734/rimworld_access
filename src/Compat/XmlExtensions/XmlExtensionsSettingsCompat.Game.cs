@@ -99,7 +99,8 @@ namespace RimWorldAccess
                 tKeyField = surface.Field(containerType, "tKey");
                 tooltipField = surface.Field(containerType, "tooltip");
                 tKeyTipField = surface.Field(containerType, "tKeyTip");
-                menuDefField = surface.Field(surface.Type("XmlExtensions.Container"), "menuDef");
+                Type xmlContainer = surface.Type("XmlExtensions.Container");
+                menuDefField = surface.Field(xmlContainer, "menuDef");
                 searchTextField = surface.Field(menuDefType, "searchText");
                 foundResultsField = surface.Field(menuDefType, "foundResults");
                 showCountField = surface.Field(searchboxType, "showCount");
@@ -107,8 +108,8 @@ namespace RimWorldAccess
                 Type rangeType = surface.Type("XmlExtensions.Setting.Range");
                 sliderDecimalsField = surface.Field(sliderType, "decimals");
                 rangeDecimalsField = surface.Field(rangeType, "decimals");
-                postDrawRectField = surface.Field(surface.Type("XmlExtensions.Container"), "postDrawRect");
-                childCollectionsField = surface.Field(surface.Type("XmlExtensions.Container"), "initializedContainerCollections");
+                postDrawRectField = surface.Field(xmlContainer, "postDrawRect");
+                childCollectionsField = surface.Field(xmlContainer, "initializedContainerCollections");
                 translateIfTKeyAvailable = surface.Method(surface.Type("XmlExtensions.StringExtensions"),
                     "TranslateIfTKeyAvailable", new[] { typeof(string), typeof(string) });
 

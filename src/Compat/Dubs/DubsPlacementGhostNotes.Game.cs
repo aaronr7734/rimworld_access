@@ -18,11 +18,6 @@ namespace RimWorldAccess
     /// </summary>
     internal static class DubsPlacementGhostNotes
     {
-        private static readonly Type[] DrawGhostParams =
-        {
-            typeof(ThingDef), typeof(IntVec3), typeof(Rot4), typeof(Color), typeof(Thing),
-        };
-
         private static DubsGroundwater groundwater;
         private static DubsWellCapacity wellCapacity;
         private static FieldInfo wellCapacityText;
@@ -37,15 +32,15 @@ namespace RimWorldAccess
             Type sewageWorker = surface.Type("DubsBadHygiene.PlaceWorker_SewageGrid");
             Type wellUsersWorker = surface.Type("DubsBadHygiene.PlaceWorker_UserGrid");
             Type iceUsersWorker = surface.Type("DubsBadHygiene.PlaceWorker_IceUserGrid");
-            MethodInfo waterGhost = surface.Method(waterWorker, "DrawGhost", DrawGhostParams);
-            MethodInfo deepGhost = surface.Method(deepWorker, "DrawGhost", DrawGhostParams);
-            MethodInfo iceGhost = surface.Method(iceWorker, "DrawGhost", DrawGhostParams);
-            MethodInfo sewageGhost = surface.Method(sewageWorker, "DrawGhost", DrawGhostParams);
-            MethodInfo wellUsersGhost = surface.Method(wellUsersWorker, "DrawGhost", DrawGhostParams);
-            MethodInfo iceUsersGhost = surface.Method(iceUsersWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo waterGhost = surface.Method(waterWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
+            MethodInfo deepGhost = surface.Method(deepWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
+            MethodInfo iceGhost = surface.Method(iceWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
+            MethodInfo sewageGhost = surface.Method(sewageWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
+            MethodInfo wellUsersGhost = surface.Method(wellUsersWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
+            MethodInfo iceUsersGhost = surface.Method(iceUsersWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
             FieldInfo wellText = surface.Field(wellUsersWorker, "strongk");
             FieldInfo iceText = surface.Field(iceUsersWorker, "capacityDisplayText");
-            if (!surface.Ready || !source.Ready)
+            if (!surface.Ready)
                 return;
 
             groundwater = source;

@@ -1,0 +1,1 @@
+Gastronomy's Dining tab on a cash register is fully playable: pick, add, remove and rename restaurants, set who may order and the guest price, hear staff, seats, orders, stock and earnings, clear unpaid bills, and edit the menu.

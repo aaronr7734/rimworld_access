@@ -13,11 +13,6 @@ namespace RimWorldAccess
     /// </summary>
     internal static class DubsWindPumpGhostNote
     {
-        private static readonly Type[] DrawGhostParams =
-        {
-            typeof(ThingDef), typeof(IntVec3), typeof(Rot4), typeof(Color), typeof(Thing),
-        };
-
         // CompWindPump has no vacuum rule of its own, unlike the vanilla turbine.
         private const bool StopsInVacuum = false;
 
@@ -31,7 +26,7 @@ namespace RimWorldAccess
             Type pumpWorker = surface.Type("DubsBadHygiene.PlaceWorker_WindPump");
             MethodInfo cells = surface.Method(pumpComp, "CalculateWindCells", new[] { typeof(IntVec3), typeof(Rot4), typeof(IntVec2) });
             FieldInfo reduction = surface.Field(pumpComp, "PowerReductionPercentPerObstacle");
-            MethodInfo ghost = surface.Method(pumpWorker, "DrawGhost", DrawGhostParams);
+            MethodInfo ghost = surface.Method(pumpWorker, "DrawGhost", PlaceWorkerGhostAuthorPatch.DrawGhostParams);
             if (!surface.Ready || !reduction.IsLiteral)
                 return;
 
@@ -40,7 +35,7 @@ namespace RimWorldAccess
             reductionPerObstacle = (float)reduction.GetRawConstantValue();
             harmony.Patch(ghost, postfix: new HarmonyMethod(typeof(DubsWindPumpGhostNote), nameof(Postfix)));
             PlacementUsefulnessRegistry.Register(
-                def => def.placeWorkers != null && def.placeWorkers.Contains(pumpWorker),
+                def => PlacementUsefulnessRegistry.HasPlaceWorker(def, pumpWorker),
                 WindPathGhostNote.RatingFactory(windCells, reductionPerObstacle, StopsInVacuum));
         }
 

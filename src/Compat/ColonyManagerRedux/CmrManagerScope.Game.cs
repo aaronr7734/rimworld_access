@@ -325,6 +325,16 @@ namespace RimWorldAccess.Shell
             manageWatchWasManaged = managed;
         }
 
+        /// <summary>Speaks the Manage! commit on the pass the click lands, not on the next key.</summary>
+        protected override void OnCapturedButtonPass()
+        {
+            object tab = CmrCompat.CurrentTab;
+            if (tab != null)
+            {
+                WatchManageCommit(CmrCompat.TabSelectedJob(tab));
+            }
+        }
+
         /// <summary>
         /// Drops a captured window button a detail row fully models
         /// (<see cref="CmrDetailRow.CapturedTwin"/>): the row carries the control's target, picker and

@@ -52,6 +52,11 @@ namespace RimWorldAccess
         /// <param name="appliesTo">Which defs the rule covers; asked once per sweep.</param>
         /// <param name="makeRating">Builds the sweep's rating of a cell and rotation. May return null
         /// when the rule has nothing to judge on this map.</param>
+        public static bool HasPlaceWorker(ThingDef def, Type worker)
+        {
+            return def.placeWorkers != null && def.placeWorkers.Contains(worker);
+        }
+
         public static void Register(Predicate<ThingDef> appliesTo, Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> makeRating)
         {
             if (appliesTo == null || makeRating == null)

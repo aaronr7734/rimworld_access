@@ -42,24 +42,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// GizmoNavigationState.GetAbilityRangeInfo's ladder read from the def: StatSummary omits
-        /// range, and an unlearned psycast has no Ability or verb to ask.
+        /// Read from the def: an unlearned psycast has no Ability or verb to ask. StatSummary
+        /// already speaks the effect radius.
         /// </summary>
         private static string RangeLine(AbilityDef ability)
         {
-            if (!ability.targetRequired)
-            {
-                return "RimWorldAccess.Inspection.Gizmo.Ability.RangeSelf".Translate();
-            }
-            if (ability.targetWorldCell)
-            {
-                return "RimWorldAccess.Inspection.Gizmo.Ability.RangeWorldMap".Translate();
-            }
             float range = ability.verbProperties?.range ?? 0f;
             bool touch = range <= 0f || typeof(Verb_CastAbilityTouch).IsAssignableFrom(ability.verbProperties.verbClass);
-            return touch
-                ? "RimWorldAccess.Inspection.Gizmo.Ability.RangeTouch".Translate()
-                : "RimWorldAccess.Inspection.Gizmo.Ability.RangeTiles".Translate(range.ToString("F0"));
+            return GizmoNavigationState.AbilityRangeLine(ability, range, touch);
         }
     }
 }

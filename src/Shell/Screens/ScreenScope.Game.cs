@@ -104,6 +104,7 @@ namespace RimWorldAccess.Shell
         private readonly TextFieldEditSession extrasEditSession = new TextFieldEditSession();
         private int extrasEditingCaptureIndex = -1;
         private ExtrasPendingChange? extrasPendingChange;
+        private int buttonClickPassesLeft;
 
         // Empty-region reconciliation (ReconcileEmptyRegion): the guard keeps a subclass's
         // model-refreshing handlers from re-entering the relocation; the flag lets the handler

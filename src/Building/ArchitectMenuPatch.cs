@@ -84,6 +84,15 @@ namespace RimWorldAccess
         /// </summary>
         private static void OnDesignatorSelected(Designator designator)
         {
+            // A mod designator's own ProcessInput may set it up first (a target menu, a map-wide
+            // action) before selecting itself; run it as a click would. Its Select routes into
+            // placement through DesignatorManagerPatch (area tools included), and any FloatMenu goes windowless.
+            if (ModOverridesProcessInput(designator))
+            {
+                designator.ProcessInput(new Event { type = EventType.Used });
+                return;
+            }
+
             // Check if this is a zone designator - enter zone placement directly
             if (IsZoneDesignator(designator))
             {
@@ -101,15 +110,6 @@ namespace RimWorldAccess
                     ShowMaterialMenu(buildable, buildDesignator);
                     return;
                 }
-            }
-
-            // A mod designator's own ProcessInput may set it up first (a target menu, a map-wide
-            // action) before selecting itself; run it as a click would. Its Select routes into
-            // placement through DesignatorManagerPatch, and any FloatMenu goes windowless.
-            if (ModOverridesProcessInput(designator))
-            {
-                designator.ProcessInput(new Event { type = EventType.Used });
-                return;
             }
 
             // No material selection needed - go straight to placement

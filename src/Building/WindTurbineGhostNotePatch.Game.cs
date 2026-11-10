@@ -39,7 +39,7 @@ namespace RimWorldAccess
 
         public static bool AppliesTo(ThingDef def)
         {
-            return def.placeWorkers != null && def.placeWorkers.Contains(typeof(PlaceWorker_WindTurbine));
+            return PlacementUsefulnessRegistry.HasPlaceWorker(def, typeof(PlaceWorker_WindTurbine));
         }
 
         public static Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)

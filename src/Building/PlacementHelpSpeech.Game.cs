@@ -358,7 +358,7 @@ namespace RimWorldAccess
     [HarmonyPatch]
     internal static class PlaceWorkerGhostAuthorPatch
     {
-        private static readonly Type[] DrawGhostParams =
+        internal static readonly Type[] DrawGhostParams =
         {
             typeof(ThingDef), typeof(IntVec3), typeof(Rot4), typeof(Color), typeof(Thing),
         };

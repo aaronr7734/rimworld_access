@@ -46,8 +46,8 @@ namespace RimWorldAccess
 
         public bool AppliesTo(ThingDef def)
         {
-            return def.placeWorkers != null
-                && (def.placeWorkers.Contains(wellUsersWorker) || def.placeWorkers.Contains(iceUsersWorker));
+            return PlacementUsefulnessRegistry.HasPlaceWorker(def, wellUsersWorker)
+                || PlacementUsefulnessRegistry.HasPlaceWorker(def, iceUsersWorker);
         }
 
         public Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
@@ -124,6 +124,13 @@ namespace RimWorldAccess
                 users = groundwater.WaterUsers(map);
             }
             return water.IsValid && users.IsValid;
+        }
+
+        /// <summary>The def's inlet reach, or <paramref name="fallback"/> when it has no inlet props.</summary>
+        public float InletRadius(ThingDef def, float fallback)
+        {
+            CompProperties props = InletProps(def);
+            return props == null ? fallback : (float)radiusField.GetValue(props);
         }
 
         // GetCompProperties<CompProperties_WaterInlet>'s own match, without a typeref to the mod.

@@ -21,6 +21,10 @@ namespace RimWorldAccess
             CustomCheckboxLabeledTap.Patch(harmony, "CashRegister.CustomWidget");
             CashRegisterCompat.RegisterGizmoHandlers();
             CashRegisterShiftsAdapter.TryRegister();
+            HospitalityGuestTabAdapter.TryRegister();
+            GastronomyRestaurantTabAdapter.TryRegister();
+            StorefrontStoreTabAdapter.TryRegister();
+            HospitalitySocialBarsExtender.Register();
         }
     }
 }
