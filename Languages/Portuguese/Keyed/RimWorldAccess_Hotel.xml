@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- HospitalityGuestTabAdapter: Hospitality's Guest inspect tab. Labels and tooltips are the
+       mod's own keys; these cover only what the mod draws without a string of its own. -->
+  <RimWorldAccess.Compat.Hospitality.GuestTabName>Visitante</RimWorldAccess.Compat.Hospitality.GuestTabName>
+  <!-- A progress bar: {0} = the label drawn beside it, {1} = how full the bar is, as a percent. -->
+  <RimWorldAccess.Compat.Hospitality.BarLine>{0} {1}</RimWorldAccess.Compat.Hospitality.BarLine>
+  <RimWorldAccess.Compat.Hospitality.DefaultsApplied>Aplicado a todos os visitantes actuais e futuros.</RimWorldAccess.Compat.Hospitality.DefaultsApplied>
+  <RimWorldAccess.Compat.Hospitality.ActionFailed>Acção falhou.</RimWorldAccess.Compat.Hospitality.ActionFailed>
+  <!-- HospitalitySocialBarsExtender: the coloured bars Hospitality paints behind colonist rows on a guest's Social tab.
+       {0} = colonist, {1} = the guest's opinion of them, {2} = how full the bar is. -->
+  <RimWorldAccess.Compat.Hospitality.FriendshipBars>Amizades de recrutamento</RimWorldAccess.Compat.Hospitality.FriendshipBars>
+  <RimWorldAccess.Compat.Hospitality.FriendBar>{0}: opinião {1}, amizade {2}</RimWorldAccess.Compat.Hospitality.FriendBar>
+  <RimWorldAccess.Compat.Hospitality.EnemyBar>{0}: opinião {1}, rivalidade {2}</RimWorldAccess.Compat.Hospitality.EnemyBar>
+  <RimWorldAccess.Compat.Hospitality.NoFriendshipBars>Ainda sem opiniões dos colonos.</RimWorldAccess.Compat.Hospitality.NoFriendshipBars>
+
+  <!-- GastronomyRestaurantTabAdapter: Gastronomy's Dining tab on a cash register. -->
+  <RimWorldAccess.Compat.Gastronomy.TabName>Refeições</RimWorldAccess.Compat.Gastronomy.TabName>
+  <RimWorldAccess.Compat.Gastronomy.RestaurantPicker>Restaurante</RimWorldAccess.Compat.Gastronomy.RestaurantPicker>
+  <RimWorldAccess.Compat.Gastronomy.RestaurantAdded>{0} adicionado.</RimWorldAccess.Compat.Gastronomy.RestaurantAdded>
+  <!-- One stocked meal: {0} = count, {1} = meal name, {2} = price. -->
+  <RimWorldAccess.Compat.Gastronomy.StockEntry>{0}x {1} ({2})</RimWorldAccess.Compat.Gastronomy.StockEntry>
+  <RimWorldAccess.Compat.Gastronomy.NoDebts>Sem contas por pagar.</RimWorldAccess.Compat.Gastronomy.NoDebts>
+  <RimWorldAccess.Compat.Gastronomy.DebtCleared>Conta liquidada.</RimWorldAccess.Compat.Gastronomy.DebtCleared>
+  <RimWorldAccess.Compat.Gastronomy.MenuFilter>Ementa</RimWorldAccess.Compat.Gastronomy.MenuFilter>
+
+  <!-- StorefrontStoreTabAdapter: Hospitality: Storefront's Shop tab on a cash register. -->
+  <RimWorldAccess.Compat.Storefront.TabName>Loja</RimWorldAccess.Compat.Storefront.TabName>
+  <!-- One stocked item: {0} = count, {1} = item name. -->
+  <RimWorldAccess.Compat.Storefront.StockEntry>{0}x {1}</RimWorldAccess.Compat.Storefront.StockEntry>
+  <RimWorldAccess.Compat.Storefront.StockLine>Stock: {0}</RimWorldAccess.Compat.Storefront.StockLine>
+  <RimWorldAccess.Compat.Storefront.NoStock>Stock: nada.</RimWorldAccess.Compat.Storefront.NoStock>
+  <RimWorldAccess.Compat.Storefront.StoreFilter>Artigos à venda</RimWorldAccess.Compat.Storefront.StoreFilter>
+</LanguageData>

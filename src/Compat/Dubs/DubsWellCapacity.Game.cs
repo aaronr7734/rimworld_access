@@ -50,19 +50,20 @@ namespace RimWorldAccess
                 || PlacementUsefulnessRegistry.HasPlaceWorker(def, iceUsersWorker);
         }
 
-        public Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
+        /// <summary>Rotation-independent: the reach is a circle about the well.</summary>
+        public PlacementRating MakeRating(ThingDef def, Map map)
         {
             if (!TryGetLayers(def, map, out DubsGroundwater.Grid water, out DubsGroundwater.Grid users, out float radius))
                 return null;
             float pumpCapacity = PumpCapacity();
             int cellsInReach = GenRadial.NumCellsInRadius(radius);
-            return (cell, rotation) =>
+            return (cell, rotation, describe) =>
             {
                 float drawn = Drawn(map, cell, radius, water, users);
                 // The ceiling is every cell in reach at the layer's tint limit (100 for the water
                 // layers) with no other well sharing it; user grids count wells, not levels.
                 float score = water.Limit > 0f ? Mathf.Clamp01(drawn / (cellsInReach * water.Limit)) : 0f;
-                return new PlacementQuality(score, Phrase(drawn * pumpCapacity));
+                return new PlacementQuality(score, describe ? Phrase(drawn * pumpCapacity) : null);
             };
         }
 

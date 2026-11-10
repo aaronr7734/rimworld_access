@@ -76,10 +76,8 @@ namespace RimWorldAccess
                 PropertyInfo typeProperty = surface.Property(jobType, "Type");
                 typeGetter = Getter(typeProperty);
                 typeSetter = surface.Required("ManagerJob_Forestry.Type setter", Setter(typeProperty));
-                clearAreaValue = surface.Required("ForestryJobType.ClearArea",
-                    EnumValue(jobTypeEnum, "ClearArea"));
-                loggingValue = surface.Required("ForestryJobType.Logging",
-                    EnumValue(jobTypeEnum, "Logging"));
+                clearAreaValue = surface.EnumValue(jobTypeEnum, "ClearArea");
+                loggingValue = surface.EnumValue(jobTypeEnum, "Logging");
 
                 triggerGetter = Getter(surface.Property(jobType, "TriggerThreshold"));
 
@@ -89,8 +87,7 @@ namespace RimWorldAccess
                 loggingAreaField = surface.Field(jobType, "LoggingArea");
                 invertLoggingAreaField = surface.Field(jobType, "InvertLoggingArea");
                 syncField = surface.Field(jobType, "Sync");
-                filterToAllowedSync = surface.Required("SyncDirection.FilterToAllowed",
-                    EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed"));
+                filterToAllowedSync = surface.EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed");
                 syncFilterAndAllowedField = surface.Field(jobType, "SyncFilterAndAllowed");
 
                 allPlantsGetter = Getter(surface.Property(jobType, "AllPlants"));
@@ -443,15 +440,6 @@ namespace RimWorldAccess
             private static object Trigger(object job)
             {
                 return Get(triggerGetter, job, "TriggerThreshold");
-            }
-
-            private static object EnumValue(Type enumType, string name)
-            {
-                if (enumType == null || !enumType.IsEnum || !Enum.IsDefined(enumType, name))
-                {
-                    return null;
-                }
-                return Enum.Parse(enumType, name);
             }
 
             private static object Get(MethodInfo getter, object instance, string member)

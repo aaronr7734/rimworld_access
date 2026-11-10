@@ -352,4 +352,45 @@ public class CapturedExtrasRowsTests
         Assert.Null(d.Extras);
         Assert.Equal("Close", d.Label);
     }
+
+    [Fact]
+    public void Expand_Caption_RightOfLabeledButtonsNamesNoneOfThem()
+    {
+        const string caption = "Tip: Describe your colony status in natural language.";
+        var members = new List<CapturedExtraMember>
+        {
+            new CapturedExtraMember { Kind = CapturedExtraKind.Button, RawLabel = "Save Overview", CaptionLeads = false },
+            new CapturedExtraMember { Kind = CapturedExtraKind.Button, RawLabel = "AI Summary", CaptionLeads = false },
+        };
+        List<CapturedExtraRow> rows = CapturedExtrasRows.Expand("Save Overview, AI Summary, " + caption, null, members, caption);
+        Assert.Equal("Save Overview", rows[0].Label);
+        Assert.Null(rows[0].Value);
+        Assert.Equal("AI Summary", rows[1].Label);
+        Assert.True(CapturedExtrasRows.CaptionLeftOver(members, caption));
+    }
+
+    [Fact]
+    public void Expand_CounterLine_NeverNamesALabeledButton()
+    {
+        const string caption = "ABM 0 · SCM 0 · ELS 0 · CLPA 0";
+        var members = new List<CapturedExtraMember>
+        {
+            new CapturedExtraMember { Kind = CapturedExtraKind.Button, RawLabel = "Tools" },
+        };
+        CapturedExtraRow row = CapturedExtrasRows.Expand(caption + ", Tools", null, members, caption)[0];
+        Assert.Equal("Tools", row.Label);
+        Assert.True(CapturedExtrasRows.CaptionLeftOver(members, caption));
+    }
+
+    [Fact]
+    public void CaptionLeftOver_FalseWhenAnyControlTakesIt()
+    {
+        var members = new List<CapturedExtraMember>
+        {
+            new CapturedExtraMember { Kind = CapturedExtraKind.Button, RawLabel = "Tools", CaptionLeads = false },
+            new CapturedExtraMember { Kind = CapturedExtraKind.TextField, RawLabel = "", ValueBlank = true },
+        };
+        Assert.False(CapturedExtrasRows.CaptionLeftOver(members, "Search"));
+        Assert.False(CapturedExtrasRows.CaptionLeftOver(members, null));
+    }
 }

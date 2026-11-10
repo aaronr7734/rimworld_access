@@ -10,7 +10,7 @@ namespace RimWorldAccess
         public static void RegisterGizmoHandlers()
         {
             CompatRegistration.GizmoHandler("CashRegister.Gizmo_Radius",
-                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.Radius));
+                t => new RegisterRadiusGizmoHandler(t));
         }
     }
 }

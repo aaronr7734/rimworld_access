@@ -85,8 +85,7 @@ namespace RimWorldAccess
                 forceFullyMatureField = surface.Field(jobType, "ForceFullyMature");
                 syncFilterAndAllowedField = surface.Field(jobType, "SyncFilterAndAllowed");
                 syncField = surface.Field(jobType, "Sync");
-                filterToAllowedSync = surface.Required("SyncDirection.FilterToAllowed",
-                    EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed"));
+                filterToAllowedSync = surface.EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed");
 
                 PropertyInfo plantsLockedProperty = surface.Property(jobType, "PlantsLockedToMap");
                 plantsLockedGetter = Getter(plantsLockedProperty);
@@ -323,15 +322,6 @@ namespace RimWorldAccess
             private static object Trigger(object job)
             {
                 return Get(triggerGetter, job, "TriggerThreshold");
-            }
-
-            private static object EnumValue(Type enumType, string name)
-            {
-                if (enumType == null || !enumType.IsEnum || !Enum.IsDefined(enumType, name))
-                {
-                    return null;
-                }
-                return Enum.Parse(enumType, name);
             }
 
             private static object Get(MethodInfo getter, object instance, string member)

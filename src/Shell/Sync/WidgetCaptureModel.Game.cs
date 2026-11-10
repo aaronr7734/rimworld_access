@@ -252,14 +252,14 @@ namespace RimWorldAccess.Shell
 
         public bool HighlightSelected;
 
+        // Button rows only: ButtonText drawn with drawBackground false, how a caller marks the current option of a run.
+        public bool NoBackground;
+
         public bool SearchMatch;
 
         /// <summary>
-        /// Button rows only: the live <c>GUI.color</c> tint set when this button was drawn.
-        /// IMGUI has no "selected button" concept, so a caller hand-rolling
-        /// mutually-exclusive buttons signals the current one the only way immediate mode
-        /// offers: full tint on it, dimmed on the rest. White by default, so a comparison
-        /// across a set only finds a difference the caller made deliberately.
+        /// Button rows only: the live <c>GUI.color</c> when drawn. A caller hand-rolling exclusive buttons
+        /// marks the current one by tint; white by default, so only a deliberate difference shows.
         /// </summary>
         public Color RecordColor;
 
@@ -272,9 +272,14 @@ namespace RimWorldAccess.Shell
         // label sharing the spot repaints, it does not extend the pair.
         public bool LabelPairFolded;
 
-        // The NAME half of that fold, kept apart from the composed "name: value" Label so a
-        // reader appending a fresher value has something to append it to.
+        // The NAME half of that fold, kept apart so a fresher value can be appended to it.
         public string LabelPairName;
+
+        // Label rows only: minted from a tip over a bare texture (an info or warning icon), not drawn text.
+        public bool OrphanTip;
+
+        // Label rows only: drawn under a grey or faded GUI.color, the way callers mark a secondary note.
+        public bool Dimmed;
 
         // Label rows only: Heading came SOLELY from a weak, revocable tier — "immediately
         // after a Listing.GapLine", or the Tiny-font tier TinyFontHeadingDetector sets
@@ -473,6 +478,13 @@ namespace RimWorldAccess.Shell
         public Rect VisibleScreenRect;
         public GuiSpace.ClipKey Clip;
         public bool Selected;
+    }
+
+    /// <summary>One <c>TexButton.Search</c> magnifier draw: the only name vanilla's search boxes show.</summary>
+    public struct SearchIconMarker
+    {
+        public Rect ScreenRect;
+        public GuiSpace.ClipKey Clip;
     }
 
     public struct CheckTexMarker

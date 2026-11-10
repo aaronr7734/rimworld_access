@@ -53,6 +53,9 @@ namespace RimWorldAccess.Shell
         public string TextValue;
         public bool ValueBlank;
         public float FillPercent;
+
+        /// <summary>Every caption fragment on the member's row sits left of it, the way a form labels its controls.</summary>
+        public bool CaptionLeads = true;
     }
 
     /// <summary>One navigable row the captured-extras region presents.</summary>
@@ -172,30 +175,59 @@ namespace RimWorldAccess.Shell
             // control.
             for (int i = 0; i < members.Count; i++)
             {
-                CapturedExtraRow row = ExpandMember(rowText, members[i], caption);
+                CapturedExtraRow row = ExpandMember(rowText, members[i], CaptionNames(members[i], caption) ? caption : null);
                 row.Tip = i == 0 ? rowTip : null;
                 rows.Add(row);
             }
             return rows;
         }
 
+        /// <summary>A row caption names an unlabeled control; a labeled one only when it leads it and is no counter line.</summary>
+        public static bool CaptionNames(CapturedExtraMember member, string caption)
+        {
+            if (member == null || string.IsNullOrWhiteSpace(caption))
+            {
+                return false;
+            }
+            if (string.IsNullOrEmpty(member.RawLabel))
+            {
+                return true;
+            }
+            return member.CaptionLeads && !CaptionNote.IsMultiValueReadout(caption);
+        }
+
+        /// <summary>The row caption no control took: still on screen, so it reads as a line of its own.</summary>
+        public static bool CaptionLeftOver(IReadOnlyList<CapturedExtraMember> members, string caption)
+        {
+            if (string.IsNullOrWhiteSpace(caption) || members == null)
+            {
+                return false;
+            }
+            for (int i = 0; i < members.Count; i++)
+            {
+                if (CaptionNames(members[i], caption))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        /// <summary>A caption trimmed of the row joiner's punctuation.</summary>
+        public static string TrimCaption(string caption)
+        {
+            return string.IsNullOrEmpty(caption) ? "" : caption.Trim(CaptionTrim);
+        }
+
         private static CapturedExtraRow ExpandMember(string rowText, CapturedExtraMember member,
             string caption)
         {
-            string context = string.IsNullOrEmpty(caption) ? "" : caption.Trim(CaptionTrim);
+            string context = TrimCaption(caption);
             var row = new CapturedExtraRow
             {
-                // RawLabel first: the fragment self-describes role/state, which
-                // would double up with the Role this row already carries. An
-                // unlabeled TextField is the one kind whose OWN row text is
-                // ALREADY that role/state phrase — the row folder renders a
-                // captionless blank field's fragment as "edit box, blank" (see
-                // ScreenScope.RemainderIsUnmirrored's remarks), so falling
-                // back to rowText here would speak that phrase as the Label
-                // AND have the Role+State grammar speak it again right after
-                // ("edit box, blank. edit box, blank."). It falls back to
-                // nothing instead; the Role+State
-                // fragment alone still carries the phrase, spoken exactly once.
+                // RawLabel first: the fragment already says role and state. A blank field's or
+                // slider's row text IS that role phrase ("edit box, blank"), so it falls back to
+                // nothing rather than speak the phrase twice.
                 Label = !string.IsNullOrEmpty(member.RawLabel)
                     ? member.RawLabel
                     : (member.Kind == CapturedExtraKind.TextField

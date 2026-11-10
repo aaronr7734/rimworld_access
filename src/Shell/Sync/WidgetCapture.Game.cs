@@ -80,6 +80,7 @@ namespace RimWorldAccess.Shell
 
         // Widgets.DrawOptionBackground calls recorded this pass (see OptionBackgroundMarker).
         private static readonly List<OptionBackgroundMarker> optionBackgroundMarkers = new List<OptionBackgroundMarker>();
+        private static readonly List<SearchIconMarker> searchIconMarkers = new List<SearchIconMarker>();
 
         // Sink indexes at which a Listing.NewColumn ran this pass: rows recorded at or past a
         // break belong to the next column, which the presentation sort reads to order a

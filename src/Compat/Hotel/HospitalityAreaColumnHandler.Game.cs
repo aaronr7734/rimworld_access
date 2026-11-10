@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using RimWorld;
@@ -22,51 +21,37 @@ namespace RimWorldAccess
         private readonly MethodInfo getArea;
         private readonly MethodInfo setArea;
         private readonly MethodInfo isGuest;
-        private readonly MethodInfo getAreas;
-        private readonly MethodInfo shoppingLabel;
-        private readonly Type areaBaseType;
+        private readonly HospitalityAreas areas;
         private readonly Type shoppingColumnType;
         private readonly bool ready;
 
-        private HospitalityAreaColumnHandler()
+        private HospitalityAreaColumnHandler(Type areaBaseType)
         {
             var surface = new ReflectionSurface("HospitalityAreaColumnHandler");
-            areaBaseType = surface.Type("Hospitality.MainTab.PawnColumnWorker_AreaBase");
+            surface.Supplied("Hospitality.MainTab.PawnColumnWorker_AreaBase", areaBaseType);
             shoppingColumnType = surface.Type("Hospitality.MainTab.PawnColumnWorker_ShoppingArea");
             Type guestUtilityType = surface.Type("Hospitality.Utilities.GuestUtility");
-            Type genericUtilityType = surface.Type("Hospitality.Utilities.GenericUtility");
             getArea = surface.Method(areaBaseType, "GetArea", new[] { typeof(Pawn) });
             setArea = surface.Method(areaBaseType, "SetArea", new[] { typeof(Pawn), typeof(Area) });
             isGuest = surface.Method(guestUtilityType, "IsGuest", new[] { typeof(Pawn) });
-            getAreas = surface.Method(guestUtilityType, "GetAreas", new[] { typeof(Map) });
-            shoppingLabel = surface.Method(genericUtilityType, "GetShoppingLabel", new[] { typeof(Area) });
+            areas = new HospitalityAreas(surface);
             ready = surface.Ready;
         }
 
         public static void Register()
         {
-            try
+            CompatRegistration.PawnColumnHandler("Hospitality.MainTab.PawnColumnWorker_AreaBase", t =>
             {
-                var handler = new HospitalityAreaColumnHandler();
-                if (handler.ready)
-                {
-                    PawnColumnHandlerRegistry.Register(handler.areaBaseType, handler);
-                }
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"Hospitality area column registration failed: {ex.Message}");
-            }
+                var handler = new HospitalityAreaColumnHandler(t);
+                return handler.ready ? handler : null;
+            });
         }
 
         // The shopping column's DoCell override draws GenericUtility.GetShoppingLabel; the
         // accommodation column keeps AreaGUI's AreaUtility.AreaAllowedLabel_Area.
         private string AreaLabel(PawnColumnWorker worker, Area area)
         {
-            string label = shoppingColumnType.IsInstanceOfType(worker)
-                ? (string)shoppingLabel.Invoke(null, new object[] { area })
-                : AreaUtility.AreaAllowedLabel_Area(area);
-            return label.StripTags();
+            return shoppingColumnType.IsInstanceOfType(worker) ? areas.ShoppingLabel(area) : HospitalityAreas.StayLabel(area);
         }
 
         private bool IsGuest(Pawn pawn)
@@ -87,20 +72,13 @@ namespace RimWorldAccess
         public override PawnColumnActivation ActivateCell(PawnColumnDef def, Pawn pawn, PawnTable table)
         {
             Map map = pawn.MapHeld;
-            if (map == null || !IsGuest(pawn) || !(getAreas.Invoke(null, new object[] { map }) is IEnumerable areas))
+            if (map == null || !IsGuest(pawn))
             {
                 return PawnColumnActivation.NotHandled;
             }
 
             PawnColumnWorker worker = def.Worker;
-            var choices = new List<Area> { null };
-            foreach (object area in areas)
-            {
-                if (area is Area a)
-                {
-                    choices.Add(a);
-                }
-            }
+            List<Area> choices = areas.Choices(map);
             var options = new List<FloatMenuOption>(choices.Count);
             foreach (Area area in choices)
             {

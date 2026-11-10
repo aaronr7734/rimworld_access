@@ -19,12 +19,11 @@ namespace RimWorldAccess
     /// linked to the register (FillTab re-reads it every frame), so picking one links it through the
     /// mod's own RestaurantController.LinkRegister, exactly SetRestaurant's write.
     /// </summary>
-    internal sealed class GastronomyRestaurantTabAdapter : InspectNodeAdapter
+    internal sealed class GastronomyRestaurantTabAdapter : CashRegisterTabAdapter
     {
         // DrawStock draws at most this many stock icons.
         private const int StockIconCap = 16;
 
-        private readonly Type registerType;
         private readonly Type renameDialogType;
         private readonly MethodInfo getRestaurant;     // RestaurantUtility.GetRestaurant(Building_CashRegister)
         private readonly MethodInfo getAll;            // RestaurantUtility.GetAllRestaurants(Thing)
@@ -47,6 +46,7 @@ namespace RimWorldAccess
         private readonly PropertyInfo ordersForCooking;
         private readonly PropertyInfo allDebts;
         private readonly PropertyInfo allStock;
+        private readonly PropertyInfo stockPairValue;  // KeyValuePair<ThingDef, Stock>.Value
         private readonly FieldInfo restaurantsField;
         private readonly FieldInfo openForBusiness;
         private readonly FieldInfo allowGuests;
@@ -63,12 +63,10 @@ namespace RimWorldAccess
         private readonly FieldInfo stockDef;
         private readonly FieldInfo stockItems;
 
-        private readonly bool ready;
         private InspectTabBase sharedTab;
 
-        public override bool Ready => ready;
-
         private GastronomyRestaurantTabAdapter()
+            : base("TabRegisterRestaurant", "RimWorldAccess.Compat.Gastronomy.TabName")
         {
             var surface = new ReflectionSurface("GastronomyRestaurantTabAdapter");
             registerType = surface.Type("CashRegister.Building_CashRegister");
@@ -122,6 +120,10 @@ namespace RimWorldAccess
             stockDef = surface.Field(stockEntry, "def");
             stockItems = surface.Field(stockEntry, "items");
             ready = surface.Ready;
+            if (ready)
+            {
+                stockPairValue = typeof(KeyValuePair<,>).MakeGenericType(typeof(ThingDef), stockEntry).GetProperty("Value");
+            }
         }
 
         public static void TryRegister()
@@ -134,41 +136,17 @@ namespace RimWorldAccess
         // Dispatch token, never displayed raw.
         public override string CategoryKey => "Gastronomy Restaurant";
 
-        public override TabHandlerType Handler => TabHandlerType.RichNavigation;
-
-        public override string DisplayName(InspectTabBase tab) => TabName();
-
-        public override string CategoryDisplayName(object obj) => TabName();
-
-        private static string TabName()
+        protected override void Build(InspectionTreeItem categoryItem, Thing register, InspectionMode mode)
         {
-            return CompatText.ResolveOrFallback("TabRegisterRestaurant", "RimWorldAccess.Compat.Gastronomy.TabName");
-        }
-
-        public override bool CanExpand(object obj)
-        {
-            return ready && registerType.IsInstanceOfType(obj);
-        }
-
-        public override void BuildChildren(InspectionTreeItem categoryItem, object obj, InspectionMode mode)
-        {
-            if (categoryItem.Children.Count > 0 || !registerType.IsInstanceOfType(obj))
+            object restaurant = Restaurant(register);
+            if (restaurant == null)
             {
                 return;
             }
-            InspectNodeFactory.GuardedBuild("GastronomyRestaurantTabAdapter", () =>
-            {
-                Thing register = (Thing)obj;
-                object restaurant = Restaurant(register);
-                if (restaurant == null)
-                {
-                    return;
-                }
-                BuildSelection(categoryItem, register, restaurant, mode);
-                BuildSettings(categoryItem, restaurant, mode);
-                BuildStats(categoryItem, register, restaurant, mode);
-                BuildMenu(categoryItem, restaurant, mode);
-            });
+            BuildSelection(categoryItem, register, restaurant, mode);
+            BuildSettings(categoryItem, restaurant, mode);
+            BuildStats(categoryItem, register, restaurant, mode);
+            BuildMenu(categoryItem, restaurant, mode);
         }
 
         // FillTab's own fallback: the linked restaurant, else the map's first.
@@ -193,7 +171,7 @@ namespace RimWorldAccess
             object manager = getManager.Invoke(null, new[] { restaurant });
             IList all = (IList)restaurantsField.GetValue(manager);
 
-            HotelTreeRows.Combo(parent, "RimWorldAccess.Compat.Gastronomy.RestaurantPicker".Translate(),
+            InspectRows.Combo(parent, "RimWorldAccess.Compat.Gastronomy.RestaurantPicker".Translate(),
                 () => NameOf(Restaurant(register)), CompatText.ModTip("RestaurantTooltipSelect"),
                 () => RestaurantOptions(parent, register, all, mode), mode);
 
@@ -204,8 +182,7 @@ namespace RimWorldAccess
             }
             HotelTreeRows.Button(parent, CompatText.Flatten(CompatText.ModText("RestaurantTooltipAdd")), null,
                 () => OnAdd(parent, register, manager, mode), mode);
-            HotelTreeRows.Button(parent, CompatText.Flatten(CompatText.ModText("RestaurantTooltipRename")), null,
-                () => Find.WindowStack.Add((Window)Activator.CreateInstance(renameDialogType, restaurant)), mode).OpensOverlayMenu = true;
+            HotelTreeRows.RenameButton(parent, "RestaurantTooltipRename", renameDialogType, restaurant, mode);
         }
 
         private List<FloatMenuOption> RestaurantOptions(InspectionTreeItem categoryItem, Thing register, IList all, InspectionMode mode)
@@ -225,18 +202,13 @@ namespace RimWorldAccess
 
         private void OnAdd(InspectionTreeItem categoryItem, Thing register, object manager, InspectionMode mode)
         {
-            try
+            HotelTreeRows.RunGuarded("GastronomyRestaurantTabAdapter add", () =>
             {
                 object added = addRestaurant.Invoke(manager, null);
                 linkRegister.Invoke(added, new object[] { register });
                 Rebuild(categoryItem, register, mode);
                 TolkHelper.Speak("RimWorldAccess.Compat.Gastronomy.RestaurantAdded".Loc(NameOf(added)));
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"GastronomyRestaurantTabAdapter add failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.ActionFailed".Loc());
-            }
+            });
         }
 
         // MUTATION-C: mirrors ITab_Register_Restaurant.DrawRestaurantSelection's minus button, whose
@@ -244,13 +216,13 @@ namespace RimWorldAccess
         private void OnRemove(InspectionTreeItem categoryItem, Thing register, object manager, object restaurant, InspectionMode mode)
         {
             string text = CompatText.ModArgs("RestaurantDialogConfirmRemove", (string)nameProp.GetValue(restaurant, null));
-            Find.WindowStack.Add(new Dialog_Confirm(text, () =>
+            Find.WindowStack.Add(new Dialog_Confirm(text, () => HotelTreeRows.RunGuarded("GastronomyRestaurantTabAdapter remove", () =>
             {
                 deleteRestaurant.Invoke(manager, new[] { restaurant });
                 IList all = (IList)restaurantsField.GetValue(manager);
                 linkRegister.Invoke(all[all.Count - 1], new object[] { register });
                 Rebuild(categoryItem, register, mode);
-            }));
+            })));
         }
 
         private void BuildSettings(InspectionTreeItem parent, object restaurant, InspectionMode mode)
@@ -264,7 +236,7 @@ namespace RimWorldAccess
                 AddToggle(parent, restaurant, allowSlaves, "TabRegisterSlaves", mode);
             }
 
-            HotelTreeRows.Slider(parent, () => PriceLabel(restaurant), CompatText.ModTip("TabRegisterGuestPriceTooltip"),
+            InspectRows.Slider(parent, () => PriceLabel(restaurant), CompatText.ModTip("TabRegisterGuestPriceTooltip"),
                 () => (float)guestPrice.GetValue(restaurant), v => SetPrice(restaurant, v), 0f, 5f, 0.1f, mode);
         }
 
@@ -272,7 +244,7 @@ namespace RimWorldAccess
         {
             // MUTATION-C: mirrors DrawSettings, whose Listing_Standard.CheckboxLabeled rows write the
             // controller's public bools by ref; RestaurantController has no setter for any of them.
-            HotelTreeRows.Checkbox(parent, CompatText.ModText(key), CompatText.ModTip(key + "Tooltip"),
+            InspectRows.Checkbox(parent, CompatText.ModText(key), CompatText.ModTip(key + "Tooltip"),
                 () => (bool)field.GetValue(restaurant), v => field.SetValue(restaurant, v), mode);
         }
 
@@ -291,41 +263,25 @@ namespace RimWorldAccess
 
         private void BuildStats(InspectionTreeItem parent, Thing register, object restaurant, InspectionMode mode)
         {
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterActiveStaff", Pawns(activeStaff, restaurant).Count.ToString()),
-                () => Names(Pawns(activeStaff, restaurant)));
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterSeats", seats.GetValue(restaurant, null).ToString()));
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterPatrons", Pawns(patrons, restaurant).Count.ToString()),
-                () => Names(Pawns(patrons, restaurant)));
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterActiveStaff", HotelTreeRows.Pawns(activeStaff, restaurant).Count.ToString()),
+                () => HotelTreeRows.Names(HotelTreeRows.Pawns(activeStaff, restaurant)));
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterSeats", seats.GetValue(restaurant, null).ToString()));
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterPatrons", HotelTreeRows.Pawns(patrons, restaurant).Count.ToString()),
+                () => HotelTreeRows.Names(HotelTreeRows.Pawns(patrons, restaurant)));
             AddOrders(parent, restaurant, allOrders, "TabRegisterTotalOrders");
             AddOrders(parent, restaurant, ordersForServing, "TabRegisterNeedsServing");
             AddOrders(parent, restaurant, ordersForCooking, "TabRegisterNeedsCooking");
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterStocked", StockTotal(restaurant).ToString()),
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterStocked", StockTotal(restaurant).ToString()),
                 () => StockText(restaurant));
             object debts = debtsProp.GetValue(restaurant, null);
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterEarnedYesterday", ((float)incomeYesterday.GetValue(debts)).ToStringMoney()));
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterEarnedToday", ((float)incomeToday.GetValue(debts)).ToStringMoney()));
+            HotelTreeRows.IncomeRows(parent, debts, incomeYesterday, incomeToday);
             BuildDebts(parent, register, restaurant, debts, mode);
-        }
-
-        private List<Pawn> Pawns(PropertyInfo property, object restaurant)
-        {
-            var list = new List<Pawn>();
-            if (property.GetValue(restaurant, null) is IEnumerable pawns)
-            {
-                list.AddRange(pawns.OfType<Pawn>());
-            }
-            return list;
-        }
-
-        private static string Names(List<Pawn> pawns)
-        {
-            return pawns.Select(p => p.LabelShort).ToCommaList();
         }
 
         // DrawOrders: the count, then one icon per ordered meal whose tooltip names the patrons.
         private void AddOrders(InspectionTreeItem parent, object restaurant, PropertyInfo source, string key)
         {
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine(key, Orders(restaurant, source).Count.ToString()), () =>
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine(key, Orders(restaurant, source).Count.ToString()), () =>
             {
                 var groups = new List<string>();
                 foreach (var group in Orders(restaurant, source).GroupBy(o => (ThingDef)orderDef.GetValue(o)))
@@ -335,7 +291,7 @@ namespace RimWorldAccess
                         continue;
                     }
                     string patronsText = group.Select(o => ((Pawn)orderPatron.GetValue(o))?.Name?.ToStringShort).ToCommaList();
-                    groups.Add(HotelTreeRows.LabeledValue(group.Key.LabelCap.ToString(), patronsText));
+                    groups.Add(InspectRows.LabeledValue(group.Key.LabelCap.ToString(), patronsText));
                 }
                 return CompatText.JoinSentences(groups);
             });
@@ -356,7 +312,7 @@ namespace RimWorldAccess
             }
             foreach (object pair in pairs)
             {
-                yield return pair.GetType().GetProperty("Value").GetValue(pair, null);
+                yield return stockPairValue.GetValue(pair, null);
             }
         }
 
@@ -416,22 +372,21 @@ namespace RimWorldAccess
             });
         }
 
-        // MUTATION-C: mirrors DrawDebts' icon click, an inline `debt.amount = 0f` with no method behind it.
         private void OnClearDebt(InspectionTreeItem categoryItem, Thing register, object debt, InspectionMode mode)
         {
-            debtAmount.SetValue(debt, 0f);
-            SoundDefOf.Click.PlayOneShotOnCamera();
-            Rebuild(categoryItem, register, mode);
-            TolkHelper.Speak("RimWorldAccess.Compat.Gastronomy.DebtCleared".Loc());
+            HotelTreeRows.RunGuarded("GastronomyRestaurantTabAdapter clear debt", () =>
+            {
+                // MUTATION-C: mirrors DrawDebts' icon click, an inline `debt.amount = 0f` with no method behind it.
+                debtAmount.SetValue(debt, 0f);
+                SoundDefOf.Click.PlayOneShotOnCamera();
+                Rebuild(categoryItem, register, mode);
+                TolkHelper.Speak("RimWorldAccess.Compat.Gastronomy.DebtCleared".Loc());
+            });
         }
 
         private void BuildMenu(InspectionTreeItem parent, object restaurant, InspectionMode mode)
         {
-            if (mode == InspectionMode.ReadOnly)
-            {
-                return;
-            }
-            InspectNodeFactory.ActionRow(parent, "RimWorldAccess.Compat.Gastronomy.MenuFilter".Translate(), restaurant, () =>
+            HotelTreeRows.FilterRow(parent, "RimWorldAccess.Compat.Gastronomy.MenuFilter".Translate(), restaurant, () =>
             {
                 object menu = menuProp.GetValue(restaurant, null);
                 object[] args = { null, null };
@@ -439,7 +394,7 @@ namespace RimWorldAccess
                 // DrawRight's own call: hit points hidden, AllowFresh force-hidden.
                 ThingFilterMenuState.Open((ThingFilter)args[0], (ThingFilter)args[1], TabName(),
                     forceHideHitPointsConfig: true, forceHiddenFilters: new[] { SpecialThingFilterDefOf.AllowFresh });
-            }, opensOverlayMenu: true);
+            }, mode);
         }
 
         private void Rebuild(InspectionTreeItem categoryItem, Thing register, InspectionMode mode)

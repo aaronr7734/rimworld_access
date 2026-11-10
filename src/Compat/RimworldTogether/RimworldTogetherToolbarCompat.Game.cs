@@ -91,8 +91,6 @@ namespace RimWorldAccess.Shell
         private static readonly DialogHandle adminDialog;
         private static readonly bool ready;
 
-        private static string cachedTitle;
-
         static RimworldTogetherToolbarCompat()
         {
             var surface = new ReflectionSurface("RimworldTogetherToolbarCompat");
@@ -122,9 +120,9 @@ namespace RimWorldAccess.Shell
             Type guildPacketType = surface.Type("RTNetwork.Packets.PKT_PlayerGuild");
             guildPacketCtor = surface.Constructor(guildPacketType, Type.EmptyTypes);
             guildStepModeProperty = surface.Property(guildPacketType, "StepMode");
-            guildInformationStep = EnumValue(surface.Type("RTNetwork.Packets.PKT_PlayerGuild+GuildStepMode"), "Information");
+            guildInformationStep = surface.EnumValue(surface.Type("RTNetwork.Packets.PKT_PlayerGuild+GuildStepMode"), "Information");
             Type packetHeaderType = surface.Type("RTShared.Misc.PacketHeader");
-            guildPacketHeader = EnumValue(packetHeaderType, "Guild");
+            guildPacketHeader = surface.EnumValue(packetHeaderType, "Guild");
             serverEndpointProperty = surface.Property(surface.Type("RTNetwork.Components.Network"), "ServerEndpoint");
             enqueuePacketMethod = surface.Method(surface.Type("RTNetwork.Components.Listener"), "EnqueuePacket",
                 new[] { packetHeaderType, typeof(object) });
@@ -140,12 +138,7 @@ namespace RimWorldAccess.Shell
             searchDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_SettlementFinder");
             adminDialog = new DialogHandle(surface, "RTClient.Dialogs.DLG_Admin");
 
-            ready = surface.Ready && guildInformationStep != null && guildPacketHeader != null;
-        }
-
-        private static object EnumValue(Type enumType, string name)
-        {
-            return enumType != null && enumType.IsEnum && Enum.IsDefined(enumType, name) ? Enum.Parse(enumType, name) : null;
+            ready = surface.Ready;
         }
 
         public static void Register()
@@ -198,12 +191,7 @@ namespace RimWorldAccess.Shell
         /// <summary>The mod's own listed name, so the pause-menu item and the menu's region heading match whatever the player's mod list actually calls it.</summary>
         private static string Title()
         {
-            if (cachedTitle == null)
-            {
-                ModMetaData mod = ModLister.GetActiveModWithIdentifier(PackageId, ignorePostfix: true);
-                cachedTitle = mod != null ? mod.Name : "RimWorld Together";
-            }
-            return cachedTitle;
+            return CompatText.ModTitle(PackageId, "RimWorld Together");
         }
 
         private static bool IsReadyToPlay()

@@ -15,8 +15,6 @@ namespace RimWorldAccess
         private const string ToolbarId = "visiblewealth.1trickPwnyta.playSettings"; // l10n-exempt: registry id
         private const string PackageId = "visiblewealth.1trickPwnyta"; // l10n-exempt: package id
 
-        private static string cachedTitle;
-
         public static void Register()
         {
             ModHudToolbarRegistry.Register(ToolbarId, Title, Visible);
@@ -25,12 +23,7 @@ namespace RimWorldAccess
 
         private static string Title()
         {
-            if (cachedTitle == null)
-            {
-                ModMetaData mod = ModLister.GetActiveModWithIdentifier(PackageId, ignorePostfix: true);
-                cachedTitle = mod != null ? mod.Name : PackageId;
-            }
-            return cachedTitle;
+            return CompatText.ModTitle(PackageId);
         }
 
         /// <summary>The postfix's own draw gate: the setting on and a map in view.</summary>
@@ -50,21 +43,20 @@ namespace RimWorldAccess
 
         private static string Hotkey()
         {
-            KeyCode plain = BoundKey("VisibleWealth_WealthBreakdown");
-            if (plain != KeyCode.None)
+            string plain = SlotALabel("VisibleWealth_WealthBreakdown");
+            if (plain != null)
             {
-                return plain.ToStringReadable();
+                return plain;
             }
-            KeyCode shifted = BoundKey("VisibleWealth_WealthBreakdownShift");
-            return shifted != KeyCode.None
-                ? (string)"RimWorldAccess.Compat.VisibleWealth.ShiftChord".Translate(shifted.ToStringReadable())
+            string shifted = SlotALabel("VisibleWealth_WealthBreakdownShift");
+            return shifted != null
+                ? (string)"RimWorldAccess.Compat.VisibleWealth.ShiftChord".Translate(shifted)
                 : null;
         }
 
-        private static KeyCode BoundKey(string defName)
+        private static string SlotALabel(string defName)
         {
-            KeyBindingDef def = DefDatabase<KeyBindingDef>.GetNamedSilentFail(defName);
-            return def != null ? KeyPrefs.KeyPrefsData.GetBoundKeyCode(def, KeyPrefs.BindingSlot.A) : KeyCode.None;
+            return VanillaBindings.HotkeyLabel(DefDatabase<KeyBindingDef>.GetNamedSilentFail(defName), KeyPrefs.BindingSlot.A);
         }
     }
 }

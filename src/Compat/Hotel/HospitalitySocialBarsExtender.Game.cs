@@ -51,11 +51,11 @@ namespace RimWorldAccess
             InspectNodeFactory.Section(categoryItem, "RimWorldAccess.Compat.Hospitality.FriendshipBars".Translate(), guest, section =>
             {
                 float needed = (int)minRecruitOpinion.Invoke(null, new object[] { guest });
-                bool guestRoyal = guest.royalty?.MostSeniorTitle != null;
+                bool guestRoyal = HospitalityCompat.HasRoyalTitle(guest);
                 foreach (Pawn other in guest.MapHeld.mapPawns.FreeColonists)
                 {
                     // The patch's own skips: non-royal colonists for a royal guest, and slaves.
-                    if (other.IsSlave || (guestRoyal && other.royalty?.MostSeniorTitle == null))
+                    if (other.IsSlave || (guestRoyal && !HospitalityCompat.HasRoyalTitle(other)))
                     {
                         continue;
                     }

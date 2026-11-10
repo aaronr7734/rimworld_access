@@ -98,6 +98,20 @@ namespace RimWorldAccess
             return value;
         }
 
+        public object EnumValue(Type enumType, string name)
+        {
+            if (enumType == null)
+            {
+                return null;
+            }
+            if (enumType.IsEnum && Enum.IsDefined(enumType, name))
+            {
+                return Enum.Parse(enumType, name);
+            }
+            missingMembers.Add(enumType.Name + "." + name);
+            return null;
+        }
+
         /// <summary>A member that some mod versions declare as a field and others as a property.</summary>
         public MemberInfo FieldOrProperty(Type type, string name)
         {

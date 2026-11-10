@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RimWorld;
 using Verse;
@@ -18,10 +17,10 @@ namespace RimWorldAccess
             return PlacementUsefulnessRegistry.HasPlaceWorker(def, typeof(PlaceWorker_WatermillGenerator));
         }
 
-        public static Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
+        public static PlacementRating MakeRating(ThingDef def, Map map)
         {
             List<Thing> mills = CollectWaterMills(def, map);
-            return (cell, rotation) => OverlapsExistingWaterUse(mills, cell, rotation)
+            return (cell, rotation, describe) => OverlapsExistingWaterUse(mills, cell, rotation)
                 ? new PlacementQuality(0f, null)
                 : PlacementQuality.Full;
         }

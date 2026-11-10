@@ -56,6 +56,12 @@ namespace RimWorldAccess.Shell
             get { return optionBackgroundMarkers; }
         }
 
+        /// <summary>Vanilla search magnifiers drawn by the current/most recent pass; a blank field beside one is a search box.</summary>
+        public static IReadOnlyList<SearchIconMarker> SearchIconMarkers
+        {
+            get { return searchIconMarkers; }
+        }
+
         /// <summary>Sink indexes where a Listing.NewColumn ran during the current/most recent pass, ascending by construction.</summary>
         public static IReadOnlyList<int> ListingColumnBreaks
         {
@@ -71,6 +77,7 @@ namespace RimWorldAccess.Shell
             items.Clear();
             checkTexMarkers.Clear();
             optionBackgroundMarkers.Clear();
+            searchIconMarkers.Clear();
             listingColumnBreaks.Clear();
             suppressedScratchSink.Clear();
             lastBareTextureValid = false;
@@ -193,6 +200,7 @@ namespace RimWorldAccess.Shell
             passOpen = true;
             checkTexMarkers.Clear();
             optionBackgroundMarkers.Clear();
+            searchIconMarkers.Clear();
             listingColumnBreaks.Clear();
             savedFocusedIndex = focusedIndex;
             focusedIndex = -1;

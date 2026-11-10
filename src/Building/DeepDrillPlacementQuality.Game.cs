@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RimWorld;
 using UnityEngine;
@@ -22,17 +21,19 @@ namespace RimWorldAccess
             return def.CompDefFor<CompDeepDrill>() != null;
         }
 
-        public static Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
+        public static PlacementRating MakeRating(ThingDef def, Map map)
         {
             if (!DeepResourceReveal.Revealed(map))
                 return null;
-            return (cell, rotation) => Rate(map, cell);
+            return (cell, rotation, describe) => Rate(map, cell, describe);
         }
 
-        private static PlacementQuality Rate(Map map, IntVec3 position)
+        private static PlacementQuality Rate(Map map, IntVec3 position, bool describe)
         {
-            var countByResource = new Dictionary<ThingDef, int>();
-            var drillOrder = new List<ThingDef>();
+            // Only a described spot needs the per-resource totals.
+            Dictionary<ThingDef, int> countByResource = describe ? new Dictionary<ThingDef, int>() : null;
+            List<ThingDef> drillOrder = describe ? new List<ThingDef>() : null;
+            bool found = false;
             float fill = 0f;
             for (int i = 0; i < DeepDrillUtility.NumCellsToScan; i++)
             {
@@ -47,6 +48,9 @@ namespace RimWorldAccess
                 // A freshly found cell holds deepCountPerCell (CompDeepScanner), so this is the share of
                 // the reach that is still full.
                 fill += Mathf.Clamp01((float)count / resource.deepCountPerCell);
+                found = true;
+                if (!describe)
+                    continue;
                 if (countByResource.TryGetValue(resource, out int total))
                 {
                     countByResource[resource] = total + count;
@@ -58,8 +62,14 @@ namespace RimWorldAccess
                 }
             }
 
-            if (drillOrder.Count == 0)
-                return RockOnly(map, position);
+            if (!found)
+                return RockOnly(map, position, describe);
+
+            // Lifted above the fallback so any deposit outranks bare rock.
+            float score = Mathf.Lerp(PlacementSpotRanking.FallbackQuality, PlacementSpotRanking.FullQuality,
+                fill / DeepDrillUtility.NumCellsToScan);
+            if (!describe)
+                return new PlacementQuality(score, null);
 
             var amounts = new List<string>(drillOrder.Count);
             foreach (ThingDef resource in drillOrder)
@@ -67,21 +77,19 @@ namespace RimWorldAccess
                 amounts.Add("RimWorldAccess.Building.Place.DrillReachAmount".Translate(
                     resource.label, countByResource[resource]));
             }
-            // Lifted above the fallback so any deposit outranks bare rock.
-            float score = Mathf.Lerp(PlacementSpotRanking.FallbackQuality, PlacementSpotRanking.FullQuality,
-                fill / DeepDrillUtility.NumCellsToScan);
             return new PlacementQuality(score,
                 "RimWorldAccess.Building.Place.DrillReach".Translate(amounts.ToCommaList(useAnd: true)));
         }
 
         // CompDeepDrill.CanDrillNow falls back to the base rock; its own exhaustion message names it pluralized.
-        private static PlacementQuality RockOnly(Map map, IntVec3 position)
+        private static PlacementQuality RockOnly(Map map, IntVec3 position, bool describe)
         {
             ThingDef rock = DeepDrillUtility.GetBaseResource(map, position);
             if (rock == null)
                 return new PlacementQuality(0f, null);
-            return new PlacementQuality(PlacementSpotRanking.FallbackQuality,
-                "RimWorldAccess.Building.Place.DrillRockOnly".Translate(Find.ActiveLanguageWorker.Pluralize(rock.label)));
+            return new PlacementQuality(PlacementSpotRanking.FallbackQuality, describe
+                ? (string)"RimWorldAccess.Building.Place.DrillRockOnly".Translate(Find.ActiveLanguageWorker.Pluralize(rock.label))
+                : null);
         }
     }
 }

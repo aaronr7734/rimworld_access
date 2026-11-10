@@ -1,5 +1,3 @@
-using System;
-using HarmonyLib;
 using RimWorld;
 using RimWorldAccess.Shell;
 using Verse;
@@ -15,11 +13,8 @@ namespace RimWorldAccess
     {
         public static void Register()
         {
-            Type workerType = AccessTools.TypeByName("Hospitality.MainTab.PawnColumnWorker_ButtonMore");
-            if (workerType != null)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, new HospitalityMoreColumnHandler());
-            }
+            CompatRegistration.PawnColumnHandler("Hospitality.MainTab.PawnColumnWorker_ButtonMore",
+                _ => new HospitalityMoreColumnHandler());
         }
 
         public override string HeaderLabel(PawnColumnDef def)

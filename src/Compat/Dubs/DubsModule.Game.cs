@@ -23,7 +23,7 @@ namespace RimWorldAccess
                 DubsPlacementGhostNotes.Register(harmony, groundwater, wellCapacity);
                 if (wellCapacity.Ready)
                 {
-                    PlacementUsefulnessRegistry.Register(wellCapacity.AppliesTo, wellCapacity.MakeRating);
+                    PlacementUsefulnessRegistry.Register(wellCapacity.AppliesTo, wellCapacity.MakeRating, rotationIndependent: true);
                     DubsSurfaceWaterCapacity.Register(harmony, wellCapacity);
                 }
             }

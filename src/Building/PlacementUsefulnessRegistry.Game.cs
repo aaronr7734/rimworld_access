@@ -4,6 +4,10 @@ using Verse;
 
 namespace RimWorldAccess
 {
+    /// <summary>A rule's rating of one cell and facing. <paramref name="describe"/> false asks for
+    /// the score alone, so a sweep skips building phrases it will never speak.</summary>
+    internal delegate PlacementQuality PlacementRating(IntVec3 cell, Rot4 rotation, bool describe);
+
     /// <summary>
     /// Rules for how well a building would work at a cell vanilla's own placement gate accepts.
     /// Some buildings would not work at all there, because the deciding rule lives only in a place
@@ -22,7 +26,8 @@ namespace RimWorldAccess
         private struct Entry
         {
             public Predicate<ThingDef> AppliesTo;
-            public Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> MakeRating;
+            public Func<ThingDef, Map, PlacementRating> MakeRating;
+            public bool RotationIndependent;
         }
 
         private static readonly List<Entry> entries = new List<Entry>
@@ -39,6 +44,7 @@ namespace RimWorldAccess
             },
             new Entry
             {
+                // Not rotation-independent: an even footprint shifts with rotation.
                 AppliesTo = SolarPlacementQuality.AppliesTo,
                 MakeRating = SolarPlacementQuality.MakeRating,
             },
@@ -46,22 +52,26 @@ namespace RimWorldAccess
             {
                 AppliesTo = DeepDrillPlacementQuality.AppliesTo,
                 MakeRating = DeepDrillPlacementQuality.MakeRating,
+                RotationIndependent = true,
             },
         };
 
-        /// <param name="appliesTo">Which defs the rule covers; asked once per sweep.</param>
-        /// <param name="makeRating">Builds the sweep's rating of a cell and rotation. May return null
-        /// when the rule has nothing to judge on this map.</param>
         public static bool HasPlaceWorker(ThingDef def, Type worker)
         {
             return def.placeWorkers != null && def.placeWorkers.Contains(worker);
         }
 
-        public static void Register(Predicate<ThingDef> appliesTo, Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> makeRating)
+        /// <param name="appliesTo">Which defs the rule covers; asked once per sweep.</param>
+        /// <param name="makeRating">Builds the sweep's rating of a cell and rotation. May return null
+        /// when the rule has nothing to judge on this map.</param>
+        /// <param name="rotationIndependent">The rating never reads the rotation, so a sweep rates
+        /// each cell once instead of once per facing.</param>
+        public static void Register(Predicate<ThingDef> appliesTo, Func<ThingDef, Map, PlacementRating> makeRating,
+            bool rotationIndependent = false)
         {
             if (appliesTo == null || makeRating == null)
                 return;
-            entries.Add(new Entry { AppliesTo = appliesTo, MakeRating = makeRating });
+            entries.Add(new Entry { AppliesTo = appliesTo, MakeRating = makeRating, RotationIndependent = rotationIndependent });
         }
 
         /// <summary>
@@ -70,18 +80,22 @@ namespace RimWorldAccess
         /// independent reason the building would work less well; phrases join in registration order.
         /// A rule at full quality says nothing in the list, so silence means nothing is lost there.
         /// </summary>
-        public static Func<IntVec3, Rot4, PlacementQuality> RatingFor(ThingDef def, Map map)
+        /// <param name="rotationIndependent">Whether every rule in the combined rating ignores rotation.</param>
+        public static PlacementRating RatingFor(ThingDef def, Map map, out bool rotationIndependent)
         {
-            var ratings = new List<Func<IntVec3, Rot4, PlacementQuality>>();
+            rotationIndependent = true;
+            var ratings = new List<PlacementRating>();
             foreach (Entry entry in entries)
             {
                 try
                 {
                     if (!entry.AppliesTo(def))
                         continue;
-                    Func<IntVec3, Rot4, PlacementQuality> rating = entry.MakeRating(def, map);
-                    if (rating != null)
-                        ratings.Add(rating);
+                    PlacementRating rating = entry.MakeRating(def, map);
+                    if (rating == null)
+                        continue;
+                    ratings.Add(rating);
+                    rotationIndependent &= entry.RotationIndependent;
                 }
                 catch (Exception ex)
                 {
@@ -90,11 +104,14 @@ namespace RimWorldAccess
             }
 
             if (ratings.Count == 0)
+            {
+                rotationIndependent = false;
                 return null;
-            return (cell, rotation) => Combine(ratings, cell, rotation);
+            }
+            return (cell, rotation, describe) => Combine(ratings, cell, rotation, describe);
         }
 
-        private static PlacementQuality Combine(List<Func<IntVec3, Rot4, PlacementQuality>> ratings, IntVec3 cell, Rot4 rotation)
+        private static PlacementQuality Combine(List<PlacementRating> ratings, IntVec3 cell, Rot4 rotation, bool describe)
         {
             float score = PlacementSpotRanking.FullQuality;
             List<string> phrases = null;
@@ -103,7 +120,7 @@ namespace RimWorldAccess
                 PlacementQuality quality;
                 try
                 {
-                    quality = ratings[i](cell, rotation);
+                    quality = ratings[i](cell, rotation, describe);
                 }
                 catch (Exception ex)
                 {

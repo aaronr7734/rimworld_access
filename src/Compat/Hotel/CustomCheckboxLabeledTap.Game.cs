@@ -30,19 +30,8 @@ namespace RimWorldAccess
                 return;
             }
             harmony.Patch(checkboxLabeled,
-                prefix: new HarmonyMethod(typeof(CustomCheckboxLabeledTap), nameof(Prefix)),
-                postfix: new HarmonyMethod(typeof(CustomCheckboxLabeledTap), nameof(Postfix)));
-        }
-
-        private static void Prefix(Rect rect, string label, ref bool checkOn, bool disabled)
-        {
-            WidgetCapture.RecordAndMaybeToggleCheckbox(rect, label, ref checkOn, disabled);
-            WidgetCapture.EnterSelfCaptioned(label);
-        }
-
-        private static void Postfix()
-        {
-            WidgetCapture.ExitSelfCaptioned();
+                prefix: new HarmonyMethod(typeof(WidgetCaptureCheckboxLabeledPatch), nameof(WidgetCaptureCheckboxLabeledPatch.Prefix)),
+                postfix: new HarmonyMethod(typeof(WidgetCaptureCheckboxLabeledPatch), nameof(WidgetCaptureCheckboxLabeledPatch.Postfix)));
         }
     }
 }

@@ -167,9 +167,8 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        /// <summary>A uniform, edge-tiled button run with exactly one tinted member (the
-        /// hand-rolled enum-selector idiom) becomes a radio group, tinted reading selected;
-        /// runs after tab promotion, activation still posts the button's own click.</summary>
+        /// <summary>A uniform, edge-tiled run of worded buttons (arrowheads and icons are actions) with one marked member
+        /// becomes a radio group; a captioned run may be a pair with wider seams. Activation still posts the click.</summary>
         private void MarkTintSelectedButtonClusters()
         {
             int n = presentationRows.Count;
@@ -181,22 +180,26 @@ namespace RimWorldAccess.Shell
                     i++;
                     continue;
                 }
+                bool captioned = i > 0 && CaptionsSelectorRun(presentationRows[i - 1], presentationRows[i]);
+                float seam = captioned ? CaptionedSelectorSeam : 4f;
                 int end = i + 1;
                 while (end < n && IsTintClusterCandidate(presentationRows[end])
-                    && TilesRightOf(presentationRows[end - 1], presentationRows[end]))
+                    && TilesRightOf(presentationRows[end - 1], presentationRows[end], seam))
                 {
                     end++;
                 }
                 int count = end - i;
-                if (count >= 3)
+                if (count >= 3 || (captioned && count == 2 && IsWordedOption(presentationRows[i]) && IsWordedOption(presentationRows[i + 1])))
                 {
                     var tints = new List<TabStripDetector.TabTint>(count);
+                    var bare = new List<bool>(count);
                     for (int m = i; m < end; m++)
                     {
                         Color tint = presentationRows[m].Source.RecordColor;
                         tints.Add(new TabStripDetector.TabTint { R = tint.r, G = tint.g, B = tint.b, A = tint.a });
+                        bare.Add(presentationRows[m].Source.NoBackground);
                     }
-                    int selected = TabStripDetector.IndexOfDistinctTint(tints);
+                    int selected = TabStripDetector.IndexOfMarkedOption(tints, bare);
                     if (selected >= 0)
                     {
                         for (int m = i; m < end; m++)
@@ -210,6 +213,28 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        private const float CaptionedSelectorSeam = 12f;
+
+        private static bool IsWordedOption(PresentationRow row)
+        {
+            foreach (char c in row.Label)
+            {
+                if (char.IsLetter(c))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>A plain label ending just left of the run's first button on its line names the choice the run makes.</summary>
+        private static bool CaptionsSelectorRun(PresentationRow caption, PresentationRow first)
+        {
+            return caption.Kind == WidgetKind.Label && caption.Source != null && caption.Source.Kind == WidgetKind.Label
+                && !string.IsNullOrWhiteSpace(caption.Label) && caption.Clip.Equals(first.Clip)
+                && ValueLabeledSlider.CaptionsOnRow(ToLineBox(caption.ScreenRect), ToLineBox(first.ScreenRect));
+        }
+
         private static bool IsTintClusterCandidate(PresentationRow row)
         {
             return row.Kind == WidgetKind.Button
@@ -221,12 +246,14 @@ namespace RimWorldAccess.Shell
                 && !row.Source.StepperButton
                 && row.Source.Composite == CompositeMember.None
                 && row.RingCaptureIndex == row.ActivateCaptureIndex
-                && !string.IsNullOrEmpty(row.Label);
+                && !string.IsNullOrEmpty(row.Label)
+                && GlyphButtonNames.Classify(row.Source.Label) == GlyphDirection.None
+                && !row.Source.LabelIsTextureName;
         }
 
         /// <summary>Next tile of the run: same clip, band and size, starting at a's right edge.
         /// The seam cap keeps side-by-side columns' selectors from merging.</summary>
-        private static bool TilesRightOf(PresentationRow a, PresentationRow b)
+        private static bool TilesRightOf(PresentationRow a, PresentationRow b, float seam)
         {
             if (a.Source == null || b.Source == null || !a.Clip.Equals(b.Clip))
             {
@@ -238,7 +265,7 @@ namespace RimWorldAccess.Shell
                 && Mathf.Abs(ra.height - rb.height) <= 1f
                 && Mathf.Abs(ra.width - rb.width) <= 1f
                 && rb.xMin >= ra.xMax - 1f
-                && rb.xMin <= ra.xMax + 4f;
+                && rb.xMin <= ra.xMax + seam;
         }
 
         /// <summary>

@@ -19,12 +19,7 @@ namespace RimWorldAccess
 
         internal static void RegisterWorker(string workerTypeName, IPawnColumnHandler handler)
         {
-            var surface = new ReflectionSurface(handler.GetType().Name);
-            Type workerType = surface.Type(workerTypeName);
-            if (surface.Ready)
-            {
-                PawnColumnHandlerRegistry.Register(workerType, handler);
-            }
+            CompatRegistration.PawnColumnHandler(workerTypeName, _ => handler);
         }
 
         public override void Activate(Harmony harmony)

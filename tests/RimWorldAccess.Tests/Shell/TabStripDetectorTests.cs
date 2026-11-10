@@ -477,4 +477,30 @@ public class TabStripDetectorTests
         List<TabStripDetector.TabTint> tints = new List<TabStripDetector.TabTint> { Tint(1f, 1f, 1f), Tint(0.5f, 0.5f, 0.5f) };
         Assert.Equal(-1, TabStripDetector.IndexOfDistinctTint(tints));
     }
+
+    [Fact]
+    public void IndexOfMarkedOption_TheOneButtonDrawnWithoutBackground()
+    {
+        var tints = new List<TabStripDetector.TabTint> { Tint(1f, 1f, 1f), Tint(1f, 1f, 1f), Tint(1f, 1f, 1f), Tint(1f, 1f, 1f) };
+        Assert.Equal(2, TabStripDetector.IndexOfMarkedOption(tints, new List<bool> { false, false, true, false }));
+        Assert.Equal(-1, TabStripDetector.IndexOfMarkedOption(tints, new List<bool> { true, false, true, false }));
+        Assert.Equal(-1, TabStripDetector.IndexOfMarkedOption(tints, new List<bool> { false, false, false, false }));
+    }
+
+    [Fact]
+    public void IndexOfMarkedOption_PairReadsTheTintedMemberAgainstWhite()
+    {
+        var bare = new List<bool> { false, false };
+        Assert.Equal(1, TabStripDetector.IndexOfMarkedOption(new List<TabStripDetector.TabTint> { Tint(1f, 1f, 1f), Tint(0f, 1f, 0f) }, bare));
+        Assert.Equal(0, TabStripDetector.IndexOfMarkedOption(new List<TabStripDetector.TabTint> { Tint(0f, 1f, 0f), Tint(1f, 1f, 1f) }, bare));
+        Assert.Equal(-1, TabStripDetector.IndexOfMarkedOption(new List<TabStripDetector.TabTint> { Tint(1f, 1f, 1f), Tint(1f, 1f, 1f) }, bare));
+        Assert.Equal(-1, TabStripDetector.IndexOfMarkedOption(new List<TabStripDetector.TabTint> { Tint(0.5f, 0.5f, 0.5f), Tint(0f, 1f, 0f) }, bare));
+    }
+
+    [Fact]
+    public void IndexOfMarkedOption_RunOfThreeFallsBackToTheDistinctTint()
+    {
+        var tints = new List<TabStripDetector.TabTint> { Tint(1f, 1f, 1f), Tint(0f, 1f, 0f), Tint(1f, 1f, 1f) };
+        Assert.Equal(1, TabStripDetector.IndexOfMarkedOption(tints, new List<bool> { false, false, false }));
+    }
 }

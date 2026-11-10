@@ -40,13 +40,11 @@ namespace RimWorldAccess
     {
         public readonly int Facing;
         public readonly float Quality;
-        public readonly string Phrase;
 
-        public FacingRating(int facing, float quality, string phrase)
+        public FacingRating(int facing, float quality)
         {
             Facing = facing;
             Quality = quality;
-            Phrase = phrase;
         }
     }
 

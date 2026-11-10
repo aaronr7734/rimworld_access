@@ -68,6 +68,7 @@ namespace RimWorldAccess.Shell
         private readonly List<StatsRow> statsRows = new List<StatsRow>();
         private readonly List<ScreenAction> actions = new List<ScreenAction>();
         private readonly TextFieldEditSession searchSession = new TextFieldEditSession();
+        private readonly ForeignQuickSearchRow searchRow;
         private int chipColumns;
         private bool pasteColumn;
 
@@ -89,6 +90,9 @@ namespace RimWorldAccess.Shell
         public ClOverviewScope(Window window)
         {
             this.window = window;
+            searchRow = new ForeignQuickSearchRow(searchSession, () => ClCompat.Overview.Search(window),
+                () => "RimWorldAccess.Compat.CompositableLoadouts.Overview.Search".Translate(),
+                () => ClCompat.Overview.FindPawns(window));
             Claim(SelectActionId, e => SelectOnly(), when: () => CursorPawn() != null);
             Claim(ToggleActionId, e => ToggleSelected(), when: () => CursorPawn() != null);
             Claim(RangeActionId, e => SelectRange(), when: () => CursorPawn() != null);
@@ -201,18 +205,7 @@ namespace RimWorldAccess.Shell
             }
             if (region == SearchRegion)
             {
-                d.Label = "RimWorldAccess.Compat.CompositableLoadouts.Overview.Search".Translate();
-                d.Role = ElementRole.TextField;
-                d.EntersEditOnAccept = true;
-                string text = ClCompat.Overview.Search(window)?.filter.Text;
-                if (text.NullOrEmpty())
-                {
-                    d.ValueBlank = true;
-                }
-                else
-                {
-                    d.Value = text;
-                }
+                searchRow.Describe(d);
                 d.Extras = CompatText.ModText("CompositableLoadouts.Overview.SearchDesc");
                 return d;
             }
@@ -868,29 +861,11 @@ namespace RimWorldAccess.Shell
 
         private void BeginSearchEdit()
         {
-            QuickSearchWidget search = ClCompat.Overview.Search(window);
-            if (search == null)
+            searchRow.BeginEdit(() =>
             {
-                return;
-            }
-            string label = "RimWorldAccess.Compat.CompositableLoadouts.Overview.Search".Translate();
-            searchSession.EnterEdit(search.filter.Text, new TextFieldSpec(labelKey: null, maxLength: search.maxSearchTextLength, minLength: 0),
-                label, SetSearch, () =>
-                {
-                    RefreshModel();
-                    AnnounceCurrentItem();
-                });
-        }
-
-        private void SetSearch(string value)
-        {
-            QuickSearchWidget search = ClCompat.Overview.Search(window);
-            if (search == null || search.filter.Text == (value ?? ""))
-            {
-                return;
-            }
-            search.filter.Text = value ?? ""; // MUTATION-C: mirrors QuickSearchWidget.OnGUI's text write and the window's onFilterChange (MainTabWindow_LoadoutOverview.cs:402)
-            ClCompat.Overview.FindPawns(window);
+                RefreshModel();
+                AnnounceCurrentItem();
+            });
         }
 
         // ---- Stats panel (Panel_PawnStats.Draw) ----

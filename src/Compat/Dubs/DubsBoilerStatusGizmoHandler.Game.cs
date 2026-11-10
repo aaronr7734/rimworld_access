@@ -12,7 +12,7 @@ namespace RimWorldAccess
     internal sealed class DubsBoilerStatusGizmoHandler : GizmoHandlerBase
     {
         private readonly FieldInfo boiler;
-        private readonly PropertyInfo props;
+        private readonly MethodInfo propsGetter;
         private readonly FieldInfo powerMode;
         private readonly FieldInfo gizmoLabel;
         private readonly FieldInfo powerModes;
@@ -25,7 +25,7 @@ namespace RimWorldAccess
             Type compType = surface.Type("DubsBadHygiene.CompBoiler");
             Type propsType = surface.Type("DubsBadHygiene.CompProperties_CompBoiler");
             boiler = surface.Field(gizmoType, "boiler");
-            props = surface.Property(compType, "Props");
+            propsGetter = surface.Property(compType, "Props")?.GetGetMethod();
             powerMode = surface.Field(compType, "PowerMode");
             gizmoLabel = surface.Field(propsType, "GizmoLabel");
             powerModes = surface.Field(propsType, "PowerModes");
@@ -34,7 +34,7 @@ namespace RimWorldAccess
 
         public override bool TryGetLabel(Gizmo gizmo, out string label)
         {
-            label = ready ? Guarded.FieldOf<string>(gizmoLabel, Props(gizmo), "DubsBoilerStatusGizmoHandler label") : null;
+            label = ready ? Guarded.FieldOf<string>(gizmoLabel, Props(boiler.GetValue(gizmo)), "DubsBoilerStatusGizmoHandler label") : null;
             return !string.IsNullOrEmpty(label);
         }
 
@@ -46,7 +46,7 @@ namespace RimWorldAccess
                 return false;
             }
             object comp = boiler.GetValue(gizmo);
-            object compProps = Props(gizmo);
+            object compProps = Props(comp);
             if (comp == null || compProps == null)
             {
                 return false;
@@ -56,10 +56,9 @@ namespace RimWorldAccess
             return true;
         }
 
-        private object Props(Gizmo gizmo)
+        private object Props(object comp)
         {
-            object comp = boiler.GetValue(gizmo);
-            return comp == null ? null : Guarded.Get<object>(props.GetGetMethod(), comp, "DubsBoilerStatusGizmoHandler props");
+            return comp == null ? null : Guarded.Get<object>(propsGetter, comp, "DubsBoilerStatusGizmoHandler props");
         }
     }
 }

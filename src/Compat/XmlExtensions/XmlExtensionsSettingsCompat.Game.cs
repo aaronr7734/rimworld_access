@@ -39,24 +39,28 @@ namespace RimWorldAccess
     {
         private const int NotRecorded = int.MinValue;
 
-        private static FieldInfo checkboxStyleField;
-        private static FieldInfo radioButtonStyleField;
-        private static FieldInfo radioButtonsStyleField;
+        // Field refs, not FieldInfo reads: every one of these is read per setting per frame.
+        // Enum fields read as their underlying int.
+        private static AccessTools.FieldRef<object, int> checkboxStyleField;
+        private static AccessTools.FieldRef<object, int> radioButtonStyleField;
+        private static AccessTools.FieldRef<object, int> radioButtonsStyleField;
+        private static AccessTools.FieldRef<object, int> collapsibleStateRef;
         private static FieldInfo collapsibleStateField;
-        private static FieldInfo collapsibleHeaderHeightField;
-        private static FieldInfo labelField;
-        private static FieldInfo tKeyField;
-        private static FieldInfo tooltipField;
-        private static FieldInfo tKeyTipField;
-        private static FieldInfo menuDefField;
-        private static FieldInfo searchTextField;
-        private static FieldInfo foundResultsField;
-        private static FieldInfo showCountField;
-        private static FieldInfo sliderDecimalsField;
-        private static FieldInfo rangeDecimalsField;
-        private static FieldInfo postDrawRectField;
-        private static FieldInfo childCollectionsField;
-        private static MethodInfo translateIfTKeyAvailable;
+        private static AccessTools.FieldRef<object, float> collapsibleHeaderHeightField;
+        private static AccessTools.FieldRef<object, string> labelField;
+        private static AccessTools.FieldRef<object, string> tKeyField;
+        private static AccessTools.FieldRef<object, string> tooltipField;
+        private static AccessTools.FieldRef<object, string> tKeyTipField;
+        private static AccessTools.FieldRef<object, object> menuDefField;
+        private static AccessTools.FieldRef<object, string> searchTextField;
+        private static AccessTools.FieldRef<object, int> foundResultsField;
+        private static AccessTools.FieldRef<object, bool> showCountField;
+        private static AccessTools.FieldRef<object, int> sliderDecimalsField;
+        private static AccessTools.FieldRef<object, int> rangeDecimalsField;
+        private static AccessTools.FieldRef<object, Rect?> postDrawRectField;
+        private static AccessTools.FieldRef<object, IDictionary> childCollectionsField;
+        private static Func<string, string, string> translateIfTKeyAvailable;
+        private static int stateOpenValue;
         private static object stateOpen;
         private static object stateClosed;
 
@@ -72,6 +76,17 @@ namespace RimWorldAccess
         /// </summary>
         private static object searchCountOwner;
         private static string searchCountText;
+
+        // The count's format in the active language, and the last count text built from it.
+        private static LoadedLanguage resultsFormatLanguage;
+        private static string resultsFormat;
+        private static string countText;
+        private static int countTextResults;
+
+        // The search box's name, rebuilt only when the result count or language changes.
+        private static LoadedLanguage searchboxNameLanguage;
+        private static string searchboxNameResults;
+        private static string searchboxName;
 
         /// <summary>The search-hit outlines drawn during the settings page now drawing, in screen space.</summary>
         private static readonly List<Rect> searchHitRects = new List<Rect>();
@@ -90,27 +105,27 @@ namespace RimWorldAccess
                 Type searchboxType = surface.Type("XmlExtensions.Setting.Searchbox");
                 Type menuDefType = surface.Type("XmlExtensions.SettingsMenuDef");
 
-                checkboxStyleField = surface.Field(checkboxType, "style");
-                radioButtonStyleField = surface.Field(radioButtonType, "style");
-                radioButtonsStyleField = surface.Field(radioButtonsType, "style");
-                collapsibleStateField = surface.Field(collapsibleType, "state");
-                collapsibleHeaderHeightField = surface.Field(collapsibleType, "headerHeight");
-                labelField = surface.Field(containerType, "label");
-                tKeyField = surface.Field(containerType, "tKey");
-                tooltipField = surface.Field(containerType, "tooltip");
-                tKeyTipField = surface.Field(containerType, "tKeyTip");
+                FieldInfo checkboxStyleInfo = surface.Field(checkboxType, "style");
+                FieldInfo radioButtonStyleInfo = surface.Field(radioButtonType, "style");
+                FieldInfo radioButtonsStyleInfo = surface.Field(radioButtonsType, "style");
+                FieldInfo stateInfo = surface.Field(collapsibleType, "state");
+                FieldInfo headerHeightInfo = surface.Field(collapsibleType, "headerHeight");
+                FieldInfo labelInfo = surface.Field(containerType, "label");
+                FieldInfo tKeyInfo = surface.Field(containerType, "tKey");
+                FieldInfo tooltipInfo = surface.Field(containerType, "tooltip");
+                FieldInfo tKeyTipInfo = surface.Field(containerType, "tKeyTip");
                 Type xmlContainer = surface.Type("XmlExtensions.Container");
-                menuDefField = surface.Field(xmlContainer, "menuDef");
-                searchTextField = surface.Field(menuDefType, "searchText");
-                foundResultsField = surface.Field(menuDefType, "foundResults");
-                showCountField = surface.Field(searchboxType, "showCount");
+                FieldInfo menuDefInfo = surface.Field(xmlContainer, "menuDef");
+                FieldInfo searchTextInfo = surface.Field(menuDefType, "searchText");
+                FieldInfo foundResultsInfo = surface.Field(menuDefType, "foundResults");
+                FieldInfo showCountInfo = surface.Field(searchboxType, "showCount");
                 Type sliderType = surface.Type("XmlExtensions.Setting.Slider");
                 Type rangeType = surface.Type("XmlExtensions.Setting.Range");
-                sliderDecimalsField = surface.Field(sliderType, "decimals");
-                rangeDecimalsField = surface.Field(rangeType, "decimals");
-                postDrawRectField = surface.Field(xmlContainer, "postDrawRect");
-                childCollectionsField = surface.Field(xmlContainer, "initializedContainerCollections");
-                translateIfTKeyAvailable = surface.Method(surface.Type("XmlExtensions.StringExtensions"),
+                FieldInfo sliderDecimalsInfo = surface.Field(sliderType, "decimals");
+                FieldInfo rangeDecimalsInfo = surface.Field(rangeType, "decimals");
+                FieldInfo postDrawRectInfo = surface.Field(xmlContainer, "postDrawRect");
+                FieldInfo childCollectionsInfo = surface.Field(xmlContainer, "initializedContainerCollections");
+                MethodInfo translate = surface.Method(surface.Type("XmlExtensions.StringExtensions"),
                     "TranslateIfTKeyAvailable", new[] { typeof(string), typeof(string) });
 
                 Type[] radioSignature = { typeof(Rect), typeof(string), typeof(bool), typeof(bool), typeof(string), typeof(float?) };
@@ -126,13 +141,34 @@ namespace RimWorldAccess
                 MethodInfo drawRange = surface.Method(rangeType, "DrawSettingContents", new[] { typeof(Rect) });
                 MethodInfo filterBox = surface.Method(containerType, "FilterBox", new[] { typeof(Rect) });
                 MethodInfo drawSettingsMenu = surface.Method(menuDefType, "DrawSettingsMenu", new[] { typeof(Rect) });
-                if (!surface.Ready || !stateType.IsEnum
-                    || !Enum.IsDefined(stateType, "Open") || !Enum.IsDefined(stateType, "Closed"))
+                stateOpen = surface.EnumValue(stateType, "Open");
+                stateClosed = surface.EnumValue(stateType, "Closed");
+                if (!surface.Ready)
                 {
                     return;
                 }
-                stateOpen = Enum.Parse(stateType, "Open");
-                stateClosed = Enum.Parse(stateType, "Closed");
+                stateOpenValue = Convert.ToInt32(stateOpen);
+
+                // Bound before any patch, so a field whose type moved leaves the mod unpatched.
+                checkboxStyleField = AccessTools.FieldRefAccess<object, int>(checkboxStyleInfo);
+                radioButtonStyleField = AccessTools.FieldRefAccess<object, int>(radioButtonStyleInfo);
+                radioButtonsStyleField = AccessTools.FieldRefAccess<object, int>(radioButtonsStyleInfo);
+                collapsibleStateField = stateInfo;
+                collapsibleStateRef = AccessTools.FieldRefAccess<object, int>(stateInfo);
+                collapsibleHeaderHeightField = AccessTools.FieldRefAccess<object, float>(headerHeightInfo);
+                labelField = AccessTools.FieldRefAccess<object, string>(labelInfo);
+                tKeyField = AccessTools.FieldRefAccess<object, string>(tKeyInfo);
+                tooltipField = AccessTools.FieldRefAccess<object, string>(tooltipInfo);
+                tKeyTipField = AccessTools.FieldRefAccess<object, string>(tKeyTipInfo);
+                menuDefField = AccessTools.FieldRefAccess<object, object>(menuDefInfo);
+                searchTextField = AccessTools.FieldRefAccess<object, string>(searchTextInfo);
+                foundResultsField = AccessTools.FieldRefAccess<object, int>(foundResultsInfo);
+                showCountField = AccessTools.FieldRefAccess<object, bool>(showCountInfo);
+                sliderDecimalsField = AccessTools.FieldRefAccess<object, int>(sliderDecimalsInfo);
+                rangeDecimalsField = AccessTools.FieldRefAccess<object, int>(rangeDecimalsInfo);
+                postDrawRectField = AccessTools.FieldRefAccess<object, Rect?>(postDrawRectInfo);
+                childCollectionsField = AccessTools.FieldRefAccess<object, IDictionary>(childCollectionsInfo);
+                translateIfTKeyAvailable = AccessTools.MethodDelegate<Func<string, string, string>>(translate);
 
                 harmony.Patch(drawCheckbox,
                     prefix: new HarmonyMethod(typeof(XmlExtensionsSettingsCompat), nameof(CheckboxPrefix)),
@@ -175,9 +211,9 @@ namespace RimWorldAccess
         }
 
         /// <summary>Every style enum in the mod lists its plain vanilla widget first.</summary>
-        private static bool DrawsVanillaWidget(FieldInfo styleField, object setting)
+        private static bool DrawsVanillaWidget(AccessTools.FieldRef<object, int> styleField, object setting)
         {
-            return Convert.ToInt32(styleField.GetValue(setting)) == 0;
+            return styleField(setting) == 0;
         }
 
         /// <summary>
@@ -224,7 +260,7 @@ namespace RimWorldAccess
             __state = BeginRadio(radioButtonsStyleField, __instance, rect, label, active, tooltip);
         }
 
-        private static int BeginRadio(FieldInfo styleField, object setting, Rect rect, string label, bool active, string tooltip)
+        private static int BeginRadio(AccessTools.FieldRef<object, int> styleField, object setting, Rect rect, string label, bool active, string tooltip)
         {
             if (DrawsVanillaWidget(styleField, setting))
             {
@@ -253,17 +289,17 @@ namespace RimWorldAccess
             return __exception;
         }
 
-        private static string Translated(object setting, FieldInfo text, FieldInfo key)
+        private static string Translated(object setting, AccessTools.FieldRef<object, string> text, AccessTools.FieldRef<object, string> key)
         {
-            return (string)translateIfTKeyAvailable.Invoke(null, new[] { text.GetValue(setting), key.GetValue(setting) });
+            return translateIfTKeyAvailable(text(setting), key(setting));
         }
 
         private static void CollapsiblePrefix(object __instance, Rect inRect, out bool __state)
         {
             __state = false;
             string label = Translated(__instance, labelField, tKeyField) ?? "";
-            Rect header = inRect.TopPartPixels((float)collapsibleHeaderHeightField.GetValue(__instance));
-            bool open = Equals(collapsibleStateField.GetValue(__instance), stateOpen);
+            Rect header = inRect.TopPartPixels(collapsibleHeaderHeightField(__instance));
+            bool open = collapsibleStateRef(__instance) == stateOpenValue;
             int level = collapsibleDepth;
 
             WidgetCapture.EnterListingTreeExpander(level);
@@ -309,12 +345,19 @@ namespace RimWorldAccess
 
         private static void SearchboxPrefix(object __instance)
         {
-            string name = "RimWorldAccess.Compat.XmlExtensions.Search".Translate();
-            if (__instance == searchCountOwner && !string.IsNullOrEmpty(searchCountText))
+            string results = __instance == searchCountOwner && !string.IsNullOrEmpty(searchCountText)
+                ? searchCountText
+                : null;
+            if (searchboxName == null || results != searchboxNameResults
+                || searchboxNameLanguage != LanguageDatabase.activeLanguage)
             {
-                name = "RimWorldAccess.Compat.XmlExtensions.SearchWithResults".Translate(searchCountText);
+                searchboxName = results == null
+                    ? "RimWorldAccess.Compat.XmlExtensions.Search".Translate()
+                    : "RimWorldAccess.Compat.XmlExtensions.SearchWithResults".Translate(results);
+                searchboxNameResults = results;
+                searchboxNameLanguage = LanguageDatabase.activeLanguage;
             }
-            WidgetCapture.EnterFieldLabel(name);
+            WidgetCapture.EnterFieldLabel(searchboxName);
         }
 
         private static Exception SearchboxFinalizer(Exception __exception)
@@ -326,17 +369,30 @@ namespace RimWorldAccess
         /// <summary>Mirrors the count Searchbox.PostDrawSettingContents draws, in the mod's own words.</summary>
         private static void SearchCountPrefix(object __instance)
         {
-            object menuDef = menuDefField.GetValue(__instance);
+            object menuDef = menuDefField(__instance);
             searchCountOwner = __instance;
             searchCountText = null;
-            if ((bool)showCountField.GetValue(__instance)
-                && !string.IsNullOrEmpty((string)searchTextField.GetValue(menuDef)))
+            if (showCountField(__instance) && !string.IsNullOrEmpty(searchTextField(menuDef)))
             {
-                string format = (string)translateIfTKeyAvailable.Invoke(null,
-                    new object[] { "{0} Result(s)", "XmlExtensions_SearchResults" });
-                searchCountText = format.Replace("{0}", foundResultsField.GetValue(menuDef).ToString());
+                searchCountText = CountText(foundResultsField(menuDef));
             }
             WidgetCapture.EnterFilterPanelSuppression();
+        }
+
+        private static string CountText(int results)
+        {
+            if (resultsFormat == null || resultsFormatLanguage != LanguageDatabase.activeLanguage)
+            {
+                resultsFormat = translateIfTKeyAvailable("{0} Result(s)", "XmlExtensions_SearchResults");
+                resultsFormatLanguage = LanguageDatabase.activeLanguage;
+                countText = null;
+            }
+            if (countText == null || countTextResults != results)
+            {
+                countText = resultsFormat.Replace("{0}", results.ToString());
+                countTextResults = results;
+            }
+            return countText;
         }
 
         private static Exception SearchCountFinalizer(Exception __exception)
@@ -356,9 +412,9 @@ namespace RimWorldAccess
         }
 
         /// <summary>The setting saves Math.Round(value, decimals), so one unit in that last place is its grid.</summary>
-        private static double DecimalGrid(FieldInfo decimalsField, object setting)
+        private static double DecimalGrid(AccessTools.FieldRef<object, int> decimalsField, object setting)
         {
-            int decimals = Mathf.Clamp((int)decimalsField.GetValue(setting), 0, 15);
+            int decimals = Mathf.Clamp(decimalsField(setting), 0, 15);
             return Math.Pow(10.0, -decimals);
         }
 
@@ -388,8 +444,8 @@ namespace RimWorldAccess
         /// </summary>
         private static void FilterBoxPrefix(object __instance, Rect inRect)
         {
-            Rect? whole = (Rect?)postDrawRectField.GetValue(__instance);
-            bool enclosesChildren = ((IDictionary)childCollectionsField.GetValue(__instance)).Count > 0
+            Rect? whole = postDrawRectField(__instance);
+            bool enclosesChildren = childCollectionsField(__instance).Count > 0
                 && whole.HasValue && whole.Value == inRect;
             if (!enclosesChildren)
             {

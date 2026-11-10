@@ -434,7 +434,7 @@ namespace RimWorldAccess
         /// already knows what it is inspecting gets the identical lazy-property discipline. Swaps
         /// only when the owner is a Thing and is not already single-selected.
         /// </summary>
-        private static T WithSelectableSelected<T>(ISelectable owner, System.Func<T> body)
+        internal static T WithSelectableSelected<T>(ISelectable owner, System.Func<T> body)
         {
             if (Find.Selector == null || !(owner is Thing thingOwner))
                 return body();
@@ -464,17 +464,33 @@ namespace RimWorldAccess
 
         /// <summary>
         /// A gizmo's label. Handler-owned labels resolve through the registry; anything
-        /// unregistered falls back to a cleaned-up type name.
+        /// unregistered takes the title its own draw shows, else a cleaned-up type name.
         /// </summary>
         internal static string GetGizmoLabel(Gizmo gizmo)
         {
             if (GizmoHandlerRegistry.TryResolveLabel(gizmo, out string handlerLabel))
                 return handlerLabel;
 
+            bool captured = TryGetDrawReading(gizmo, out GizmoDrawReading reading);
+            if (captured && !string.IsNullOrEmpty(reading.Title))
+                return reading.Title;
+
 #if DEBUG
-            InspectionSelfAudit.NoteLabelFallback(gizmo.GetType());
+            if (!captured)
+                InspectionSelfAudit.NoteLabelFallback(gizmo.GetType());
 #endif
             return CleanupGizmoTypeName(gizmo.GetType().Name);
+        }
+
+        /// <summary>The cached capture of an unhandled gizmo's own draw; the owner is the menu's, else the single selection.</summary>
+        private static bool TryGetDrawReading(Gizmo gizmo, out GizmoDrawReading reading)
+        {
+            ISelectable owner = null;
+            if (gizmoOwners != null)
+                gizmoOwners.TryGetValue(gizmo, out owner);
+            if (owner == null && Find.Selector != null && Find.Selector.NumSelected == 1)
+                owner = Find.Selector.SingleSelectedObject as ISelectable;
+            return GizmoDrawCapture.TryGet(gizmo, owner, out reading);
         }
 
         /// <summary>Turns "Gizmo_SomethingCamelCase" into "Something Camel Case".</summary>
@@ -507,9 +523,9 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetGizmoStatusValue(Gizmo gizmo)
         {
-            return GizmoHandlerRegistry.TryResolveStatus(gizmo, out string handlerStatus)
-                ? handlerStatus
-                : "";
+            if (GizmoHandlerRegistry.TryResolveStatus(gizmo, out string handlerStatus))
+                return handlerStatus;
+            return TryGetDrawReading(gizmo, out GizmoDrawReading reading) ? reading.Readout ?? "" : "";
         }
 
         /// <summary>
@@ -650,9 +666,9 @@ namespace RimWorldAccess
         /// </summary>
         private static string GetGizmoDescription(Gizmo gizmo)
         {
-            return GizmoHandlerRegistry.TryResolveDescription(gizmo, out string handlerDescription)
-                ? GizmoTextUtility.FlattenNewlines(handlerDescription)
-                : "";
+            if (GizmoHandlerRegistry.TryResolveDescription(gizmo, out string handlerDescription))
+                return GizmoTextUtility.FlattenNewlines(handlerDescription);
+            return TryGetDrawReading(gizmo, out GizmoDrawReading reading) ? reading.Tip ?? "" : "";
         }
 
         /// <summary>A gizmo's hotkey text.</summary>

@@ -11,6 +11,18 @@ namespace RimWorldAccess.Shell
     /// </summary>
     internal static class CompatText
     {
+        private static readonly Dictionary<string, string> modTitles = new Dictionary<string, string>();
+
+        public static string ModTitle(string packageId, string fallback = null)
+        {
+            if (!modTitles.TryGetValue(packageId, out string title))
+            {
+                title = ModLister.GetActiveModWithIdentifier(packageId, ignorePostfix: true)?.Name ?? fallback ?? packageId;
+                modTitles[packageId] = title;
+            }
+            return title;
+        }
+
         /// <summary>The mod's own keys resolved through its own Keyed data; RWA keys keep using .Translate directly.</summary>
         public static string ModText(string key)
         {

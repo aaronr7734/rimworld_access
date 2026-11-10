@@ -1485,4 +1485,9 @@
   <RimWorldAccess.Inspection.Summary.Plan>{0}{1}</RimWorldAccess.Inspection.Summary.Plan>
   <RimWorldAccess.Inspection.CategoryName.PlanRename>重命名</RimWorldAccess.Inspection.CategoryName.PlanRename>
   <RimWorldAccess.Inspection.Need.HeadingToward>趋向 {0}</RimWorldAccess.Inspection.Need.HeadingToward>
+
+  <!-- InspectRows: tab-adapter control rows. {0} = a label drawn beside its value (it carries its own colon), {1} = the value. -->
+  <RimWorldAccess.Inspection.Row.StatLine>{0} {1}</RimWorldAccess.Inspection.Row.StatLine>
+  <!-- {0} = what a row is (a picker, a meal), {1} = its current value or the names behind it. -->
+  <RimWorldAccess.Inspection.Row.LabeledValue>{0}: {1}</RimWorldAccess.Inspection.Row.LabeledValue>
 </LanguageData>

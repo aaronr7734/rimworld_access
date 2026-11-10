@@ -364,3 +364,5 @@ Hair, beard and tattoo descriptions (`RimWorldAccess_StyleDescriptions.xml`); ke
 | look / appearance | aspecto (pre-AO90) | aspeto, visual |
 | mop (of hair) | cabeleira | mecha, madeixa ("madeixa" is a single lock) |
 | progressive participle clauses | a + infinitive ("a cair", "a emoldurar") or a relative clause; bare gerunds read Brazilian | caindo, emoldurando |
+
+Hospitality/Gastronomy/Storefront tabs: guest = Visitante (Core `TabGuest`), Dining tab = Refeições, shop = Loja, unpaid bill (Gastronomy debt) = conta, menu = Ementa, stock = stock (pre-AO90 "actual/Acção" kept).

@@ -16,10 +16,7 @@ namespace RimWorldAccess.Shell
             return DumpScreenAt(0);
         }
 
-        /// <summary>
-        /// Full surface dump of the scope <paramref name="depthFromTop"/> layers below the top
-        /// (0 = the top itself, matching <see cref="DumpScreen"/>).
-        /// </summary>
+        /// <summary>Full surface dump of the scope <paramref name="depthFromTop"/> layers below the top (0 = the top itself).</summary>
         public static string DumpScreenAt(int depthFromTop)
         {
             System.Collections.Generic.IReadOnlyList<FocusScope> scopes = FocusStack.ScopesBottomUp;
@@ -37,6 +34,24 @@ namespace RimWorldAccess.Shell
               .Append(" stackDepth=").Append(count)
               .Append('\n').Append(scope.DebugDescribeSurface());
             return sb.ToString();
+        }
+
+        /// <summary>The raw capture rows, in draw order, behind a generic window scope's <see cref="DumpScreenAt"/> rows.</summary>
+        public static string DumpCaptureRows(int depthFromTop = 0)
+        {
+            System.Collections.Generic.IReadOnlyList<FocusScope> scopes = FocusStack.ScopesBottomUp;
+            int index = scopes.Count - 1 - depthFromTop;
+            if (index < 0 || index >= scopes.Count)
+            {
+                string outOfRange = "(no scope at depth " + depthFromTop + "; stack depth " + scopes.Count + ")";
+                return outOfRange;
+            }
+            GenericWindowScope generic = scopes[index] as GenericWindowScope;
+            if (generic == null)
+            {
+                return "(scope " + scopes[index].Name + " is not a generic window scope)";
+            }
+            return generic.DebugDescribeCaptureRows();
         }
 
         /// <summary>

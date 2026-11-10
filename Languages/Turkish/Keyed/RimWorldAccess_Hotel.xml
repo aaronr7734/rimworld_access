@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- HospitalityGuestTabAdapter: Hospitality's Guest inspect tab. Labels and tooltips are the
+       mod's own keys; these cover only what the mod draws without a string of its own. -->
+  <RimWorldAccess.Compat.Hospitality.GuestTabName>Misafir</RimWorldAccess.Compat.Hospitality.GuestTabName>
+  <!-- A progress bar: {0} = the label drawn beside it, {1} = how full the bar is, as a percent. -->
+  <RimWorldAccess.Compat.Hospitality.BarLine>{0} {1}</RimWorldAccess.Compat.Hospitality.BarLine>
+  <RimWorldAccess.Compat.Hospitality.DefaultsApplied>Tüm mevcut ve gelecekteki ziyaretçilere uygulandı.</RimWorldAccess.Compat.Hospitality.DefaultsApplied>
+  <RimWorldAccess.Compat.Hospitality.ActionFailed>İşlem başarısız.</RimWorldAccess.Compat.Hospitality.ActionFailed>
+  <!-- HospitalitySocialBarsExtender: the coloured bars Hospitality paints behind colonist rows on a guest's Social tab.
+       {0} = colonist, {1} = the guest's opinion of them, {2} = how full the bar is. -->
+  <RimWorldAccess.Compat.Hospitality.FriendshipBars>Koloniye alma dostlukları</RimWorldAccess.Compat.Hospitality.FriendshipBars>
+  <RimWorldAccess.Compat.Hospitality.FriendBar>{0}: görüş {1}, dostluk {2}</RimWorldAccess.Compat.Hospitality.FriendBar>
+  <RimWorldAccess.Compat.Hospitality.EnemyBar>{0}: görüş {1}, rekabet {2}</RimWorldAccess.Compat.Hospitality.EnemyBar>
+  <RimWorldAccess.Compat.Hospitality.NoFriendshipBars>Henüz kolonici görüşü yok.</RimWorldAccess.Compat.Hospitality.NoFriendshipBars>
+
+  <!-- GastronomyRestaurantTabAdapter: Gastronomy's Dining tab on a cash register. -->
+  <RimWorldAccess.Compat.Gastronomy.TabName>Yemek</RimWorldAccess.Compat.Gastronomy.TabName>
+  <RimWorldAccess.Compat.Gastronomy.RestaurantPicker>Lokanta</RimWorldAccess.Compat.Gastronomy.RestaurantPicker>
+  <RimWorldAccess.Compat.Gastronomy.RestaurantAdded>{0} eklendi.</RimWorldAccess.Compat.Gastronomy.RestaurantAdded>
+  <!-- One stocked meal: {0} = count, {1} = meal name, {2} = price. -->
+  <RimWorldAccess.Compat.Gastronomy.StockEntry>{0}x {1} ({2})</RimWorldAccess.Compat.Gastronomy.StockEntry>
+  <RimWorldAccess.Compat.Gastronomy.NoDebts>Ödenmemiş hesap yok.</RimWorldAccess.Compat.Gastronomy.NoDebts>
+  <RimWorldAccess.Compat.Gastronomy.DebtCleared>Hesap silindi.</RimWorldAccess.Compat.Gastronomy.DebtCleared>
+  <RimWorldAccess.Compat.Gastronomy.MenuFilter>Menü</RimWorldAccess.Compat.Gastronomy.MenuFilter>
+
+  <!-- StorefrontStoreTabAdapter: Hospitality: Storefront's Shop tab on a cash register. -->
+  <RimWorldAccess.Compat.Storefront.TabName>Dükkân</RimWorldAccess.Compat.Storefront.TabName>
+  <!-- One stocked item: {0} = count, {1} = item name. -->
+  <RimWorldAccess.Compat.Storefront.StockEntry>{0}x {1}</RimWorldAccess.Compat.Storefront.StockEntry>
+  <RimWorldAccess.Compat.Storefront.StockLine>Stok: {0}</RimWorldAccess.Compat.Storefront.StockLine>
+  <RimWorldAccess.Compat.Storefront.NoStock>Stok: yok.</RimWorldAccess.Compat.Storefront.NoStock>
+  <RimWorldAccess.Compat.Storefront.StoreFilter>Satılık eşyalar</RimWorldAccess.Compat.Storefront.StoreFilter>
+</LanguageData>

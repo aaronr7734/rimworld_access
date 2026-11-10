@@ -256,10 +256,8 @@ namespace RimWorldAccess
                 assignmentModeNames.AddRange(NamesOf(assignmentModeValues));
                 demandAggregationValues = EnumValues(demandAggregationType);
                 demandAggregationNames.AddRange(NamesOf(demandAggregationValues));
-                productionModeMaintainStock = surface.Required("ProductionMode.MaintainStock",
-                    EnumValue(productionModeType, "MaintainStock"));
-                productionModeConsumeSurplus = surface.Required("ProductionMode.ConsumeSurplus",
-                    EnumValue(productionModeType, "ConsumeSurplus"));
+                productionModeMaintainStock = surface.EnumValue(productionModeType, "MaintainStock");
+                productionModeConsumeSurplus = surface.EnumValue(productionModeType, "ConsumeSurplus");
 
                 ready = surface.Ready;
             }
@@ -1418,15 +1416,6 @@ namespace RimWorldAccess
                     boxed[i] = values.GetValue(i);
                 }
                 return boxed;
-            }
-
-            private static object EnumValue(Type enumType, string name)
-            {
-                if (enumType == null || !enumType.IsEnum || !Enum.IsDefined(enumType, name))
-                {
-                    return null;
-                }
-                return Enum.Parse(enumType, name);
             }
 
             private static List<string> NamesOf(object[] values)

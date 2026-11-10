@@ -1044,3 +1044,5 @@ record here so later waves stay consistent instead of re-deriving these. The glo
 | Timeline (RimTalk memory region) | Linha do tempo | Standard UI term |
 | Customize (Vehicle Framework tab) | Personalizar | Mirrors the English verb as a tab label |
 | tick (RimTalk debug) | tick | Kept as a loanword, a game-engine unit |
+
+Hospitality/Gastronomy/Storefront tabs: guest = Convidado (Core `TabGuest`), Dining tab = Refeições, shop = Loja, unpaid bill (Gastronomy debt) = conta (Gastronomy BR: "Contas não pagas"), menu = Cardápio, stock = estoque.

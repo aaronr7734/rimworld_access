@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using RimWorld;
@@ -33,8 +32,6 @@ namespace RimWorldAccess
         private readonly MethodInfo minRecruitOpinion;   // GuestUtility.GetMinRecruitOpinion(Pawn)
         private readonly MethodInfo visitScore;          // GuestUtility.GetVisitScore(Pawn, out float)
         private readonly MethodInfo mayRecruitNow;       // GuestUtility.MayRecruitRightNow(Pawn)
-        private readonly MethodInfo getAreas;            // GuestUtility.GetAreas(Map)
-        private readonly MethodInfo shoppingLabel;       // GenericUtility.GetShoppingLabel(Area)
         private readonly MethodInfo recruitDialog;       // ITab_Pawn_Guest.RecruitDialog(Pawn, bool)
         private readonly MethodInfo setAllDefaults;      // ITab_Pawn_Guest.SetAllDefaults(Pawn)
         private readonly MethodInfo sendHomeDialog;      // ITab_Pawn_Guest.SendHomeDialog(Lord)
@@ -46,6 +43,7 @@ namespace RimWorldAccess
         private readonly PropertyInfo onlyByForce;       // CompGuest.WillOnlyJoinByForce
         private readonly PropertyInfo guestArea;         // CompGuest.GuestArea
         private readonly PropertyInfo shoppingArea;      // CompGuest.ShoppingArea
+        private readonly HospitalityAreas areas;
 
         private readonly bool ready;
         private InspectTabBase sharedTab;
@@ -58,7 +56,6 @@ namespace RimWorldAccess
             surface.Supplied("Hospitality.ITab_Pawn_Guest", tabType);
             Type guestUtility = surface.Type("Hospitality.Utilities.GuestUtility");
             Type compUtility = surface.Type("Hospitality.Utilities.CompUtility");
-            Type genericUtility = surface.Type("Hospitality.Utilities.GenericUtility");
             Type compGuest = surface.Type("Hospitality.CompGuest");
             Type[] pawnArg = { typeof(Pawn) };
 
@@ -73,8 +70,6 @@ namespace RimWorldAccess
             minRecruitOpinion = surface.Method(guestUtility, "GetMinRecruitOpinion", pawnArg);
             visitScore = surface.Method(guestUtility, "GetVisitScore", new[] { typeof(Pawn), typeof(float).MakeByRefType() });
             mayRecruitNow = surface.Method(guestUtility, "MayRecruitRightNow", pawnArg);
-            getAreas = surface.Method(guestUtility, "GetAreas", new[] { typeof(Map) });
-            shoppingLabel = surface.Method(genericUtility, "GetShoppingLabel", new[] { typeof(Area) });
             recruitDialog = surface.Method(tabType, "RecruitDialog", new[] { typeof(Pawn), typeof(bool) });
             setAllDefaults = surface.Method(tabType, "SetAllDefaults", pawnArg);
             sendHomeDialog = surface.Method(tabType, "SendHomeDialog", new[] { typeof(Lord) });
@@ -86,6 +81,7 @@ namespace RimWorldAccess
             onlyByForce = surface.Property(compGuest, "WillOnlyJoinByForce");
             guestArea = surface.Property(compGuest, "GuestArea");
             shoppingArea = surface.Property(compGuest, "ShoppingArea");
+            areas = new HospitalityAreas(surface);
             ready = surface.Ready;
         }
 
@@ -130,7 +126,7 @@ namespace RimWorldAccess
             {
                 if ((bool)isTrader.Invoke(null, new object[] { pawn, true }))
                 {
-                    HotelTreeRows.Info(categoryItem, () => CompatText.ModAdjustedFor("IsATrader", pawn));
+                    InspectRows.Info(categoryItem, () => CompatText.ModAdjustedFor("IsATrader", pawn));
                     return;
                 }
                 object comp = compGuestOf.Invoke(null, new object[] { pawn });
@@ -150,17 +146,17 @@ namespace RimWorldAccess
         {
             Func<Area> stay = () => (Area)guestArea.GetValue(comp, null);
             Func<Area> shop = () => (Area)shoppingArea.GetValue(comp, null);
-            HotelTreeRows.RadioGroup(parent, CompatText.ModText("AreaToStay"), () => StayLabel(stay()),
-                CompatText.ModTip("AreaToStayTooltip"), () => AreaChoices(pawn, StayLabel, stay, setAreaRestriction), mode);
-            HotelTreeRows.RadioGroup(parent, CompatText.ModText("AreaToBuy"), () => ShoppingLabel(shop()),
-                CompatText.ModTip("AreaToBuyTooltip"), () => AreaChoices(pawn, ShoppingLabel, shop, setAreaShopping), mode);
+            InspectRows.RadioGroup(parent, CompatText.ModText("AreaToStay"), () => HospitalityAreas.StayLabel(stay()),
+                CompatText.ModTip("AreaToStayTooltip"), () => AreaChoices(pawn, HospitalityAreas.StayLabel, stay, setAreaRestriction), mode);
+            InspectRows.RadioGroup(parent, CompatText.ModText("AreaToBuy"), () => areas.ShoppingLabel(shop()),
+                CompatText.ModTip("AreaToBuyTooltip"), () => AreaChoices(pawn, areas.ShoppingLabel, shop, setAreaShopping), mode);
 
             // MUTATION-C: mirrors ITab_Pawn_Guest.FillTabGuest, which copies its two CheckboxLabeled refs
             // straight into CompGuest.entertain/makeFriends; the column workers' setters need a live PawnTable.
-            HotelTreeRows.Checkbox(parent, CompatText.ModText("ImproveRelationship"), CompatText.ModTip("ImproveTooltip"),
+            InspectRows.Checkbox(parent, CompatText.ModText("ImproveRelationship"), CompatText.ModTip("ImproveTooltip"),
                 () => (bool)entertainField.GetValue(comp), v => entertainField.SetValue(comp, v), mode);
             // MUTATION-C: same inline write as the checkbox above.
-            HotelTreeRows.Checkbox(parent, CompatText.ModText("MakeFriends"), CompatText.ModTip("TryRecruitTooltip"),
+            InspectRows.Checkbox(parent, CompatText.ModText("MakeFriends"), CompatText.ModTip("TryRecruitTooltip"),
                 () => (bool)makeFriendsField.GetValue(comp), v => makeFriendsField.SetValue(comp, v), mode);
 
             InspectionTreeItem makeDefault = HotelTreeRows.Button(parent, CompatText.ModText("MakeDefault"),
@@ -174,11 +170,11 @@ namespace RimWorldAccess
 
         private void BuildStatus(InspectionTreeItem parent, Pawn pawn, object comp)
         {
-            HotelTreeRows.Info(parent, () => PenaltyLine(pawn, comp));
-            HotelTreeRows.Info(parent, () => GoodwillLine(pawn));
-            HotelTreeRows.Info(parent, () => FriendsBarLine(pawn, comp));
-            HotelTreeRows.Info(parent, () => StatusLine(pawn, comp));
-            HotelTreeRows.Info(parent, () => HospitalityBarLine(pawn));
+            InspectRows.Info(parent, () => PenaltyLine(pawn, comp));
+            InspectRows.Info(parent, () => GoodwillLine(pawn));
+            InspectRows.Info(parent, () => FriendsBarLine(pawn, comp));
+            InspectRows.Info(parent, () => StatusLine(pawn, comp));
+            InspectRows.Info(parent, () => HospitalityBarLine(pawn));
             parent.Children.RemoveAll(c => string.IsNullOrEmpty(c.Label));
         }
 
@@ -203,7 +199,7 @@ namespace RimWorldAccess
             {
                 return null;
             }
-            return HotelTreeRows.LabeledValue(CompatText.ModText("FactionGoodwill"), faction.PlayerGoodwill.ToString("##0"));
+            return InspectRows.LabeledValue(CompatText.ModText("FactionGoodwill"), faction.PlayerGoodwill.ToString("##0"));
         }
 
         private string FriendsBarLine(Pawn pawn, object comp)
@@ -212,7 +208,7 @@ namespace RimWorldAccess
             {
                 return null;
             }
-            bool royal = IsRoyal(pawn);
+            bool royal = HospitalityCompat.HasRoyalTitle(pawn);
             int have = Friends(pawn, royal);
             int need = Required(pawn, royal);
             string label = royal
@@ -232,7 +228,7 @@ namespace RimWorldAccess
             {
                 return CompatText.ModAdjustedFor("OnlyJoinsByForce", pawn).StripTags();
             }
-            bool royal = IsRoyal(pawn);
+            bool royal = HospitalityCompat.HasRoyalTitle(pawn);
             int need = Required(pawn, royal);
             float percent = 100f * Friends(pawn, royal) / need;
             if (percent <= 99f)
@@ -263,7 +259,7 @@ namespace RimWorldAccess
 
         private RecruitButton RecruitState(Pawn pawn, object comp)
         {
-            bool royal = IsRoyal(pawn);
+            bool royal = HospitalityCompat.HasRoyalTitle(pawn);
             bool byForce = OnlyByForce(comp);
             bool blocked = !Invoke<bool>(mayRecruitNow, pawn) || CanNeverRecruit(pawn, comp);
             bool enoughFriends = Friends(pawn, royal) >= Required(pawn, royal);
@@ -306,7 +302,7 @@ namespace RimWorldAccess
 
         private void OnRecruit(Pawn pawn, object comp)
         {
-            try
+            HotelTreeRows.RunGuarded("HospitalityGuestTabAdapter recruit", () =>
             {
                 RecruitButton state = RecruitState(pawn, comp);
                 if (state.DisabledReason != null)
@@ -317,66 +313,40 @@ namespace RimWorldAccess
                 }
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera();
                 recruitDialog.Invoke(null, new object[] { pawn, state.Forced });
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"HospitalityGuestTabAdapter recruit failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.ActionFailed".Loc());
-            }
+            });
         }
 
         private void OnMakeDefault(Pawn pawn)
         {
-            try
+            HotelTreeRows.RunGuarded("HospitalityGuestTabAdapter make default", () =>
             {
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera();
                 setAllDefaults.Invoke(null, new object[] { pawn });
                 TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.DefaultsApplied".Loc());
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"HospitalityGuestTabAdapter make default failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.ActionFailed".Loc());
-            }
+            });
         }
 
         private void OnSendAway(Pawn pawn)
         {
-            try
+            HotelTreeRows.RunGuarded("HospitalityGuestTabAdapter send away", () =>
             {
                 SoundDefOf.Designate_DragStandard_Changed.PlayOneShotOnCamera();
                 sendHomeDialog.Invoke(null, new object[] { pawn.GetLord() });
-            }
-            catch (Exception ex)
-            {
-                ModLogger.Error($"HospitalityGuestTabAdapter send away failed: {ex.Message}");
-                TolkHelper.Speak("RimWorldAccess.Compat.Hospitality.ActionFailed".Loc());
-            }
+            });
         }
 
         /// <summary>
-        /// The strip's cells in its own order (none first, then GuestUtility.GetAreas), each writing
-        /// through the tab's own group-wide setter. That setter reads the selected pawn, so the guest is
+        /// The strip's cells, each writing through the tab's own group-wide setter. That setter reads the selected pawn, so the guest is
         /// reselected first, as the tree builder itself does before reading tabs.
         /// </summary>
-        private List<HotelTreeRows.RadioChoice> AreaChoices(Pawn pawn, Func<Area, string> labelOf, Func<Area> current, MethodInfo tabSetter)
+        private List<InspectRows.RadioChoice> AreaChoices(Pawn pawn, Func<Area, string> labelOf, Func<Area> current, MethodInfo tabSetter)
         {
-            var areas = new List<Area> { null };
-            if (pawn.MapHeld != null && getAreas.Invoke(null, new object[] { pawn.MapHeld }) is IEnumerable mapAreas)
-            {
-                foreach (object area in mapAreas)
-                {
-                    if (area is Area a)
-                    {
-                        areas.Add(a);
-                    }
-                }
-            }
-            var choices = new List<HotelTreeRows.RadioChoice>(areas.Count);
-            foreach (Area area in areas)
+            List<Area> cells = areas.Choices(pawn.MapHeld);
+            var choices = new List<InspectRows.RadioChoice>(cells.Count);
+            foreach (Area area in cells)
             {
                 Area chosen = area;
-                choices.Add(new HotelTreeRows.RadioChoice
+                choices.Add(new InspectRows.RadioChoice
                 {
                     Label = labelOf(chosen),
                     IsSelected = () => current() == chosen,
@@ -395,21 +365,6 @@ namespace RimWorldAccess
             return choices;
         }
 
-        private static string StayLabel(Area area)
-        {
-            return AreaUtility.AreaAllowedLabel_Area(area).StripTags();
-        }
-
-        private string ShoppingLabel(Area area)
-        {
-            return ((string)shoppingLabel.Invoke(null, new object[] { area })).StripTags();
-        }
-
-        private static bool IsRoyal(Pawn pawn)
-        {
-            return pawn.royalty?.MostSeniorTitle != null;
-        }
-
         private bool OnlyByForce(object comp)
         {
             return (bool)onlyByForce.GetValue(comp, null);
@@ -419,7 +374,7 @@ namespace RimWorldAccess
         private bool CanNeverRecruit(Pawn pawn, object comp)
         {
             Faction faction = pawn.Faction;
-            return (faction != null && !faction.HasGoodwill) || (IsRoyal(pawn) && OnlyByForce(comp));
+            return (faction != null && !faction.HasGoodwill) || (HospitalityCompat.HasRoyalTitle(pawn) && OnlyByForce(comp));
         }
 
         private int Friends(Pawn pawn, bool royal)

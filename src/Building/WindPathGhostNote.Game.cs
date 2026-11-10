@@ -25,25 +25,28 @@ namespace RimWorldAccess
             Map map = Find.CurrentMap;
             if (map == null)
                 return;
-            PlacementHelpSpeech.CollectOutline(Rate(map, windCells, reductionPerObstacle, stopsInVacuum).Phrase);
+            PlacementHelpSpeech.CollectOutline(Rate(map, windCells, reductionPerObstacle, stopsInVacuum, describe: true).Phrase);
         }
 
         /// <summary>A placement-spot rating factory for a building whose wind cells come from <paramref name="windCells"/>.</summary>
-        public static Func<ThingDef, Map, Func<IntVec3, Rot4, PlacementQuality>> RatingFactory(
+        public static Func<ThingDef, Map, PlacementRating> RatingFactory(
             Func<IntVec3, Rot4, IntVec2, IEnumerable<IntVec3>> windCells, float reductionPerObstacle, bool stopsInVacuum)
         {
-            return (def, map) => (cell, rotation) =>
-                Rate(map, windCells(cell, rotation, def.size), reductionPerObstacle, stopsInVacuum);
+            return (def, map) => (cell, rotation, describe) =>
+                Rate(map, windCells(cell, rotation, def.size), reductionPerObstacle, stopsInVacuum, describe);
         }
 
-        /// <summary>The share of full output left after obstructions, and the phrase naming them.</summary>
-        public static PlacementQuality Rate(Map map, IEnumerable<IntVec3> windCells, float reductionPerObstacle, bool stopsInVacuum)
+        /// <summary>The share of full output left after obstructions, and, when <paramref name="describe"/>,
+        /// the phrase naming them.</summary>
+        public static PlacementQuality Rate(Map map, IEnumerable<IntVec3> windCells, float reductionPerObstacle,
+            bool stopsInVacuum, bool describe)
         {
             if (stopsInVacuum && map.Biome.inVacuum)
-                return new PlacementQuality(0f, "RimWorldAccess.Building.Place.WindNoneInVacuum".Translate());
+                return new PlacementQuality(0f, describe ? (string)"RimWorldAccess.Building.Place.WindNoneInVacuum".Translate() : null);
 
-            var countByBlocker = new Dictionary<string, int>();
-            var blockerOrder = new List<string>();
+            // Only a described spot needs the blockers named.
+            Dictionary<string, int> countByBlocker = describe ? new Dictionary<string, int>() : null;
+            List<string> blockerOrder = describe ? new List<string>() : null;
             int blocked = 0;
             foreach (IntVec3 cell in windCells)
             {
@@ -54,6 +57,8 @@ namespace RimWorldAccess
                 if (blocker == null)
                     continue;
                 blocked++;
+                if (!describe)
+                    continue;
                 if (countByBlocker.TryGetValue(blocker, out int count))
                 {
                     countByBlocker[blocker] = count + 1;
@@ -64,6 +69,11 @@ namespace RimWorldAccess
                     blockerOrder.Add(blocker);
                 }
             }
+
+            float reduction = Mathf.Min(1f, blocked * reductionPerObstacle);
+            float score = reduction >= 1f ? 0f : 1f - reduction;
+            if (!describe)
+                return new PlacementQuality(score, null);
 
             if (blocked == 0)
                 return new PlacementQuality(PlacementSpotRanking.FullQuality, "RimWorldAccess.Building.Place.WindPathClear".Translate());
@@ -78,10 +88,9 @@ namespace RimWorldAccess
             }
             string blockerList = blockers.ToCommaList(useAnd: true);
 
-            float reduction = Mathf.Min(1f, blocked * reductionPerObstacle);
             return reduction >= 1f
-                ? new PlacementQuality(0f, "RimWorldAccess.Building.Place.WindPathBlockedNoOutput".Translate(blockerList))
-                : new PlacementQuality(1f - reduction,
+                ? new PlacementQuality(score, "RimWorldAccess.Building.Place.WindPathBlockedNoOutput".Translate(blockerList))
+                : new PlacementQuality(score,
                     "RimWorldAccess.Building.Place.WindPathBlocked".Translate(blockerList, reduction.ToStringPercent()));
         }
 

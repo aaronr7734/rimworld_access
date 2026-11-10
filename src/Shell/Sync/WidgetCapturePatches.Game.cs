@@ -46,6 +46,14 @@ namespace RimWorldAccess.Shell
         public static void Prefix(float x, float y, ref bool checkOn, float size, bool disabled)
         {
             WidgetCapture.RecordAndMaybeToggleCheckbox(new Rect(x, y, size, size), "", ref checkOn, disabled);
+            // The toggle hotspot inside is this checkbox, never a second control a tooltip could name.
+            WidgetCapture.EnterSelfCaptioned("");
+        }
+
+        [HarmonyPostfix]
+        public static void Postfix()
+        {
+            WidgetCapture.ExitSelfCaptioned();
         }
     }
 
@@ -138,9 +146,9 @@ namespace RimWorldAccess.Shell
     internal static class WidgetCaptureButtonTextPatch
     {
         [HarmonyPrefix]
-        public static void Prefix(Rect rect, string label, bool active, out int __state)
+        public static void Prefix(Rect rect, string label, bool drawBackground, bool active, out int __state)
         {
-            __state = WidgetCapture.RecordButton(rect, label, !active);
+            __state = WidgetCapture.RecordButton(rect, label, !active, noBackground: !drawBackground);
             WidgetCapture.EnterSelfCaptioned(label);
         }
 
@@ -540,11 +548,9 @@ namespace RimWorldAccess.Shell
         }
     }
 
-    // ButtonImage family and draggable-button taps. Each icon-only button is captured once
-    // as a Button row named from its tooltip or texture (ImageButtonLabel), the self-caption
-    // bracket suppressing the inner ButtonInvisible(Draggable) it draws; the draggable
-    // entries force a Pressed result. ButtonImageWithBG funnels through ButtonText(""), so
-    // its bracket only NAMES that inner record rather than recording one of its own.
+    // ButtonImage family and draggable-button taps. Each icon-only button is captured once, named
+    // from its tooltip or texture, the self-caption bracket suppressing its inner ButtonInvisible;
+    // draggables force a Pressed result. ButtonImageWithBG only NAMES its inner ButtonText("") record.
 
     [HarmonyPatch(typeof(Widgets), "ButtonImageWithBG",
         new Type[] { typeof(Rect), typeof(Texture2D), typeof(Vector2?) })]
@@ -578,6 +584,13 @@ namespace RimWorldAccess.Shell
             // Listing_Tree's expander is a plain ButtonImage whose texture is its open/closed
             // state, so hand it over before the row records.
             WidgetCapture.NoteTreeExpanderTexture(tex);
+            if (tex != null && tex == TexUI.WinExpandWidget)
+            {
+                // WindowResizer's drag grip: mouse-drag only, its click does nothing.
+                __state = -1;
+                WidgetCapture.EnterSelfCaptioned("");
+                return;
+            }
             string label = WidgetCapture.ImageButtonLabel(butRect, tex, tooltip, out bool nameFromTip, out bool needsLateTipName, out bool labelIsTextureName);
             bool closeX = tex != null && (tex == TexButton.CloseXSmall || tex == TexButton.CloseXBig);
             __state = WidgetCapture.RecordButton(butRect, label, false, closeX, nameFromTip, needsLateTipName, labelIsTextureName);

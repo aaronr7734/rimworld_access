@@ -15,9 +15,8 @@ namespace RimWorldAccess
     /// rename icon, the Opened checkbox, the stats box, the stock list), and its right column becomes
     /// one row opening the store filter in the shared thing-filter screen.
     /// </summary>
-    internal sealed class StorefrontStoreTabAdapter : InspectNodeAdapter
+    internal sealed class StorefrontStoreTabAdapter : CashRegisterTabAdapter
     {
-        private readonly Type registerType;
         private readonly Type renameDialogType;
         private readonly MethodInfo getStore;        // StoreUtility.GetStore(Building_CashRegister)
         private readonly MethodInfo getStoreFilter;  // StoreController.GetStoreFilter()
@@ -29,11 +28,8 @@ namespace RimWorldAccess
         private readonly FieldInfo incomeYesterday;
         private readonly FieldInfo incomeToday;
 
-        private readonly bool ready;
-
-        public override bool Ready => ready;
-
         private StorefrontStoreTabAdapter()
+            : base("TabRegisterStore", "RimWorldAccess.Compat.Storefront.TabName")
         {
             var surface = new ReflectionSurface("StorefrontStoreTabAdapter");
             registerType = surface.Type("CashRegister.Building_CashRegister");
@@ -61,64 +57,35 @@ namespace RimWorldAccess
         // Dispatch token, never displayed raw.
         public override string CategoryKey => "Storefront Store";
 
-        public override TabHandlerType Handler => TabHandlerType.RichNavigation;
-
-        public override string DisplayName(InspectTabBase tab) => TabName();
-
-        public override string CategoryDisplayName(object obj) => TabName();
-
-        private static string TabName()
+        protected override void Build(InspectionTreeItem categoryItem, Thing register, InspectionMode mode)
         {
-            return CompatText.ResolveOrFallback("TabRegisterStore", "RimWorldAccess.Compat.Storefront.TabName");
-        }
-
-        public override bool CanExpand(object obj)
-        {
-            return ready && registerType.IsInstanceOfType(obj);
-        }
-
-        public override void BuildChildren(InspectionTreeItem categoryItem, object obj, InspectionMode mode)
-        {
-            if (categoryItem.Children.Count > 0 || !registerType.IsInstanceOfType(obj))
+            object store = getStore.Invoke(null, new object[] { register });
+            if (store == null)
             {
                 return;
             }
-            InspectNodeFactory.GuardedBuild("StorefrontStoreTabAdapter", () =>
-            {
-                object store = getStore.Invoke(null, new[] { obj });
-                if (store == null)
-                {
-                    return;
-                }
-                HotelTreeRows.Info(categoryItem, () => ((string)nameProp.GetValue(store, null)).CapitalizeFirst());
-                HotelTreeRows.Button(categoryItem, CompatText.Flatten(CompatText.ModText("StoreTooltipRename")), null,
-                    () => Find.WindowStack.Add((Window)Activator.CreateInstance(renameDialogType, store)), mode).OpensOverlayMenu = true;
+            InspectRows.Info(categoryItem, () => ((string)nameProp.GetValue(store, null)).CapitalizeFirst());
+            HotelTreeRows.RenameButton(categoryItem, "StoreTooltipRename", renameDialogType, store, mode);
 
-                // MUTATION-C: mirrors ITab_Register_Store.DrawSettings, whose Listing_Standard.CheckboxLabeled
-                // writes StoreController.openForBusiness by ref; the controller has no setter.
-                HotelTreeRows.Checkbox(categoryItem, CompatText.ModText("TabRegisterOpened"), CompatText.ModTip("TabRegisterOpenedTooltip"),
-                    () => (bool)openForBusiness.GetValue(store), v => openForBusiness.SetValue(store, v), mode);
+            // MUTATION-C: mirrors ITab_Register_Store.DrawSettings, whose Listing_Standard.CheckboxLabeled
+            // writes StoreController.openForBusiness by ref; the controller has no setter.
+            InspectRows.Checkbox(categoryItem, CompatText.ModText("TabRegisterOpened"), CompatText.ModTip("TabRegisterOpenedTooltip"),
+                () => (bool)openForBusiness.GetValue(store), v => openForBusiness.SetValue(store, v), mode);
 
-                BuildStats(categoryItem, store);
-                HotelTreeRows.Info(categoryItem, () => StockText(store));
-                BuildFilter(categoryItem, store, mode);
-            });
+            BuildStats(categoryItem, store);
+            InspectRows.Info(categoryItem, () => StockText(store));
+            HotelTreeRows.FilterRow(categoryItem, "RimWorldAccess.Compat.Storefront.StoreFilter".Translate(), store,
+                () => ThingFilterMenuState.Open((ThingFilter)getStoreFilter.Invoke(store, null), null, TabName()), mode);
         }
 
         private void BuildStats(InspectionTreeItem parent, object store)
         {
             // DrawStats names only the first active staff member.
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterActiveStaff",
-                Pawns(activeStaff, store).FirstOrDefault()?.LabelShort ?? ""));
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterCustomers", Pawns(customers, store).Count.ToString()),
-                () => Pawns(customers, store).Select(p => p.LabelShort).ToCommaList());
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterEarnedYesterday", ((float)incomeYesterday.GetValue(store)).ToStringMoney()));
-            HotelTreeRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterEarnedToday", ((float)incomeToday.GetValue(store)).ToStringMoney()));
-        }
-
-        private static List<Pawn> Pawns(PropertyInfo property, object store)
-        {
-            return property.GetValue(store, null) is IEnumerable pawns ? pawns.OfType<Pawn>().ToList() : new List<Pawn>();
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterActiveStaff",
+                HotelTreeRows.Pawns(activeStaff, store).FirstOrDefault()?.LabelShort ?? ""));
+            InspectRows.Info(parent, () => HotelTreeRows.StatLine("TabRegisterCustomers", HotelTreeRows.Pawns(customers, store).Count.ToString()),
+                () => HotelTreeRows.Names(HotelTreeRows.Pawns(customers, store)));
+            HotelTreeRows.IncomeRows(parent, store, incomeYesterday, incomeToday);
         }
 
         // DrawStock: one "Nx Label" per def, minified buildings counted as what they contain.
@@ -136,17 +103,6 @@ namespace RimWorldAccess
             return entries.Count == 0
                 ? (string)"RimWorldAccess.Compat.Storefront.NoStock".Translate()
                 : "RimWorldAccess.Compat.Storefront.StockLine".Translate(entries.ToCommaList()).ToString();
-        }
-
-        private void BuildFilter(InspectionTreeItem parent, object store, InspectionMode mode)
-        {
-            if (mode == InspectionMode.ReadOnly)
-            {
-                return;
-            }
-            InspectNodeFactory.ActionRow(parent, "RimWorldAccess.Compat.Storefront.StoreFilter".Translate(), store,
-                () => ThingFilterMenuState.Open((ThingFilter)getStoreFilter.Invoke(store, null), null, TabName()),
-                opensOverlayMenu: true);
         }
     }
 }

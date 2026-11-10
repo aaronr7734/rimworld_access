@@ -40,6 +40,7 @@ namespace RimWorldAccess
             new Entry("FollowedPawnAnnouncer.Forget", () => FollowedPawnAnnouncer.Forget()),
             new Entry("LineFormationState.Reset", () => LineFormationState.Reset()),
             new Entry("GizmoNavigationState.Reset", () => GizmoNavigationState.Reset()),
+            new Entry("GizmoDrawCapture.Reset", () => GizmoDrawCapture.Reset()),
             new Entry("WindowlessInspectionState.Reset", () => WindowlessInspectionState.Reset()),
             new Entry("Shell.ScreenReturn.Reset", () => RimWorldAccess.Shell.ScreenReturn.Reset()),
             new Entry("DocsTeacher.ResetSession", () => DocsTeacher.ResetSession()),
@@ -254,6 +255,13 @@ namespace RimWorldAccess
                 if (Current.ProgramState == ProgramState.Entry && GizmoNavigationState.IsActive)
                 {
                     GizmoNavigationState.Reset();
+                }
+            }),
+            new Entry("GizmoDrawCapture.Reset", () =>
+            {
+                if (Current.ProgramState == ProgramState.Entry)
+                {
+                    GizmoDrawCapture.Reset();
                 }
             }),
             new Entry("WindowlessInspectionState.Reset", () =>

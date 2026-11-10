@@ -86,8 +86,7 @@ namespace RimWorldAccess
                 targetResourceSetter = surface.Required("ManagerJob_Hunting.TargetResource setter",
                     Setter(targetResourceProperty));
                 targetResourceType = targetResourceGetter != null ? targetResourceGetter.ReturnType : null;
-                meatTargetResource = surface.Required("HuntingTargetResource.Meat",
-                    EnumValue(targetResourceType, "Meat"));
+                meatTargetResource = surface.EnumValue(targetResourceType, "Meat");
 
                 triggerGetter = Getter(surface.Property(jobType, "TriggerThreshold"));
 
@@ -95,8 +94,7 @@ namespace RimWorldAccess
                 invertHuntingGroundsField = surface.Field(jobType, "InvertHuntingGrounds");
                 syncFilterAndAllowedField = surface.Field(jobType, "SyncFilterAndAllowed");
                 syncField = surface.Field(jobType, "Sync");
-                filterToAllowedSync = surface.Required("SyncDirection.FilterToAllowed",
-                    EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed"));
+                filterToAllowedSync = surface.EnumValue(syncField != null ? syncField.FieldType : null, "FilterToAllowed");
 
                 // Backing fields for three ref-bool toggles — the storage the mod's own DrawToggle
                 // writes through. See the class remarks.
@@ -475,15 +473,6 @@ namespace RimWorldAccess
             private static ThingFilter ThresholdFilter(object trigger)
             {
                 return Get(thresholdFilterGetter, trigger, "ThresholdFilter") as ThingFilter;
-            }
-
-            private static object EnumValue(Type enumType, string name)
-            {
-                if (enumType == null || !enumType.IsEnum || !Enum.IsDefined(enumType, name))
-                {
-                    return null;
-                }
-                return Enum.Parse(enumType, name);
             }
 
             private static object Get(MethodInfo getter, object instance, string member)

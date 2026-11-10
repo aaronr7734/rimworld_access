@@ -21,13 +21,14 @@ namespace RimWorldAccess
 
         private static readonly Type dialogType;
         private static readonly Type nodeType;
+        private static readonly Type nodeListType;
         private static readonly Type genericOptionType;
         private static readonly Type toggleOptionType;
         private static readonly Type buttonOptionType;
         private static readonly Type pieWorkerType;
 
         private static readonly FieldInfo rootNodesField;
-        private static readonly PropertyInfo totalWealthProperty;
+        private static readonly MethodInfo totalWealthGetter;
         private static readonly FieldInfo searchField;
         private static readonly FieldInfo chartTypeOptionField;
         private static readonly AccessTools.FieldRef<Vector2> scrollPositionRef;
@@ -57,8 +58,8 @@ namespace RimWorldAccess
         private static readonly FieldInfo listStyleField;
         private static readonly FieldInfo pieStyleField;
         private static readonly FieldInfo playSettingsButtonField;
-        private static readonly PropertyInfo chartWorkerProperty;
-        private static readonly PropertyInfo workerOptionsProperty;
+        private static readonly MethodInfo chartWorkerGetter;
+        private static readonly MethodInfo workerOptionsGetter;
         private static readonly MethodInfo sorted;
         private static readonly MethodInfo percentText;
         private static readonly MethodInfo flatten;
@@ -80,6 +81,7 @@ namespace RimWorldAccess
             var surface = new ReflectionSurface("VwCompat");
             dialogType = surface.Type("VisibleWealth.Dialog_WealthBreakdown");
             nodeType = surface.Type("VisibleWealth.WealthNode");
+            nodeListType = nodeType != null ? typeof(List<>).MakeGenericType(nodeType) : null;
             Type settingsType = surface.Type("VisibleWealth.VisibleWealthSettings");
             Type chartDefType = surface.Type("VisibleWealth.ChartDef");
             Type workerType = surface.Type("VisibleWealth.ChartWorker");
@@ -96,7 +98,7 @@ namespace RimWorldAccess
             Type pieStyleType = surface.Type("VisibleWealth.PieStyle");
 
             rootNodesField = surface.Field(dialogType, "rootNodes");
-            totalWealthProperty = surface.Property(dialogType, "TotalWealth");
+            totalWealthGetter = surface.Property(dialogType, "TotalWealth")?.GetGetMethod();
             searchField = surface.Field(dialogType, "Search");
             chartTypeOptionField = surface.Field(dialogType, "chartTypeOption");
             FieldInfo scrollField = surface.Field(dialogType, "scrollPosition");
@@ -130,8 +132,8 @@ namespace RimWorldAccess
             listStyleField = surface.Field(settingsType, "ListStyle");
             pieStyleField = surface.Field(settingsType, "PieStyle");
             playSettingsButtonField = surface.Field(settingsType, "PlaySettingsButton");
-            chartWorkerProperty = surface.Property(chartDefType, "Worker");
-            workerOptionsProperty = surface.Property(workerType, "Options");
+            chartWorkerGetter = surface.Property(chartDefType, "Worker")?.GetGetMethod();
+            workerOptionsGetter = surface.Property(workerType, "Options")?.GetGetMethod();
             sorted = surface.Method(sortByUtilityType, "Sorted");
             percentText = surface.Method(percentOfUtilityType, "Text");
             flatten = surface.Method(pieWorkerType, "Flatten");
@@ -150,11 +152,11 @@ namespace RimWorldAccess
                 surface.Field(buttonOptionType, name);
             }
 
-            listStyleNested = surface.Required("ListStyle.Nested", EnumValue(listStyleType, "Nested"));
-            pieStyleNested = surface.Required("PieStyle.Nested", EnumValue(pieStyleType, "Nested"));
-            sortByName = surface.Required("SortBy.Name", EnumValue(sortByType, "Name"));
-            percentOfTotal = surface.Required("PercentOf.Total", EnumValue(percentOfType, "Total"));
-            percentOfCategory = surface.Required("PercentOf.Category", EnumValue(percentOfType, "Category"));
+            listStyleNested = surface.EnumValue(listStyleType, "Nested");
+            pieStyleNested = surface.EnumValue(pieStyleType, "Nested");
+            sortByName = surface.EnumValue(sortByType, "Name");
+            percentOfTotal = surface.EnumValue(percentOfType, "Total");
+            percentOfCategory = surface.EnumValue(percentOfType, "Category");
 
             if (scrollField != null && scrollField.FieldType == typeof(Vector2))
             {
@@ -164,11 +166,6 @@ namespace RimWorldAccess
 
             ready = surface.Ready;
             RowHeight = Guarded.FieldOf(drawHeightField, null, "VwCompat.RowHeight", 0f);
-        }
-
-        private static object EnumValue(Type enumType, string name)
-        {
-            return enumType != null && enumType.IsEnum && Enum.IsDefined(enumType, name) ? Enum.Parse(enumType, name) : null;
         }
 
         public static bool Ready => ready;
@@ -195,7 +192,7 @@ namespace RimWorldAccess
 
         public static float TotalWealth(Window window)
         {
-            return Guarded.Get(totalWealthProperty.GetGetMethod(), window, "VwCompat.TotalWealth", 0f);
+            return Guarded.Get(totalWealthGetter, window, "VwCompat.TotalWealth", 0f);
         }
 
         public static QuickSearchWidget Search()
@@ -309,7 +306,7 @@ namespace RimWorldAccess
         /// <summary>The flat list's rows: every leaf, sorted by the mod's own comparer, kept where its draw gate passes.</summary>
         public static List<object> FlatRows(Window window)
         {
-            IList typed = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(nodeType));
+            IList typed = (IList)Activator.CreateInstance(nodeListType);
             object all = Guarded.Call(getAllNodes, null, "VwCompat.GetAllNodes", Guarded.FieldOf<object>(rootNodesField, window, "VwCompat.RootNodes"));
             foreach (object node in Enumerate(all as IEnumerable))
             {
@@ -366,7 +363,7 @@ namespace RimWorldAccess
             get
             {
                 object def = ChartType;
-                return def != null && pieWorkerType.IsInstanceOfType(Guarded.Get<object>(chartWorkerProperty.GetGetMethod(), def, "VwCompat.Worker"));
+                return def != null && pieWorkerType.IsInstanceOfType(Guarded.Get<object>(chartWorkerGetter, def, "VwCompat.Worker"));
             }
         }
 
@@ -398,8 +395,8 @@ namespace RimWorldAccess
                 list.Add(chartType);
             }
             object def = ChartType;
-            object worker = def != null ? Guarded.Get<object>(chartWorkerProperty.GetGetMethod(), def, "VwCompat.Worker") : null;
-            object options = worker != null ? Guarded.Get<object>(workerOptionsProperty.GetGetMethod(), worker, "VwCompat.Options") : null;
+            object worker = def != null ? Guarded.Get<object>(chartWorkerGetter, def, "VwCompat.Worker") : null;
+            object options = worker != null ? Guarded.Get<object>(workerOptionsGetter, worker, "VwCompat.Options") : null;
             list.AddRange(Enumerate(options as IEnumerable));
             return list;
         }

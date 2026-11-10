@@ -256,24 +256,7 @@ namespace RimWorldAccess.Shell
                     return;
                 }
 
-                // Tab-chord platform normalization. IsCtrlHeld substitutes Option for Ctrl on
-                // macOS when the key is Tab, but Option is also Alt, so Option+Tab snapshots as
-                // ctrl AND alt and no exact-match Ctrl+Tab chord would ever fire on Mac.
-                // Collapsing to ctrl-only is unambiguous: no action registers Ctrl+Alt+Tab. The
-                // IsMacOS gate leaves a real Windows/Linux Ctrl+Alt+Tab untouched.
-                bool ctrlHeld = KeyboardHelper.IsCtrlHeld;
-                bool altHeld = KeyboardHelper.IsAltHeld;
-                if (e.keyCode == KeyCode.Tab && NativeLibraryLoader.IsMacOS && ctrlHeld && altHeld)
-                {
-                    altHeld = false;
-                }
-
-                KeyEventSnapshot snapshot = new KeyEventSnapshot(
-                    e.keyCode,
-                    ctrlHeld,
-                    e.shift,
-                    altHeld,
-                    e.character);
+                KeyEventSnapshot snapshot = Snapshot(e.keyCode, e.shift, e.character);
 
                 ScreenReturn.Point mapReturn = e.keyCode != KeyCode.None ? ScreenReturn.BeforeKey() : null;
                 string consumedActionId;
@@ -317,6 +300,23 @@ namespace RimWorldAccess.Shell
         /// existing sound is suppressed. The frame stamp is a local "already ticked this
         /// frame" counter for key repeat, not cross-component frame coordination.
         /// </summary>
+        /// <summary>The chord the dispatcher would match for <paramref name="key"/> pressed now.</summary>
+        internal static KeyEventSnapshot Snapshot(KeyCode key, bool shift, char character = '\0')
+        {
+            // Tab-chord platform normalization. IsCtrlHeld substitutes Option for Ctrl on
+            // macOS when the key is Tab, but Option is also Alt, so Option+Tab snapshots as
+            // ctrl AND alt and no exact-match Ctrl+Tab chord would ever fire on Mac.
+            // Collapsing to ctrl-only is unambiguous: no action registers Ctrl+Alt+Tab. The
+            // IsMacOS gate leaves a real Windows/Linux Ctrl+Alt+Tab untouched.
+            bool ctrlHeld = KeyboardHelper.IsCtrlHeld;
+            bool altHeld = KeyboardHelper.IsAltHeld;
+            if (key == KeyCode.Tab && NativeLibraryLoader.IsMacOS && ctrlHeld && altHeld)
+            {
+                altHeld = false;
+            }
+            return new KeyEventSnapshot(key, ctrlHeld, shift, altHeld, character);
+        }
+
         private static void PlayCursorMoveTick(string actionId)
         {
             if (!SharedMenuGrammar.IsCursorMove(actionId))

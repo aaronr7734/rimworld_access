@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using RimWorld;
 using Verse;
@@ -212,7 +211,7 @@ namespace RimWorldAccess
                     if (PlacementSpotRanking.CountsAsWorking(best.Quality))
                         workingSpots++;
                     spots.Add(new PlacementSpot(cell.x, cell.z, (cell - cursor).LengthHorizontal, requiredFacing,
-                        best.Quality, best.Phrase));
+                        best.Quality, null));
                 }
             }
             finally
@@ -220,18 +219,31 @@ namespace RimWorldAccess
                 BuildingReflection.SetPlacingRot(designator, rotation);
             }
 
-            return PlacementSpotRanking.Select(spots);
+            List<PlacementSpot> selected = PlacementSpotRanking.Select(spots);
+            if (context.Rated)
+                DescribeListed(context, rotation, selected);
+            return selected;
         }
 
-        /// <summary>Every facing worth considering at a cell: the first fit, held rotation first, unless
-        /// a rule rates the building, when turning it can make it work better.</summary>
+        private static void DescribeListed(SweepContext context, Rot4 rotation, List<PlacementSpot> spots)
+        {
+            for (int i = 0; i < spots.Count; i++)
+            {
+                PlacementSpot spot = spots[i];
+                var facing = new Rot4(spot.RequiredFacing ?? rotation.AsInt);
+                spots[i] = new PlacementSpot(spot.X, spot.Z, spot.Distance, spot.RequiredFacing,
+                    spot.Quality, context.Phrase(new IntVec3(spot.X, 0, spot.Z), facing));
+            }
+        }
+
+        /// <summary>The first fit, held rotation first, unless a rule rates by facing, when turning can work better.</summary>
         private static void RateFacings(SweepContext context, ThingDef def, IntVec3 cell, Rot4 rotation, List<FacingRating> ratings)
         {
             ratings.Clear();
             if (context.TryRate(cell, rotation, out PlacementQuality held))
             {
-                ratings.Add(new FacingRating(rotation.AsInt, held.Score, held.Phrase));
-                if (!context.Rated || held.Score >= PlacementSpotRanking.FullQuality)
+                ratings.Add(new FacingRating(rotation.AsInt, held.Score));
+                if (!context.RatedByFacing || held.Score >= PlacementSpotRanking.FullQuality)
                     return;
             }
 
@@ -239,8 +251,8 @@ namespace RimWorldAccess
             {
                 if (!context.TryRate(cell, alternate, out PlacementQuality quality))
                     continue;
-                ratings.Add(new FacingRating(alternate.AsInt, quality.Score, quality.Phrase));
-                if (!context.Rated || quality.Score >= PlacementSpotRanking.FullQuality)
+                ratings.Add(new FacingRating(alternate.AsInt, quality.Score));
+                if (!context.RatedByFacing || quality.Score >= PlacementSpotRanking.FullQuality)
                     return;
             }
         }
@@ -307,7 +319,8 @@ namespace RimWorldAccess
             private readonly ThingDef def;
             private readonly Map map;
             private readonly bool checkMeditationProtection;
-            private readonly Func<IntVec3, Rot4, PlacementQuality> rating;
+            private readonly PlacementRating rating;
+            private readonly bool rotationIndependent;
 
             public SweepContext(Designator_Place designator, ThingDef def, Map map)
             {
@@ -317,11 +330,16 @@ namespace RimWorldAccess
 
                 checkMeditationProtection =
                     MeditationProtectionHelper.IsArtificialBuilding(def, Faction.OfPlayer);
-                rating = PlacementUsefulnessRegistry.RatingFor(def, map);
+                rating = PlacementUsefulnessRegistry.RatingFor(def, map, out rotationIndependent);
             }
 
             /// <summary>Whether a usefulness rule rates this building, so spots can differ in quality.</summary>
             public bool Rated => rating != null;
+
+            // A rotation-independent rating scores every fitting facing alike, so the first fit wins.
+            public bool RatedByFacing => rating != null && !rotationIndependent;
+
+            public string Phrase(IntVec3 cell, Rot4 rotation) => rating?.Invoke(cell, rotation, true).Phrase;
 
             /// <summary>Whether the building fits at the cell and facing, and how well it would work
             /// there. Cheapest exclusion first: vanilla's validator, then meditation/Gauranlen
@@ -340,7 +358,7 @@ namespace RimWorldAccess
                     return false;
 
                 if (rating != null)
-                    quality = rating(cell, rotation);
+                    quality = rating(cell, rotation, false);
                 return true;
             }
         }

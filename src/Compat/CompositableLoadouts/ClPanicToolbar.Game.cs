@@ -16,8 +16,6 @@ namespace RimWorldAccess
         // The mod's patch stands down for Better Pawn Control, whose own emergency toggle drives the panic state instead.
         private const string BetterPawnControlId = "voult.betterpawncontrol"; // l10n-exempt: package id
 
-        private static string cachedTitle;
-
         public static void Register()
         {
             ModHudToolbarRegistry.Register(ToolbarId, Title, Visible);
@@ -26,12 +24,7 @@ namespace RimWorldAccess
 
         private static string Title()
         {
-            if (cachedTitle == null)
-            {
-                ModMetaData mod = ModLister.GetActiveModWithIdentifier(PackageId, ignorePostfix: true);
-                cachedTitle = mod != null ? mod.Name : PackageId;
-            }
-            return cachedTitle;
+            return CompatText.ModTitle(PackageId);
         }
 
         /// <summary>The strip's own draw gate: a map in view, and Better Pawn Control absent.</summary>

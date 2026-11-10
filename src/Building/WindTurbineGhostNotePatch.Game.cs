@@ -13,23 +13,27 @@ namespace RimWorldAccess
     [HarmonyPatch(typeof(PlaceWorker_WindTurbine), nameof(PlaceWorker_WindTurbine.DrawGhost))]
     internal static class WindTurbineGhostNotePatch
     {
-        private static readonly FieldInfo ReductionPerObstacle =
-            AccessTools.Field(typeof(CompPowerPlantWind), "PowerReductionPercentPerObstacle");
+        // Null when the constant is gone or no longer a literal.
+        private static readonly float? ReductionPerObstacle = ReadReduction();
 
         // CompPowerPlantWind.RecalculateBlockages zeroes output on a vacuum map before it looks at the path.
         private const bool StopsInVacuum = true;
 
-        private static bool ReductionReadable => ReductionPerObstacle != null && ReductionPerObstacle.IsLiteral;
+        private static float? ReadReduction()
+        {
+            FieldInfo field = AccessTools.Field(typeof(CompPowerPlantWind), "PowerReductionPercentPerObstacle");
+            return field != null && field.IsLiteral ? (float)field.GetRawConstantValue() : (float?)null;
+        }
 
         [HarmonyPostfix]
         internal static void Postfix(ThingDef def, IntVec3 center, Rot4 rot)
         {
             try
             {
-                if (!PlacementHelpSpeech.CollectingOutlines || !ReductionReadable)
+                if (!PlacementHelpSpeech.CollectingOutlines || !ReductionPerObstacle.HasValue)
                     return;
                 WindPathGhostNote.Collect(WindTurbineUtility.CalculateWindCells(center, rot, def.size),
-                    (float)ReductionPerObstacle.GetRawConstantValue(), StopsInVacuum);
+                    ReductionPerObstacle.Value, StopsInVacuum);
             }
             catch (Exception ex)
             {
@@ -42,12 +46,12 @@ namespace RimWorldAccess
             return PlacementUsefulnessRegistry.HasPlaceWorker(def, typeof(PlaceWorker_WindTurbine));
         }
 
-        public static Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
+        public static PlacementRating MakeRating(ThingDef def, Map map)
         {
-            if (!ReductionReadable)
+            if (!ReductionPerObstacle.HasValue)
                 return null;
             return WindPathGhostNote.RatingFactory(WindTurbineUtility.CalculateWindCells,
-                (float)ReductionPerObstacle.GetRawConstantValue(), StopsInVacuum)(def, map);
+                ReductionPerObstacle.Value, StopsInVacuum)(def, map);
         }
     }
 }

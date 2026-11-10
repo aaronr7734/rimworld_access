@@ -98,6 +98,7 @@ namespace RimWorldAccess.Shell
         // Captured-extras region storage; the opt-in gate is in the "captured-extras region"
         // section below.
         private readonly List<CapturedWidget> widgetSnapshot = new List<CapturedWidget>();
+        private readonly Dictionary<CapturedWidget, string> extrasFieldNames = new Dictionary<CapturedWidget, string>();
         private readonly List<ExtrasRow> extrasRows = new List<ExtrasRow>();
         private readonly List<PointerHitCandidate> routeCandidates = new List<PointerHitCandidate>();
         private readonly List<RouteTarget> routeTargets = new List<RouteTarget>();

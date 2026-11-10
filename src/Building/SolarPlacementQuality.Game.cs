@@ -1,4 +1,3 @@
-using System;
 using RimWorld;
 using Verse;
 
@@ -26,12 +25,12 @@ namespace RimWorldAccess
             return false;
         }
 
-        public static Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
+        public static PlacementRating MakeRating(ThingDef def, Map map)
         {
-            return (cell, rotation) => Rate(def, map, cell, rotation);
+            return (cell, rotation, describe) => Rate(def, map, cell, rotation, describe);
         }
 
-        private static PlacementQuality Rate(ThingDef def, Map map, IntVec3 cell, Rot4 rotation)
+        private static PlacementQuality Rate(ThingDef def, Map map, IntVec3 cell, Rot4 rotation, bool describe)
         {
             int total = 0;
             int roofed = 0;
@@ -45,8 +44,9 @@ namespace RimWorldAccess
             if (roofed == 0)
                 return PlacementQuality.Full;
             float output = (float)(total - roofed) / total;
-            return new PlacementQuality(output,
-                "RimWorldAccess.Building.Place.SolarPartlyRoofed".Translate(roofed, total, output.ToStringPercent()));
+            return new PlacementQuality(output, describe
+                ? (string)"RimWorldAccess.Building.Place.SolarPartlyRoofed".Translate(roofed, total, output.ToStringPercent())
+                : null);
         }
     }
 }

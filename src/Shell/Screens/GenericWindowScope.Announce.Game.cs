@@ -224,6 +224,11 @@ namespace RimWorldAccess.Shell
                 if (string.IsNullOrEmpty(d.Extras))
                     d.Extras = null;
             }
+            // An icon inside the control's box may already resolve through the rect lookup above.
+            if (!string.IsNullOrEmpty(row.Description) && (d.Extras == null || d.Extras.IndexOf(row.Description, StringComparison.Ordinal) < 0))
+            {
+                d.Extras = string.IsNullOrEmpty(d.Extras) ? row.Description : d.Extras + ". " + row.Description;
+            }
 
             CapturedWidget source = row.Source;
             switch (row.Kind)
@@ -280,17 +285,17 @@ namespace RimWorldAccess.Shell
                     break;
                 case WidgetKind.Slider:
                     d.Role = ElementRole.Slider;
-                    // Own-label value rule: the slider's OWN captured label decides whether a value
-                    // needs speaking. Non-blank means the mod formatted the value into it itself
-                    // ("Price for guests: 100%"), already spoken via d.Label, so appending a raw float
-                    // would double-speak the number, possibly in another scale. A blank own label
-                    // carries no value — a fused caption captioned something else and need not carry
-                    // this control's number — so the value comes from the slider itself. The exception
-                    // is a caption the capture engine PROVED to be a name/value pair on the control's
-                    // own line (CaptionCarriesValue): that text is the number a sighted player reads.
+                    // Own-label value rule: a non-blank own label ("Price for guests: 100%") already
+                    // speaks the value, so a raw float would double it, possibly in another scale. A
+                    // blank one carries none, so the value comes from the slider itself, unless the
+                    // caller drew its own readout or the caption is proven to carry it (CaptionCarriesValue).
                     if (row.OwnLabelIsValue)
                     {
                         d.Value = source.Label;
+                    }
+                    else if (string.IsNullOrEmpty(source.Label) && !row.CaptionCarriesValue && !string.IsNullOrEmpty(row.ValueText))
+                    {
+                        d.Value = row.ValueText;
                     }
                     else if (string.IsNullOrEmpty(source.Label) && !row.CaptionCarriesValue)
                     {
@@ -507,6 +512,10 @@ namespace RimWorldAccess.Shell
                     {
                         d.Value = row.Label;
                     }
+                    else if (!string.IsNullOrEmpty(row.ValueText))
+                    {
+                        d.Value = row.ValueText;
+                    }
                     else
                     {
                         d.Value = !string.IsNullOrEmpty(row.Source.SliderValueText) ? row.Source.SliderValueText : FormatSliderValue(row.Source);
@@ -587,7 +596,7 @@ namespace RimWorldAccess.Shell
             {
                 sb.Append(" composite=").Append(row.Source.Composite);
             }
-            sb.Append(" label=\"").Append(row.Label ?? "").Append('"');
+            AppendQuoted(sb.Append(" label="), row.Label);
             try
             {
                 ElementDescription d = BuildDescription(row);
@@ -605,7 +614,7 @@ namespace RimWorldAccess.Shell
                 }
                 if (!string.IsNullOrEmpty(d.Value))
                 {
-                    sb.Append(" value=\"").Append(d.Value).Append('"');
+                    AppendQuoted(sb.Append(" value="), d.Value);
                 }
                 else if (d.ValueBlank)
                 {
@@ -624,6 +633,10 @@ namespace RimWorldAccess.Shell
                     sb.Append(" disabled=True");
                 }
                 sb.Append(" tip=").Append(!string.IsNullOrEmpty(d.Extras));
+                if (!string.IsNullOrEmpty(row.Description))
+                {
+                    AppendQuoted(sb.Append(" desc="), row.Description);
+                }
             }
             catch (Exception ex)
             {
@@ -633,11 +646,63 @@ namespace RimWorldAccess.Shell
             {
                 // TextField's text already surfaced as BuildDescription's Value; every other kind that
                 // carries raw Text would otherwise never show it in this dump.
-                sb.Append(" text=\"").Append(row.Source.Text).Append('"');
+                AppendQuoted(sb.Append(" text="), row.Source.Text);
             }
             Rect r = row.ScreenRect;
             sb.Append(" rect=(").Append(Mathf.RoundToInt(r.x)).Append(',').Append(Mathf.RoundToInt(r.y))
               .Append(',').Append(Mathf.RoundToInt(r.width)).Append(',').Append(Mathf.RoundToInt(r.height)).Append(')');
+        }
+
+        /// <summary>Dev-bridge dump of the capture rows behind <see cref="presentationRows"/>, in draw order, with the facts fusion reads.</summary>
+        internal string DebugDescribeCaptureRows()
+        {
+            var sb = new StringBuilder();
+            sb.Append("scope ").Append(Name).Append("\ncaptureRows (").Append(captureRows.Count).Append(" items)");
+            IReadOnlyList<int> columnBreaks = WidgetCapture.ListingColumnBreaks;
+            for (int i = 0; i < captureRows.Count; i++)
+            {
+                CapturedWidget row = captureRows[i];
+                sb.Append('\n');
+                if (columnBreaks.Contains(i))
+                {
+                    sb.Append("  -- column break --\n");
+                }
+                sb.Append("    ").Append(i).Append(": ").Append(row.Kind);
+                if (row.Composite != CompositeMember.None)
+                {
+                    sb.Append(" composite=").Append(row.Composite);
+                }
+                AppendQuoted(sb.Append(" label="), row.Label);
+                if (row.Heading)
+                {
+                    sb.Append(row.HeadingFromGapLineOnly ? " heading=GapLine" : " heading=True");
+                }
+                if (row.LabelPairFolded)
+                {
+                    sb.Append(" pairFolded=True");
+                }
+                if (row.OrphanTip)
+                {
+                    sb.Append(" orphanTip=True");
+                }
+                if (row.Kind == WidgetKind.Slider)
+                {
+                    sb.Append(" sliderValue=").Append(row.SliderValue);
+                }
+                Rect r = row.ScreenRect;
+                sb.Append(" rect=(").Append(Mathf.RoundToInt(r.x)).Append(',').Append(Mathf.RoundToInt(r.y))
+                  .Append(',').Append(Mathf.RoundToInt(r.width)).Append(',').Append(Mathf.RoundToInt(r.height)).Append(')');
+                if (row.VisibleScreenRect.width <= 0f)
+                {
+                    sb.Append(" unseen");
+                }
+            }
+            return sb.ToString();
+        }
+
+        private static StringBuilder AppendQuoted(StringBuilder sb, string text)
+        {
+            return sb.Append('"').Append((text ?? "").Replace("\\", "\\\\").Replace("\"", "\\\"")).Append('"');
         }
 #endif
     }

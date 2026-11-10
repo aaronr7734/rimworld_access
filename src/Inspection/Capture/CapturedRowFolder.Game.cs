@@ -340,7 +340,7 @@ namespace RimWorldAccess
         /// Composes a caption/value pair through the same shared key WidgetCapture uses at capture
         /// time, trimming a caller-drawn trailing colon so the row never doubles the separator.
         /// </summary>
-        private static string ComposeCaptionValue(string caption, string value)
+        internal static string ComposeCaptionValue(string caption, string value)
         {
             string trimmed = (caption ?? "").TrimEnd();
             if (trimmed.EndsWith(":"))

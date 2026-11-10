@@ -19,6 +19,10 @@ namespace RimWorldAccess
     internal static class DubsPlacementGhostNotes
     {
         private static DubsGroundwater groundwater;
+        // Bound once: the ghost postfixes run every frame.
+        private static Func<Map, DubsGroundwater.Grid> waterGrid;
+        private static Func<Map, DubsGroundwater.Grid> deepGrid;
+        private static Func<Map, DubsGroundwater.Grid> iceGrid;
         private static DubsWellCapacity wellCapacity;
         private static FieldInfo wellCapacityText;
         private static FieldInfo iceCapacityText;
@@ -44,6 +48,9 @@ namespace RimWorldAccess
                 return;
 
             groundwater = source;
+            waterGrid = source.Water;
+            deepGrid = source.DeepWater;
+            iceGrid = source.Ice;
             wellCapacity = capacity.Ready ? capacity : null;
             wellCapacityText = wellText;
             iceCapacityText = iceText;
@@ -58,19 +65,19 @@ namespace RimWorldAccess
         // Positional binding: the DrawGhost overrides are free to rename their parameters.
         internal static void WaterPostfix([HarmonyArgument(1)] IntVec3 center)
         {
-            CollectLevel(center, groundwater.Water,
+            CollectLevel(center, waterGrid,
                 "RimWorldAccess.Compat.Dubs.Groundwater.Shallow", "RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone");
         }
 
         internal static void DeepPostfix([HarmonyArgument(1)] IntVec3 center)
         {
-            CollectLevel(center, groundwater.DeepWater,
+            CollectLevel(center, deepGrid,
                 "RimWorldAccess.Compat.Dubs.Groundwater.Deep", "RimWorldAccess.Compat.Dubs.Groundwater.DeepNone");
         }
 
         internal static void IcePostfix([HarmonyArgument(1)] IntVec3 center)
         {
-            CollectLevel(center, groundwater.Ice,
+            CollectLevel(center, iceGrid,
                 "RimWorldAccess.Compat.Dubs.Groundwater.Ice", "RimWorldAccess.Compat.Dubs.Groundwater.IceNone");
         }
 

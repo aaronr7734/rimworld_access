@@ -265,10 +265,10 @@ namespace RimWorldAccess
 
                 ageSexValues = EnumValues(ageAndSexType);
                 masterModes.AddRange(EnumValues(masterModeType));
-                masterModeManual = surface.Required("MasterMode.Manual", EnumValue(masterModeType, "Manual"));
-                masterModeSpecific = surface.Required("MasterMode.Specific", EnumValue(masterModeType, "Specific"));
-                masterModeAll = surface.Required("MasterMode.All", EnumValue(masterModeType, "All"));
-                masterModeTrainers = surface.Required("MasterMode.Trainers", EnumValue(masterModeType, "Trainers"));
+                masterModeManual = surface.EnumValue(masterModeType, "Manual");
+                masterModeSpecific = surface.EnumValue(masterModeType, "Specific");
+                masterModeAll = surface.EnumValue(masterModeType, "All");
+                masterModeTrainers = surface.EnumValue(masterModeType, "Trainers");
 
                 ready = surface.Ready;
             }
@@ -1333,15 +1333,6 @@ namespace RimWorldAccess
                     boxed[i] = values.GetValue(i);
                 }
                 return boxed;
-            }
-
-            private static object EnumValue(Type enumType, string name)
-            {
-                if (enumType == null || !enumType.IsEnum || !Enum.IsDefined(enumType, name))
-                {
-                    return null;
-                }
-                return Enum.Parse(enumType, name);
             }
 
             private static int EnumInt(object value)

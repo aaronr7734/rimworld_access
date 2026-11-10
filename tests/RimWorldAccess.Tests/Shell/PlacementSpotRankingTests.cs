@@ -200,16 +200,16 @@ namespace RimWorldAccess.Tests.Shell
         {
             var ratings = new[]
             {
-                new FacingRating(North, 0.6f, "north"),
-                new FacingRating(East, 1f, "east"),
-                new FacingRating(South, 0.8f, "south"),
+                new FacingRating(North, 0.6f),
+                new FacingRating(East, 1f),
+                new FacingRating(South, 0.8f),
             };
 
             bool isSpot = PlacementSpotRanking.TryChooseFacing(North, ratings, out FacingRating best, out int? required);
 
             Assert.True(isSpot);
             Assert.Equal(East, required);
-            Assert.Equal("east", best.Phrase);
+            Assert.Equal(1f, best.Quality);
         }
 
         [Fact]
@@ -217,8 +217,8 @@ namespace RimWorldAccess.Tests.Shell
         {
             var ratings = new[]
             {
-                new FacingRating(West, 0.6f, null),
-                new FacingRating(South, 0.6f, null),
+                new FacingRating(West, 0.6f),
+                new FacingRating(South, 0.6f),
             };
 
             PlacementSpotRanking.TryChooseFacing(South, ratings, out FacingRating best, out int? required);
@@ -232,8 +232,8 @@ namespace RimWorldAccess.Tests.Shell
         {
             var ratings = new[]
             {
-                new FacingRating(North, 0f, null),
-                new FacingRating(East, 0.2f, null),
+                new FacingRating(North, 0f),
+                new FacingRating(East, 0.2f),
             };
 
             bool isSpot = PlacementSpotRanking.TryChooseFacing(North, ratings, out _, out int? required);
@@ -241,7 +241,7 @@ namespace RimWorldAccess.Tests.Shell
             Assert.True(isSpot);
             Assert.Equal(East, required);
 
-            Assert.False(PlacementSpotRanking.TryChooseFacing(North, new[] { new FacingRating(North, 0f, null) }, out _, out required));
+            Assert.False(PlacementSpotRanking.TryChooseFacing(North, new[] { new FacingRating(North, 0f) }, out _, out required));
             Assert.Null(required);
         }
 
@@ -262,7 +262,7 @@ namespace RimWorldAccess.Tests.Shell
 
         private static FacingRating[] Facings(params int[] facings)
         {
-            return System.Array.ConvertAll(facings, f => new FacingRating(f, PlacementSpotRanking.FullQuality, null));
+            return System.Array.ConvertAll(facings, f => new FacingRating(f, PlacementSpotRanking.FullQuality));
         }
     }
 }

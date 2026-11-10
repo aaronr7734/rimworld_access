@@ -7,7 +7,7 @@ namespace RimWorldAccess
     /// <summary>
     /// A menu harvest runs a mod's or vanilla's click path only to read the menu it would open, so
     /// nothing it does may be heard: FloatMenu's constructor plays its open sound before the
-    /// window is intercepted, and a probed ProcessInput plays the command's click.
+    /// window is intercepted, and a probed ProcessInput plays the command's click. A gizmo's probe draw is silenced the same way.
     /// </summary>
     [HarmonyPatch(typeof(SoundStarter), nameof(SoundStarter.PlayOneShot))]
     internal static class HarvestSilencePatch
@@ -15,7 +15,7 @@ namespace RimWorldAccess
         [HarmonyPrefix]
         public static bool Prefix()
         {
-            return !FloatMenuHarvest.InFlight && !MaterialMenuHarvest.InFlight;
+            return !FloatMenuHarvest.InFlight && !MaterialMenuHarvest.InFlight && !GizmoDrawCapture.InFlight;
         }
     }
 }

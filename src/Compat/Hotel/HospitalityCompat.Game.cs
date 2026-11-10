@@ -68,14 +68,19 @@ namespace RimWorldAccess
             }
         }
 
+        public static bool HasRoyalTitle(Pawn pawn)
+        {
+            return pawn.royalty?.MostSeniorTitle != null;
+        }
+
         public static void RegisterGizmoHandlers()
         {
             CompatRegistration.GizmoHandler("Hospitality.Gizmo_GuestBed",
-                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.GuestBed));
+                t => new GuestBedGizmoHandler(t));
             CompatRegistration.GizmoHandler("Hospitality.Gizmo_VendingMachine",
-                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.VendingPrice));
+                t => new VendingPriceGizmoHandler(t));
             CompatRegistration.GizmoHandler("Hospitality.Gizmo_VendingMachineContent",
-                t => new ModifyNumberGizmoHandler(t, ModifyNumberGizmoHandler.Kind.VendingThreshold));
+                t => new VendingThresholdGizmoHandler(t));
         }
 
         // -----------------------------------------------------------------

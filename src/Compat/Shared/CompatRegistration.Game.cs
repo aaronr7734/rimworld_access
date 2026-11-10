@@ -1,12 +1,12 @@
 using System;
 using HarmonyLib;
+using RimWorldAccess.Shell;
 
 namespace RimWorldAccess
 {
     /// <summary>
-    /// The registration ceremony every compat module repeats: probe the mod type,
-    /// construct, honor the Ready gate, register, log once — all inside a
-    /// try/catch so a compat failure can never break startup.
+    /// The registration ceremony every compat module repeats: probe the mod type, construct, honor
+    /// the Ready gate, register, log once, inside a try/catch so a compat failure never breaks startup.
     /// </summary>
     internal static class CompatRegistration
     {
@@ -68,6 +68,28 @@ namespace RimWorldAccess
             {
                 ModLogger.Error($"Gizmo handler registration for {commandTypeName} failed: {ex.Message}");
                 return 0;
+            }
+        }
+
+        /// <summary>Registers a pawn-column handler for a present worker type; a null handler declines.</summary>
+        public static void PawnColumnHandler(string workerTypeName, Func<Type, IPawnColumnHandler> make)
+        {
+            try
+            {
+                Type workerType = AccessTools.TypeByName(workerTypeName);
+                if (workerType == null)
+                {
+                    return;
+                }
+                IPawnColumnHandler handler = make(workerType);
+                if (handler != null)
+                {
+                    PawnColumnHandlerRegistry.Register(workerType, handler);
+                }
+            }
+            catch (Exception ex)
+            {
+                ModLogger.Error($"Pawn column handler registration for {workerTypeName} failed: {ex.Message}");
             }
         }
     }

@@ -3,7 +3,7 @@ namespace RimWorldAccess
     /// <summary>
     /// How well a building would work at one cell and facing, as a <see cref="PlacementUsefulnessRegistry"/>
     /// rule judges it: a score in [0, 1], where 0 means it would not work at all, and an optional
-    /// localized phrase saying why.
+    /// localized phrase saying why, built only when the rating is asked to describe.
     /// </summary>
     internal readonly struct PlacementQuality
     {

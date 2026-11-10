@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- HospitalityGuestTabAdapter: Hospitality's Guest inspect tab. Labels and tooltips are the
+       mod's own keys; these cover only what the mod draws without a string of its own. -->
+  <RimWorldAccess.Compat.Hospitality.GuestTabName>访客</RimWorldAccess.Compat.Hospitality.GuestTabName>
+  <!-- A progress bar: {0} = the label drawn beside it, {1} = how full the bar is, as a percent. -->
+  <RimWorldAccess.Compat.Hospitality.BarLine>{0} {1}</RimWorldAccess.Compat.Hospitality.BarLine>
+  <RimWorldAccess.Compat.Hospitality.DefaultsApplied>已应用于当前和之后的所有访客。</RimWorldAccess.Compat.Hospitality.DefaultsApplied>
+  <RimWorldAccess.Compat.Hospitality.ActionFailed>操作失败。</RimWorldAccess.Compat.Hospitality.ActionFailed>
+  <!-- HospitalitySocialBarsExtender: the coloured bars Hospitality paints behind colonist rows on a guest's Social tab.
+       {0} = colonist, {1} = the guest's opinion of them, {2} = how full the bar is. -->
+  <RimWorldAccess.Compat.Hospitality.FriendshipBars>招募友谊</RimWorldAccess.Compat.Hospitality.FriendshipBars>
+  <RimWorldAccess.Compat.Hospitality.FriendBar>{0}: 看法 {1}, 友谊 {2}</RimWorldAccess.Compat.Hospitality.FriendBar>
+  <RimWorldAccess.Compat.Hospitality.EnemyBar>{0}: 看法 {1}, 敌意 {2}</RimWorldAccess.Compat.Hospitality.EnemyBar>
+  <RimWorldAccess.Compat.Hospitality.NoFriendshipBars>暂无殖民者的看法。</RimWorldAccess.Compat.Hospitality.NoFriendshipBars>
+
+  <!-- GastronomyRestaurantTabAdapter: Gastronomy's Dining tab on a cash register. -->
+  <RimWorldAccess.Compat.Gastronomy.TabName>用餐</RimWorldAccess.Compat.Gastronomy.TabName>
+  <RimWorldAccess.Compat.Gastronomy.RestaurantPicker>餐厅</RimWorldAccess.Compat.Gastronomy.RestaurantPicker>
+  <RimWorldAccess.Compat.Gastronomy.RestaurantAdded>已添加{0}。</RimWorldAccess.Compat.Gastronomy.RestaurantAdded>
+  <!-- One stocked meal: {0} = count, {1} = meal name, {2} = price. -->
+  <RimWorldAccess.Compat.Gastronomy.StockEntry>{0}x {1} ({2})</RimWorldAccess.Compat.Gastronomy.StockEntry>
+  <RimWorldAccess.Compat.Gastronomy.NoDebts>没有未付账单。</RimWorldAccess.Compat.Gastronomy.NoDebts>
+  <RimWorldAccess.Compat.Gastronomy.DebtCleared>账单已清除。</RimWorldAccess.Compat.Gastronomy.DebtCleared>
+  <RimWorldAccess.Compat.Gastronomy.MenuFilter>菜单</RimWorldAccess.Compat.Gastronomy.MenuFilter>
+
+  <!-- StorefrontStoreTabAdapter: Hospitality: Storefront's Shop tab on a cash register. -->
+  <RimWorldAccess.Compat.Storefront.TabName>商店</RimWorldAccess.Compat.Storefront.TabName>
+  <!-- One stocked item: {0} = count, {1} = item name. -->
+  <RimWorldAccess.Compat.Storefront.StockEntry>{0}x {1}</RimWorldAccess.Compat.Storefront.StockEntry>
+  <RimWorldAccess.Compat.Storefront.StockLine>库存: {0}</RimWorldAccess.Compat.Storefront.StockLine>
+  <RimWorldAccess.Compat.Storefront.NoStock>库存: 无。</RimWorldAccess.Compat.Storefront.NoStock>
+  <RimWorldAccess.Compat.Storefront.StoreFilter>在售物品</RimWorldAccess.Compat.Storefront.StoreFilter>
+</LanguageData>

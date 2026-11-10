@@ -22,6 +22,13 @@ namespace RimWorldAccess.Shell
                 && (key == data.keyBindingA || key == data.keyBindingB);
         }
 
+        internal static KeyCode SlotKey(KeyBindingDef def, KeyPrefs.BindingSlot slot)
+        {
+            if (def == null || !KeyPrefs.KeyPrefsData.keyPrefs.TryGetValue(def, out KeyBindingData data))
+                return KeyCode.None;
+            return slot == KeyPrefs.BindingSlot.A ? data.keyBindingA : data.keyBindingB;
+        }
+
         /// <summary>The binding's primary live key: slot A, else slot B, else None.</summary>
         internal static KeyCode BoundKey(KeyBindingDef def)
         {
@@ -35,7 +42,13 @@ namespace RimWorldAccess.Shell
             return key == KeyCode.None ? null : key.ToStringReadable();
         }
 
-        /// <summary>As <see cref="HotkeyLabel"/>, but null when any claim beneath every modal takes the bare key, whatever its when-guard.</summary>
+        internal static string HotkeyLabel(KeyBindingDef def, KeyPrefs.BindingSlot slot)
+        {
+            KeyCode key = SlotKey(def, slot);
+            return key == KeyCode.None ? null : key.ToStringReadable();
+        }
+
+        /// <summary>As <see cref="HotkeyLabel(KeyBindingDef)"/>, but null when any claim beneath every modal takes the bare key, whatever its when-guard.</summary>
         internal static string ReachableHotkeyLabel(KeyBindingDef def)
         {
             KeyCode key = BoundKey(def);

@@ -495,3 +495,5 @@ verified against the game's corpus. Decided from context per house rule (no nati
 ## Mod-coined terms: delta sync (2026-11-09)
 
 Vehicle Framework tab "Customize" = Personalizar; RimTalk memory "Timeline" = Cronología, "Chronicle" = Crónica; "no pawn selected" = ningún personaje seleccionado; in-game "tick" stays tick; Hospitality "Guest" = huésped; "Rollback" (save) = Revertir partida.
+
+Hospitality/Gastronomy/Storefront tabs: guest tab = Huésped, Dining tab = Comedor, shop = Tienda, unpaid bill = cuenta, stock = existencias.

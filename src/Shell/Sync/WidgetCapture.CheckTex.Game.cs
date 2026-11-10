@@ -163,6 +163,10 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
+            if (image != null && image == TexButton.Search)
+            {
+                searchIconMarkers.Add(new SearchIconMarker { ScreenRect = GuiSpace.ToScreen(rect), Clip = GuiSpace.CurrentClip() });
+            }
             MultiCheckboxState state;
             bool radio;
             if (!TryResolveCheckTexState(image, out state, out radio))
@@ -331,6 +335,7 @@ namespace RimWorldAccess.Shell
                 ScreenRect = GuiSpace.ToScreen(rect),
                 VisibleScreenRect = GuiSpace.VisibleScreenRect(rect),
                 Clip = clip,
+                OrphanTip = true,
             });
             DrawFocusRingIfFocused(index, rect);
             return true;
@@ -413,6 +418,7 @@ namespace RimWorldAccess.Shell
                 ScreenRect = pendingTipTextureScreenRect,
                 VisibleScreenRect = pendingTipTextureVisibleScreenRect,
                 Clip = pendingTipTextureClip,
+                OrphanTip = true,
             });
         }
     }

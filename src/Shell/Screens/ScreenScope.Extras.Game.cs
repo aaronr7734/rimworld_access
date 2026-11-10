@@ -115,22 +115,24 @@ namespace RimWorldAccess.Shell
                 return;
             }
             widgetSnapshot.Clear();
+            extrasFieldNames.Clear();
             for (int i = 0; i < pass.Count; i++)
             {
-                if (!ExcludeFromCapturedExtras(pass[i]) && !IsRedundantCloseX(pass[i]))
+                if (ExcludeFromCapturedExtras(pass[i]) || IsRedundantCloseX(pass[i]) || PlaceholderFieldIndex(pass, i) >= 0)
                 {
-                    widgetSnapshot.Add(pass[i]);
+                    continue;
+                }
+                widgetSnapshot.Add(pass[i]);
+                string fieldName = BlankFieldName(pass, i);
+                if (fieldName != null)
+                {
+                    extrasFieldNames[pass[i]] = fieldName;
                 }
             }
             RebuildExtrasRows();
             if (extrasPendingChange.HasValue)
             {
                 ResolveExtrasPendingChange();
-            }
-            if (buttonClickPassesLeft > 0)
-            {
-                buttonClickPassesLeft--;
-                OnCapturedButtonPass();
             }
             widgetPassSinceFocus = true;
             if (awaitingEntryAnnouncement)
@@ -141,7 +143,16 @@ namespace RimWorldAccess.Shell
             }
         }
 
-        /// <summary>Runs on both passes after an extras button click posts; the click lands in one, per QA R6.</summary>
+        internal void OnWindowPassCompleted()
+        {
+            if (buttonClickPassesLeft > 0)
+            {
+                buttonClickPassesLeft--;
+                OnCapturedButtonPass();
+            }
+        }
+
+        /// <summary>Runs on both passes after a captured button click posts; the click lands in one, per QA R6.</summary>
         protected virtual void OnCapturedButtonPass()
         {
         }
@@ -155,6 +166,58 @@ namespace RimWorldAccess.Shell
         {
             return false;
         }
+
+        /// <summary>A label drawn over an empty text field just after it is that field's placeholder: the index of its field, else -1.</summary>
+        private static int PlaceholderFieldIndex(IReadOnlyList<CapturedWidget> pass, int labelIndex)
+        {
+            CapturedWidget label = pass[labelIndex];
+            if (label.Kind != WidgetKind.Label || string.IsNullOrWhiteSpace(label.Label))
+            {
+                return -1;
+            }
+            for (int j = labelIndex - 1; j >= 0 && j >= labelIndex - 2; j--)
+            {
+                CapturedWidget field = pass[j];
+                if (field.Kind == WidgetKind.TextField && string.IsNullOrEmpty(field.Text) && field.Clip.Equals(label.Clip)
+                    && field.ScreenRect.Contains(label.ScreenRect.center))
+                {
+                    return j;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>An uncaptioned field's name: its placeholder, else a label drawn just before it directly above.</summary>
+        private static string BlankFieldName(IReadOnlyList<CapturedWidget> pass, int fieldIndex)
+        {
+            CapturedWidget field = pass[fieldIndex];
+            if (field.Kind != WidgetKind.TextField || !string.IsNullOrEmpty(field.Label) || !string.IsNullOrEmpty(field.FieldLabel))
+            {
+                return null;
+            }
+            for (int j = fieldIndex + 1; j < pass.Count && j <= fieldIndex + 2; j++)
+            {
+                if (PlaceholderFieldIndex(pass, j) == fieldIndex)
+                {
+                    return pass[j].Label.StripTags();
+                }
+            }
+            if (fieldIndex == 0)
+            {
+                return null;
+            }
+            CapturedWidget above = pass[fieldIndex - 1];
+            if (above.Kind != WidgetKind.Label || string.IsNullOrWhiteSpace(above.Label) || above.Dimmed
+                || !above.Clip.Equals(field.Clip) || CaptionNote.IsMultiValueReadout(above.Label.StripTags()))
+            {
+                return null;
+            }
+            float gap = field.ScreenRect.y - above.ScreenRect.yMax;
+            bool overlaps = field.ScreenRect.xMin < above.ScreenRect.xMax && above.ScreenRect.xMin < field.ScreenRect.xMax;
+            return gap >= 0f && gap <= AboveCaptionGapMax && overlaps ? above.Label.StripTags() : null;
+        }
+
+        private const float AboveCaptionGapMax = 18f;
 
         /// <summary>The corner X is a second close control when vanilla also draws its bottom close button, which the Buttons region already holds.</summary>
         private bool IsRedundantCloseX(CapturedWidget widget)
@@ -196,6 +259,7 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
+            List<List<int>> bands = RimWorldAccess.CapturedRowFolder.BandsFor(widgetSnapshot);
             PresentedHaystacks presented = BuildPresentedHaystacks();
             for (int i = 0; i < folded.Count; i++)
             {
@@ -225,18 +289,16 @@ namespace RimWorldAccess.Shell
                 {
                     continue;
                 }
-                AppendExtrasRows(row);
+                AppendExtrasRows(row, row.BandIndex >= 0 && row.BandIndex < bands.Count ? bands[row.BandIndex] : null, presented);
             }
         }
 
         /// <summary>
-        /// A row with interactive members is judged by their RAW labels: the fragment text bakes in
-        /// role and state wording that can never match a typed row's plain label, which would defeat
-        /// the diff for every interactive widget. A pure-text row falls back to the folded row text,
-        /// though <see cref="RebuildExtrasRows"/> drops such rows before asking. A row whose
-        /// interactives are ALL unlabeled falls back to <see cref="RemainderIsUnmirrored"/>.
+        /// A row with interactive members is judged by their RAW labels, since fragments bake in role and
+        /// state wording no typed row's label matches. A pure-text row falls back to the folded row text;
+        /// a row whose interactives are ALL unlabeled falls back to <see cref="RemainderIsUnmirrored"/>.
         /// </summary>
-        private static bool RowIsUnmirrored(RimWorldAccess.FoldedRow row, PresentedHaystacks presented)
+        private bool RowIsUnmirrored(RimWorldAccess.FoldedRow row, PresentedHaystacks presented)
         {
             if (row.Interactives == null || row.Interactives.Count == 0)
             {
@@ -346,9 +408,14 @@ namespace RimWorldAccess.Shell
         /// The undecorated text a member is judged by: its spoken label, else its source widget's
         /// label, else its value text — for a valueless name, value identity IS mirroring.
         /// </summary>
-        private static string PlainMemberText(InteractiveMember member)
+        private string PlainMemberText(InteractiveMember member)
         {
             string spoken = SpokenMemberLabel(member);
+            string fieldName;
+            if (string.IsNullOrEmpty(spoken) && member.Source != null && extrasFieldNames.TryGetValue(member.Source, out fieldName))
+            {
+                return fieldName;
+            }
             if (!string.IsNullOrEmpty(spoken))
             {
                 return spoken;
@@ -493,18 +560,24 @@ namespace RimWorldAccess.Shell
         /// result with its source InteractiveMember by index. Only rows carrying interactives reach
         /// here; <see cref="RebuildExtrasRows"/> drops pure-text rows.
         /// </summary>
-        private void AppendExtrasRows(RimWorldAccess.FoldedRow row)
+        private void AppendExtrasRows(RimWorldAccess.FoldedRow row, List<int> band, PresentedHaystacks presented)
         {
             var pureMembers = new List<CapturedExtraMember>(row.Interactives.Count);
             for (int i = 0; i < row.Interactives.Count; i++)
             {
-                pureMembers.Add(ToPureMember(row.Interactives[i]));
+                CapturedExtraMember pure = ToPureMember(row.Interactives[i]);
+                string fieldName;
+                if (string.IsNullOrEmpty(pure.RawLabel) && row.Interactives[i].Source != null
+                    && extrasFieldNames.TryGetValue(row.Interactives[i].Source, out fieldName))
+                {
+                    pure.RawLabel = fieldName;
+                }
+                pure.CaptionLeads = CaptionLeadsMember(band, row.Interactives[i].Source);
+                pureMembers.Add(pure);
             }
-            // Whatever a banded row says beyond its controls' own fragments is the caption a
-            // two-column form draws beside them, and it is otherwise lost. It names EVERY control
-            // on the row: a pair sharing one caption ("Class hours", 8 and 15) is still that pair,
-            // and naming neither leaves two bare numbers. A row that is nothing but its controls
-            // has no residue, so HasContext keeps it out of this.
+            // Whatever a banded row says beyond its controls' own fragments is a two-column form's
+            // caption. It names every unlabeled control and each labeled one it leads ("Class hours",
+            // 8 and 15); one that names nothing reads as its own line. A row of bare controls has none.
             var fragments = new List<string>(row.Interactives.Count);
             for (int i = 0; i < row.Interactives.Count; i++)
             {
@@ -513,6 +586,17 @@ namespace RimWorldAccess.Shell
             string caption = RimWorldAccess.CapturedRowResidue.HasContext(row.Text, fragments)
                 ? RimWorldAccess.CapturedRowResidue.Strip(row.Text, fragments)
                 : null;
+            if (CapturedExtrasRows.CaptionLeftOver(pureMembers, caption)
+                && CaptureTextNormalization.IsUnmirrored(caption, presented.All, s => s.StripTags()))
+            {
+                extrasRows.Add(new ExtrasRow
+                {
+                    Label = CapturedExtrasRows.TrimCaption(caption).StripTags(),
+                    Role = ElementRole.None,
+                    ReadOnly = true,
+                    Member = null,
+                });
+            }
             List<CapturedExtraRow> expanded =
                 CapturedExtrasRows.Expand(row.Text, row.Tip, pureMembers, caption);
             for (int i = 0; i < expanded.Count && i < row.Interactives.Count; i++)
@@ -536,6 +620,27 @@ namespace RimWorldAccess.Shell
                 PublishSliderName(row.Interactives[i]);
             }
         }
+
+        /// <summary>Some plain label on the control's band ends left of it; text only to its right never names it.</summary>
+        private bool CaptionLeadsMember(List<int> band, CapturedWidget control)
+        {
+            if (band == null || control == null)
+            {
+                return true;
+            }
+            for (int k = 0; k < band.Count; k++)
+            {
+                CapturedWidget label = widgetSnapshot[band[k]];
+                if (label.Kind == WidgetKind.Label && !string.IsNullOrWhiteSpace(label.Label)
+                    && label.ScreenRect.xMax <= control.ScreenRect.xMin + CaptionLeadSlack)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private const float CaptionLeadSlack = 2f;
 
         /// <summary>
         /// Hands a folded slider's name to the mouse-drag reader under vanilla's own drag identity.

@@ -67,8 +67,11 @@ namespace RimWorldAccess
         {
             try
             {
-                if (PlacementHelpSpeech.CollectingOutlines)
-                    PlacementHelpSpeech.CollectOutline(Rate(def, Find.CurrentMap, center, rot, wells.PumpCapacity()).Phrase.CapitalizeFirst());
+                if (!PlacementHelpSpeech.CollectingOutlines)
+                    return;
+                float radius = wells.InletRadius(def, DefaultRadius);
+                PlacementHelpSpeech.CollectOutline(Rate(Find.CurrentMap, center, rot, radius, Ceiling(radius),
+                    wells.PumpCapacity(), describe: true).Phrase.CapitalizeFirst());
             }
             catch (Exception ex)
             {
@@ -76,15 +79,23 @@ namespace RimWorldAccess
             }
         }
 
-        private static Func<IntVec3, Rot4, PlacementQuality> MakeRating(ThingDef def, Map map)
+        private static PlacementRating MakeRating(ThingDef def, Map map)
         {
             float pumpCapacity = wells.PumpCapacity();
-            return (cell, rotation) => Rate(def, map, cell, rotation, pumpCapacity);
+            float radius = wells.InletRadius(def, DefaultRadius);
+            float ceiling = Ceiling(radius);
+            return (cell, rotation, describe) => Rate(map, cell, rotation, radius, ceiling, pumpCapacity, describe);
         }
 
-        private static PlacementQuality Rate(ThingDef def, Map map, IntVec3 center, Rot4 rotation, float pumpCapacity)
+        // The ceiling is a reach that is all river, the richest kind.
+        private static float Ceiling(float radius)
         {
-            float radius = wells.InletRadius(def, DefaultRadius);
+            return GenRadial.NumCellsInRadius(radius) * riverPerCell;
+        }
+
+        private static PlacementQuality Rate(Map map, IntVec3 center, Rot4 rotation, float radius, float ceiling,
+            float pumpCapacity, bool describe)
+        {
             int rivers = 0, lakes = 0, marshes = 0;
             foreach (IntVec3 cell in waterCells(map, center, rotation, radius))
             {
@@ -97,13 +108,14 @@ namespace RimWorldAccess
             }
 
             float drawn = rivers * riverPerCell + lakes * lakePerCell + marshes * marshPerCell;
+            float score = Mathf.Clamp01(drawn / ceiling);
+            if (!describe)
+                return new PlacementQuality(score, null);
+
             var phrases = new List<string> { DubsWellCapacity.Phrase(drawn * pumpCapacity) };
             // CompSurfaceWaterInlet.Stagnant: marsh outweighing clean water fouls the supply.
             if (marshes > rivers + lakes)
                 phrases.Add(CompatText.Flatten(CompatText.ModText("DBH.SurfaceWaterStagnant")));
-
-            // The ceiling is a reach that is all river, the richest kind.
-            float score = Mathf.Clamp01(drawn / (GenRadial.NumCellsInRadius(radius) * riverPerCell));
             return new PlacementQuality(score, CompatText.JoinSentences(phrases));
         }
     }

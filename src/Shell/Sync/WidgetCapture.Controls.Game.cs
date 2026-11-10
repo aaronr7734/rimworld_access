@@ -147,7 +147,7 @@ namespace RimWorldAccess.Shell
         }
 
         internal static int RecordButton(Rect rect, string label, bool disabled, bool closeX = false, bool nameFromTip = false,
-            bool needsLateTipName = false, bool labelIsTextureName = false, bool mayOpenDropdown = false)
+            bool needsLateTipName = false, bool labelIsTextureName = false, bool mayOpenDropdown = false, bool noBackground = false)
         {
             if (!passOpen)
             {
@@ -167,6 +167,7 @@ namespace RimWorldAccess.Shell
             MaybeLiveActivateMatch(WidgetKind.Button, label ?? "", index);
             CapturedWidget row = new CapturedWidget { Kind = WidgetKind.Button, Label = label ?? "", Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), RecordColor = GUI.color, Disabled = disabled, DropdownOpener = labeledButtonDepth > 0 || (mayOpenDropdown && DrawnByDropdown(rect, label)), CloseX = closeX, NameFromTip = nameFromTip, NeedsLateTipName = needsLateTipName, LabelIsTextureName = labelIsTextureName };
             row.HighlightSelected = TakeSelectedHighlight(row, index);
+            row.NoBackground = noBackground;
             if (intEntryDepth > 0)
             {
                 // Draw order is the button's identity: vanilla draws -10x, -1x, +10x, +1x

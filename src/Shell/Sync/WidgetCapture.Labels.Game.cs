@@ -136,6 +136,8 @@ namespace RimWorldAccess.Shell
             List<CapturedWidget> sink = CurrentSink;
             int index = sink.Count;
             CapturedWidget row = new CapturedWidget { Kind = WidgetKind.Label, Label = label, Rect = rect, ScreenRect = GuiSpace.ToScreen(rect), VisibleScreenRect = GuiSpace.VisibleScreenRect(rect), Clip = GuiSpace.CurrentClip(), Heading = heading, HeadingFromGapLineOnly = gapLineHeading && !mediumFontHeading, TinyFont = Text.Font == GameFont.Tiny, RecordAnchor = Text.Anchor };
+            Color tint = GUI.color;
+            row.Dimmed = CaptionNote.IsDimmedTint(tint.r, tint.g, tint.b, tint.a);
             if (rangeDepth > 0)
             {
                 // The range core's own "min - max" text, kept as a row for the inspect-tab reader,

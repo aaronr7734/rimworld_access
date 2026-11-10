@@ -89,10 +89,7 @@ namespace RimWorldAccess.Shell
     /// </summary>
     public static class TabStripDetector
     {
-        /// <summary>
-        /// Fewest tiled buttons that can be a tab strip. Two is excluded on purpose: an
-        /// accept/cancel pair is equal-size, same-band and edge-adjacent, and is not a tab bar.
-        /// </summary>
+        /// <summary>Fewest tiled buttons that can be a tab strip: an equal-size accept/cancel pair is not a tab bar.</summary>
         public const int MinimumTabs = 3;
 
         /// <summary>Pixel slack for "same" position and size. Layout arithmetic that divides a length into equal parts leaves sub-pixel residue.</summary>
@@ -364,6 +361,46 @@ namespace RimWorldAccess.Shell
             }
             // Either every member matches or more than one deviates; neither is a verdict.
             return -1;
+        }
+
+        /// <summary>A run's current option: its one member drawn without background, else the distinct tint; a pair reads its tinted member against white.</summary>
+        public static int IndexOfMarkedOption(IReadOnlyList<TabTint> tints, IReadOnlyList<bool> noBackground)
+        {
+            if (tints == null || tints.Count < 2)
+            {
+                return -1;
+            }
+            int bare = -1;
+            for (int i = 0; noBackground != null && i < noBackground.Count && i < tints.Count; i++)
+            {
+                if (!noBackground[i])
+                {
+                    continue;
+                }
+                if (bare >= 0)
+                {
+                    bare = -1;
+                    break;
+                }
+                bare = i;
+            }
+            if (bare >= 0)
+            {
+                return bare;
+            }
+            if (tints.Count >= 3)
+            {
+                return IndexOfDistinctTint(tints);
+            }
+            bool firstWhite = IsWhite(tints[0]);
+            bool secondWhite = IsWhite(tints[1]);
+            return firstWhite == secondWhite ? -1 : (firstWhite ? 1 : 0);
+        }
+
+        private static bool IsWhite(TabTint tint)
+        {
+            TabTint white = new TabTint { R = 1f, G = 1f, B = 1f, A = 1f };
+            return !Differs(tint, white);
         }
 
         private static bool Differs(TabTint a, TabTint b)

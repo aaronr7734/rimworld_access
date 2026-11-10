@@ -247,6 +247,7 @@ namespace RimWorldAccess.Shell
                 {
                     return;
                 }
+                scope?.OnWindowPassCompleted();
                 ScreenScope ringScope = ForContentRing(__instance);
                 if (ringScope != null)
                 {

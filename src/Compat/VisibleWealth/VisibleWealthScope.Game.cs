@@ -31,6 +31,7 @@ namespace RimWorldAccess.Shell
 
         private readonly Window window;
         private readonly TextFieldEditSession searchSession = new TextFieldEditSession();
+        private readonly ForeignQuickSearchRow searchRow;
         private readonly List<object> options = new List<object>();
         private readonly Dictionary<object, Rect> rowLocalRects = new Dictionary<object, Rect>();
         private readonly Dictionary<object, Rect> rowScreenRects = new Dictionary<object, Rect>();
@@ -46,6 +47,8 @@ namespace RimWorldAccess.Shell
         public VisibleWealthScope(Window window)
         {
             this.window = window;
+            searchRow = new ForeignQuickSearchRow(searchSession, VwCompat.Search,
+                () => "RimWorldAccess.Compat.VisibleWealth.Search".Translate(), ResyncChart);
             Claim(SharedMenuGrammar.Info, e => PerformInfoCard());
             RegisterPopTeardown(searchSession.CancelIfActive);
         }
@@ -217,46 +220,17 @@ namespace RimWorldAccess.Shell
                 d.ReadOnly = true;
                 return d;
             }
-            d.Label = "RimWorldAccess.Compat.VisibleWealth.Search".Translate();
-            d.Role = ElementRole.TextField;
-            d.EntersEditOnAccept = true;
-            string text = VwCompat.Search()?.filter.Text;
-            if (text.NullOrEmpty())
-            {
-                d.ValueBlank = true;
-            }
-            else
-            {
-                d.Value = text;
-            }
+            searchRow.Describe(d);
             return d;
         }
 
         private void BeginSearchEdit()
         {
-            QuickSearchWidget search = VwCompat.Search();
-            if (search == null)
+            searchRow.BeginEdit(() =>
             {
-                return;
-            }
-            string label = "RimWorldAccess.Compat.VisibleWealth.Search".Translate();
-            searchSession.EnterEdit(search.filter.Text, new TextFieldSpec(labelKey: null, maxLength: search.maxSearchTextLength, minLength: 0),
-                label, SetSearch, () =>
-                {
-                    RefreshModel();
-                    AnnounceCurrentItem();
-                });
-        }
-
-        private void SetSearch(string value)
-        {
-            QuickSearchWidget search = VwCompat.Search();
-            if (search == null || search.filter.Text == (value ?? ""))
-            {
-                return;
-            }
-            search.filter.Text = value ?? ""; // MUTATION-C: mirrors QuickSearchWidget.OnGUI's text write; Dialog_WealthBreakdown passes no onFilterChange
-            ResyncChart();
+                RefreshModel();
+                AnnounceCurrentItem();
+            });
         }
 
         // ------------------------------------------------------------------

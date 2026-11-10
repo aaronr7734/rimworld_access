@@ -5,8 +5,9 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Visible Wealth (packageId <c>visiblewealth.1trickPwnyta</c>): the wealth breakdown window,
-    /// its play-settings button and its hotkey. The main button and the settings page need nothing here: the
+    /// Visible Wealth (packageId <c>visiblewealth.1trickPwnyta</c>): the wealth breakdown window
+    /// and its play-settings button; <see cref="ForeignHotkeyGuard"/> keeps its hotkey off shell keys.
+    /// The main button and the settings page need nothing here: the
     /// F12 menu lists the mod's <c>MainButtonDef</c> whenever its own visibility allows, and the
     /// settings page is a plain <c>Listing_Standard</c> the generic settings reader covers.
     /// </summary>
@@ -27,7 +28,6 @@ namespace RimWorldAccess
             ScopeForWindow.Register(VwCompat.DialogType, w => new VisibleWealthScope(w));
             VwDrawPatch.Install(harmony);
             VwHudToolbar.Register();
-            VwHotkeyGuard.Register(harmony);
         }
     }
 }

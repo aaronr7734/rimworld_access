@@ -337,6 +337,7 @@ namespace RimWorldAccess.Shell
                 // Vanilla's inline click handler runs on the next armed pass and speaks for
                 // itself. Owner-tagged so a stacked window's pass cannot steal or drop it.
                 ButtonTextCapture.RequestClick(capturedButtonSourceIndex[index], this);
+                buttonClickPassesLeft = 2;
                 return;
             }
             IReadOnlyList<ScreenAction> declared = ResolvedDeclaredActions();
