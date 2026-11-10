@@ -118,6 +118,15 @@ namespace RimWorldAccess.Shell
             Record("window", verb + " " + window.GetType().FullName + " by " + CallerSummary());
         }
 
+        internal static void RecordSound(SoundDef def)
+        {
+            if (!Active || def == null)
+            {
+                return;
+            }
+            Record("sound", def.defName + " by " + CallerSummary());
+        }
+
         /// <summary>Up to three <c>Type.Method</c> frames, innermost first, minus the recorder, the mirror, Harmony stubs and WindowStack.</summary>
         private static string CallerSummary()
         {
@@ -130,6 +139,7 @@ namespace RimWorldAccess.Shell
                 if (type == null
                     || type == typeof(FlightRecorder)
                     || type == typeof(WindowStack)
+                    || type == typeof(Verse.Sound.SoundStarter)
                     || type.Name.StartsWith("ScopeForWindow", StringComparison.Ordinal)
                     || method.Name.StartsWith("DMD<", StringComparison.Ordinal)
                     || type.Namespace == null)

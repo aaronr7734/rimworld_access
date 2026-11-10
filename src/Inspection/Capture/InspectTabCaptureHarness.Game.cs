@@ -25,9 +25,7 @@ namespace RimWorldAccess
     ///   bodies assume the state it checks.
     /// - UpdateSize() runs first, then scroll positions are zeroed so row rects start at the origin.
     /// - The pass runs ONLY during Repaint, where buttons cannot return true and Layout-gated size
-    ///   bookkeeping is skipped, so it is mutation-inert by construction. FillTab draws inside a
-    ///   far offscreen group, so nothing rasterizes and the real mouse can never overlap
-    ///   capture-space rects.
+    ///   bookkeeping is skipped, so it is mutation-inert by construction.
     /// - The detached pass records into the caller's sink with scope injection disabled, leaving
     ///   the focus-scope engine's own Items and pending posts untouched.
     /// - <see cref="TryActivatePass"/> is the deliberate exception to mutation-inertness: it arms
@@ -76,22 +74,26 @@ namespace RimWorldAccess
         /// </summary>
         public static bool TryCapturePass(InspectTabBase tab, object target, List<CapturedWidget> into, out string error)
         {
-            return TryPassCore(tab, target, into, null, out error);
+            return TryPassCore(tab, target, into, null, out error, out _);
+        }
+
+        /// <summary>Also reports the draw's own fault, what it threw or the GUI scopes it left open; null when it ran clean.</summary>
+        public static bool TryCapturePass(InspectTabBase tab, object target, List<CapturedWidget> into, out string error,
+            out Exception fault)
+        {
+            return TryPassCore(tab, target, into, null, out error, out fault);
         }
 
         /// <summary>
-        /// Re-runs the tab's draw offscreen with exactly ONE captured control armed: the widget
-        /// matching (kind, label, ordinal) has its own vanilla handler fired. The deliberate
-        /// exception to the harness's mutation-inertness, still Repaint-only so no OTHER widget can
-        /// see a click. <paramref name="fired"/> is false when the tab reshaped and the descriptor
-        /// no longer resolves.
+        /// Re-runs the draw with the (kind, label, ordinal) control's own vanilla handler armed.
+        /// <paramref name="fired"/> is false when the tab reshaped and the descriptor no longer resolves.
         /// </summary>
         public static bool TryActivatePass(InspectTabBase tab, object target, WidgetKind kind, string label, int ordinal,
             List<CapturedWidget> into, out bool fired, out string error)
         {
             fired = false;
             bool ok = TryPassCore(tab, target, into,
-                new ArmedDescriptor { Action = PassAction.Activate, Kind = kind, Label = label, Ordinal = ordinal }, out error);
+                new ArmedDescriptor { Action = PassAction.Activate, Kind = kind, Label = label, Ordinal = ordinal }, out error, out _);
             fired = WidgetCapture.ArmedFired;
             return ok;
         }
@@ -107,7 +109,7 @@ namespace RimWorldAccess
             fired = false;
             bool ok = TryPassCore(tab, target, into,
                 new ArmedDescriptor { Action = PassAction.Adjust, Kind = WidgetKind.Slider, Label = label, Ordinal = ordinal, Direction = direction },
-                out error);
+                out error, out _);
             fired = WidgetCapture.ArmedFired;
             return ok;
         }
@@ -122,7 +124,7 @@ namespace RimWorldAccess
             fired = false;
             bool ok = TryPassCore(tab, target, into,
                 new ArmedDescriptor { Action = PassAction.SetSlider, Kind = WidgetKind.Slider, Label = label, Ordinal = ordinal, Value = value },
-                out error);
+                out error, out _);
             fired = WidgetCapture.ArmedFired;
             return ok;
         }
@@ -138,7 +140,7 @@ namespace RimWorldAccess
             fired = false;
             bool ok = TryPassCore(tab, target, into,
                 new ArmedDescriptor { Action = PassAction.SetText, Kind = WidgetKind.TextField, Label = "", Ordinal = ordinal, Text = text },
-                out error);
+                out error, out _);
             fired = WidgetCapture.ArmedFired;
             return ok;
         }
@@ -159,15 +161,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// Shared lifecycle for <see cref="TryCapturePass"/> and <see cref="TryActivatePass"/>:
-        /// selection save/select/restore, the IsVisible gate, UpdateSize, scroll zeroing, GUI state
-        /// save/restore, and the offscreen detached-pass bracket. The only difference is whether
-        /// the bracket arms a widget.
+        /// Shared lifecycle of every tab pass: selection, the IsVisible gate, UpdateSize, scroll
+        /// zeroing, GUI state save/restore, and the offscreen bracket, armed or not.
         /// </summary>
         private static bool TryPassCore(InspectTabBase tab, object target, List<CapturedWidget> into,
-            ArmedDescriptor? armed, out string error)
+            ArmedDescriptor? armed, out string error, out Exception fault)
         {
             error = null;
+            fault = null;
             if (tab == null || target == null || into == null)
             {
                 error = "null tab/target/sink";
@@ -207,12 +208,18 @@ namespace RimWorldAccess
                 ZeroCompanionScrollStatics(tab.GetType());
 
                 MethodInfo fillTab = ResolveFillTab(tab.GetType());
-                CaptureOffscreen(() => fillTab.Invoke(tab, null), sizeRef(tab), into, armed);
+                int leaked = CaptureOffscreen(() => fillTab.Invoke(tab, null), sizeRef(tab), into, armed);
+                if (leaked > 0)
+                {
+                    fault = new InvalidOperationException(
+                        $"{tab.GetType().FullName}.FillTab left {leaked} GUI scroll view(s) or group(s) open");
+                }
                 return true;
             }
             catch (Exception ex)
             {
-                error = $"{tab.GetType().Name} capture threw: {ex.InnerException ?? ex}";
+                fault = ex is TargetInvocationException && ex.InnerException != null ? ex.InnerException : ex;
+                error = $"{tab.GetType().Name} capture threw: {fault}";
                 return false;
             }
             finally
@@ -287,47 +294,94 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// The shared offscreen bracket: a far-offscreen group, so nothing rasterizes and the real
-        /// mouse can never overlap capture-space rects, around a detached WidgetCapture +
-        /// TooltipCapture pass.
+        /// The shared offscreen bracket: a far-offscreen group (nothing rasterizes, the real mouse never
+        /// overlaps) around a detached capture pass, run as the inspect pane the way vanilla draws a tab,
+        /// since mods key per-window state off currentlyDrawnWindow (BetterSliders throws when it is null).
+        /// Returns how many scopes the draw left open; all are closed again, even when it throws.
         /// </summary>
-        private static void CaptureOffscreen(Action draw, Vector2 size, List<CapturedWidget> into, ArmedDescriptor? armed = null)
+        private static int CaptureOffscreen(Action draw, Vector2 size, List<CapturedWidget> into, ArmedDescriptor? armed = null)
         {
+            int scrollViewsAtEntry = Widgets.mouseOverScrollViewStack.Count;
+            int groupsAtEntry = GuiSpace.ClipDepth;
+            int leaked = 0;
             Widgets.BeginGroup(new Rect(-20000f, -20000f, size.x, size.y));
-            if (armed.HasValue)
-            {
-                ArmedDescriptor a = armed.Value;
-                switch (a.Action)
-                {
-                    case PassAction.Adjust:
-                        WidgetCapture.BeginArmedAdjustPass(into, a.Label, a.Ordinal, a.Direction);
-                        break;
-                    case PassAction.SetSlider:
-                        WidgetCapture.BeginArmedSliderSetPass(into, a.Label, a.Ordinal, a.Value);
-                        break;
-                    case PassAction.SetText:
-                        WidgetCapture.BeginArmedTextSetPass(into, a.Ordinal, a.Text);
-                        break;
-                    default:
-                        WidgetCapture.BeginArmedDetachedPass(into, a.Kind, a.Label, a.Ordinal);
-                        break;
-                }
-            }
-            else
-            {
-                WidgetCapture.BeginDetachedPass(into);
-            }
-            TooltipCapture.BeginDetachedPass();
             try
             {
-                draw();
+                if (armed.HasValue)
+                {
+                    ArmedDescriptor a = armed.Value;
+                    switch (a.Action)
+                    {
+                        case PassAction.Adjust:
+                            WidgetCapture.BeginArmedAdjustPass(into, a.Label, a.Ordinal, a.Direction);
+                            break;
+                        case PassAction.SetSlider:
+                            WidgetCapture.BeginArmedSliderSetPass(into, a.Label, a.Ordinal, a.Value);
+                            break;
+                        case PassAction.SetText:
+                            WidgetCapture.BeginArmedTextSetPass(into, a.Ordinal, a.Text);
+                            break;
+                        default:
+                            WidgetCapture.BeginArmedDetachedPass(into, a.Kind, a.Label, a.Ordinal);
+                            break;
+                    }
+                }
+                else
+                {
+                    WidgetCapture.BeginDetachedPass(into);
+                }
+                TooltipCapture.BeginDetachedPass();
+                WindowStack stack = Find.WindowStack;
+                Window savedDrawn = stack?.currentlyDrawnWindow;
+                if (stack != null && savedDrawn == null)
+                {
+                    stack.currentlyDrawnWindow = stack.WindowOfType<MainTabWindow_Inspect>()
+                        ?? (stack.Windows.Count > 0 ? stack.Windows[stack.Windows.Count - 1] : null);
+                }
+                try
+                {
+                    draw();
+                }
+                finally
+                {
+                    if (stack != null)
+                    {
+                        stack.currentlyDrawnWindow = savedDrawn;
+                    }
+                    TooltipCapture.EndDetachedPass();
+                    WidgetCapture.EndDetachedPass();
+                }
             }
             finally
             {
-                TooltipCapture.EndDetachedPass();
-                WidgetCapture.EndDetachedPass();
+                leaked = UnwindTo(scrollViewsAtEntry, groupsAtEntry);
+            }
+            return leaked;
+        }
+
+        /// <summary>
+        /// Closes leaked Widgets scroll views (mouse-over stack and clip together), then groups down to
+        /// the entry depth, the bracket's own last; a raw GUI scroll view closes as a group.
+        /// </summary>
+        private static int UnwindTo(int scrollViewsAtEntry, int groupsAtEntry)
+        {
+            int closed = 0;
+            while (Widgets.mouseOverScrollViewStack.Count > scrollViewsAtEntry)
+            {
+                Widgets.EndScrollView();
+                closed++;
+            }
+            if (groupsAtEntry < 0)
+            {
+                Widgets.EndGroup();
+                return closed;
+            }
+            int groupsOpen = GuiSpace.ClipDepth - groupsAtEntry;
+            for (int i = 0; i < groupsOpen; i++)
+            {
                 Widgets.EndGroup();
             }
+            return closed + Math.Max(0, groupsOpen - 1);
         }
 
         private static MethodInfo ResolveFillTab(Type tabType)

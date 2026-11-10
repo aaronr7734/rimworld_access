@@ -537,6 +537,16 @@ namespace RimWorldAccess.Shell
 
         public bool ClaimedBelowModals(KeyChord chord, ActionCatalog catalog)
         {
+            return ClaimedBelowModals(chord, catalog, honorWhen: false);
+        }
+
+        public bool ClaimedLiveBelowModals(KeyChord chord, ActionCatalog catalog)
+        {
+            return ClaimedBelowModals(chord, catalog, honorWhen: true);
+        }
+
+        private bool ClaimedBelowModals(KeyChord chord, ActionCatalog catalog, bool honorWhen)
+        {
             for (int i = 0; i < scopes.Count; i++)
             {
                 FocusScope scope = scopes[i];
@@ -553,6 +563,10 @@ namespace RimWorldAccess.Shell
                 {
                     InputAction action;
                     if (claims[c].Propagate || !catalog.TryGet(claims[c].ActionId, out action))
+                    {
+                        continue;
+                    }
+                    if (honorWhen && claims[c].When != null && !claims[c].When())
                     {
                         continue;
                     }

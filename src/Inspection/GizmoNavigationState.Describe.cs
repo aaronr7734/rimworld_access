@@ -217,7 +217,7 @@ namespace RimWorldAccess
                 AppendFragment(parts, GetDisabledGizmoContext(gizmo, owner));
             }
 
-            string description = GetGizmoDescription(gizmo);
+            string description = RedundantLabelPrefix.Strip(GetGizmoDescription(gizmo), GetGizmoLabel(gizmo));
             if (gizmo is Command_Ability && fragments.AbilityInfoAvailable)
             {
                 AppendFragment(parts, fragments.AbilityCostInfo);

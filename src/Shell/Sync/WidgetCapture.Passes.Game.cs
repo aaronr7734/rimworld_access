@@ -119,6 +119,7 @@ namespace RimWorldAccess.Shell
             tabStripDepth = 0;
             tabStripSink = null;
             selfCaptionDepth = 0;
+            filterPanelSuppressDepth = 0;
             checkboxMultiDepth = 0;
             labeledButtonDepth = 0;
             numericFieldDepth = 0;
@@ -197,6 +198,8 @@ namespace RimWorldAccess.Shell
             focusedIndex = -1;
             savedTabStripDepth = tabStripDepth;
             tabStripDepth = 0;
+            savedFilterPanelSuppressDepth = filterPanelSuppressDepth;
+            filterPanelSuppressDepth = 0;
             savedCheckboxMultiDepth = checkboxMultiDepth;
             checkboxMultiDepth = 0;
             savedLabeledButtonDepth = labeledButtonDepth;
@@ -371,6 +374,7 @@ namespace RimWorldAccess.Shell
             passOpen = false;
             focusedIndex = savedFocusedIndex;
             tabStripDepth = savedTabStripDepth;
+            filterPanelSuppressDepth = savedFilterPanelSuppressDepth;
             checkboxMultiDepth = savedCheckboxMultiDepth;
             labeledButtonDepth = savedLabeledButtonDepth;
             numericFieldDepth = savedNumericFieldDepth;

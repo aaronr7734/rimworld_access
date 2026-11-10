@@ -24,8 +24,9 @@ namespace RimWorldAccess
     ///
     /// 3. Tab census: every concrete InspectTabBase subtype —
     ///    enumerated from InspectTabBase, NOT ITab, so the WITab_* world tabs
-    ///    are seen — must resolve through InspectNodeRegistry or be
-    ///    whitelisted. World tabs are whitelisted by predicate: world objects
+    ///    are seen — is listed when it has no InspectNodeRegistry adapter and
+    ///    no whitelist entry; such a tab is read by the generic captured
+    ///    reader. World tabs are whitelisted by predicate: world objects
     ///    are served by the hand-built caravan/world-info states, not the
     ///    inspection tree (plan §7.4 decision).
     /// </summary>
@@ -117,11 +118,10 @@ namespace RimWorldAccess
 
         /// <summary>
         /// Audits every loaded concrete InspectTabBase subtype against the
-        /// inspect-node adapter registry. Returns the failing type names
+        /// inspect-node adapter registry. Returns the unregistered type names
         /// (empty when clean) so the dev bridge can re-run it on demand.
-        /// Unregistered mod tabs are reported too: they still work through the
-        /// GetInspectString fallback, but this log is the inventory of what a
-        /// dedicated adapter (or the Phase-4 capture backend) would improve.
+        /// An unregistered tab is read by the generic captured reader, so this is
+        /// an inventory; a capture that fails at runtime logs its own error.
         /// </summary>
         public static List<string> RunTabCensus()
         {
@@ -140,10 +140,9 @@ namespace RimWorldAccess
             }
 
             if (failures.Count > 0)
-                ModLogger.Warning(
-                    "[InspectionSelfAudit] inspect tabs resolving only to the GetInspectString "
-                    + "fallback (register an adapter or whitelist with a reason): "
-                    + string.Join(", ", failures));
+                ModLogger.Msg(
+                    "[InspectionSelfAudit] inspect tabs without an adapter, read through the generic "
+                    + "captured reader: " + string.Join(", ", failures));
 
             return failures;
         }

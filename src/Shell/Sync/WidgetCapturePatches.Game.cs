@@ -124,8 +124,9 @@ namespace RimWorldAccess.Shell
             WidgetCapture.EnterFilterPanelSuppression();
         }
 
-        [HarmonyPostfix]
-        public static void Postfix()
+        /// <summary>Finalizer, not postfix: a panel body that throws would otherwise leave every later row suppressed.</summary>
+        [HarmonyFinalizer]
+        public static void Finalizer()
         {
             WidgetCapture.ExitFilterPanelSuppression();
         }

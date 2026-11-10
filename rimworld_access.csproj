@@ -256,9 +256,10 @@
 
     <!-- Hot reload: if a Debug game session is running, ask its dev bridge to body-swap the
          freshly deployed DLL into the live game. Connection refused (game not running) is
-         silent; the reload report prints so restart-required items are visible in the build. -->
+         silent; the reload report prints so restart-required items are visible in the build.
+         -p:NoHotReload=true deploys without touching a session someone is playing. -->
     <Exec
-      Condition="'$(Configuration)' == 'Debug' And !$([MSBuild]::IsOSPlatform('Windows'))"
+      Condition="'$(Configuration)' == 'Debug' And '$(NoHotReload)' != 'true' And !$([MSBuild]::IsOSPlatform('Windows'))"
       Command="curl -s -m 120 -X POST --data-binary '' http://127.0.0.1:8787/reload 2>/dev/null || true"
       ContinueOnError="true"
       IgnoreExitCode="true"

@@ -46,10 +46,15 @@ namespace RimWorldAccess.Shell
             getDepth = ResolveDepth();
         }
 
+        // Open groups, clips and scroll views; -1 when the clip stack could not be bound.
+        public static int ClipDepth
+        {
+            get { return getDepth == null ? -1 : getDepth(); }
+        }
+
         /// <summary>
-        /// The active clip stack's context: the running intersection of every enclosing
-        /// BeginGroup/ScrollView clip rect, plus stack depth to disambiguate two contexts sharing
-        /// one visible rect. Exact-field equality is correct within a single pass.
+        /// The active clip stack's context: the running intersection of every enclosing clip rect, plus
+        /// depth to tell apart two contexts sharing one visible rect. Exact equality holds within a pass.
         /// </summary>
         public struct ClipKey : IEquatable<ClipKey>
         {

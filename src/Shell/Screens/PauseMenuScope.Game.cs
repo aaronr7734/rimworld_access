@@ -166,10 +166,18 @@ namespace RimWorldAccess.Shell
                     {
                         continue;
                     }
+                    ModHudToolbarRegistry.Entry sole = ModHudToolbarState.SoleActionEntry(captured);
                     options.Add(new ListableOption(captured.Title(), delegate
                     {
                         CloseRealMenuIfOpen();
-                        ModHudToolbarState.Open(captured.Id);
+                        if (sole != null)
+                        {
+                            sole.Activate();
+                        }
+                        else
+                        {
+                            ModHudToolbarState.Open(captured.Id);
+                        }
                     }));
                 }
                 catch (Exception ex)

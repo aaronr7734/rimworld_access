@@ -1,0 +1,1 @@
+Visible Wealth's Shift+4 hotkey no longer also fires RimWorld Access's Shift+4 ultrafast speed in dev mode. When the key belongs to one of our map keys, our key wins; the window is still on the pause menu's mod toolbar, and its hotkey can be rebound.

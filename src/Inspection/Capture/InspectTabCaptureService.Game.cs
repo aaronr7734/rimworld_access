@@ -68,8 +68,7 @@ namespace RimWorldAccess
             public InspectionTreeItem Node;
         }
 
-        // Single slot: a second press before the frame boundary supersedes the first.
-        // Drained ahead of the capture pump.
+        // Single slot: a later press before the frame boundary supersedes; drained before captures.
         private static ActivationRequest pendingActivation;
 
         // The cache is reference-keyed on the LIVE tab instance, not its type: thing tabs
@@ -346,7 +345,10 @@ namespace RimWorldAccess
                     return;
                 }
                 var widgets = new List<CapturedWidget>();
-                if (!InspectTabCaptureHarness.TryCapturePass(request.Tab, request.Target, widgets, out string error))
+                bool captured = InspectTabCaptureHarness.TryCapturePass(request.Tab, request.Target, widgets,
+                    out string error, out Exception fault);
+                LogCaptureFault(request.Tab, fault);
+                if (!captured)
                 {
                     entry.Error = error;
 #if DEBUG
@@ -383,7 +385,7 @@ namespace RimWorldAccess
             catch (Exception ex)
             {
                 entry.Error = ex.ToString();
-                Log.Warning($"[RimWorld Access] Capture failed for {request.Tab.GetType().Name}: {ex.Message}");
+                LogCaptureFault(request.Tab, ex);
 #if DEBUG
                 TraceCaptureFailure(request.Target, request.Tab, entry.Error);
 #endif
@@ -421,6 +423,17 @@ namespace RimWorldAccess
                         RunControlRefresh(refresh, entry);
                     }
                 }
+            }
+        }
+
+        private static readonly HashSet<Type> faultedTabTypes = new HashSet<Type>();
+
+        /// <summary>Logs a tab draw's fault once per tab type, since a failing tab fails on every expansion.</summary>
+        private static void LogCaptureFault(InspectTabBase tab, Exception fault)
+        {
+            if (fault != null && faultedTabTypes.Add(tab.GetType()))
+            {
+                ModLogger.LimitedError("Inspect tab capture of " + tab.GetType().FullName, fault);
             }
         }
 

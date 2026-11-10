@@ -81,6 +81,25 @@ namespace RimWorldAccess.Shell
             current = null;
             rows.Clear();
         }
+
+        internal static ModHudToolbarRegistry.Entry SoleActionEntry(ModHudToolbarRegistry.Toolbar toolbar)
+        {
+            ModHudToolbarRegistry.Entry sole = null;
+            for (int i = 0; i < toolbar.Entries.Count; i++)
+            {
+                ModHudToolbarRegistry.Entry entry = toolbar.Entries[i];
+                if (entry.Available != null && !entry.Available())
+                {
+                    continue;
+                }
+                if (sole != null || entry.Activate == null)
+                {
+                    return null;
+                }
+                sole = entry;
+            }
+            return sole;
+        }
     }
 
     /// <summary>

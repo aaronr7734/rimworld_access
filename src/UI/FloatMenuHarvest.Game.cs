@@ -10,7 +10,7 @@ namespace RimWorldAccess
     /// Captures the FloatMenu a delegate would open instead of letting it reach the window
     /// stack, so a mod's right-click branch can be listed as keyboard options without the menu
     /// ever anchoring at the mouse. DialogInterceptionPatch hands the menu over while a capture
-    /// is in flight. A delegate that opens no menu yields null; nothing else is suppressed.
+    /// is in flight. A delegate that opens no menu yields null; HarvestSilencePatch mutes its sounds.
     /// </summary>
     internal static class FloatMenuHarvest
     {

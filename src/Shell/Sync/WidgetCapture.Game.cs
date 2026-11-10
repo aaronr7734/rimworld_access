@@ -449,6 +449,7 @@ namespace RimWorldAccess.Shell
         // tree draws never reach presentation — the one synthetic FilterPanelHandoff row
         // RecordFilterPanel added before this bracket opens stands in for the whole panel.
         private static int filterPanelSuppressDepth;
+        private static int savedFilterPanelSuppressDepth;
 
         /// <summary>
         /// The shared discard list for every suppression reason <see cref="CurrentSink"/> knows
