@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Main menu ScreenScope migration. MainMenuScope
+    (src/Shell/Focus/AmbientScopes.Game.cs) gained two named content regions
+    mirroring vanilla's own two-column DoMainMenuControls layout — these are
+    their region names, spoken on Tab/Shift+Tab/Left/Right region switches
+    and by the typeahead engine's cross-region "Now at {0}" jump landing.
+    Every other main-menu string (row labels, the tutorial notice, the
+    What's New/Website link labels) is unchanged and still lives in
+    RimWorldAccess_MainMenu.xml.
+    -->
+  <RimWorldAccess.MainMenu.MenuRegion>Menü</RimWorldAccess.MainMenu.MenuRegion>
+  <RimWorldAccess.MainMenu.LinksRegion>Weblinks</RimWorldAccess.MainMenu.LinksRegion>
+</LanguageData>

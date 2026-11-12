@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    ScreenScope migration wave, packet W-1 (GearEquipScope). One new key: the
+    label-level Colonist/Prisoner parity addition for the caravan gear equip
+    menu (vanilla's WITab_Caravan_Gear draws separate Colonists/Prisoners
+    sections; this flat list wraps a prisoner row's composed label instead of
+    restructuring into two regions). See GearEquipScope's class remarks
+    (src/Shell/Screens/CaravanOverlayScopes.Game.cs).
+  -->
+  <RimWorldAccess.Gear.PrisonerLabelWrapper>{0} (inhaftiert)</RimWorldAccess.Gear.PrisonerLabelWrapper>
+</LanguageData>

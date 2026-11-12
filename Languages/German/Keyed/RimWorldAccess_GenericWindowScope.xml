@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Glossary-enablement plan, Phase 3 (GenericWindowScope,
+    src/Shell/Screens/GenericWindowScope.Game.cs). Every focused-row
+    announcement reuses the shared AnnouncementComposer/vocabulary keys; this
+    file holds the strings genuinely new to the scope.
+  -->
+
+  <!-- Safety-valve empty state: spoken once the window's capture has had its
+       grace passes and still recorded nothing at all (e.g. a custom-drawn
+       window using none of the widened widget vocabulary). -->
+  <RimWorldAccess.UI.GenericWindow.NoElements>RimWorld Access kann in diesem Fenster noch nichts lesen.</RimWorldAccess.UI.GenericWindow.NoElements>
+
+  <!-- Generic settings reader upgrade: section grouping. {0} = section name
+       (a Medium-font title or the label right after a GapLine), {1} = the
+       rest of the row's normal announcement. -->
+  <RimWorldAccess.Shell.GenericWindow.SectionPrefix>{0}. {1}</RimWorldAccess.Shell.GenericWindow.SectionPrefix>
+
+  <!-- Spoken when Enter is pressed on a control the window draws gated
+       (vanilla's disabled/inactive state): the click is refused exactly as a
+       mouse click would be. {0} = the row's label. -->
+  <RimWorldAccess.Shell.GenericWindow.Disabled>{0}: deaktiviert.</RimWorldAccess.Shell.GenericWindow.Disabled>
+
+  <!-- Action labels for the PageUp/PageDown section-jump keys, registered in
+       ShellActionInventory.Part7.cs. -->
+
+  <!-- Action labels for the stepper Left/Right keys (U4 slice 2), registered
+       in ShellActionInventory.Part7.cs. Hold Ctrl or Shift for the larger
+       steps vanilla's own increment modifiers provide. -->
+
+  <!-- Action label for the Space key on a selectable checkbox row (capture
+       expansion pack), registered in ShellActionInventory.Part7.cs. The game
+       gives such a row two separate click targets, one that selects the row and
+       one that toggles its check, so Enter toggles and this key selects. -->
+</LanguageData>

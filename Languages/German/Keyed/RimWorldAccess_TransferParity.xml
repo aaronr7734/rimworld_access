@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Vanilla-parity gap fixes across the transport pod loading dialog, the
+    Work table, and caravan reformation. {0} placeholders that carry a
+    vanilla-native word (e.g. "Copy", "Paste", "Caravan mass") are read from
+    the game's own translation keys at the call site, not hardcoded here.
+  -->
+
+  <RimWorldAccess.TransportPods.Loading.CaravanMass>{0}: {1} von {2} kg</RimWorldAccess.TransportPods.Loading.CaravanMass>
+  <RimWorldAccess.TransportPods.Loading.CaravanMassOverloaded>{0}: {1} von {2} kg. Überladen</RimWorldAccess.TransportPods.Loading.CaravanMassOverloaded>
+
+  <RimWorldAccess.Work.Table.CopyPasteUnavailable>{0}: Arbeitsprioritäten lassen sich nicht kopieren oder einfügen.</RimWorldAccess.Work.Table.CopyPasteUnavailable>
+</LanguageData>

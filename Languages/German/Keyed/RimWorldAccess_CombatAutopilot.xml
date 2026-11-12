@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Combat autopilot strings (src/Combat/Autopilot/). The drafted gizmos, the combat and
+    hunting policy dialogs and columns, the per-ability autocast menu entry, and the
+    master settings row. The tactical job reports live on the JobDefs
+    (Defs/JobDefs/CombatAutopilot.xml), translated per language in DefInjected/JobDef/.
+  -->
+
+  <!-- Drafted-pawn gizmos -->
+  <RimWorldAccess.Autopilot.Engage.Label>Ziel angreifen</RimWorldAccess.Autopilot.Engage.Label>
+  <RimWorldAccess.Autopilot.Engage.Desc>Befiehl {0}, ein Ziel deiner Wahl anzugreifen. {0} geht zum Ziel und greift es nach der zugewiesenen Kampfrichtlinie an. Unterwegs wehrt {0} angreifende Feinde ab.</RimWorldAccess.Autopilot.Engage.Desc>
+  <RimWorldAccess.Autopilot.Engage.CurrentOrders>Befohlene Ziele: {0}.</RimWorldAccess.Autopilot.Engage.CurrentOrders>
+  <RimWorldAccess.Autopilot.Patrol.Label>Patrouille: {0}</RimWorldAccess.Autopilot.Patrol.Label>
+  <RimWorldAccess.Autopilot.Patrol.Desc>Befiehl {0}, im gewählten Gebiet zu patrouillieren. {0} hält an und kämpft, sobald ein Feind in Reichweite kommt.</RimWorldAccess.Autopilot.Patrol.Desc>
+  <RimWorldAccess.Autopilot.Patrol.NoneOption>Keine Patrouille</RimWorldAccess.Autopilot.Patrol.NoneOption>
+  <RimWorldAccess.Autopilot.PatrolAssigned>{0} auf Patrouille: {1}.</RimWorldAccess.Autopilot.PatrolAssigned>
+  <RimWorldAccess.Autopilot.PatrolCleared>{0}: Patrouille beendet.</RimWorldAccess.Autopilot.PatrolCleared>
+  <RimWorldAccess.Autopilot.SeekDestroy.Label>Suchen und zerstören</RimWorldAccess.Autopilot.SeekDestroy.Label>
+  <RimWorldAccess.Autopilot.SeekDestroy.Desc>{0} verfolgt Feinde, statt die Stellung zu halten. Markierte und befohlene Ziele haben Vorrang.</RimWorldAccess.Autopilot.SeekDestroy.Desc>
+  <RimWorldAccess.Autopilot.PickerLabel>Kampfrichtlinie: {0}</RimWorldAccess.Autopilot.PickerLabel>
+  <RimWorldAccess.Autopilot.PickerDesc>Nach dieser Kampfrichtlinie kämpft {0}.</RimWorldAccess.Autopilot.PickerDesc>
+  <RimWorldAccess.Autopilot.HuntAnimals.Label>Tiere jagen</RimWorldAccess.Autopilot.HuntAnimals.Label>
+  <RimWorldAccess.Autopilot.HuntAnimals.Desc>{0} jagt im Kampfmodus Wildtiere. Feinde haben immer Vorrang. Die Jagdrichtlinie von {0} legt fest, welche Tiere gejagt werden dürfen.</RimWorldAccess.Autopilot.HuntAnimals.Desc>
+  <RimWorldAccess.Autopilot.AutocastAll.Label>Alle Fähigkeiten automatisch wirken</RimWorldAccess.Autopilot.AutocastAll.Label>
+  <RimWorldAccess.Autopilot.AutocastAll.Desc>Markiere alle Fähigkeiten von {0}, damit sie im Kampfmodus automatisch gewirkt werden. Einzelne Fähigkeiten markierst du in ihrem eigenen Menü. Dort hebst du die Markierung auch wieder auf.</RimWorldAccess.Autopilot.AutocastAll.Desc>
+  <RimWorldAccess.Autopilot.Pause.Label>Kampfautopilot pausieren</RimWorldAccess.Autopilot.Pause.Label>
+  <RimWorldAccess.Autopilot.Pause.Desc>Stoppe das gesamte automatische Kampfverhalten von {0} und übernimm wieder die volle Kontrolle. Richtlinien und Befehle bleiben erhalten. Sie werden aber erst wieder befolgt, wenn du die Pause beendest. Ein neuer Angriffs- oder Patrouillenbefehl beendet die Pause ebenfalls.</RimWorldAccess.Autopilot.Pause.Desc>
+
+  <!-- Combat policy behavior checkboxes (manage dialog rows) -->
+  <RimWorldAccess.Autopilot.TakeCover.Label>In Deckung gehen</RimWorldAccess.Autopilot.TakeCover.Label>
+  <RimWorldAccess.Autopilot.TakeCover.Desc>Fernkämpfer suchen sich Schusspositionen mit Deckung. Für Nahkämpfer gilt das nicht.</RimWorldAccess.Autopilot.TakeCover.Desc>
+  <RimWorldAccess.Autopilot.MeleeCharge.Label>Zum Nahkampf vorstürmen</RimWorldAccess.Autopilot.MeleeCharge.Label>
+  <RimWorldAccess.Autopilot.MeleeCharge.Desc>Nahkämpfer stürmen auf entfernte Ziele zu. Wenn deaktiviert, greifen sie nur Feinde an, die nahe herankommen.</RimWorldAccess.Autopilot.MeleeCharge.Desc>
+  <RimWorldAccess.Autopilot.PursueAnywhere.Label>Überall verfolgen</RimWorldAccess.Autopilot.PursueAnywhere.Label>
+  <RimWorldAccess.Autopilot.PursueAnywhere.Desc>Mit 'Suchen und zerstören' wählt die Spielfigur Ziele auf der ganzen Karte und verfolgt sie, egal wie weit sie fliehen. Wenn deaktiviert, wählt sie nur sichtbare Feinde in der Nähe. Solange 'Suchen und zerstören' aus ist, hat diese Option keine Wirkung.</RimWorldAccess.Autopilot.PursueAnywhere.Desc>
+  <RimWorldAccess.Autopilot.FightAsSquad.Label>Als Trupp kämpfen</RimWorldAccess.Autopilot.FightAsSquad.Label>
+  <RimWorldAccess.Autopilot.FightAsSquad.Desc>Stimmt sich mit Spielfiguren im Kampfmodus in der Nähe ab, deren Kampfrichtlinie ebenfalls 'Als Trupp kämpfen' nutzt. Der Trupp verteilt sein Feuer auf die feindliche Gruppe, statt nur auf ein Ziel zu schießen. Die Mitglieder halten ein Feld Abstand zueinander. So treffen verirrte Schüsse und Explosionen nur eine Spielfigur und nicht einen ganzen Pulk.</RimWorldAccess.Autopilot.FightAsSquad.Desc>
+  <RimWorldAccess.Autopilot.BashDoors.Label>Türen einschlagen</RimWorldAccess.Autopilot.BashDoors.Label>
+  <RimWorldAccess.Autopilot.BashDoors.Desc>Schlägt verschlossene oder feindliche Türen ein, die den Weg zum Ziel versperren.</RimWorldAccess.Autopilot.BashDoors.Desc>
+  <RimWorldAccess.Autopilot.KeepDistance.Label>Abstand halten</RimWorldAccess.Autopilot.KeepDistance.Label>
+  <RimWorldAccess.Autopilot.KeepDistance.Desc>Fernkämpfer weichen vor Nahkämpfern zurück, die ihnen zu nahe kommen.</RimWorldAccess.Autopilot.KeepDistance.Desc>
+  <RimWorldAccess.Autopilot.FallBackInjured.Label>Bei Verletzung zurückziehen</RimWorldAccess.Autopilot.FallBackInjured.Label>
+  <RimWorldAccess.Autopilot.FallBackInjured.Desc>Zieht sich bei schweren Verletzungen vor angreifenden Feinden zurück. Danach kämpft die Spielfigur vorsichtig aus der Deckung und auf Distanz weiter, statt vorzustürmen.</RimWorldAccess.Autopilot.FallBackInjured.Desc>
+  <RimWorldAccess.Autopilot.AvoidBlasts.Label>Explosionen ausweichen</RimWorldAccess.Autopilot.AvoidBlasts.Label>
+  <RimWorldAccess.Autopilot.AvoidBlasts.Desc>Läuft vor tickenden Sprengsätzen und drohenden Explosionen davon.</RimWorldAccess.Autopilot.AvoidBlasts.Desc>
+  <RimWorldAccess.Autopilot.AutocastMarked.Label>Markierte Fähigkeiten automatisch wirken</RimWorldAccess.Autopilot.AutocastMarked.Label>
+  <RimWorldAccess.Autopilot.AutocastMarked.Desc>Die Spielfigur wirkt automatisch die Fähigkeiten, die du bei ihr markiert hast. Die Markierungen bestimmen, welche Fähigkeiten das sind. Diese Option bestimmt, ob das überhaupt passiert. Wenn deaktiviert, bleiben die Markierungen erhalten, werden aber ignoriert.</RimWorldAccess.Autopilot.AutocastMarked.Desc>
+
+  <!-- Per-ability autocast (one checkbox-style menu row; the state suffix is appended in code) -->
+  <RimWorldAccess.Autopilot.AutocastOption>Automatisch wirken</RimWorldAccess.Autopilot.AutocastOption>
+  <RimWorldAccess.Autopilot.AutocastOn>automatisch wirken: an</RimWorldAccess.Autopilot.AutocastOn>
+
+  <!-- The master settings row; everything else is configured in-game through policies -->
+  <RimWorldAccess.Core.Settings.EnableCombatAutopilot.Label>Kampfautopilot aktivieren</RimWorldAccess.Core.Settings.EnableCombatAutopilot.Label>
+  <RimWorldAccess.Core.Settings.EnableCombatAutopilot.Desc>Lässt Spielfiguren im Kampfmodus selbstständig kämpfen. Außerdem bekommen diese Spielfiguren Kampf- und Jagdrichtlinien und neue Befehle. Wenn deaktiviert, verschwinden die Befehle und die Spielfiguren kämpfen nicht mehr selbstständig.</RimWorldAccess.Core.Settings.EnableCombatAutopilot.Desc>
+  <RimWorldAccess.Core.Settings.UndraftClearsStandingOrders.Label>Beim Beenden des Kampfmodus 'Suchen und zerstören' sowie 'Tiere jagen' ausschalten</RimWorldAccess.Core.Settings.UndraftClearsStandingOrders.Label>
+  <RimWorldAccess.Core.Settings.UndraftClearsStandingOrders.Desc>Schaltet 'Suchen und zerstören' sowie 'Tiere jagen' aus, sobald du den Kampfmodus einer Spielfigur beendest.</RimWorldAccess.Core.Settings.UndraftClearsStandingOrders.Desc>
+
+  <!-- Combat policies: the manage dialog, the Assign-tab column, the gizmo picker, and the starter presets -->
+  <RimWorldAccess.Autopilot.PolicyTitle>Kampfrichtlinien</RimWorldAccess.Autopilot.PolicyTitle>
+  <RimWorldAccess.Autopilot.PolicyTip>Erstelle und verwalte Vorlagen, um zu bestimmen, wie Spielfiguren im Kampfmodus selbstständig kämpfen. Richtlinien weist du im Tab Zuweisung, Haustiere oder Mechs zu. Fahrzeuge haben stattdessen einen eigenen Befehl für die Kampfrichtlinie.</RimWorldAccess.Autopilot.PolicyTip>
+  <RimWorldAccess.Autopilot.PolicyName>Kampfrichtlinie</RimWorldAccess.Autopilot.PolicyName>
+  <RimWorldAccess.Autopilot.ManagePolicies>Kampfrichtlinien verwalten</RimWorldAccess.Autopilot.ManagePolicies>
+  <RimWorldAccess.Autopilot.Policy.None>Keine</RimWorldAccess.Autopilot.Policy.None>
+  <RimWorldAccess.Autopilot.Policy.None.Tip>Keine Kampfrichtlinie. Der Kampfautopilot ist für diese Spielfigur ganz aus: kein 'Suchen und zerstören', keine Angriffsbefehle, kein automatisches Wirken. 'Tiere jagen' und Patrouillen hängen nicht davon ab und laufen weiter.</RimWorldAccess.Autopilot.Policy.None.Tip>
+  <RimWorldAccess.Autopilot.PolicyInUse>Kampfrichtlinie wird von {0} verwendet.</RimWorldAccess.Autopilot.PolicyInUse>
+  <RimWorldAccess.Autopilot.Policy.FullControl>Voller Autopilot</RimWorldAccess.Autopilot.Policy.FullControl>
+  <RimWorldAccess.Autopilot.Policy.FightNearby>In der Nähe kämpfen</RimWorldAccess.Autopilot.Policy.FightNearby>
+  <RimWorldAccess.Autopilot.Policy.StaySafe>Vorsichtig kämpfen</RimWorldAccess.Autopilot.Policy.StaySafe>
+
+  <!-- Hunting policies: the manage dialog, the Assign-tab column, and the starter presets -->
+  <RimWorldAccess.Autopilot.HuntPolicyTitle>Jagdrichtlinien</RimWorldAccess.Autopilot.HuntPolicyTitle>
+  <RimWorldAccess.Autopilot.HuntPolicyTip>Erstelle und verwalte Vorlagen für die Jagd im Kampfmodus. Diese Vorlagen legen fest, welche Tiere gejagt werden dürfen. Dazu gehören eine Liste erlaubter Arten, ein Bereich für 'Rache bei Verletzung' und der Schutz heiliger Tiere. Die Jagd selbst schaltest du pro Spielfigur mit dem Befehl 'Tiere jagen' ein. Im Kampfmodus haben diese Regeln Vorrang vor deinen Jagdmarkierungen.</RimWorldAccess.Autopilot.HuntPolicyTip>
+  <RimWorldAccess.Autopilot.HuntPolicyName>Jagdrichtlinie</RimWorldAccess.Autopilot.HuntPolicyName>
+  <RimWorldAccess.Autopilot.ManageHuntPolicies>Jagdrichtlinien verwalten</RimWorldAccess.Autopilot.ManageHuntPolicies>
+  <RimWorldAccess.Autopilot.HuntPolicyInUse>Jagdrichtlinie wird von {0} verwendet.</RimWorldAccess.Autopilot.HuntPolicyInUse>
+  <RimWorldAccess.Autopilot.HuntPolicyIsDefault>Die Standard-Jagdrichtlinie kann nicht gelöscht werden.</RimWorldAccess.Autopilot.HuntPolicyIsDefault>
+  <RimWorldAccess.Autopilot.HuntPolicy.SafeGame>Harmloses Wild</RimWorldAccess.Autopilot.HuntPolicy.SafeGame>
+  <RimWorldAccess.Autopilot.HuntPolicy.AnyAnimal>Alle Tiere</RimWorldAccess.Autopilot.HuntPolicy.AnyAnimal>
+  <RimWorldAccess.Autopilot.HuntPolicyAnimalsRegion>Erlaubte Tiere</RimWorldAccess.Autopilot.HuntPolicyAnimalsRegion>
+  <RimWorldAccess.Autopilot.HuntRevengeRange.Desc>Gejagt werden nur Tiere, deren Chance auf Rache bei Verletzung in diesem Bereich liegt.</RimWorldAccess.Autopilot.HuntRevengeRange.Desc>
+  <RimWorldAccess.Autopilot.HuntRevengeRange.SliderLabel>Rache bei Verletzung: {0}</RimWorldAccess.Autopilot.HuntRevengeRange.SliderLabel>
+  <RimWorldAccess.Autopilot.HuntSpareVenerated.Label>Heilige Tiere verschonen</RimWorldAccess.Autopilot.HuntSpareVenerated.Label>
+  <RimWorldAccess.Autopilot.HuntSpareVenerated.Desc>Die Spielfigur jagt nie Tiere, die ihrer Ideologie heilig sind.</RimWorldAccess.Autopilot.HuntSpareVenerated.Desc>
+
+  <!-- Policy behavior summary, shown as the tooltip on every picker row -->
+  <RimWorldAccess.Autopilot.SummaryPrefix>Aktiv: {0}.</RimWorldAccess.Autopilot.SummaryPrefix>
+  <RimWorldAccess.Autopilot.SummarySeparator>, </RimWorldAccess.Autopilot.SummarySeparator>
+  <RimWorldAccess.Autopilot.SummaryNothing>Nichts aktiv. Die Spielfigur hält die Stellung und schießt nach eigenem Ermessen.</RimWorldAccess.Autopilot.SummaryNothing>
+
+  <!-- Rich movement-job reports (Job.reportStringOverride); the JobDef reportString is the fallback -->
+  <RimWorldAccess.Autopilot.Report.MovingToCover>geht auf Feld {0}, {1} in Deckung.</RimWorldAccess.Autopilot.Report.MovingToCover>
+  <RimWorldAccess.Autopilot.Report.MovingToCoverBehind>geht auf Feld {1}, {2} hinter {0} in Deckung.</RimWorldAccess.Autopilot.Report.MovingToCoverBehind>
+  <RimWorldAccess.Autopilot.Report.MovingToEngage>rückt gegen {0} vor.</RimWorldAccess.Autopilot.Report.MovingToEngage>
+  <RimWorldAccess.Autopilot.Report.FallingBack>ist schwer verletzt und zieht sich auf Feld {0}, {1} zurück.</RimWorldAccess.Autopilot.Report.FallingBack>
+  <RimWorldAccess.Autopilot.Report.FleeingBlast>flüchtet vor der Explosion von {0}.</RimWorldAccess.Autopilot.Report.FleeingBlast>
+  <RimWorldAccess.Autopilot.Report.BackingAway>weicht vor {0} zurück.</RimWorldAccess.Autopilot.Report.BackingAway>
+  <RimWorldAccess.Autopilot.Report.Casting>wirkt {0}.</RimWorldAccess.Autopilot.Report.Casting>
+  <RimWorldAccess.Autopilot.Report.CastingOn>wirkt {0} auf {1}.</RimWorldAccess.Autopilot.Report.CastingOn>
+  <RimWorldAccess.Autopilot.Report.VehicleAdvance>fährt auf den nächstgelegenen Feind zu.</RimWorldAccess.Autopilot.Report.VehicleAdvance>
+  <RimWorldAccess.Autopilot.Report.VehicleFiringPosition>fährt in eine Schussposition.</RimWorldAccess.Autopilot.Report.VehicleFiringPosition>
+  <RimWorldAccess.Autopilot.Report.VehicleHolding>hält die Schussposition.</RimWorldAccess.Autopilot.Report.VehicleHolding>
+  <RimWorldAccess.Autopilot.Report.EngagingOrdered>bekämpft {0} wie befohlen.</RimWorldAccess.Autopilot.Report.EngagingOrdered>
+  <RimWorldAccess.Autopilot.Report.EngagingMarked>bekämpft das markierte Ziel {0}.</RimWorldAccess.Autopilot.Report.EngagingMarked>
+  <RimWorldAccess.Autopilot.Report.ReturningToPost>kehrt zum Posten auf Feld {0}, {1} zurück.</RimWorldAccess.Autopilot.Report.ReturningToPost>
+  <RimWorldAccess.Autopilot.Report.Patrolling>auf Patrouille: {0}.</RimWorldAccess.Autopilot.Report.Patrolling>
+  <RimWorldAccess.Autopilot.Report.FightingOff>wehrt {0} ab.</RimWorldAccess.Autopilot.Report.FightingOff>
+  <RimWorldAccess.Autopilot.Report.HoldingFiring>hält die Stellung und schießt.</RimWorldAccess.Autopilot.Report.HoldingFiring>
+  <RimWorldAccess.Autopilot.Report.SpreadingFire>verlagert das Feuer auf {0}.</RimWorldAccess.Autopilot.Report.SpreadingFire>
+  <RimWorldAccess.Autopilot.Report.WoundedHolding>ist verletzt und hält die Stellung.</RimWorldAccess.Autopilot.Report.WoundedHolding>
+
+  <!-- Engage orders: the right-click option, the announcements, and the clear entry -->
+  <RimWorldAccess.Autopilot.EngageOption>Bekämpfe {0}</RimWorldAccess.Autopilot.EngageOption>
+  <RimWorldAccess.Autopilot.EngageOption.Tip>Bekämpfe dieses Ziel, bis es am Boden liegt. Unterwegs werden angreifende Feinde zuerst abgewehrt.</RimWorldAccess.Autopilot.EngageOption.Tip>
+  <RimWorldAccess.Autopilot.EngagePawnCount>{0} Spielfiguren</RimWorldAccess.Autopilot.EngagePawnCount>
+  <RimWorldAccess.Autopilot.EngageOrdered>{0}: Angriff auf {1}.</RimWorldAccess.Autopilot.EngageOrdered>
+  <RimWorldAccess.Autopilot.EngageQueued>{0}: Angriff auf {1} eingereiht.</RimWorldAccess.Autopilot.EngageQueued>
+  <RimWorldAccess.Autopilot.ClearOrders>Angriffsbefehle aufheben</RimWorldAccess.Autopilot.ClearOrders>
+  <RimWorldAccess.Autopilot.OrdersCleared>Angriffsbefehle aufgehoben.</RimWorldAccess.Autopilot.OrdersCleared>
+
+  <!-- The attack-mark designator (Orders tab) -->
+  <RimWorldAccess.Autopilot.AttackDesignator.Label>Zum Angriff markieren</RimWorldAccess.Autopilot.AttackDesignator.Label>
+  <RimWorldAccess.Autopilot.AttackDesignator.Desc>Markiere Ziele für Spielfiguren mit 'Suchen und zerstören'. Diese Spielfiguren greifen die markierten Ziele zuerst an. Wenn du einen ganzen Bereich auswählst, markierst du nur Feinde. Mit Umschalt kommen fraktionslose Kreaturen dazu. Mit Strg und Umschalt markierst du alle Spielfiguren, auch deine eigenen.</RimWorldAccess.Autopilot.AttackDesignator.Desc>
+  <RimWorldAccess.Autopilot.AttackDesignator.MustTarget>Du kannst nur angreifbare Ziele markieren.</RimWorldAccess.Autopilot.AttackDesignator.MustTarget>
+</LanguageData>

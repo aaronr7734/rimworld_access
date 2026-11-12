@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New keys only (never edit existing keyed XMLs — see the repo's l10n workflow).
+
+    Dialog_SplitCaravan's stat-breakdown title (Alt+I / Enter on a Summary value cell),
+    src/Shell/Screens/SplitCaravanScope.Game.cs GetStatExplanation — replaces pre-migration
+    hardcoded English ("Original Caravan Mass Capacity" etc.) with whole-phrase keys
+    parameterized by the caravan label ({0} = "New caravan" / "Original caravan", the same
+    RimWorldAccess.Caravan.Split.NewCaravanLabel/OriginalCaravanLabel wording already spoken
+    for this screen's Summary column headers).
+  -->
+  <RimWorldAccess.Caravan.Split.StatBreakdownName.MassCapacity>{0}: Maximale Nutzlast</RimWorldAccess.Caravan.Split.StatBreakdownName.MassCapacity>
+  <RimWorldAccess.Caravan.Split.StatBreakdownName.Speed>{0}: Geschwindigkeit</RimWorldAccess.Caravan.Split.StatBreakdownName.Speed>
+  <RimWorldAccess.Caravan.Split.StatBreakdownName.Foraging>{0}: Gesammelte Nahrung pro Tag</RimWorldAccess.Caravan.Split.StatBreakdownName.Foraging>
+  <RimWorldAccess.Caravan.Split.StatBreakdownName.Visibility>{0}: Sichtbarkeit</RimWorldAccess.Caravan.Split.StatBreakdownName.Visibility>
+</LanguageData>

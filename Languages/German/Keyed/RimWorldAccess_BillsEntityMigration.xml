@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    ScreenScope migration: Bills and EntityTab (
+    src/Shell/Screens/BillsScope.Game.cs, EntityTabScope.Game.cs). The one key below is the genuinely NEW spoken string this
+    packet introduces — EntityTabScope's Escape now routes through
+    InspectionReturnHelper.AnnounceParentOrFallback (Bills'/Storage's shape)
+    instead of the retired cross-namespace RimWorldAccess.Ideology.Tab.Closed
+    reuse, which stays in place unchanged for its real Ideology users.
+  -->
+  <RimWorldAccess.Inspection.Patch.ClosedEntityTab>Entität-Tab geschlossen</RimWorldAccess.Inspection.Patch.ClosedEntityTab>
+</LanguageData>

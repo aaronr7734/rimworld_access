@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Prisoner module strings (src/Prisoner/). Three files contribute:
+      - PrisonerTabPatch.cs    (Harmony patch, no user-facing text)
+      - PrisonerTabHelper.cs   (info/stats formatting, interaction descriptions)
+      - PrisonerTabState.cs    (tab navigation, section announcements, selections)
+
+    Placeholders follow string.Format ({0}, {1}, ...). Many keys embed
+    pawn names, def labels, faction names, or raw numbers/percentages that
+    come from the game's own data - do not attempt to translate the
+    substituted values, only the surrounding wording. Shared vocabulary
+    (e.g. "No pawn selected") is sourced from RimWorldAccess_Common.xml
+    through GuardHelper, so it is not duplicated here.
+  -->
+
+  <!-- Guest-tracker / identity fallbacks. Spoken when a pawn lacks the
+       expected tracker component or does not belong to the expected class.
+       {0} = pawn short label. -->
+  <RimWorldAccess.Prisoner.Guest.NoTracker>{0}: keine Gastdaten</RimWorldAccess.Prisoner.Guest.NoTracker>
+  <RimWorldAccess.Prisoner.Guest.NotPrisoner>{0}: nicht inhaftiert</RimWorldAccess.Prisoner.Guest.NotPrisoner>
+  <RimWorldAccess.Prisoner.Guest.NotSlave>{0}: nicht versklavt</RimWorldAccess.Prisoner.Guest.NotSlave>
+  <RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>{0}: weder inhaftiert noch versklavt</RimWorldAccess.Prisoner.Guest.NotPrisonerOrSlave>
+
+  <!-- Prisoner stats block. Fragments are clean phrases; the
+       AnnouncementBuilder owns separators between them. -->
+  <RimWorldAccess.Prisoner.Info.HeaderPrisoner>{0}: inhaftiert</RimWorldAccess.Prisoner.Info.HeaderPrisoner>
+  <RimWorldAccess.Prisoner.Info.HeaderSlave>{0}: versklavt</RimWorldAccess.Prisoner.Info.HeaderSlave>
+
+  <!-- Last recruitment attempt breakdown. -->
+
+  <!-- Slave stats block. -->
+  <RimWorldAccess.Prisoner.Slave.Suppression>Unterdrückung: {0}</RimWorldAccess.Prisoner.Slave.Suppression>
+
+  <!-- Release relation gain summary (shared between prisoner and slave paths).
+       {0} = faction name, {1} = signed goodwill change (e.g. "+3" / "-7"),
+       {2} = mental state inspect line. -->
+
+  <!-- Medical care category labels. Used in the care-level stepper. -->
+  <!-- Standalone hint appended to a section announcement when entering the medical care row. -->
+
+  <!-- Interaction mode descriptions - warning suffixes appended after the
+       def's own description through AnnouncementBuilder. {0} = ideo name. -->
+
+  <!-- Slave emancipation outcome suffixes. {0} = slave faction name. -->
+
+  <!-- Tab open / close announcements. -->
+  <RimWorldAccess.Prisoner.Tab.Closed>Gefängnis-Tab geschlossen</RimWorldAccess.Prisoner.Tab.Closed>
+  <RimWorldAccess.Prisoner.Tab.OpenedPrisoner>Gefängnis-Tab: {0}</RimWorldAccess.Prisoner.Tab.OpenedPrisoner>
+  <RimWorldAccess.Prisoner.Tab.OpenedSlave>Sklaven-Tab: {0}</RimWorldAccess.Prisoner.Tab.OpenedSlave>
+  <RimWorldAccess.Prisoner.Tab.CurrentMode>Aktueller Interaktionsmodus: {0}</RimWorldAccess.Prisoner.Tab.CurrentMode>
+  <!-- Embedded in a larger announcement sentence. -->
+  <RimWorldAccess.Prisoner.Tab.NavigationHintInline>Pfeil nach links und Pfeil nach rechts wechseln den Abschnitt. Pfeil nach oben und Pfeil nach unten wechseln den Eintrag. Enter wählt den Eintrag aus</RimWorldAccess.Prisoner.Tab.NavigationHintInline>
+
+  <!-- Section announcements. {0} = count (or current mode label). -->
+  <RimWorldAccess.Prisoner.Section.Information>Informationen</RimWorldAccess.Prisoner.Section.Information>
+  <RimWorldAccess.Prisoner.Section.ExclusiveModes>Interaktionsmodi. {0} verfügbar. Aktuell: {1}</RimWorldAccess.Prisoner.Section.ExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.MedicalCare>{0}. {1} Stufen verfügbar</RimWorldAccess.Prisoner.Section.MedicalCare>
+  <RimWorldAccess.Prisoner.Section.SlaveModes>Sklaven-Interaktionsmodi. {0} verfügbar. Aktuell: {1}</RimWorldAccess.Prisoner.Section.SlaveModes>
+  <RimWorldAccess.Prisoner.Section.NonExclusiveModes>Zusätzliche Interaktionsmodi. {0} verfügbar. Die Leertaste schaltet den Modus um</RimWorldAccess.Prisoner.Section.NonExclusiveModes>
+  <RimWorldAccess.Prisoner.Section.IdeologySelection>Zielideologie. Enter bestätigt die Auswahl</RimWorldAccess.Prisoner.Section.IdeologySelection>
+
+  <!-- Item-level announcements and selection/toggle feedback used to be composed
+       here by hand. The prisoner tab is now a ScreenScope whose rows carry a role
+       and a state, so the shared element vocabulary
+       (RimWorldAccess.Shell.Role.* / RimWorldAccess.Shell.State.*) speaks the
+       selected marker, the on/off state and the toggle result instead. The keys
+       Item.StateOn, Item.StateOff, Item.NonExclusiveMode, Item.SelectedSuffix,
+       Action.Selected, Action.ToggleEnabled, Action.ToggleDisabled and
+       Action.ToggleMode were removed with that change (element-uniformity
+       campaign, task 8 packet C). -->
+</LanguageData>

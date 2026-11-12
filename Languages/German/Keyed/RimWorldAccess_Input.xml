@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Input module strings (src/Input/). Two files contribute:
+      - UnifiedKeyboardPatch.cs  (central keyboard router with ~40 speak calls)
+      - MapArrowKeyHandler.cs    (map arrow-key navigation prefixes + boundary)
+
+    Text-input strings live in RimWorldAccess_TextInput.xml and are owned by
+    the Input/TextInput/ subsystem; do not duplicate them here.
+
+    The Drafting.* and Forbid.* keys have One/Many splits so translators can
+    give singular and plural subject-verb agreement natural wording. The
+    MultiSelectOrder.* keys are whole phrases per semantic case, mirroring
+    the pattern in RimWorldAccess_Combat.xml's MultiSelect.* entries.
+  -->
+
+  <!-- Close / exit announcements. -->
+  <RimWorldAccess.Input.Close.ReturnedToMap>Zurück zur Karte</RimWorldAccess.Input.Close.ReturnedToMap>
+  <RimWorldAccess.Input.Close.MenuClosed>Menü geschlossen</RimWorldAccess.Input.Close.MenuClosed>
+  <RimWorldAccess.Input.Close.GizmoMenuClosed>Befehlsmenü geschlossen</RimWorldAccess.Input.Close.GizmoMenuClosed>
+
+  <!-- Drafting (B key). Singular "{name} Drafted" / "{name} Undrafted" for
+       single-select, "everyone" / "only" / "except" phrases for multi-select.
+       Status is capitalized at the start of a sentence; lower-case variants
+       are used mid-phrase. -->
+  <RimWorldAccess.Input.Drafting.StatusDraftedTitle>im Kampfmodus</RimWorldAccess.Input.Drafting.StatusDraftedTitle>
+  <RimWorldAccess.Input.Drafting.StatusUndraftedTitle>nicht im Kampfmodus</RimWorldAccess.Input.Drafting.StatusUndraftedTitle>
+  <RimWorldAccess.Input.Drafting.StatusDrafted>im Kampfmodus</RimWorldAccess.Input.Drafting.StatusDrafted>
+  <RimWorldAccess.Input.Drafting.StatusUndrafted>nicht im Kampfmodus</RimWorldAccess.Input.Drafting.StatusUndrafted>
+  <!-- {0} = pawn name, {1} = status (Drafted/Undrafted, capitalized). -->
+  <RimWorldAccess.Input.Drafting.SinglePawnStatus>{0}: {1}</RimWorldAccess.Input.Drafting.SinglePawnStatus>
+  <!-- Multi-select drafting announcements. {0} = everyone-label from vanilla
+       key, {1} = name-list, {2} = status (drafted/undrafted, lowercase). -->
+  <RimWorldAccess.Input.Drafting.EveryoneStatus>{0}: {1}</RimWorldAccess.Input.Drafting.EveryoneStatus>
+  <RimWorldAccess.Input.Drafting.EveryoneExceptStatus>{0} außer {1}: {2}</RimWorldAccess.Input.Drafting.EveryoneExceptStatus>
+  <RimWorldAccess.Input.Drafting.OnlyStatus>Nur {0}: {1}</RimWorldAccess.Input.Drafting.OnlyStatus>
+
+  <!-- Multi-select action feedback for right-bracket / left-bracket order
+       menus. Whole phrases so translators can reorder subject/verb/object.
+       {0} = everyone-label (EveryoneDoes/NoOneCould/EveryoneExcept) or
+             name-list (OnlyDoes), {1} = action label or name-list,
+       {2} = action label (EveryoneExcept only). -->
+  <RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>{0}: {1}</RimWorldAccess.Input.MultiSelectOrder.EveryoneDoes>
+  <RimWorldAccess.Input.MultiSelectOrder.NoOneCould>Niemand konnte den Befehl ausführen: {0}</RimWorldAccess.Input.MultiSelectOrder.NoOneCould>
+  <RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>{0} außer {1}: {2}</RimWorldAccess.Input.MultiSelectOrder.EveryoneExcept>
+  <RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>Nur {0}: {1}</RimWorldAccess.Input.MultiSelectOrder.OnlyDoes>
+
+  <!-- Multi-select guards (Alt+Space group management, reorder). -->
+  <RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>Keine Kolonisten auf dieser Karte</RimWorldAccess.Input.MultiSelect.NoColonistsOnMap>
+  <RimWorldAccess.Input.MultiSelect.CannotSaveGroups>Gruppen kannst du nur im laufenden Spiel speichern</RimWorldAccess.Input.MultiSelect.CannotSaveGroups>
+  <RimWorldAccess.Input.MultiSelect.CannotRecallGroups>Gruppen kannst du nur im laufenden Spiel abrufen</RimWorldAccess.Input.MultiSelect.CannotRecallGroups>
+  <RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect>Neu anordnen geht nicht. Die Mehrfachauswahl ist aktiv</RimWorldAccess.Input.MultiSelect.CannotReorderDuringMultiSelect>
+
+  <!-- Cursor-focused actions (rename at cursor, inspection at cursor). -->
+  <RimWorldAccess.Input.Cursor.NoPawnAtCursor>Keine Person am Cursor</RimWorldAccess.Input.Cursor.NoPawnAtCursor>
+  <RimWorldAccess.Input.Cursor.PawnCannotBeRenamed>Diese Person kannst du nicht umbenennen</RimWorldAccess.Input.Cursor.PawnCannotBeRenamed>
+  <RimWorldAccess.Input.Cursor.NothingToInspect>Hier gibt es nichts zu untersuchen</RimWorldAccess.Input.Cursor.NothingToInspect>
+  <RimWorldAccess.Input.Cursor.InvalidPosition>Ungültige Position</RimWorldAccess.Input.Cursor.InvalidPosition>
+  <RimWorldAccess.Input.Cursor.NoAvailableActions>Keine Aktionen verfügbar</RimWorldAccess.Input.Cursor.NoAvailableActions>
+  <RimWorldAccess.Input.Cursor.Coordinates>{0}, {1}</RimWorldAccess.Input.Cursor.Coordinates>
+
+  <!-- Mouse pointer bridge (Alt+J). PointerOffset is the answer when the pointer cannot
+       be moved: {0} = tile distance, {1} = compass direction of the cursor from it. -->
+  <RimWorldAccess.Input.Cursor.PointerMoved>Mauszeiger bei {0}, {1}</RimWorldAccess.Input.Cursor.PointerMoved>
+  <RimWorldAccess.Input.Cursor.PointerOffset>Cursor liegt vom Mauszeiger aus {replace: ^{0} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {1}</RimWorldAccess.Input.Cursor.PointerOffset>
+  <RimWorldAccess.Input.Cursor.PointerAtCursor>Mauszeiger am Cursor</RimWorldAccess.Input.Cursor.PointerAtCursor>
+  <RimWorldAccess.Input.Cursor.PointerOffWindow>Mauszeiger ist außerhalb des Spielfensters</RimWorldAccess.Input.Cursor.PointerOffWindow>
+  <RimWorldAccess.Input.Cursor.MouseTrackingOn>Ansagen, worauf der Mauszeiger zeigt: an</RimWorldAccess.Input.Cursor.MouseTrackingOn>
+  <RimWorldAccess.Input.Cursor.MouseTrackingOff>Ansagen, worauf der Mauszeiger zeigt: aus</RimWorldAccess.Input.Cursor.MouseTrackingOff>
+  <RimWorldAccess.Input.Cursor.PointerFollowsKeyboardOn>Mauszeiger folgt dem Tastatur-Cursor: an</RimWorldAccess.Input.Cursor.PointerFollowsKeyboardOn>
+  <RimWorldAccess.Input.Cursor.PointerFollowsKeyboardOff>Mauszeiger folgt dem Tastatur-Cursor: aus</RimWorldAccess.Input.Cursor.PointerFollowsKeyboardOff>
+
+  <!-- F1 work menu, F4 animals/mechs menu. -->
+  <RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>Keine Kolonisten verfügbar</RimWorldAccess.Input.WorkMenu.NoColonistsAvailable>
+  <RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>Keine Tiere oder Mechs</RimWorldAccess.Input.AnimalsMenu.NoAnimalsOrMechs>
+
+  <!-- Gizmo availability guard (G key). -->
+
+  <!-- Right/left bracket order execution feedback. -->
+  <!-- {0} = single-pawn prefix ("Bob: " or ""), {1} = action label. -->
+  <RimWorldAccess.Input.Order.TopOptionUnavailable>{0}{1}. Nicht verfügbar</RimWorldAccess.Input.Order.TopOptionUnavailable>
+  <!-- {0} = pawn name, {1} = action label, {2} = vanilla "Queued" label. -->
+  <RimWorldAccess.Input.Order.QueuedAction>{0}: {1}. {2}</RimWorldAccess.Input.Order.QueuedAction>
+  <!-- {0} = pawn name, {1} = action label. -->
+  <RimWorldAccess.Input.Order.Action>{0}: {1}</RimWorldAccess.Input.Order.Action>
+  <!-- {0} = GoHere label from vanilla. Suffix marks the line-formation variant. -->
+  <RimWorldAccess.Input.Order.FormationOption>{0} (in Reih und Glied)</RimWorldAccess.Input.Order.FormationOption>
+
+  <!-- Unforbid All (Alt+F). One/Many split for subject-verb agreement. -->
+  <RimWorldAccess.Input.Unforbid.NoForbiddenItems>Keine verbotenen Objekte auf der Karte</RimWorldAccess.Input.Unforbid.NoForbiddenItems>
+  <RimWorldAccess.Input.Unforbid.CountOne>1 Objekt wieder erlaubt</RimWorldAccess.Input.Unforbid.CountOne>
+  <RimWorldAccess.Input.Unforbid.CountMany>{0} Objekte wieder erlaubt</RimWorldAccess.Input.Unforbid.CountMany>
+
+  <!-- Toggle forbid at cursor (F key). One/Many + forbidden/unforbidden
+       splits so translators can give the plural subject correct agreement. -->
+  <RimWorldAccess.Input.Forbid.NothingToForbid>Hier gibt es nichts zu verbieten oder zu erlauben</RimWorldAccess.Input.Forbid.NothingToForbid>
+  <!-- {0} = item label. -->
+  <RimWorldAccess.Input.Forbid.SingleForbidden>{0} verboten</RimWorldAccess.Input.Forbid.SingleForbidden>
+  <RimWorldAccess.Input.Forbid.SingleUnforbidden>{0} nicht mehr verboten</RimWorldAccess.Input.Forbid.SingleUnforbidden>
+  <!-- {0} = toggled count. -->
+  <RimWorldAccess.Input.Forbid.ManyForbidden>{0} Objekte verboten</RimWorldAccess.Input.Forbid.ManyForbidden>
+  <RimWorldAccess.Input.Forbid.ManyUnforbidden>{0} Objekte nicht mehr verboten</RimWorldAccess.Input.Forbid.ManyUnforbidden>
+
+  <!-- Map arrow-key navigation prefixes (MapArrowKeyHandler.cs).
+       Composed with the tile info that follows, e.g. "Selected, stone, ...".
+       {0} = tile info. -->
+  <RimWorldAccess.Input.Map.Boundary>Kartenrand</RimWorldAccess.Input.Map.Boundary>
+  <RimWorldAccess.Input.Map.PrefixSelected>Ausgewählt, {0}</RimWorldAccess.Input.Map.PrefixSelected>
+  <RimWorldAccess.Input.Map.PrefixFirstPoint>Erster Punkt, {0}</RimWorldAccess.Input.Map.PrefixFirstPoint>
+  <RimWorldAccess.Input.Map.PrefixSecondPoint>Zweiter Punkt, {0}</RimWorldAccess.Input.Map.PrefixSecondPoint>
+  <RimWorldAccess.Input.Map.PrefixInArea>Im Gebiet, {0}</RimWorldAccess.Input.Map.PrefixInArea>
+  <RimWorldAccess.Input.Map.PrefixDisconnected>Nicht verbunden, {0}</RimWorldAccess.Input.Map.PrefixDisconnected>
+
+  <!-- Schedule editor visual overlay (src/Input/UnifiedKeyboardPatch.cs). -->
+</LanguageData>

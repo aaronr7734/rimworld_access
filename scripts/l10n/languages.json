@@ -31,6 +31,13 @@
       "quote_pairs": [["\"", "\""]],
       "notes": "Castilian. Cleanest language today: zero warnings."
     },
+    "German": {
+      "native": "Deutsch",
+      "numcase_allowed": false,
+      "punctuation_allowed": ["…"],
+      "quote_pairs": [["\"", "\""], ["'", "'"]],
+      "notes": "Informal du register, see src/docs/de-glossary.md. _numCase is FORBIDDEN: the official German corpus uses it zero times and German needs only two plural forms, written as plain One/Many keys. No em dash, en dash or semicolon in prose because screen readers read them inconsistently. A semicolon is legitimate only inside {replace: ...} grammar syntax. Docs quote game labels with ASCII apostrophes."
+    },
     "French": {
       "native": "Français",
       "numcase_allowed": false,

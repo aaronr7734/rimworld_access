@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    QA flight recorder (src/Shell/Compat/FlightRecorder.Game.cs). Alt (Option on macOS) plus
+    the vanilla screenshot key starts and stops a recording anywhere; stopping opens
+    Dialog_RecordingSaved with the saved path unless suppressed. The two Settings keys are the
+    suppression toggle's row in both RimWorld Access settings surfaces.
+  -->
+  <RimWorldAccess.FlightRecorder.Started>Flugschreiber gestartet.</RimWorldAccess.FlightRecorder.Started>
+  <RimWorldAccess.FlightRecorder.Stopped>Flugschreiber gestoppt.</RimWorldAccess.FlightRecorder.Stopped>
+  <RimWorldAccess.FlightRecorder.StoppedWithPath>Flugschreiber gestoppt. Aufzeichnung gespeichert unter {0}.</RimWorldAccess.FlightRecorder.StoppedWithPath>
+  <RimWorldAccess.FlightRecorder.Marker>Marker {0} gesetzt.</RimWorldAccess.FlightRecorder.Marker>
+  <RimWorldAccess.FlightRecorder.DialogTitle>Aufzeichnung gespeichert</RimWorldAccess.FlightRecorder.DialogTitle>
+  <RimWorldAccess.FlightRecorder.DialogBody>Der Flugschreiber hat die Aufzeichnung hier gespeichert: {0}</RimWorldAccess.FlightRecorder.DialogBody>
+  <RimWorldAccess.FlightRecorder.DontShowAgain>Diesen Dialog nicht mehr anzeigen</RimWorldAccess.FlightRecorder.DontShowAgain>
+  <RimWorldAccess.FlightRecorder.OpenFolder>Ordner öffnen</RimWorldAccess.FlightRecorder.OpenFolder>
+  <RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Label>Dialog anzeigen, wenn der Flugschreiber eine Aufzeichnung speichert</RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Label>
+  <RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Desc>Wenn du den Flugschreiber mit {0} stoppst, öffnet sich ein Dialog mit dem Speicherort der Datei. Wenn deaktiviert, wird der Speicherort stattdessen angesagt.</RimWorldAccess.Core.Settings.ShowRecordingSavedDialog.Desc>
+</LanguageData>

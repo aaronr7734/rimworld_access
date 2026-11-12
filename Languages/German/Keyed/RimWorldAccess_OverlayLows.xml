@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Low-severity localization fixes from the pawns/bio + world/misc audit
+    passes: sighted-companion keyboard-mode overlays and a few small
+    read-side strings that were previously raw English literals.
+
+    Files contributing strings:
+      - SplitCaravanPatch.cs      (Dialog_SplitCaravan visual overlay)
+      - WorldNavigationPatch.cs   (world map tile-info visual overlay)
+      - PawnSkillsTableHelper.cs  (skills table "incapable" cell)
+      - PawnSelectionState.cs     (map-switch presence description)
+  -->
+
+  <RimWorldAccess.Caravan.Split.KeyboardModeActive>Tastaturmodus aktiv</RimWorldAccess.Caravan.Split.KeyboardModeActive>
+  <RimWorldAccess.Caravan.Split.KeyboardInstructions>Tabs: Personen und Tiere, Waren, Reisevorräte | Pfeil nach links/rechts: Tab/Karawane wechseln\nPfeil nach oben/unten: Navigieren/Werte | Leertaste/Enter: Umschalten/Menge | Umschalt+Enter: Max | Entf: Entfernen\nTab: Zusammenfassung (Pfeil nach oben/unten: Werte, Pfeil nach links/rechts: Karawanen) | Alt+I: Untersuchen | Alt+S: Teilen</RimWorldAccess.Caravan.Split.KeyboardInstructions>
+
+
+  <RimWorldAccess.Pawns.SkillsTable.Incapable>unfähig</RimWorldAccess.Pawns.SkillsTable.Incapable>
+
+  <RimWorldAccess.Pawns.Presence.Colonist>{0} Kolonist</RimWorldAccess.Pawns.Presence.Colonist>
+  <RimWorldAccess.Pawns.Presence.Colonists>{0} Kolonisten</RimWorldAccess.Pawns.Presence.Colonists>
+  <RimWorldAccess.Pawns.Presence.Mech>{0} Mech</RimWorldAccess.Pawns.Presence.Mech>
+  <RimWorldAccess.Pawns.Presence.Mechs>{0} Mechs</RimWorldAccess.Pawns.Presence.Mechs>
+  <RimWorldAccess.Pawns.Presence.Animal>{0} Tier</RimWorldAccess.Pawns.Presence.Animal>
+  <RimWorldAccess.Pawns.Presence.Animals>{0} Tiere</RimWorldAccess.Pawns.Presence.Animals>
+
+
+</LanguageData>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Core module strings (src/Core/). Five files contribute, but most produce
+    no player-facing output:
+
+      - rimworld_access.cs          (entry point — Log.* only, intentionally English)
+      - GameStartPatch.cs           (no user-facing strings)
+      - ModLogger.cs                (logging helper — intentionally English)
+      - ReloadHelper.cs             (#if DEBUG hot-reload — dev-only TolkHelper
+                                     lines are intentionally English)
+      - RimWorldAccessSettings.cs   (the Mod Settings panel — THIS file's scope)
+
+    Intentionally left in English per docs/decisions.md Decision 5:
+      * Every Log.Message / Log.Warning / Log.Error in rimworld_access.cs
+        ("Initializing accessibility features...", "Applying Harmony patches...",
+        "Total patches applied: {count}", "Main menu keyboard navigation
+        enabled!", "Use Arrow keys to navigate, Enter to select.",
+        "Tearing down for reload...", "Shutting down...", etc.) — these go to
+        RimWorld's debug console for bug triage, not to players.
+      * ModLogger prefix "[RimWorld Access] " — log decoration.
+      * ReloadHelper.cs TolkHelper.Speak announcements ("Reloading RimWorld
+        Access", "RimWorld Access reloaded", "Reload failed: ...") — the
+        entire file is wrapped in #if DEBUG and only fires in the developer
+        hot-reload path, never in a shipped player build.
+      * "[RimWorld Access] Settings loaded." Log.Message in the Mod ctor.
+
+    The keys below cover the only truly player-facing surface in this
+    module: the Options > Mod Settings panel for RimWorld Access.
+  -->
+
+  <!-- Settings panel category name (RimWorldAccessMod_Settings.SettingsCategory).
+       Shown as the row label in Options > Mod Settings. Translators may keep
+       "RimWorld Access" verbatim (brand name) or transliterate/adjust
+       capitalization for their locale. -->
+  <RimWorldAccess.Core.Settings.Category>RimWorld Access</RimWorldAccess.Core.Settings.Category>
+
+  <!-- Checkbox labels in DoSettingsWindowContents, top-to-bottom order.
+       Each one toggles a single RimWorldAccessSettings bool. -->
+  <RimWorldAccess.Core.Settings.WrapNavigation.Label>Navigation springt vom Ende zum Anfang (und umgekehrt)</RimWorldAccess.Core.Settings.WrapNavigation.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Tätigkeit von Personen beim Bewegen des Cursors ansagen</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
+  <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Deckung von Personen im Kampfmodus und von Feinden ansagen</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Gelände beim Bewegen des Cursors ansagen</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
+  <RimWorldAccess.Core.Settings.HoverSpeech.Label>Inhalt unter dem Mauszeiger ansagen</RimWorldAccess.Core.Settings.HoverSpeech.Label>
+  <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Sagt beim Bewegen der Maus an, worauf sie zeigt.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
+  <RimWorldAccess.Core.Settings.PointerFollowsKeyboard.Label>Mauszeiger folgt dem Tastatur-Cursor</RimWorldAccess.Core.Settings.PointerFollowsKeyboard.Label>
+  <RimWorldAccess.Core.Settings.PointerFollowsKeyboard.Desc>Setzt den Mauszeiger nach jeder Bewegung auf das Feld des Tastatur-Cursors. Drücke {0}, um die Einstellung im Spiel umzuschalten.</RimWorldAccess.Core.Settings.PointerFollowsKeyboard.Desc>
+  <RimWorldAccess.Core.Settings.ScannerAutoJump.Label>Cursor springt automatisch zum Scanner-Eintrag</RimWorldAccess.Core.Settings.ScannerAutoJump.Label>
+  <RimWorldAccess.Core.Settings.ScannerAutoJump.Desc>Der Cursor springt zum jeweiligen Eintrag, während du im Scanner navigierst. Drücke {0}, um die Einstellung im Spiel umzuschalten.</RimWorldAccess.Core.Settings.ScannerAutoJump.Desc>
+  <RimWorldAccess.Core.Settings.PauseOnGameStart.Label>Neue Spiele pausiert starten</RimWorldAccess.Core.Settings.PauseOnGameStart.Label>
+  <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>Ein neues Spiel beginnt pausiert. So kannst du dich orientieren, bevor die Zeit läuft.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
+  <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Im Forschungsmenü pausiert bleiben</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
+  <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Das Spiel bleibt pausiert, wenn du das Forschungsmenü aus dem Fenster "Forschung abgeschlossen" öffnest.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Nach dem Handeln pausiert bleiben</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
+  <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Das Spiel bleibt nach dem Schließen des Handelsfensters pausiert, bis du weiterspielst.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
+
+  <!-- Opens the Configure Spoken Announcements screen (a real window, not this panel);
+       see RimWorldAccess_AnnounceConfig.xml for that screen's own strings. -->
+  <RimWorldAccess.Core.Settings.ConfigureAnnouncements.Button>Ansagen anpassen...</RimWorldAccess.Core.Settings.ConfigureAnnouncements.Button>
+
+  <!-- SubmenuTreeNavigation is the only checkbox with a tooltip. The label is
+       deliberately whimsical ("Rashad Hates Treeviews") — translators can
+       preserve the joke or replace it with something equivalent in their
+       culture as long as it still telegraphs what the setting does. The
+       tooltip is the canonical explanation. -->
+  <RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Label>Rashad hasst Baumansichten (Navigation wie in Untermenüs)</RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Label>
+  <RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip>Ändert das Verhalten von Baumansichten. Eine ausgeklappte Kategorie verschwindet aus der Liste. Du navigierst dann nur noch durch die Einträge dieser Kategorie. Pfeil nach links bringt dich zurück zur Kategorie. Beim nächsten Ausklappen landest du wieder auf demselben Eintrag.</RimWorldAccess.Core.Settings.SubmenuTreeNavigation.Tooltip>
+
+  <!-- Selected-pawn activity. The cursor-move clause in the Desc is the escape
+       hatch, so keep it if this is ever shortened. -->
+  <RimWorldAccess.Core.Settings.AnnounceSelectedPawnActivity.Label>Tätigkeit der ausgewählten Spielfigur ansagen</RimWorldAccess.Core.Settings.AnnounceSelectedPawnActivity.Label>
+  <RimWorldAccess.Core.Settings.AnnounceSelectedPawnActivity.Desc>Sagt in Echtzeit an, was die ausgewählte Spielfigur gerade tut. Wenn du den Kartencursor bewegst, enden die Ansagen.</RimWorldAccess.Core.Settings.AnnounceSelectedPawnActivity.Desc>
+
+  <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Neuigkeiten nach einem Update anzeigen</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
+  <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Wenn aktiviert, erscheinen die Neuigkeiten nach einem Update von RimWorld Access im Hauptmenü. Wenn deaktiviert, hörst du nur einen kurzen Hinweis auf das Update. Die Neuigkeiten kannst du dann jederzeit über das Menü öffnen.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+</LanguageData>

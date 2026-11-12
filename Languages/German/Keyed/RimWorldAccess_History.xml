@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    History module strings (src/History/). The History tab is one of the
+    bottom-bar tabs and contains a Statistics sub-tab and a Messages
+    (archive) sub-tab. Five files contribute spoken text:
+      - HistoryState.cs            (tab switching + intro/close)
+      - HistoryStatisticsState.cs  (Up/Down through colony stats)
+      - HistoryMessagesState.cs    (archive list + two-level detail view)
+      - HistoryHelper.cs           (announcement composition, archive item
+                                    wrappers, jump-to-location)
+      - HistoryPatch.cs            (window open/close hooks)
+
+    What is DATA and stays out of this file: the statistic NAME labels
+    (Play time, Storyteller, wealth lines, etc.) come from vanilla
+    RimWorld keys (Playtime, Storyteller, ThisMapColonyWealthTotal, ...);
+    archive item labels, dates, pawn/world-object names, and numeric
+    counts are game-supplied and passed in as {0}, {1} arguments. Only
+    the surrounding authored phrasing lives here.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Fragments that get
+    joined into a larger announcement carry no trailing punctuation of
+    their own unless the punctuation is part of the phrase being composed
+    (e.g. the "Name: value" stat format). One/Many key variants cover
+    English singular vs. plural agreement on the item count; translators
+    with different plural classes may collapse or split them.
+  -->
+
+  <!-- Window lifecycle (HistoryState / HistoryPatch). Intro is spoken when
+       the History tab opens. -->
+  <RimWorldAccess.History.Intro>Geschichte.</RimWorldAccess.History.Intro>
+  <RimWorldAccess.History.Closed>Geschichte geschlossen</RimWorldAccess.History.Closed>
+
+  <!-- Tab names and the "now on this tab" announcement (HistoryState).
+       {0} = localized tab name. -->
+  <RimWorldAccess.History.Tab.Graph>Graph</RimWorldAccess.History.Tab.Graph>
+  <RimWorldAccess.History.Tab.Statistics>Statistiken</RimWorldAccess.History.Tab.Statistics>
+  <RimWorldAccess.History.Tab.Messages>Nachrichten</RimWorldAccess.History.Tab.Messages>
+  <RimWorldAccess.History.Tab.Current>{0}-Tab</RimWorldAccess.History.Tab.Current>
+
+  <!-- Shared fallbacks and small nouns used across the module. -->
+  <RimWorldAccess.History.Unknown>Unbekannt</RimWorldAccess.History.Unknown>
+  <RimWorldAccess.History.UnknownDate>Unbekanntes Datum</RimWorldAccess.History.UnknownDate>
+  <RimWorldAccess.History.Pinned>Gepinnt</RimWorldAccess.History.Pinned>
+  <RimWorldAccess.History.Unpinned>Entpinnt</RimWorldAccess.History.Unpinned>
+
+  <!-- Statistics tab (HistoryStatisticsState / HistoryHelper). None is
+       spoken when no statistics are available. -->
+  <RimWorldAccess.History.Statistics.None>Keine Statistiken verfügbar</RimWorldAccess.History.Statistics.None>
+
+  <!-- Archive item type nouns (HistoryHelper.TypeLabel). Spoken as part of
+       each row's announcement. -->
+  <RimWorldAccess.History.Type.Letter>Brief</RimWorldAccess.History.Type.Letter>
+  <RimWorldAccess.History.Type.Message>Nachricht</RimWorldAccess.History.Type.Message>
+  <RimWorldAccess.History.Type.Item>Eintrag</RimWorldAccess.History.Type.Item>
+
+  <!-- Jump-to-location announcements and target descriptions (HistoryHelper).
+       Target.Position: {0} = x, {1} = z map coordinates. The other target
+       fallbacks are used when no game-supplied label is available. -->
+  <RimWorldAccess.History.NoLocation>Kein Ort verfügbar</RimWorldAccess.History.NoLocation>
+  <RimWorldAccess.History.FailedToJump>Sprung zum Ort fehlgeschlagen</RimWorldAccess.History.FailedToJump>
+  <RimWorldAccess.History.Target.Unknown>unbekannter Ort</RimWorldAccess.History.Target.Unknown>
+  <RimWorldAccess.History.Target.Thing>Objekt</RimWorldAccess.History.Target.Thing>
+  <RimWorldAccess.History.Target.Position>Position {0}, {1}</RimWorldAccess.History.Target.Position>
+  <RimWorldAccess.History.Target.WorldLocation>Ort auf der Weltkarte</RimWorldAccess.History.Target.WorldLocation>
+  <RimWorldAccess.History.Target.Generic>Zielort</RimWorldAccess.History.Target.Generic>
+
+  <!-- Graph tab (HistoryGraphState). Recorders in the currently selected
+       HistoryAutoRecorderGroupDef are a navigable list, each summarized
+       against the selected date-range window; Enter drills into that
+       recorder's own interval-bucketed data points. -->
+  <RimWorldAccess.History.Graph.None>Keine Graphdaten verfügbar</RimWorldAccess.History.Graph.None>
+  <!-- CurrentValue: {0} = the recorder's latest reading, already formatted
+       with its own valueFormat (e.g. "$45,230" or "12%"). MinMax: {0} = min,
+       {1} = max, both within the selected date range. NoDataInRange is
+       spoken instead of CurrentValue/MinMax/trend when the selected range
+       predates the recorder's first reading. -->
+  <RimWorldAccess.History.Graph.CurrentValue>Aktuell: {0}</RimWorldAccess.History.Graph.CurrentValue>
+  <RimWorldAccess.History.Graph.MinMax>Minimum {0}, Maximum {1}</RimWorldAccess.History.Graph.MinMax>
+  <RimWorldAccess.History.Graph.NoDataInRange>Keine Daten in diesem Zeitraum</RimWorldAccess.History.Graph.NoDataInRange>
+  <RimWorldAccess.History.Graph.TrendUp>steigend</RimWorldAccess.History.Graph.TrendUp>
+  <RimWorldAccess.History.Graph.TrendDown>fallend</RimWorldAccess.History.Graph.TrendDown>
+  <RimWorldAccess.History.Graph.TrendFlat>gleichbleibend</RimWorldAccess.History.Graph.TrendFlat>
+
+  <!-- "Select graph" picker (Alt+G) result. GroupSelected: {0} = the chosen
+       group's label; the current recorder's own summary is spoken right
+       after as a separate announcement. GroupSelectedNone covers a group
+       with no recorders (not possible with vanilla's own defs, but the
+       picker mirrors an arbitrary mod-added group too). -->
+  <RimWorldAccess.History.Graph.GroupSelected>Graph ausgewählt: {0}</RimWorldAccess.History.Graph.GroupSelected>
+  <RimWorldAccess.History.Graph.GroupSelectedNone>Graph ausgewählt: {0}. Keine Graphdaten verfügbar</RimWorldAccess.History.Graph.GroupSelectedNone>
+
+  <!-- Detail view (per-recorder data points). DetailHeader: {0} = group
+       label, {1} = recorder label. DaySingle/DayRange label one summarized
+       interval; {0} in both is vanilla's own "Day" noun (reused, not
+       retranslated), {1}/{2} are the day numbers. -->
+  <RimWorldAccess.History.Graph.DetailHeader>{0}: {1}</RimWorldAccess.History.Graph.DetailHeader>
+  <RimWorldAccess.History.Graph.DaySingle>{0} {1}</RimWorldAccess.History.Graph.DaySingle>
+  <RimWorldAccess.History.Graph.DayRange>{0} {1} bis {2}</RimWorldAccess.History.Graph.DayRange>
+
+  <!-- Messages/archive tab (HistoryMessagesState). -->
+
+  <!-- Detail view (two-level menu) header.
+       DetailHeader: {0} = type label, {1} = item label. -->
+  <RimWorldAccess.History.Messages.DetailHeader>{0}: {1}</RimWorldAccess.History.Messages.DetailHeader>
+
+  <!-- Hotkey orientation spoken on entering the tab, and the empty-list
+       message that carries it. NoneWithHint: {0} = the hotkey hint. -->
+  <RimWorldAccess.History.Messages.HotkeyHint>Alt+L zeigt die Briefe an oder blendet sie aus. Alt+M zeigt die Nachrichten an oder blendet sie aus</RimWorldAccess.History.Messages.HotkeyHint>
+  <RimWorldAccess.History.Messages.NoneWithHint>Keine archivierten Einträge. {0}.</RimWorldAccess.History.Messages.NoneWithHint>
+
+  <!-- Filter toggle status phrases (Alt+L / Alt+M). Each is spoken via the
+       FilterStatus keys below, never on its own. -->
+  <RimWorldAccess.History.Messages.ShowingLetters>Briefe werden angezeigt</RimWorldAccess.History.Messages.ShowingLetters>
+  <RimWorldAccess.History.Messages.HidingLetters>Briefe werden ausgeblendet</RimWorldAccess.History.Messages.HidingLetters>
+  <RimWorldAccess.History.Messages.ShowingMessages>Nachrichten werden angezeigt</RimWorldAccess.History.Messages.ShowingMessages>
+  <RimWorldAccess.History.Messages.HidingMessages>Nachrichten werden ausgeblendet</RimWorldAccess.History.Messages.HidingMessages>
+
+  <!-- Filter result: a status phrase plus the resulting item count.
+       FilterStatusOne is used when exactly one item remains ({0} = status);
+       FilterStatusMany otherwise ({0} = status, {1} = count). -->
+  <RimWorldAccess.History.Messages.FilterStatusOne>{0}. 1 Eintrag.</RimWorldAccess.History.Messages.FilterStatusOne>
+  <RimWorldAccess.History.Messages.FilterStatusMany>{0}. {1} Einträge.</RimWorldAccess.History.Messages.FilterStatusMany>
+
+  <!-- Detail-view action button labels (spoken when arrowing through
+       buttons) and the failure announcement when an action throws. -->
+  <RimWorldAccess.History.Button.Open>Öffnen</RimWorldAccess.History.Button.Open>
+  <RimWorldAccess.History.Button.JumpToLocation>Zum Ort springen</RimWorldAccess.History.Button.JumpToLocation>
+  <RimWorldAccess.History.Button.Pin>Pinnen</RimWorldAccess.History.Button.Pin>
+  <RimWorldAccess.History.Button.Unpin>Entpinnen</RimWorldAccess.History.Button.Unpin>
+
+
+  <!-- Keyboard-mode visual overlay (src/History/HistoryPatch.cs). -->
+  <RimWorldAccess.History.Overlay.KeyboardModeTab>Tastaturmodus aktiv. {0}-Tab</RimWorldAccess.History.Overlay.KeyboardModeTab>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+</LanguageData>

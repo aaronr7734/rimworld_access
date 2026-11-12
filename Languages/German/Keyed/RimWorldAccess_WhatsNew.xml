@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    What's New module strings (src/Shell/Screens/WhatsNewState.cs + WhatsNewCatalog.cs). The mod keeps a
+    record of announcements, one per released version (see WhatsNewCatalog, newest first). When
+    the player has unread announcements (e.g. after an update) they are surfaced on the main menu,
+    shown one at a time as a buffer the player arrows through line by line.
+
+    Per-version messages are keyed by version with dots replaced by underscores, e.g.
+    RimWorldAccess.WhatsNew.Message.2_0_0 for version 2.0.0. When a version has no message of its
+    own, RimWorldAccess.WhatsNew.Message.Default is shown instead. Paragraphs are separated by
+    "\n"; each becomes one line the player arrows to.
+
+    When cutting a release, add a new Message.<version> block here (and translate it in the other
+    language folders) and add the version to WhatsNewCatalog. The message is player-facing prose,
+    not a raw changelog dump — the full changelog lives on the website, one button-press away.
+  -->
+
+  <!-- Header (the first line of each announcement). Header is used when there is more than one
+       announcement: {0} = version, {1} = this announcement's number, {2} = total. HeaderSingle is
+       used for a lone announcement (the normal case): {0} = version. -->
+  <RimWorldAccess.WhatsNew.Header>RimWorld Access {0}. Mitteilung {1} von {2}.</RimWorldAccess.WhatsNew.Header>
+  <RimWorldAccess.WhatsNew.HeaderSingle>RimWorld Access {0}.</RimWorldAccess.WhatsNew.HeaderSingle>
+
+  <!-- Per-version messages. Paragraphs separated by "\n". -->
+  <RimWorldAccess.WhatsNew.Message.2_0_0>Willkommen bei Version 2.0 und danke, dass du dabei bist. Das ist das größte Update in der Geschichte von RimWorld Access. Hast du die Mod über den Steam Workshop abonniert und bist nicht im Discord? Dann kommt das für dich wohl ziemlich überraschend. Die Leute im Discord haben die Entwicklung über viele kleinere Patches mitverfolgt. Für alle anderen gibt es hier die Kurzfassung der Änderungen.\n
+Für Version 2.0 wurde RimWorld Access von Grund auf neu gebaut.\n
+Die Bildschirme sind jetzt viel einheitlicher als vorher. Dieselben Tasten und derselbe Aufbau der Ansagen gelten im Hauptmenü, bei der Welterstellung, in jedem Tab, in jedem Dialog und in den meisten Fenstern anderer Mods.\n
+Außerdem erreichst du die Schaltflächen eines Bildschirms jetzt immer. Jeder Bildschirm zeigt die Schaltflächenleiste des Spiels. Tab bringt dich früher oder später dorthin. So bleibst du nicht mehr hängen und musst nicht rätseln, welche Taste dich weiterbringt.\n
+Menüs und Dialoge sind jetzt die echten Fenster des Spiels statt unsichtbarer Kopien. Sie erscheinen also genau so auf dem Bildschirm, wie das Spiel sie zeichnet. Wer zuschaut, sieht deinen Cursor und kann gleichzeitig mit dir die Maus benutzen.\n
+Einige beliebte Mods werden jetzt gezielt unterstützt. Für alle anderen Mods gibt es eine allgemeine Vorlesefunktion. Sie kommt mit den meisten Fenstern von selbst zurecht.\n
+Außerdem neu: Das Spiel zeigt manche Texte nur unter dem Mauszeiger. Diese Texte werden jetzt vorgelesen. Der Entwicklermodus ist vollständig zugänglich, wenn auch etwas umständlich. Es gibt fünf neue Sprachen. Ein optionaler Mausmodus liest vor, was der Mauszeiger berührt.\n
+Hinter den Kulissen dauerte der Umbau eines Bildschirms früher etwa drei Tage. Jetzt sind es etwa zwanzig Minuten. Deshalb sollten sich die Bildschirme ab jetzt viel schneller verbessern.\n
+Das ist nur die Zusammenfassung. Das vollständige Änderungsprotokoll findest du auf der Webseite. Wähle dazu "Änderungsprotokoll im Browser öffnen".\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen. Sollen die Mitteilungen nicht mehr von selbst erscheinen, wähle "Nicht mehr anzeigen". Bei jedem Update hörst du dann trotzdem einen kurzen Hinweis.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen. Und danke für deine Hilfe dabei, RimWorld für blinde und sehbehinderte Menschen spielbar zu machen. Viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_0>
+
+  <RimWorldAccess.WhatsNew.Message.2_0_rc2>Willkommen beim zweiten Release Candidate von Version 2.0. Dieses Update fügt ein globales Logbuch hinzu und bringt die klassischen Karawanenlisten zurück. Außerdem behebt es eine ganze Reihe von Fehlern. Hier sind alle Änderungen.\n
+Neue Funktionen.\n
+Neu ist das globale Logbuch. Du öffnest es mit Alt+L oder über das F12-Menü. Das globale Logbuch listet alle sozialen Ereignisse und Kampfereignisse der Welt auf. Es reicht viel weiter zurück als das Logbuch des Spiels. Du kannst die Einträge filtern, durch Tippen durchsuchen und zu den Spielfiguren in jedem Eintrag springen.\n
+Beim Formieren und Teilen von Karawanen und beim Beladen von Transportkapseln gibt es standardmäßig wieder die klassischen Listen. Jede Zeile nennt jetzt, was das Spiel daneben anzeigt, etwa Masse, Wert und Zeit bis zum Verrotten. Drücke Strg+Tab, um zur Tabellenansicht zu wechseln. Auf dem Mac drückst du Wahltaste+Tab.\n
+Lagergebäude aus Adaptive Storage Framework haben jetzt eine vollständige Inhaltsliste. Jedes Objekt nennt seine Masse und die Tage bis zum Verrotten. Du kannst außerdem das Stapellimit ändern und Objekte erlauben, verbieten oder ablegen.\n
+Mit Vehicle Framework hat das Fenster zum Teilen von Karawanen jetzt einen Tab für Fahrzeuge. Du kannst Fahrzeuge von einer Karawane abteilen und ihre Sitzplätze zuweisen.\n
+Änderungen.\n
+Änderst du die Autopilot-Einstellungen einer Spielfigur, bricht das deinen letzten Befehl nicht mehr ab. Die Spielfigur führt diesen Befehl zuerst zu Ende. Der Befehl "Ziel angreifen" wirkt weiterhin sofort.\n
+Der Flugschreiber zeichnet nicht mehr jedes Einzelbild auf, solange ein Menü offen ist. Die Aufzeichnungen sind dadurch viel kürzer.\n
+Fehlerbehebungen.\n
+Hast du "Art des Steuerelements" oder "Zustand des Steuerelements" ausgeschaltet, bleiben diese Ansagen jetzt auch nach einem Neustart des Spiels aus.\n
+Die Karawanen-Info nennt Orte jetzt als Biom und Kartenkoordinaten statt als Feldnummern. Südliche und westliche Koordinaten werden jetzt auch richtig vorgelesen.\n
+Beim Formieren einer Karawane und beim Beladen einer Kapsel löst Umschalt+Enter auf einer Zeile nicht mehr "Entsenden" aus. Umschalt+Enter nimmt jetzt so viel mit, wie du tragen kannst. Beim Teilen einer Karawane öffnet Alt+I im Tab "Personen und Tiere" jetzt auch die richtige Infokarte.\n
+Die Fenster zum Formieren und Teilen von Karawanen bleiben auf dem Bildschirm nicht mehr leer, solange du auf ihren Schaltflächen bist. Fahrzeugzeilen nennen jetzt auch Geschwindigkeit, Ladekapazität und Wert.\n
+Der Inhalt-Tab von Kryptoschlafkapseln, Portalen und anderen Behältern liest nicht mehr nur eine Zusammenfassung vor. Der Tab listet jetzt jedes Objekt einzeln auf. Alt+I öffnet die Infokarte eines Objekts.\n
+Die Schaltfläche "Route ändern" beim Formieren einer Karawane ist nicht mehr stumm. Die Schaltfläche sagt jetzt an, dass du eine Route wählst.\n
+Setzt du im Tab "Zuweisung" die Kampfrichtlinie "Keine" für eine ganze Spalte, wird keine Spielfigur mehr übersprungen.\n
+Das Bearbeiten von Drogenrichtlinien funktioniert wieder. Du kannst jetzt jede Einstellung direkt in der Drogentabelle ändern.\n
+Zeilen der Infokarte wie das Geschlecht oder die Kategorie eines Tiers lesen ihren Wert nicht mehr doppelt vor.\n
+Ist ein Bau fertig, wechselt der Infobereich jetzt von der Baustelle zum fertigen Gebäude. Bisher blieb er auf der Baustelle stehen.\n
+Ein Menüeintrag ohne Beschreibung liest nicht mehr die Beschreibung des Eintrags darüber vor.\n
+Beim Start von Transportkapseln werden nicht mehr zwei verschiedene Reichweiten angesagt. Du hörst jetzt nur noch die Reichweite der Kapsel mit dem wenigsten Treibstoff.\n
+Der Scanner ruckelt auf großen Karten nicht mehr. Das passierte vor allem, wenn das Spiel lief.\n
+Der Infobereich funktioniert jetzt auch mit Lager-Mods, die den Inhalt-Tab von selbst öffnen. Ein Beispiel ist Adaptive Storage Framework. Du kannst diese Mod-Einstellung jetzt eingeschaltet lassen.\n
+Mit Vehicle Framework gibt es beim Start keinen Fehler mehr. Fahrzeuge im Autopilot sagen außerdem wieder an, was sie tun.\n
+Ein Fahrzeug mit "Suchen und zerstören" bleibt nicht mehr hängen, wenn es den Feind erreicht. Das Fahrzeug hält jetzt an und kämpft von seiner Position aus.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc2>
+
+  <RimWorldAccess.WhatsNew.Message.2_0_rc3>Dieser kleine Patch behebt ein paar Fehler und verbessert das globale Logbuch aus dem letzten Patch.\n
+Neue Funktionen.\n
+Mit Enter springst du jetzt von einem Logbucheintrag zur genannten Spielfigur. Bei mehreren Spielfiguren fragt dich ein Menü, zu welcher du springen willst.\n
+Änderungen.\n
+Das globale Logbuch hat jetzt zwei Tabs: Sozial-Logbuch und Kampf-Logbuch. Pfeil nach links und Pfeil nach rechts wechseln zwischen den beiden Tabs. Jedes Logbuch hat eigene Filter. So kann das Kampf-Logbuch alle Spielfiguren auf der Karte zeigen, während das Sozial-Logbuch bei deiner Kolonie bleibt.\n
+Das Fenster "Standardmedizin einstellen" ist jetzt eine Tabelle. Du öffnest es im Tab "Zuweisung" über das Menü "Pflegemodus". Jede Gruppe ist eine Zeile. Jeder Pflegemodus ist eine Spalte. So hörst du die Einstellung jeder Gruppe und kannst sie mit Enter ändern.\n
+Fehlerbehebungen.\n
+Die Auswahl der Glaubensgrundlagen zeigt jetzt auch Glaubensgrundlagen aus Mods mit einem vierten, extremen Auswirkungsgrad, etwa Alpha Memes.\n
+Im Wildtier-Menü zeigt die Spalte "Zähmen" bei wilden Menschen nicht mehr "Nicht zutreffend". Du kannst wilde Menschen jetzt dort zum Zähmen markieren.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc3>
+
+  <RimWorldAccess.WhatsNew.Message.2_0_rc4>Diesmal gibt es nur eine kleine Fehlerbehebung.\n
+Fehlerbehebungen.\n
+Springst du mit Alt und einer Zahl zu einem Kolonisten, fliegst du nicht mehr aus dem Platzierungsmodus. Wirft dich etwas anderes aus dem Platzierungsmodus, sagt dir die Mod das jetzt.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc4>
+
+  <RimWorldAccess.WhatsNew.Message.2_0_rc5>Dieses Update unterstützt RimWorld 1.7. Dazu kommen viele Fehlerbehebungen für Mods und den Kampfautopiloten.\n
+Neue Funktionen.\n
+RimWorld Access unterstützt jetzt RimWorld 1.7.\n
+Das Fenster zum Erstellen von Außenposten aus Vanilla Outposts Expanded ist jetzt zugänglich. Jeder Außenposten ist eine Zeile. Die Zeile sagt dir, ob du den Außenposten bauen kannst. Sie nennt auch, was noch fehlt. Enter erstellt den Außenposten.\n
+Der Welt-Scanner hat eine neue Kategorie "Außenposten". Dort findest du deine Außenposten und Lager.\n
+In Progression: Education zeigen die Lehrer- und Schülerlisten in den Kursfenstern jetzt Details zu jedem Kolonisten. Dazu gehören die anderen Kurse des Kolonisten und wie viel er pro Unterrichtsstunde lernt.\n
+Der Frame-Profiler von RimWorld 1.7 ist jetzt zugänglich. Du findest ihn im Debug-Aktionsmenü. Die meisten Steuerelemente haben ein eigenes Tastenkürzel. Du hörst es, sobald du zum Steuerelement gehst.\n
+Fehlerbehebungen.\n
+Mit Mods wie Draftable Animals kannst du Tiere in den Kampfmodus schicken. Der Kampfautopilot funktioniert jetzt auch bei diesen Tieren.\n
+Spielfiguren mit "Abstand halten" im Autopilot weichen nicht mehr vor Nahkampfgegnern zurück, wenn die Gegner sie gar nicht erreichen können. Solche Gegner sind zum Beispiel Gefangene in ihren Zellen oder Angreifer hinter einer Mauer.\n
+Manche Mod-Fenster öffnen sich über eine Befehlsschaltfläche. Diese Fenster bleiben nicht mehr stumm und sind jetzt per Tastatur erreichbar.\n
+Die Warnung bei zu naher Bebauung galt bisher nur für Animabäume. Jetzt warnen dich auch Gauralanbäume, Naturschreine und der Animusstein. Jedes dieser Objekte hat einen eigenen Schalter "Warnen bei zu naher Bebauung".\n
+Der Quests-Tab sagt nicht mehr "Keine Belohnungen", wenn eine Quest ihre Belohnung im Text beschreibt. Ein Beispiel ist das Verratsangebot. Die Quest-Details listen jetzt auch Verweise wie "Nebenquest von" auf. Enter oder Alt+I folgt einem solchen Verweis.\n
+In Mod-Fenstern verschwinden keine Schaltflächen mehr. Wählst du in Progression: Education High-tech als Schwerpunkt, bleiben die Schwerpunkt-Schaltflächen jetzt sichtbar.\n
+In manchen Mods haben die Fenster zum Umbenennen jetzt eine OK-Schaltfläche und lassen sich wieder schließen. Ein Beispiel ist das Benennen eines neuen Klassenzimmers in Progression: Education.\n
+Auf dem Mac sagt die Mod bei Tastenkürzeln mit Strg jetzt Befehlstaste an. Genau diese Taste drückst du dort. Bei Strg+Tab heißt es weiterhin Wahltaste, denn bei diesem Kürzel ist das die richtige Taste.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc5>
+
+  <RimWorldAccess.WhatsNew.Message.2_0_rc6>Diesmal gibt es nur eine kleine Fehlerbehebung.\n
+Fehlerbehebungen.\n
+Unter RimWorld 1.7 fielen die eigenen Geräusche von RimWorld Access nach ein paar Stunden Spielzeit aus. Betroffen waren etwa die Geländegeräusche und das Geräusch, wenn ein Menü vom Ende zum Anfang springt. Erst ein Neustart des Spiels half. Das ist jetzt behoben.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
+
+  <!-- Fallback message when a version has no message of its own. -->
+  <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access wurde aktualisiert. Die Änderungen findest du auf der Webseite. Wähle dazu "Änderungsprotokoll im Browser öffnen".</RimWorldAccess.WhatsNew.Message.Default>
+
+  <!-- Buttons reached by arrowing past the last line of the message. -->
+  <!-- {0} = number of announcements still unread. -->
+  <RimWorldAccess.WhatsNew.Button.NextAnnouncement>Zur nächsten Mitteilung springen (noch {0} übrig)</RimWorldAccess.WhatsNew.Button.NextAnnouncement>
+  <!-- {0} = total number of announcements in the record (always 2 or more when this button shows). -->
+  <RimWorldAccess.WhatsNew.Button.MarkAllRead>Alle {0} Mitteilungen als gelesen markieren</RimWorldAccess.WhatsNew.Button.MarkAllRead>
+  <RimWorldAccess.WhatsNew.Button.OpenChangelog>Änderungsprotokoll im Browser öffnen</RimWorldAccess.WhatsNew.Button.OpenChangelog>
+  <RimWorldAccess.WhatsNew.Button.Close>Schließen</RimWorldAccess.WhatsNew.Button.Close>
+  <RimWorldAccess.WhatsNew.Button.DontShowAgain>Nicht mehr anzeigen</RimWorldAccess.WhatsNew.Button.DontShowAgain>
+
+  <!-- Spoken feedback. -->
+  <RimWorldAccess.WhatsNew.OpeningChangelog>Das Änderungsprotokoll wird im Browser geöffnet.</RimWorldAccess.WhatsNew.OpeningChangelog>
+  <RimWorldAccess.WhatsNew.AllMarkedRead>Alle Mitteilungen als gelesen markiert.</RimWorldAccess.WhatsNew.AllMarkedRead>
+  <RimWorldAccess.WhatsNew.Suppressed>In Ordnung. Bei künftigen Updates hörst du nur einen kurzen Hinweis. Du kannst diese Mitteilungen unter Optionen, RimWorld Access wieder einschalten.</RimWorldAccess.WhatsNew.Suppressed>
+  <RimWorldAccess.WhatsNew.Closed>Neuigkeiten geschlossen.</RimWorldAccess.WhatsNew.Closed>
+
+  <!-- Brief notice spoken instead of the full reader when the player has turned auto-popups off.
+       {0} is the newest version. -->
+  <RimWorldAccess.WhatsNew.UpdateWhisper>RimWorld Access wurde auf Version {0} aktualisiert. Öffne "Neuigkeiten" im Menü, um die Änderungen zu lesen.</RimWorldAccess.WhatsNew.UpdateWhisper>
+
+  <!-- Menu items (main menu and in-game pause menu). -->
+  <RimWorldAccess.WhatsNew.MenuItem.WhatsNew>Neuigkeiten</RimWorldAccess.WhatsNew.MenuItem.WhatsNew>
+  <RimWorldAccess.WhatsNew.MenuItem.Website>Webseite von RimWorld Access</RimWorldAccess.WhatsNew.MenuItem.Website>
+  <RimWorldAccess.WhatsNew.MenuItem.Discord>Discord-Server von RimWorld Access</RimWorldAccess.WhatsNew.MenuItem.Discord>
+
+</LanguageData>

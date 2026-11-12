@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    ScreenScope migration wave, packet W-3 (QuestMenuScope). Three new keys:
+    the Quests/Details content-region names (the third region, Reward
+    preferences, reuses the existing RimWorldAccess.Quests.Pref.Title key
+    unchanged). A carded Details row takes the mod-wide
+    RimWorldAccess.InfoCard.Inspectable suffix, not a per-screen hint. See
+    QuestMenuScope's class remarks (src/Shell/Screens/QuestMenuScope.Game.cs).
+  -->
+  <RimWorldAccess.Quests.Region.Quests>Quests</RimWorldAccess.Quests.Region.Quests>
+  <RimWorldAccess.Quests.Region.Details>Details</RimWorldAccess.Quests.Region.Details>
+</LanguageData>

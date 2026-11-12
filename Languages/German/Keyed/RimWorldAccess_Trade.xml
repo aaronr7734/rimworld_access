@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Trade module strings (src/Trade/). Two state files contribute:
+      - TradeNavigationState.cs   (Dialog_Trade keyboard navigation,
+                                   3 tabs, gift mode, quantity mode,
+                                   numeric input, balance entry)
+      - SellableItemsState.cs     (Dialog_SellableItems read-only browse)
+
+    The two patches (TradeNavigationPatch, SellableItemsNavigationPatch)
+    have no user-facing strings and are untouched. Most data flowing
+    through these announcements - tradeable labels, faction names,
+    trader names, item descriptions, currency counts, royal favor
+    labels, and ToStringMoney output - comes from the game and is NOT
+    translated here.
+
+    Phrasing decisions:
+      - "Buying"/"Selling"/"Gifting" appear in many sentence shapes, so
+        each shape is its own key (Trade.Adjust.*, Trade.Pending.*,
+        Trade.Max.*) rather than glue-composing the verb. This lets
+        translators inflect for case/agreement per sentence.
+      - Silver prices use "${0}" (matches RimWorld's ToStringMoney) and
+        favor uses "{0} favor". Both go through Trade.Price.Silver/Favor
+        so non-English currencies can pick a different symbol/order.
+      - "favor" / "silver" appear as standalone nouns inside other
+        sentences (balance, currency holdings) - separate keys.
+      - Item announcements compose smaller sentence fragments joined by
+        "{0}." in C#; each fragment is a key so the join character can
+        be changed per language.
+
+    Shared phrases delegated elsewhere:
+      - Search.Cleared / Search.NoMatches / Position / Edge -> Common.xml
+      - InfoCard / Map.JumpedTo                              -> Common.xml
+      - "Cannot adjust" reasons share a single Trade.Reject.* key set
+        rather than 4 separate strings.
+  -->
+
+  <!-- =================================================================
+       Trade dialog lifecycle (TradeNavigationState.Open / Close /
+       AcceptTrade / cancel paths).
+       Open: {0} = trader name, {1} = trader kind label.
+       ================================================================= -->
+  <RimWorldAccess.Trade.Open.Heading>Handel mit {0} ({1}). Alt+B sagt an, was du und der Händler habt. Alt+A schließt den Handel ab.</RimWorldAccess.Trade.Open.Heading>
+  <RimWorldAccess.Trade.Open.UnknownTrader>unbekanntem Händler</RimWorldAccess.Trade.Open.UnknownTrader>
+  <RimWorldAccess.Trade.Open.TraderKindFallback>Händler</RimWorldAccess.Trade.Open.TraderKindFallback>
+  <RimWorldAccess.Trade.Open.NoDialog>Es ist kein Handelsfenster offen</RimWorldAccess.Trade.Open.NoDialog>
+  <RimWorldAccess.Trade.Open.NoSession>Es läuft gerade kein Handel</RimWorldAccess.Trade.Open.NoSession>
+  <RimWorldAccess.Trade.Open.SessionNotInitialized>Der Handel konnte nicht richtig gestartet werden</RimWorldAccess.Trade.Open.SessionNotInitialized>
+  <RimWorldAccess.Trade.Cancelled>Handel abgebrochen</RimWorldAccess.Trade.Cancelled>
+
+  <!-- =================================================================
+       Tab / category names.
+       TraderItems is composed: "{0}'s Items" with {0} = trader name.
+       Tab.Empty: {0} = category name, used when the tab has 0 items.
+       Tab.SwitchedTo composes the category name with a currency
+       suffix: {0} = category name, {1} = currency phrase
+       (Trade.Currency.YouHave / TraderHas).
+       ================================================================= -->
+  <RimWorldAccess.Trade.Tab.YourItems>Deine Waren</RimWorldAccess.Trade.Tab.YourItems>
+  <RimWorldAccess.Trade.Tab.TraderItems>Waren von {0}</RimWorldAccess.Trade.Tab.TraderItems>
+  <RimWorldAccess.Trade.Tab.TradeSummary>Handelsübersicht</RimWorldAccess.Trade.Tab.TradeSummary>
+
+  <!-- Currency holdings phrasing (Alt+B and tab-switch suffix).
+       YouHave / TraderHas: {0} = formatted currency string. -->
+  <RimWorldAccess.Trade.Currency.Both>Du hast {0}. Händler hat {1}</RimWorldAccess.Trade.Currency.Both>
+  <RimWorldAccess.Trade.Currency.None>In diesem Handel gibt es keine Währung</RimWorldAccess.Trade.Currency.None>
+  <RimWorldAccess.Trade.Currency.YouHave>Du hast {0}</RimWorldAccess.Trade.Currency.YouHave>
+  <RimWorldAccess.Trade.Currency.TraderHas>Händler hat {0}</RimWorldAccess.Trade.Currency.TraderHas>
+  <!-- Bare nouns used inside larger sentences ("X silver", "X favor"). -->
+  <RimWorldAccess.Trade.Currency.SilverNoun>Silber</RimWorldAccess.Trade.Currency.SilverNoun>
+  <RimWorldAccess.Trade.Currency.FavorNoun>Ehre</RimWorldAccess.Trade.Currency.FavorNoun>
+  <!-- Favor count format: {0} = integer count of favor.
+       Silver uses RimWorld's float.ToStringMoney() ("$N"); we leave
+       that to the game. -->
+  <RimWorldAccess.Trade.Currency.FavorCount>{0} Ehre</RimWorldAccess.Trade.Currency.FavorCount>
+
+  <!-- Price formatting (FormatPrice). Silver matches ToStringMoney's
+       "$N" prefix; Favor: "{0} favor". {0} = formatted number. -->
+  <RimWorldAccess.Trade.Price.Favor>{0} Ehre</RimWorldAccess.Trade.Price.Favor>
+
+  <!-- =================================================================
+       Quantity-adjust feedback (single-step Up/Down arrow).
+       AnnounceQuantityChange composes:
+         {label}: No trade  (when transfer hits zero)
+         {action} {count} {label}, value {price}
+       Buying/Selling/Gifting are split into action-specific keys so
+       each sentence shape can vary per language.
+       ================================================================= -->
+  <RimWorldAccess.Trade.Adjust.NoTrade>{0}: nicht im Handel</RimWorldAccess.Trade.Adjust.NoTrade>
+  <RimWorldAccess.Trade.Adjust.Buying>Du kaufst {0} {1}. Wert: {2}</RimWorldAccess.Trade.Adjust.Buying>
+  <RimWorldAccess.Trade.Adjust.Selling>Du verkaufst {0} {1}. Wert: {2}</RimWorldAccess.Trade.Adjust.Selling>
+  <RimWorldAccess.Trade.Adjust.Gifting>Du verschenkst {0} {1}. Wert: {2}</RimWorldAccess.Trade.Adjust.Gifting>
+
+  <!-- Max-action announcements (Home/End set to extreme).
+       Reset: {0} = item label.
+       Buying/Selling/Gifting: {0} = count, {1} = item label,
+                                {2} = formatted price. -->
+  <RimWorldAccess.Trade.Max.Reset>{0} auf null zurückgesetzt</RimWorldAccess.Trade.Max.Reset>
+  <RimWorldAccess.Trade.Max.Buying>Du kaufst alle {0} {1}. Wert: {2}</RimWorldAccess.Trade.Max.Buying>
+  <RimWorldAccess.Trade.Max.Selling>Du verkaufst alle {0} {1}. Wert: {2}</RimWorldAccess.Trade.Max.Selling>
+  <RimWorldAccess.Trade.Max.Gifting>Du verschenkst alle {0} {1}. Wert: {2}</RimWorldAccess.Trade.Max.Gifting>
+
+  <!-- Reset action (Alt+R). {0} = item label. -->
+  <RimWorldAccess.Trade.Reset.AllTrades>Alle Handelsmengen zurückgesetzt</RimWorldAccess.Trade.Reset.AllTrades>
+  <RimWorldAccess.Trade.Reset.SingleItem>{0} zurückgesetzt</RimWorldAccess.Trade.Reset.SingleItem>
+  <RimWorldAccess.Trade.Reset.CannotResetBalance>Bilanz lässt sich nicht zurücksetzen</RimWorldAccess.Trade.Reset.CannotResetBalance>
+
+  <!-- =================================================================
+       Pending-trade announcement on the list view.
+       Pending.WithCount: {0} = action verb word, {1} = count.
+       Pending.PriceLine: {0} = "Total"/"Value", {1} = formatted price.
+       Each action ("Buying"/"Selling"/"Gifting") is a separate key so
+       it can flex with grammatical case in non-English. -->
+  <RimWorldAccess.Trade.Pending.ActionBuying>Kauf</RimWorldAccess.Trade.Pending.ActionBuying>
+  <RimWorldAccess.Trade.Pending.ActionSelling>Verkauf</RimWorldAccess.Trade.Pending.ActionSelling>
+  <RimWorldAccess.Trade.Pending.ActionGifting>Geschenk</RimWorldAccess.Trade.Pending.ActionGifting>
+  <RimWorldAccess.Trade.Pending.ActionWithCount>{0}: {1}</RimWorldAccess.Trade.Pending.ActionWithCount>
+  <RimWorldAccess.Trade.Pending.PriceLabelTotal>Gesamt</RimWorldAccess.Trade.Pending.PriceLabelTotal>
+  <RimWorldAccess.Trade.Pending.PriceLabelValue>Wert</RimWorldAccess.Trade.Pending.PriceLabelValue>
+  <RimWorldAccess.Trade.Pending.PriceLine>{0}: {1}</RimWorldAccess.Trade.Pending.PriceLine>
+
+  <!-- =================================================================
+       Item announcement composition for the inventory tabs.
+       *.SoloAvailable: only one party has the item; {0} = count.
+       *.SoloPrice: bare price line, {0} = formatted price.
+       *.SoloPriceWithQuality: with price-quality suffix; {0} = price,
+                              {1} = quality phrase.
+       *.NotTradeable: trader will not trade this item.
+       *.YoursAt / TheirsAt: shared item; {0} = count, {1} = price.
+       *.YoursAtWithQuality / TheirsAtWithQuality: same plus quality;
+                              {0} = count, {1} = price, {2} = quality.
+       *.YoursOnly / TheirsOnly: shared but trader won't trade;
+                              {0} = count.
+       ================================================================= -->
+  <RimWorldAccess.Trade.Item.SoloAvailable>{0} verfügbar</RimWorldAccess.Trade.Item.SoloAvailable>
+  <RimWorldAccess.Trade.Item.SoloPriceWithQuality>{0}, {1}</RimWorldAccess.Trade.Item.SoloPriceWithQuality>
+  <RimWorldAccess.Trade.Item.NotTradeable>Nicht handelbar</RimWorldAccess.Trade.Item.NotTradeable>
+  <RimWorldAccess.Trade.Item.YoursAt>Du hast {0} zu je {1}</RimWorldAccess.Trade.Item.YoursAt>
+  <RimWorldAccess.Trade.Item.TheirsAt>Händler hat {0} zu je {1}</RimWorldAccess.Trade.Item.TheirsAt>
+  <RimWorldAccess.Trade.Item.YoursAtWithQuality>Du hast {0} zu je {1} ({2})</RimWorldAccess.Trade.Item.YoursAtWithQuality>
+  <RimWorldAccess.Trade.Item.TheirsAtWithQuality>Händler hat {0} zu je {1} ({2})</RimWorldAccess.Trade.Item.TheirsAtWithQuality>
+  <RimWorldAccess.Trade.Item.YoursOnly>Du hast {0}</RimWorldAccess.Trade.Item.YoursOnly>
+  <RimWorldAccess.Trade.Item.TheirsOnly>Händler hat {0}</RimWorldAccess.Trade.Item.TheirsOnly>
+
+  <!-- Price quality words (GetPriceQuality). Buying = lower=better,
+       Selling = higher=better; the four PriceType buckets get separate
+       words for each direction. -->
+  <RimWorldAccess.Trade.Quality.Buy.VeryCheap>sehr günstig</RimWorldAccess.Trade.Quality.Buy.VeryCheap>
+  <RimWorldAccess.Trade.Quality.Buy.Cheap>günstig</RimWorldAccess.Trade.Quality.Buy.Cheap>
+  <RimWorldAccess.Trade.Quality.Buy.Expensive>teuer</RimWorldAccess.Trade.Quality.Buy.Expensive>
+  <RimWorldAccess.Trade.Quality.Buy.Exorbitant>überteuert</RimWorldAccess.Trade.Quality.Buy.Exorbitant>
+  <RimWorldAccess.Trade.Quality.Sell.VeryCheap>sehr schlechtes Angebot</RimWorldAccess.Trade.Quality.Sell.VeryCheap>
+  <RimWorldAccess.Trade.Quality.Sell.Cheap>schlechtes Angebot</RimWorldAccess.Trade.Quality.Sell.Cheap>
+  <RimWorldAccess.Trade.Quality.Sell.Expensive>gutes Angebot</RimWorldAccess.Trade.Quality.Sell.Expensive>
+  <RimWorldAccess.Trade.Quality.Sell.Exorbitant>sehr gutes Angebot</RimWorldAccess.Trade.Quality.Sell.Exorbitant>
+
+  <!-- =================================================================
+       Quantity adjustment mode.
+       Mode.Adjusting is the constant marker word; {0} = upper bound.
+       Each context (gift, shared, sell-only, buy-only) is a separate
+       sentence so word order can vary. -->
+
+  <!-- =================================================================
+       Reject / error paths.
+       ================================================================= -->
+  <RimWorldAccess.Trade.Reject.WillNotTrade>Händler handelt nicht mit dieser Ware</RimWorldAccess.Trade.Reject.WillNotTrade>
+  <RimWorldAccess.Trade.Reject.CannotAdjustAmount>Du kannst die Menge nicht auf diesen Wert setzen</RimWorldAccess.Trade.Reject.CannotAdjustAmount>
+  <RimWorldAccess.Trade.Reject.CannotAdjustMax>Du kannst die Menge nicht auf das Maximum setzen</RimWorldAccess.Trade.Reject.CannotAdjustMax>
+  <RimWorldAccess.Trade.Reject.CannotAdjustMin>Du kannst die Menge nicht auf das Minimum setzen</RimWorldAccess.Trade.Reject.CannotAdjustMin>
+
+  <!-- =================================================================
+       Numeric input mode (digit/sign keys in quantity mode).
+       Numeric.PromptSelling / Buying / Gifting are spoken when the
+       user presses a sign key with an empty buffer.
+       Numeric.Typing: {0} = current numeric buffer string.
+       Numeric.Cleared / Numeric.Invalid mark transitional states. -->
+  <RimWorldAccess.Trade.Numeric.PromptSelling>Verkaufen. Tippe die Menge ein.</RimWorldAccess.Trade.Numeric.PromptSelling>
+  <RimWorldAccess.Trade.Numeric.PromptBuying>Kaufen. Tippe die Menge ein.</RimWorldAccess.Trade.Numeric.PromptBuying>
+  <RimWorldAccess.Trade.Numeric.PromptGifting>Verschenken. Tippe die Menge ein.</RimWorldAccess.Trade.Numeric.PromptGifting>
+  <!-- After a numeric edit, the announcement is composed from one of
+       the *.Body keys plus the *.Suffix key.
+       NoTradeBody: {0} = item label.
+       BuyingBody / SellingBody / GiftingBody: {0} = action verb,
+       {1} = count, {2} = item label.
+       BuyingBodyWithPrice / SellingBodyWithPrice: same plus
+       {3} = formatted price. Suffix: {0} = current buffer. -->
+
+  <!-- =================================================================
+       Gift mode toggle and gift confirmation paths.
+       ================================================================= -->
+  <RimWorldAccess.Trade.Gift.CannotGiftTrader>Diesem Händler kannst du nichts schenken</RimWorldAccess.Trade.Gift.CannotGiftTrader>
+  <RimWorldAccess.Trade.Gift.CannotGiftHostile>Einer feindlichen Fraktion kannst du nichts schenken</RimWorldAccess.Trade.Gift.CannotGiftHostile>
+  <RimWorldAccess.Trade.Gift.CannotGiftFavor>Beim Handel gegen Ehre kannst du nichts schenken</RimWorldAccess.Trade.Gift.CannotGiftFavor>
+  <RimWorldAccess.Trade.Gift.ModeGift>Geschenkemodus</RimWorldAccess.Trade.Gift.ModeGift>
+  <RimWorldAccess.Trade.Gift.ModeTrade>Handelsmodus</RimWorldAccess.Trade.Gift.ModeTrade>
+  <RimWorldAccess.Trade.Gift.SwitchedTo>{0} aktiv</RimWorldAccess.Trade.Gift.SwitchedTo>
+  <RimWorldAccess.Trade.Gift.NoGifts>Es gibt nichts zu verschenken</RimWorldAccess.Trade.Gift.NoGifts>
+  <!-- Gift completion: {0} = goodwill change (positive integer). -->
+  <RimWorldAccess.Trade.Gift.Offered>Geschenke überreicht. Ruf +{0}</RimWorldAccess.Trade.Gift.Offered>
+
+  <!-- =================================================================
+       Accept-trade path.
+       ================================================================= -->
+  <RimWorldAccess.Trade.Accept.NoDeal>Kein Handel aktiv</RimWorldAccess.Trade.Accept.NoDeal>
+  <RimWorldAccess.Trade.Accept.WarnTraderShortFunds>Warnung: Händler hat nicht genügend Silber. Bestätige, um trotzdem fortzufahren.</RimWorldAccess.Trade.Accept.WarnTraderShortFunds>
+  <!-- {0} = AcceptanceReport.Reason. -->
+  <RimWorldAccess.Trade.Accept.CannotComplete>Handel nicht möglich: {0}</RimWorldAccess.Trade.Accept.CannotComplete>
+  <RimWorldAccess.Trade.Accept.Completed>Handel erfolgreich abgeschlossen</RimWorldAccess.Trade.Accept.Completed>
+  <RimWorldAccess.Trade.Accept.NoItemsToTrade>Du hast keine Waren ausgewählt</RimWorldAccess.Trade.Accept.NoItemsToTrade>
+
+  <!-- =================================================================
+       Balance entry (last row of Trade Summary tab).
+       Net balance gets one key per direction (Spending / Receiving /
+       Balanced); the currency noun is supplied as {1}, count as {0}.
+       In gift mode the row is the goodwill delta; if no faction info
+       is available, GiftBalanceFallback is spoken.
+       Position suffix is appended in C# via PositionSuffix. -->
+  <RimWorldAccess.Trade.Balance.Spending>Bilanz: Du zahlst {0} {1}</RimWorldAccess.Trade.Balance.Spending>
+  <RimWorldAccess.Trade.Balance.Receiving>Bilanz: Du bekommst {0} {1}</RimWorldAccess.Trade.Balance.Receiving>
+  <RimWorldAccess.Trade.Balance.Balanced>Bilanz: ausgeglichen</RimWorldAccess.Trade.Balance.Balanced>
+  <!-- {0} = signed goodwill change ("+15"). -->
+  <RimWorldAccess.Trade.Balance.Goodwill>Ruf {0}</RimWorldAccess.Trade.Balance.Goodwill>
+  <RimWorldAccess.Trade.Balance.GiftFallback>Bilanz im Geschenkemodus</RimWorldAccess.Trade.Balance.GiftFallback>
+  <!-- Position suffix appended after the balance text; {0} = body,
+       {1} = position phrase. -->
+
+  <!-- =================================================================
+       Detailed announcement (Tab key for full inventory + price).
+       Each line is a separate key so commas/colons can localize.
+       *.PriceLine: {0} = price (caller pre-formats with one decimal),
+                    {1} = currency noun. -->
+  <!-- {0} = action word ("Buying"/"Selling"), {1} = count,
+       {2} = total cost (caller F0-formatted), {3} = currency noun. -->
+
+  <!-- Price-breakdown popup (Tab in trader/colony list).
+       PriceTitleBuy / Sell: {0} = clean item label. -->
+  <RimWorldAccess.Trade.Detail.PriceTitleBuy>Kaufpreis: {0}</RimWorldAccess.Trade.Detail.PriceTitleBuy>
+  <RimWorldAccess.Trade.Detail.PriceTitleSell>Verkaufspreis: {0}</RimWorldAccess.Trade.Detail.PriceTitleSell>
+  <RimWorldAccess.Trade.Detail.NotInGiftMode>Keine Preisaufschlüsselung im Geschenkemodus</RimWorldAccess.Trade.Detail.NotInGiftMode>
+  <RimWorldAccess.Trade.Detail.NoPriceInfo>Keine Preisinformationen verfügbar</RimWorldAccess.Trade.Detail.NoPriceInfo>
+
+  <!-- =================================================================
+       Sellable items dialog (SellableItemsState).
+       Dialog_SellableItems is a separate, simpler read-only browser.
+       ================================================================= -->
+  <RimWorldAccess.Sellable.Open.NoDialog>Kein Dialog</RimWorldAccess.Sellable.Open.NoDialog>
+  <RimWorldAccess.Sellable.Open.Closed>Geschlossen</RimWorldAccess.Sellable.Open.Closed>
+  <RimWorldAccess.Sellable.Open.Controls>Tab wechselt die Kategorie. Pfeil nach oben und Pfeil nach unten bewegen die Auswahl in der Warenliste.</RimWorldAccess.Sellable.Open.Controls>
+  <RimWorldAccess.Sellable.Open.TraderFallback>Händler</RimWorldAccess.Sellable.Open.TraderFallback>
+  <!-- {0} = trader name, {1} = restock phrase (may be empty),
+       {2} = "{count} categories" phrase, {3} = controls phrase. -->
+  <RimWorldAccess.Sellable.Open.Heading>Waren, die {0} kauft. {1}{2}. {3}</RimWorldAccess.Sellable.Open.Heading>
+  <!-- Restock variants. NextRestock: {0} = days, pre-formatted with
+       one decimal place by the caller (e.g. "2.5"). -->
+  <RimWorldAccess.Sellable.Restock.NextRestock>Nächste Aufstockung in {0} Tagen. </RimWorldAccess.Sellable.Restock.NextRestock>
+  <RimWorldAccess.Sellable.Restock.NotVisited>Noch nicht besucht. </RimWorldAccess.Sellable.Restock.NotVisited>
+  <RimWorldAccess.Sellable.Restock.Restocked>Seit deinem letzten Besuch aufgestockt. </RimWorldAccess.Sellable.Restock.Restocked>
+  <!-- One/Many split for category count phrase. -->
+  <RimWorldAccess.Sellable.Open.CategoriesOne>1 Kategorie</RimWorldAccess.Sellable.Open.CategoriesOne>
+  <RimWorldAccess.Sellable.Open.CategoriesMany>{0} Kategorien</RimWorldAccess.Sellable.Open.CategoriesMany>
+
+  <!-- Tab switch + selection.
+       TabSwitch: {0} = tab name, {1} = item count.
+       The empty case ("No items") shares the global key. -->
+
+  <!-- Item announcement composition.
+       Bare: {0} = name.
+       Description: {0} = name, {1} = description body.
+       Position: appends {2} = position suffix (if non-empty).
+       Description and position concatenate on top of bare via the
+       *.WithDescription / *.WithDescriptionPosition / *.WithPosition
+       variants so we don't glue strings. -->
+
+  <!-- Typeahead context (active search prefix on item announcement).
+       Prefix: {0} = current search buffer, {1} = item announcement.
+       NoMatchesPrefix: {0} = buffer, {1} = item announcement. -->
+
+  <RimWorldAccess.Trade.Column.Yours>Dein Bestand</RimWorldAccess.Trade.Column.Yours>
+  <RimWorldAccess.Trade.Column.Theirs>Händlerbestand</RimWorldAccess.Trade.Column.Theirs>
+  <RimWorldAccess.Trade.Column.SellPrice>Verkaufspreis</RimWorldAccess.Trade.Column.SellPrice>
+  <RimWorldAccess.Trade.Column.BuyPrice>Kaufpreis</RimWorldAccess.Trade.Column.BuyPrice>
+  <RimWorldAccess.Trade.Column.TradeAmount>Handelsmenge</RimWorldAccess.Trade.Column.TradeAmount>
+
+  <!-- The two trade views and the Ctrl+Tab swap between them (TradeViewOpener). -->
+  <RimWorldAccess.Trade.View.Classic>Klassische Ansicht</RimWorldAccess.Trade.View.Classic>
+  <RimWorldAccess.Trade.View.Table>Tabellenansicht</RimWorldAccess.Trade.View.Table>
+  <RimWorldAccess.Trade.View.SwitchToClassic>Zur klassischen Ansicht wechseln</RimWorldAccess.Trade.View.SwitchToClassic>
+  <RimWorldAccess.Trade.View.SwitchToTable>Zur Tabellenansicht wechseln</RimWorldAccess.Trade.View.SwitchToTable>
+  <!-- Vanilla's two sort dropdowns as toolbar rows; {0} = the sorter's own label. -->
+  <RimWorldAccess.Trade.Sort.By>Sortieren nach: {0}</RimWorldAccess.Trade.Sort.By>
+  <RimWorldAccess.Trade.Sort.ThenBy>Dann nach: {0}</RimWorldAccess.Trade.Sort.ThenBy>
+</LanguageData>

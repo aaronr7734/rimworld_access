@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    ScreenScope migration: WorldObjectSelectionState ->
+    TreeRegionScope; src/Shell/Screens/WorldObjectSelectionScope.Game.cs,
+    src/World/WorldObjectSelectionState.cs). Action-id display labels
+    (RimWorldAccess.Shell.Action.Tree.JumpToPreviousSection/JumpToNextSection) follow the
+    established, already-shipped convention of every other action id in the inventory: none
+    of those have XML entries either (grep-confirmed), so none
+    are added here. The three keys below are the genuinely NEW spoken strings this packet
+    introduces.
+
+    RimWorldAccess.WorldObject.SettlementAnnounceWithRelation and .LabelWithDescription
+    replace two raw string-concatenation announcement sites in
+    WorldObjectSelectionState.ActivateWorldObject with whole-phrase keys (CLAUDE.md
+    doctrine); both produce byte-identical English output to the concatenation they
+    replace ("{0}. {1}." + " " + "{2}" + "." == "{0}. {1}. {2}."; "{0}" + ". " + "{1}" ==
+    "{0}. {1}").
+  -->
+  <RimWorldAccess.WorldObject.SettlementAnnounceWithRelation>{0}. {1}. {2}.</RimWorldAccess.WorldObject.SettlementAnnounceWithRelation>
+  <RimWorldAccess.WorldObject.LabelWithDescription>{0}. {1}</RimWorldAccess.WorldObject.LabelWithDescription>
+  <RimWorldAccess.WorldObject.RegionName>Weltobjekte</RimWorldAccess.WorldObject.RegionName>
+</LanguageData>

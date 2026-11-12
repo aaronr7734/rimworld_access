@@ -1,0 +1,1037 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Building module: construction, zones, areas, building components,
+    storage linking, shape placement. Strings are emitted from src/Building/.
+
+    Placeholders follow string.Format ({0}, {1}, ...). Keys for status
+    announcements compose via AnnouncementBuilder (period-separated by
+    default) so each key is a clean phrase fragment without trailing
+    punctuation or embedded "\n" — the builder owns separators.
+
+    Vanilla key reuse: where vanilla supplies the noun ("Yes"/"No",
+    "On"/"Off", "BrokenDown", "NoPower", "TargetTemperature",
+    "DesignatorUninstall", "CommandToggleDoorHoldOpen",
+    "PowerConsumptionHigh"/"Low"/"Off", "ConfiguredTargetFuelLevel",
+    "FuelLabel" via the def, etc.) we resolve those at speak-time
+    rather than duplicating the noun in this file.
+  -->
+
+  <!-- Breakdown status (src/Building/BreakdownableComponentState.cs).
+       Read-only view describing CompBreakdownable status. Composed via
+       AnnouncementBuilder; vanilla "BrokenDown" supplies the broken-status
+       noun. -->
+  <RimWorldAccess.Building.Breakdown.NoBreakdownComponent>Dieses Bauwerk wird nie defekt</RimWorldAccess.Building.Breakdown.NoBreakdownComponent>
+  <RimWorldAccess.Building.Breakdown.StatusBrokenDown>Status: Defekt</RimWorldAccess.Building.Breakdown.StatusBrokenDown>
+  <RimWorldAccess.Building.Breakdown.StatusOperational>Status: Einsatzbereit</RimWorldAccess.Building.Breakdown.StatusOperational>
+
+  <!-- Forbid/allow controls (src/Building/ForbidControlState.cs).
+       Toggles CompForbiddable. Status-row keys compose with the building
+       label via AnnouncementBuilder.
+       LabelStatus: {0} = building label, {1} = StatusForbidden/StatusAllowed. -->
+  <RimWorldAccess.Building.Forbid.NoForbidComponent>Dieses Objekt kann nicht verboten werden</RimWorldAccess.Building.Forbid.NoForbidComponent>
+  <RimWorldAccess.Building.Forbid.StatusForbidden>Verboten</RimWorldAccess.Building.Forbid.StatusForbidden>
+  <RimWorldAccess.Building.Forbid.StatusAllowed>Erlaubt</RimWorldAccess.Building.Forbid.StatusAllowed>
+  <RimWorldAccess.Building.Forbid.LabelStatus>{0}. Status: {1}</RimWorldAccess.Building.Forbid.LabelStatus>
+  <RimWorldAccess.Building.Forbid.DetailStatusForbidden>Status: Verboten</RimWorldAccess.Building.Forbid.DetailStatusForbidden>
+  <RimWorldAccess.Building.Forbid.DetailNoInteract>Kolonisten dürfen nicht mit diesem Objekt interagieren</RimWorldAccess.Building.Forbid.DetailNoInteract>
+  <RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>Kolonisten tragen es nicht weg, benutzen es nicht und rüsten es nicht aus</RimWorldAccess.Building.Forbid.DetailNoHaulUseEquip>
+  <RimWorldAccess.Building.Forbid.DetailStatusAllowed>Status: Erlaubt</RimWorldAccess.Building.Forbid.DetailStatusAllowed>
+  <RimWorldAccess.Building.Forbid.DetailCanInteract>Kolonisten dürfen ganz normal mit diesem Objekt interagieren</RimWorldAccess.Building.Forbid.DetailCanInteract>
+
+  <!-- Door controls (src/Building/DoorControlState.cs).
+       Toggles Building_Door.holdOpenInt. Vanilla supplies the
+       "Hold open" command label (CommandToggleDoorHoldOpen) and the
+       "On"/"Off" booleans.
+       LabelStatusOpenness: {0} = door label, {1} = HoldOpenWithValue,
+       {2} = CurrentlyOpen/Closed. -->
+  <RimWorldAccess.Building.Door.NotADoor>Dieses Bauwerk ist keine Tür</RimWorldAccess.Building.Door.NotADoor>
+  <RimWorldAccess.Building.Door.HoldOpenAccessError>Fehler: Die Einstellung 'Offen halten' lässt sich nicht auslesen</RimWorldAccess.Building.Door.HoldOpenAccessError>
+  <RimWorldAccess.Building.Door.HoldOpenWithValue>{0}: {1}</RimWorldAccess.Building.Door.HoldOpenWithValue>
+  <RimWorldAccess.Building.Door.CurrentlyOpen>(gerade offen)</RimWorldAccess.Building.Door.CurrentlyOpen>
+  <RimWorldAccess.Building.Door.CurrentlyClosed>(gerade geschlossen)</RimWorldAccess.Building.Door.CurrentlyClosed>
+  <RimWorldAccess.Building.Door.LabelStatusOpenness>{0}. {1} {2}</RimWorldAccess.Building.Door.LabelStatusOpenness>
+  <RimWorldAccess.Building.Door.DetailStateOpen>Zustand: Offen</RimWorldAccess.Building.Door.DetailStateOpen>
+  <RimWorldAccess.Building.Door.DetailStateClosed>Zustand: Geschlossen</RimWorldAccess.Building.Door.DetailStateClosed>
+  <RimWorldAccess.Building.Door.DetailPoweredFast>Status: Mit Strom versorgt. Öffnet sich schneller</RimWorldAccess.Building.Door.DetailPoweredFast>
+  <RimWorldAccess.Building.Door.DetailNoPowerSlow>Status: Kein Strom. Öffnet sich langsamer</RimWorldAccess.Building.Door.DetailNoPowerSlow>
+  <RimWorldAccess.Building.Door.DetailManual>Status: Wird von Hand geöffnet. Braucht keinen Strom</RimWorldAccess.Building.Door.DetailManual>
+
+  <!-- Power switch / flickable controls (src/Building/FlickableComponentState.cs).
+       Toggles CompFlickable. Power consumption suffixes use {0} = wattage.
+       LabelPowerSwitch: {0} = building label, {1} = vanilla "On"/"Off". -->
+
+  <!-- Temperature control (src/Building/TempControlMenuState.cs).
+       Adjusts CompTempControl.TargetTemperature. Vanilla "PowerConsumptionOff",
+       "PowerConsumptionHigh", "PowerConsumptionLow" supply the power-mode
+       words; the "_X power" / "_off" wording is the announcement suffix.
+       LabelTarget: {0} = building label, {1} = formatted target temperature,
+       {2} = power mode suffix (may be empty). -->
+  <RimWorldAccess.Building.Temp.NoTempComponent>Dieses Bauwerk regelt keine Temperatur</RimWorldAccess.Building.Temp.NoTempComponent>
+  <RimWorldAccess.Building.Temp.LabelTarget>{0}. Zieltemperatur: {1}{2}</RimWorldAccess.Building.Temp.LabelTarget>
+  <RimWorldAccess.Building.Temp.PowerModeOffSuffix>. Stromverbrauch: aus</RimWorldAccess.Building.Temp.PowerModeOffSuffix>
+  <RimWorldAccess.Building.Temp.PowerModeHighSuffix>. Stromverbrauch: hoch</RimWorldAccess.Building.Temp.PowerModeHighSuffix>
+  <RimWorldAccess.Building.Temp.PowerModeLowSuffix>. Stromverbrauch: niedrig</RimWorldAccess.Building.Temp.PowerModeLowSuffix>
+
+  <!-- Refuelable component menu (src/Building/RefuelableComponentState.cs).
+       Drives a small menu over CompRefuelable showing current fuel status,
+       optional auto-refuel toggle, optional adjustable target. Vanilla keys
+       used: ConfiguredTargetFuelLevel for the inspect-status line, and the
+       def's FuelLabel/outOfFuelMessage for fuel-type-specific wording.
+
+       AutoRefuel and ToggleValue are split into On/Off whole-phrase variants
+       per the "no glue particles" rule (the colon-separator pattern is
+       English-specific; languages may want to drop it or reorder).
+       FuelStatusLine: {0} = capitalized fuel label, {1} = current fuel,
+       {2} = capacity. RemainingTimeSuffix: {0} = formatted time period.
+       OutOfFuelSuffix: {0} = the def's outOfFuelMessage. -->
+  <RimWorldAccess.Building.Refuel.NoFuelComponent>Dieses Bauwerk braucht keinen Treibstoff</RimWorldAccess.Building.Refuel.NoFuelComponent>
+  <RimWorldAccess.Building.Refuel.OptionViewStatus>Details zum Treibstoff anzeigen</RimWorldAccess.Building.Refuel.OptionViewStatus>
+  <RimWorldAccess.Building.Refuel.AutoRefuelOn>Automatisch nachfüllen: an</RimWorldAccess.Building.Refuel.AutoRefuelOn>
+  <RimWorldAccess.Building.Refuel.AutoRefuelOff>Automatisch nachfüllen: aus</RimWorldAccess.Building.Refuel.AutoRefuelOff>
+  <RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>Max. Treibstoff: {0} von {1}</RimWorldAccess.Building.Refuel.TargetFuelLevelLabel>
+  <RimWorldAccess.Building.Refuel.ClassicMortarStatus>Klassische Mörser aktiv. Der Lauf verschleißt nicht</RimWorldAccess.Building.Refuel.ClassicMortarStatus>
+  <RimWorldAccess.Building.Refuel.FuelStatusLine>{0}: {1} von {2}</RimWorldAccess.Building.Refuel.FuelStatusLine>
+  <RimWorldAccess.Building.Refuel.RemainingTimeSuffix> ({0})</RimWorldAccess.Building.Refuel.RemainingTimeSuffix>
+  <RimWorldAccess.Building.Refuel.FuelTypeLabel>Treibstoffart: {0}</RimWorldAccess.Building.Refuel.FuelTypeLabel>
+
+  <!-- Rename modal results (src/Building/{Pen,Zone,Storage}RenameState.cs).
+       The "Renamed to {0}" success key is shared with the rest of the mod
+       via RimWorldAccess.UI.Name.Renamed; only the cancel/error/validation
+       phrasings vary per renamable type, so those live here.
+
+       NameAlreadyUsedByZone / NameAlreadyUsedByGroup are validator messages
+       returned to the text-input layer in an AcceptanceReport — they appear
+       to the user as the rejection reason.
+       {0} = the conflicting name. -->
+  <RimWorldAccess.Building.Rename.Cancelled>Umbenennen abgebrochen</RimWorldAccess.Building.Rename.Cancelled>
+  <RimWorldAccess.Building.Rename.StorageCancelled>Abgebrochen</RimWorldAccess.Building.Rename.StorageCancelled>
+  <RimWorldAccess.Building.Rename.PenError>Fehler beim Umbenennen der Gehegemarkierung: {0}</RimWorldAccess.Building.Rename.PenError>
+  <RimWorldAccess.Building.Rename.ZoneError>Fehler beim Umbenennen der Zone: {0}</RimWorldAccess.Building.Rename.ZoneError>
+  <RimWorldAccess.Building.Rename.PlanError>Fehler beim Umbenennen des Plans: {0}</RimWorldAccess.Building.Rename.PlanError>
+  <RimWorldAccess.Building.Rename.StorageError>Fehler: {0}</RimWorldAccess.Building.Rename.StorageError>
+  <RimWorldAccess.Building.Rename.StorageMapMissing>Fehler: Karte nicht gefunden.</RimWorldAccess.Building.Rename.StorageMapMissing>
+  <RimWorldAccess.Building.Rename.StorageGroupCreated>Lagergruppe {0} erstellt</RimWorldAccess.Building.Rename.StorageGroupCreated>
+  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>Der Name {0} ist schon an eine Zone vergeben</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
+  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>Der Name {0} ist schon an eine andere Lagergruppe vergeben</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
+
+  <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
+       Replaces the vanilla FloatMenu shown when an area designator is
+       chosen from the architect tree. Delegates "No map" to Common.
+       Open: {0} = the designator's own label (e.g. "Allowed area").
+       CellCount: {0} = cell count, spoken as the composer's Extras fragment.
+       Position is now composed from ElementDescription.PositionIndex/Count. -->
+  <RimWorldAccess.Building.AreaSelect.NoAreasAvailable>Keine Gebiete vorhanden. Erstelle zuerst ein Gebiet über 'Gebiete verwalten'.</RimWorldAccess.Building.AreaSelect.NoAreasAvailable>
+  <RimWorldAccess.Building.AreaSelect.OpenPrompt>{0}. Wähle ein Gebiet aus.</RimWorldAccess.Building.AreaSelect.OpenPrompt>
+  <RimWorldAccess.Building.AreaSelect.Selected>Auswahl: {0}</RimWorldAccess.Building.AreaSelect.Selected>
+  <RimWorldAccess.Building.AreaSelect.Cancelled>Gebietsauswahl abgebrochen</RimWorldAccess.Building.AreaSelect.Cancelled>
+  <RimWorldAccess.Building.AreaSelect.ManageAreas>Gebiete verwalten</RimWorldAccess.Building.AreaSelect.ManageAreas>
+  <RimWorldAccess.Building.AreaSelect.CellCount>{replace: ^{0} Felder; "^1 Felder"-"1 Feld"; "^"-""}</RimWorldAccess.Building.AreaSelect.CellCount>
+  <RimWorldAccess.Building.AreaSelect.OpenFallbackName>Gebiet</RimWorldAccess.Building.AreaSelect.OpenFallbackName>
+
+  <!-- Shape selection menu (src/Building/ShapeSelectionMenuState.cs).
+       Picks a placement shape (Line / Rectangle / Oval) from the architect
+       flow. Shape names and descriptions are produced by ShapeHelper —
+       those will be wired during ShapeHelper localization.
+       ShapeWithPosition: {0} = shape name, {1} = position, {2} = description.
+       ShapeNoPosition: {0} = shape name, {1} = description. -->
+  <RimWorldAccess.Building.ShapeSelect.MenuOpened>Formauswahl</RimWorldAccess.Building.ShapeSelect.MenuOpened>
+  <RimWorldAccess.Building.ShapeSelect.ShapeSelected>{0} ausgewählt</RimWorldAccess.Building.ShapeSelect.ShapeSelected>
+  <RimWorldAccess.Building.ShapeSelect.Cancelled>Formauswahl abgebrochen</RimWorldAccess.Building.ShapeSelect.Cancelled>
+
+  <!-- Area painting (src/Building/AreaPaintingState.cs).
+       Drives keyboard expand/shrink of an Area with shape selection,
+       per-cell toggling, and stage-then-confirm.
+
+       EnterExpand / EnterShrink: {0} = area label, {1} = shape name.
+       The hint suffix (Tab to switch mode... Enter to confirm) is split
+       out as PromptHint so the verb-prefixed keys stay short.
+
+       Confirmed: {0} = action verb (added to / removed from),
+       {1} = area label, {2} = total cells. Per the no-glue rule,
+       AddedTo / RemovedFrom whole-phrase variants own the verb-and-label
+       phrasing instead of swapping a verb particle.
+
+       ConfirmShape{Regular,Irregular}: {0} = "WxH" string, {1} = added
+       count, {2} = staged total (Regular only adds the dimension info). -->
+  <RimWorldAccess.Building.Paint.ModeBox>Flächenauswahl aktiv</RimWorldAccess.Building.Paint.ModeBox>
+  <RimWorldAccess.Building.Paint.ModeSingle>Einzelfeldauswahl aktiv</RimWorldAccess.Building.Paint.ModeSingle>
+  <RimWorldAccess.Building.Paint.NoShapeToConfirm>Du hast noch keine Form abgesteckt</RimWorldAccess.Building.Paint.NoShapeToConfirm>
+  <RimWorldAccess.Building.Paint.Deselected>Feld {0}, {1} abgewählt</RimWorldAccess.Building.Paint.Deselected>
+
+  <!-- Zone editing (src/Building/ZoneEditingHelper.cs + GizmoZoneEditState.cs).
+       Returned in ZoneEditResult.Message and announced when a cell is
+       toggled into or out of a zone. CellRemoved/CellAdded compose the
+       zone label as data via {0}; the bare ZoneFallbackName covers the
+       case where zone.label is null.
+       ZoneDeleted: {0} = zone label or fallback. -->
+  <RimWorldAccess.Building.Zone.NoZoneBeingEdited>Du bearbeitest gerade keine Zone</RimWorldAccess.Building.Zone.NoZoneBeingEdited>
+  <RimWorldAccess.Building.Zone.NoZoneSelectedForEditing>Keine Zone zum Bearbeiten ausgewählt</RimWorldAccess.Building.Zone.NoZoneSelectedForEditing>
+  <RimWorldAccess.Building.Zone.NoZoneAtLocation>Hier gibt es keine Zone zum Bearbeiten</RimWorldAccess.Building.Zone.NoZoneAtLocation>
+  <RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>Beim Erweitern kannst du keine Felder der ursprünglichen Zone entfernen</RimWorldAccess.Building.Zone.CannotRemoveOriginalCell>
+  <RimWorldAccess.Building.Zone.NowExpanding>Du erweiterst jetzt {0}</RimWorldAccess.Building.Zone.NowExpanding>
+  <RimWorldAccess.Building.Zone.AdjacentZonesAmbiguous>Mehrere Zonen grenzen hier an. Drücke die Leertaste auf einem Feld der Zone, die du erweitern willst.</RimWorldAccess.Building.Zone.AdjacentZonesAmbiguous>
+  <RimWorldAccess.Building.Zone.WouldDisconnect>Das Feld lässt sich nicht entfernen. Die Zone würde dadurch geteilt</RimWorldAccess.Building.Zone.WouldDisconnect>
+  <RimWorldAccess.Building.Zone.CellAlreadyInThisZone>Das Feld gehört schon zu dieser Zone</RimWorldAccess.Building.Zone.CellAlreadyInThisZone>
+  <RimWorldAccess.Building.Zone.CellInOtherZone>Das Feld gehört zu {0}</RimWorldAccess.Building.Zone.CellInOtherZone>
+  <RimWorldAccess.Building.Zone.CellNotPartOfOriginal>Das Feld gehörte nicht zur ursprünglichen Zone</RimWorldAccess.Building.Zone.CellNotPartOfOriginal>
+  <RimWorldAccess.Building.Zone.CellMustBeAdjacent>Das Feld muss an die Zone angrenzen</RimWorldAccess.Building.Zone.CellMustBeAdjacent>
+  <RimWorldAccess.Building.Zone.CannotAddCellHere>Hier lässt sich kein Feld hinzufügen</RimWorldAccess.Building.Zone.CannotAddCellHere>
+  <RimWorldAccess.Building.Zone.CellRemoved>Feld aus {0} entfernt</RimWorldAccess.Building.Zone.CellRemoved>
+  <RimWorldAccess.Building.Zone.CellAdded>Feld zu {0} hinzugefügt</RimWorldAccess.Building.Zone.CellAdded>
+  <RimWorldAccess.Building.Zone.ZoneDeleted>{0} gelöscht. Keine Felder mehr übrig</RimWorldAccess.Building.Zone.ZoneDeleted>
+  <RimWorldAccess.Building.Zone.FailedToRemoveCell>Das Feld konnte nicht entfernt werden</RimWorldAccess.Building.Zone.FailedToRemoveCell>
+  <RimWorldAccess.Building.Zone.FailedToAddCell>Das Feld konnte nicht hinzugefügt werden</RimWorldAccess.Building.Zone.FailedToAddCell>
+  <RimWorldAccess.Building.Zone.FallbackName>Zone</RimWorldAccess.Building.Zone.FallbackName>
+
+  <!-- Plant selection menu (src/Building/PlantSelectionMenuState.cs).
+       Sets the plant to grow on a zone or planter. Plant labels and the
+       displayText / detailedInfo come from vanilla data; the wrapper keys
+       here own the announcement composition.
+       OpenPrompt: {0} = current crop label.
+       SelectionWithDetail: {0} = displayText, {1} = detailedInfo.
+       NoColonistCanPlant: {0} = plant label, {1} = required Plants skill.
+       CavePlantExposed: {0} = plant LabelCap. -->
+  <RimWorldAccess.Building.PlantSelect.OpenPrompt>Pflanzenauswahl. Aktuelle Pflanze: {0}</RimWorldAccess.Building.PlantSelect.OpenPrompt>
+  <RimWorldAccess.Building.PlantSelect.Selected>Auswahl: {0}</RimWorldAccess.Building.PlantSelect.Selected>
+  <RimWorldAccess.Building.PlantSelect.NoColonistCanPlant>Warnung: Kein Kolonist kann {0} anbauen. Dafür braucht man die Fertigkeit Pflanzen auf Stufe {1}</RimWorldAccess.Building.PlantSelect.NoColonistCanPlant>
+  <RimWorldAccess.Building.PlantSelect.CavePlantExposed>Warnung: {0} ist eine Höhlenpflanze. Einige Felder der Zone sind zu hell</RimWorldAccess.Building.PlantSelect.CavePlantExposed>
+
+  <!-- Manage-areas dialog (src/Shell/Screens/ManageAreasScope.Game.cs).
+       Mutation-result announcements for the real vanilla Dialog_ManageAreas;
+       row and column labels come from vanilla's own keys. -->
+  <RimWorldAccess.Building.AreaMgr.MaxAreasReached>Du kannst kein neues Gebiet erstellen. Maximal 10 Gebiete erlaubt.</RimWorldAccess.Building.AreaMgr.MaxAreasReached>
+  <RimWorldAccess.Building.AreaMgr.CreatedNewArea>Neues Gebiet erstellt: {0}</RimWorldAccess.Building.AreaMgr.CreatedNewArea>
+  <RimWorldAccess.Building.AreaMgr.RenamePrompt>Gebiet umbenennen: {0}. Gib einen neuen Namen ein und drücke Enter.</RimWorldAccess.Building.AreaMgr.RenamePrompt>
+  <RimWorldAccess.Building.AreaMgr.Inverted>Gebiet invertiert: {0}. Umfasst jetzt {1} von {2} Feldern.</RimWorldAccess.Building.AreaMgr.Inverted>
+  <RimWorldAccess.Building.AreaMgr.CopiedTo>Gebiet kopiert. Neues Gebiet: {0}</RimWorldAccess.Building.AreaMgr.CopiedTo>
+  <RimWorldAccess.Building.AreaMgr.Deleted>Gebiet gelöscht: {0}</RimWorldAccess.Building.AreaMgr.Deleted>
+  <RimWorldAccess.Building.AreaMgr.ColorFixed>Die Farbe dieses Gebiets lässt sich nicht ändern.</RimWorldAccess.Building.AreaMgr.ColorFixed>
+
+  <!-- Shape names + descriptions (src/Building/ShapeHelper.cs).
+       Spoken by every menu that lets the user pick a placement shape
+       (ShapeSelectionMenuState, AreaPaintingState, ShapePreviewHelper).
+       Names are nouns; descriptions are full sentences with terminal
+       punctuation. ShapeFallbackUnknown is for the DrawStyleDef defName
+       case where neither label nor a known shape type is available. -->
+  <RimWorldAccess.Building.Shape.Name.Manual>Manuell</RimWorldAccess.Building.Shape.Name.Manual>
+  <RimWorldAccess.Building.Shape.Name.Line>Linie</RimWorldAccess.Building.Shape.Name.Line>
+  <RimWorldAccess.Building.Shape.Name.AngledLine>Schräge Linie</RimWorldAccess.Building.Shape.Name.AngledLine>
+  <RimWorldAccess.Building.Shape.Name.FilledRectangle>Gefülltes Rechteck</RimWorldAccess.Building.Shape.Name.FilledRectangle>
+  <RimWorldAccess.Building.Shape.Name.EmptyRectangle>Leeres Rechteck</RimWorldAccess.Building.Shape.Name.EmptyRectangle>
+  <RimWorldAccess.Building.Shape.Name.FilledOval>Gefülltes Oval</RimWorldAccess.Building.Shape.Name.FilledOval>
+  <RimWorldAccess.Building.Shape.Name.EmptyOval>Leeres Oval</RimWorldAccess.Building.Shape.Name.EmptyOval>
+  <RimWorldAccess.Building.Shape.Name.Unknown>Unbekannt</RimWorldAccess.Building.Shape.Name.Unknown>
+  <RimWorldAccess.Building.Shape.Desc.Manual>Setzt ein Feld nach dem anderen. Die Leertaste setzt das Feld am Cursor. Bewege den Cursor weiter und drücke die Leertaste erneut.</RimWorldAccess.Building.Shape.Desc.Manual>
+  <RimWorldAccess.Building.Shape.Desc.Line>Zieht eine gerade Linie zwischen zwei Punkten, waagerecht oder senkrecht. Wenn die Punkte diagonal liegen, nimmt das Spiel die längere Achse.</RimWorldAccess.Building.Shape.Desc.Line>
+  <RimWorldAccess.Building.Shape.Desc.AngledLine>Zieht eine schräge Linie zwischen deinen beiden Punkten. Der Winkel ist beliebig.</RimWorldAccess.Building.Shape.Desc.AngledLine>
+  <RimWorldAccess.Building.Shape.Desc.FilledRectangle>Füllt alle Felder in einem Rechteck. Du setzt dafür zwei gegenüberliegende Ecken.</RimWorldAccess.Building.Shape.Desc.FilledRectangle>
+  <RimWorldAccess.Building.Shape.Desc.EmptyRectangle>Setzt nur den Rand eines Rechtecks. Die Mitte bleibt frei. Gut für Wände und Zäune.</RimWorldAccess.Building.Shape.Desc.EmptyRectangle>
+  <RimWorldAccess.Building.Shape.Desc.FilledOval>Füllt ein Oval. Bei kleinen Größen wirkt die Form wie ein Rechteck. Ab 6 mal 6 werden die Ecken rund.</RimWorldAccess.Building.Shape.Desc.FilledOval>
+  <RimWorldAccess.Building.Shape.Desc.EmptyOval>Setzt nur den Rand eines Ovals. Ab 3 mal 3 entsteht ein Ring. Bei kleineren Größen wirkt die Form gefüllt.</RimWorldAccess.Building.Shape.Desc.EmptyOval>
+
+  <!-- Shape size readouts (src/Building/ShapeHelper.FormatShapeSize).
+       SizeWxH: regular rectangles ("5 by 7"); SizeCount: irregular shapes
+       ("32 cells"). The One/Many split covers the 0-cell and 1-cell
+       boundary cases. -->
+  <RimWorldAccess.Building.Shape.SizeZero>0 Felder</RimWorldAccess.Building.Shape.SizeZero>
+  <RimWorldAccess.Building.Shape.SizeOne>1 Feld</RimWorldAccess.Building.Shape.SizeOne>
+  <RimWorldAccess.Building.Shape.SizeMany>{0} Felder</RimWorldAccess.Building.Shape.SizeMany>
+  <RimWorldAccess.Building.Shape.SizeWxH>{0} mal {1}</RimWorldAccess.Building.Shape.SizeWxH>
+
+  <!-- Shape preview helper (src/Building/ShapePreviewHelper.cs).
+       Two-point selection feedback shared by ShapePlacementState,
+       ZoneCreationState, and AreaPaintingState.
+       FirstPoint: {0} = x, {1} = z.
+       SecondPointRegular: {0} = "WxH" string, {1} = cell count.
+       SecondPointIrregular: {0} = "N cells" size text. -->
+  <RimWorldAccess.Building.Preview.FirstPoint>Erster Punkt, {0}, {1}</RimWorldAccess.Building.Preview.FirstPoint>
+  <RimWorldAccess.Building.Preview.SecondPointRegular>Zweiter Punkt, {0}, {1} Felder</RimWorldAccess.Building.Preview.SecondPointRegular>
+  <RimWorldAccess.Building.Preview.SecondPointIrregular>Zweiter Punkt, {0}</RimWorldAccess.Building.Preview.SecondPointIrregular>
+  <RimWorldAccess.Building.Preview.SizeConfirmed>{0} bestätigt</RimWorldAccess.Building.Preview.SizeConfirmed>
+  <RimWorldAccess.Building.Preview.ShapeCancelled>Form abgebrochen</RimWorldAccess.Building.Preview.ShapeCancelled>
+
+  <!-- Shape placement state (src/Building/ShapePlacementState.cs).
+       Two-corner shape designation flow (Build / Order / Zone designators).
+       Most multi-fragment announcements compose via period-joined parts;
+       each fragment here is a clean phrase without trailing punctuation.
+
+       BuildEnter parts: ModeManual / ModeShape, ShapeNameSelected (label
+       reused from ShapeSelect.ShapeSelected), PlacingDesignator,
+       SizeOneTile / SizeWxH, the four hint variants. The shape-mode parts
+       use designator label as data via {0}.
+
+       Placed/Designated: {0} = count, {1} = pluralized name, {2} = optional
+       resource cost suffix (or empty); a single resource carries its own
+       paren formatting via PlacedCostSuffix, multiple resources (e.g. steel
+       and components) are joined via PlacedCostItem + PlacedCostSuffixMulti.
+
+       Action gerunds (haul/hunt/mine/etc.): looked up by the designator's
+       actual runtime type (Designator_Haul, Designator_Hunt, etc.), not by
+       matching its label, so these apply in every language. Designators
+       with no dedicated type here (e.g. Install) fall through to their own
+       translated lowercased label. -->
+  <RimWorldAccess.Building.Place.NoDesignatorActive>Kein Befehl aktiv</RimWorldAccess.Building.Place.NoDesignatorActive>
+  <RimWorldAccess.Building.Place.NoCellsSelected>Keine Felder ausgewählt</RimWorldAccess.Building.Place.NoCellsSelected>
+  <RimWorldAccess.Building.Place.ZoneDeleted>{0} gelöscht.</RimWorldAccess.Building.Place.ZoneDeleted>
+  <RimWorldAccess.Building.Place.CancelFromFirstCorner>Platzierung abgebrochen</RimWorldAccess.Building.Place.CancelFromFirstCorner>
+  <RimWorldAccess.Building.Place.CancelFromSecondCorner>Form abgebrochen. Zurück zum ersten Punkt</RimWorldAccess.Building.Place.CancelFromSecondCorner>
+  <RimWorldAccess.Building.Place.CancelFromPreview>Vorschau abgebrochen</RimWorldAccess.Building.Place.CancelFromPreview>
+  <RimWorldAccess.Building.Place.SelectionClearedFromPreview>Auswahl aufgehoben. Drücke Escape erneut, um die Platzierung zu beenden. Drücke Enter und danach Plus, um einen weiteren Abschnitt hinzuzufügen.</RimWorldAccess.Building.Place.SelectionClearedFromPreview>
+  <RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint>Auswahl abgebrochen. Zurück zum ersten Punkt</RimWorldAccess.Building.Place.SelectionCancelledToFirstPoint>
+  <RimWorldAccess.Building.Place.SecondPointRemoved>Zweiter Punkt entfernt</RimWorldAccess.Building.Place.SecondPointRemoved>
+  <RimWorldAccess.Building.Place.FirstPointRemoved>Erster Punkt entfernt</RimWorldAccess.Building.Place.FirstPointRemoved>
+  <RimWorldAccess.Building.Place.NoPointsToRemove>Keine Punkte gesetzt</RimWorldAccess.Building.Place.NoPointsToRemove>
+  <RimWorldAccess.Building.Place.ModeManual>Manueller Modus</RimWorldAccess.Building.Place.ModeManual>
+  <RimWorldAccess.Building.Place.ModeShape>Formmodus</RimWorldAccess.Building.Place.ModeShape>
+  <RimWorldAccess.Building.Place.PlacingDesignator>Platzieren: {0}</RimWorldAccess.Building.Place.PlacingDesignator>
+  <RimWorldAccess.Building.Place.SizeOneTile>Größe: 1 Feld</RimWorldAccess.Building.Place.SizeOneTile>
+  <RimWorldAccess.Building.Place.SizeWxH>Größe: {0} mal {1}</RimWorldAccess.Building.Place.SizeWxH>
+
+  <!-- The temporary scanner category offered while a building is being placed, listing the
+       nearest positions it actually fits in (src/Building/PlacementSpotScanner.Game.cs).
+       {0} on the category = the building being placed. SpotFacing is appended after the
+       entry's distance and direction when the building only fits there turned a particular
+       way, so the entry reads "Spot, 3 tiles north, facing east"; {0} = compass direction. -->
+  <RimWorldAccess.Building.Place.SpotScannerCategory>Bauplätze für {0}</RimWorldAccess.Building.Place.SpotScannerCategory>
+  <RimWorldAccess.Building.Place.SpotScannerItemLabel>Bauplatz</RimWorldAccess.Building.Place.SpotScannerItemLabel>
+  <RimWorldAccess.Building.Place.SpotFacing>Ausrichtung: {0}</RimWorldAccess.Building.Place.SpotFacing>
+
+  <!-- Spacing numbers the game draws between this building and others of its def during
+       placement (src/Building/PlacementHelpSpeech.Game.cs). {0} = distance in tiles. The game
+       paints the number white inside the def's allowed range and red outside it; these two keys
+       are that color said out loud. -->
+  <RimWorldAccess.Building.Place.SpacingInRange>Abstand von {replace: ^{0} Feldern; "^1 Feldern"-"1 Feld"; "^"-""} stimmt</RimWorldAccess.Building.Place.SpacingInRange>
+  <RimWorldAccess.Building.Place.SpacingOutOfRange>Abstand von {replace: ^{0} Feldern; "^1 Feldern"-"1 Feld"; "^"-""} stimmt nicht</RimWorldAccess.Building.Place.SpacingOutOfRange>
+
+  <!-- A thing the game highlights on screen while a building is being placed, because that is
+       where the building has to go (a geothermal generator highlights every steam geyser).
+       {0} = the thing, {1} = distance in tiles from the cursor, {2} = compass direction. -->
+
+  <!-- A part of the ghost the game outlines in its own can-place / cannot-place color during
+       placement, which is how a multi-part footprint like a water mill's wheel is shown at all.
+       {0} = width, {1} = height, {2} = distance in tiles from the cursor, {3} = compass direction. -->
+  <RimWorldAccess.Building.Place.OutlineOkAt>Benötigte Fläche, {0} mal {1}, {replace: ^{2} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {3}, geeignet</RimWorldAccess.Building.Place.OutlineOkAt>
+  <RimWorldAccess.Building.Place.OutlineOkHere>Benötigte Fläche, {0} mal {1}, am Cursor, geeignet</RimWorldAccess.Building.Place.OutlineOkHere>
+  <RimWorldAccess.Building.Place.OutlineBadAt>Benötigte Fläche, {0} mal {1}, {replace: ^{2} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {3}, nicht geeignet</RimWorldAccess.Building.Place.OutlineBadAt>
+  <RimWorldAccess.Building.Place.OutlineBadHere>Benötigte Fläche, {0} mal {1}, am Cursor, nicht geeignet</RimWorldAccess.Building.Place.OutlineBadHere>
+
+  <!-- The same outline when the game's own place worker says which part of the footprint it is,
+       so a water mill's wheel is called the wheel instead of a nameless required area. Same
+       measurements as the generic keys above: {0} = width, {1} = height, {2} = distance in tiles
+       from the cursor, {3} = compass direction. The wheel is the strip of moving water the wheel
+       has to turn in; the flow area is the stretch of river the mill draws from, and the game
+       blinks it orange when another mill already draws from the same stretch (which costs this
+       one power). -->
+  <RimWorldAccess.Building.Place.WatermillWheelOkAt>Wasserrad, {0} mal {1}, {replace: ^{2} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {3}, auf fließendem Wasser</RimWorldAccess.Building.Place.WatermillWheelOkAt>
+  <RimWorldAccess.Building.Place.WatermillWheelOkHere>Wasserrad, {0} mal {1}, am Cursor, auf fließendem Wasser</RimWorldAccess.Building.Place.WatermillWheelOkHere>
+  <RimWorldAccess.Building.Place.WatermillWheelBadAt>Wasserrad, {0} mal {1}, {replace: ^{2} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {3}, nicht auf fließendem Wasser</RimWorldAccess.Building.Place.WatermillWheelBadAt>
+  <RimWorldAccess.Building.Place.WatermillWheelBadHere>Wasserrad, {0} mal {1}, am Cursor, nicht auf fließendem Wasser</RimWorldAccess.Building.Place.WatermillWheelBadHere>
+  <RimWorldAccess.Building.Place.WatermillFlowOkAt>Strömungsbereich, {0} mal {1}, {replace: ^{2} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {3}, frei</RimWorldAccess.Building.Place.WatermillFlowOkAt>
+  <RimWorldAccess.Building.Place.WatermillFlowOkHere>Strömungsbereich, {0} mal {1}, am Cursor, frei</RimWorldAccess.Building.Place.WatermillFlowOkHere>
+  <RimWorldAccess.Building.Place.WatermillFlowSharedAt>Strömungsbereich, {0} mal {1}, {replace: ^{2} Felder; "^1 Felder"-"1 Feld"; "^"-""} Richtung {3}, mit einem anderen Wasserrad geteilt</RimWorldAccess.Building.Place.WatermillFlowSharedAt>
+  <RimWorldAccess.Building.Place.WatermillFlowSharedHere>Strömungsbereich, {0} mal {1}, am Cursor, mit einem anderen Wasserrad geteilt</RimWorldAccess.Building.Place.WatermillFlowSharedHere>
+  <RimWorldAccess.Building.Place.HintManualOrder>Gehe mit den Pfeiltasten zu den Zielen. Die Leertaste wählt ein Ziel aus. Enter bestätigt die Auswahl. Tab öffnet die Formauswahl. Escape bricht die Platzierung ab</RimWorldAccess.Building.Place.HintManualOrder>
+  <RimWorldAccess.Building.Place.HintManualBuildRotatable>Gehe zum gewünschten Feld. Die Leertaste platziert das Bauwerk. R dreht das Bauwerk. Escape bricht die Platzierung ab</RimWorldAccess.Building.Place.HintManualBuildRotatable>
+  <RimWorldAccess.Building.Place.HintManualBuildFixed>Gehe zum gewünschten Feld. Die Leertaste platziert das Bauwerk. Escape bricht die Platzierung ab</RimWorldAccess.Building.Place.HintManualBuildFixed>
+  <RimWorldAccess.Building.Place.HintShape>Gehe zum ersten Punkt und drücke die Leertaste</RimWorldAccess.Building.Place.HintShape>
+  <RimWorldAccess.Building.Place.PlacedBuild>{0} {1} platziert{2}</RimWorldAccess.Building.Place.PlacedBuild>
+  <RimWorldAccess.Building.Place.PlacedCostSuffix> ({0} {1})</RimWorldAccess.Building.Place.PlacedCostSuffix>
+  <!-- Used per-resource when a buildable costs more than one ingredient; the results are
+       joined with a comma list and wrapped by PlacedCostSuffixMulti. -->
+  <RimWorldAccess.Building.Place.PlacedCostItem>{0} {1}</RimWorldAccess.Building.Place.PlacedCostItem>
+  <RimWorldAccess.Building.Place.PlacedCostSuffixMulti> ({0})</RimWorldAccess.Building.Place.PlacedCostSuffixMulti>
+  <RimWorldAccess.Building.Place.DesignatedFor>{0} zum {1} markiert</RimWorldAccess.Building.Place.DesignatedFor>
+  <RimWorldAccess.Building.Place.NoBlueprintsPlaced>Keine Blaupausen platziert</RimWorldAccess.Building.Place.NoBlueprintsPlaced>
+  <RimWorldAccess.Building.Place.NoDesignationsPlaced>Keine Markierungen platziert</RimWorldAccess.Building.Place.NoDesignationsPlaced>
+  <RimWorldAccess.Building.Place.ObstaclesFound>{0} Hindernisse gefunden</RimWorldAccess.Building.Place.ObstaclesFound>
+  <!-- {0} = vanilla CommandWarnInBuildingRadius gizmo label. -->
+  <RimWorldAccess.Building.Place.WarnToggleDisableHint>Schalte '{0}' aus, um hier zu bauen</RimWorldAccess.Building.Place.WarnToggleDisableHint>
+  <!-- {0} = comma-joined protecting thing labels, {1} = WarnToggleDisableHint. -->
+  <RimWorldAccess.Building.Place.MeditationProtectedBy>Geschützt durch {0}. {1}.</RimWorldAccess.Building.Place.MeditationProtectedBy>
+  <RimWorldAccess.Building.Place.WillReplaceSuffix>Wird ersetzt: {0}</RimWorldAccess.Building.Place.WillReplaceSuffix>
+  <RimWorldAccess.Building.Place.WillReplaceItem>{0} x{1}</RimWorldAccess.Building.Place.WillReplaceItem>
+  <RimWorldAccess.Building.Place.WillReplaceConfirm>Wird ersetzt: {0}. Drücke die Leertaste erneut, um das Bauwerk zu platzieren</RimWorldAccess.Building.Place.WillReplaceConfirm>
+  <RimWorldAccess.Building.Place.Action.haul>Wegtragen</RimWorldAccess.Building.Place.Action.haul>
+  <RimWorldAccess.Building.Place.Action.hunt>Jagen</RimWorldAccess.Building.Place.Action.hunt>
+  <RimWorldAccess.Building.Place.Action.mine>Abbauen</RimWorldAccess.Building.Place.Action.mine>
+  <RimWorldAccess.Building.Place.Action.deconstruct>Abreißen</RimWorldAccess.Building.Place.Action.deconstruct>
+  <RimWorldAccess.Building.Place.Action.cut>Schneiden</RimWorldAccess.Building.Place.Action.cut>
+  <RimWorldAccess.Building.Place.Action.smooth>Glätten</RimWorldAccess.Building.Place.Action.smooth>
+  <RimWorldAccess.Building.Place.Action.tame>Zähmen</RimWorldAccess.Building.Place.Action.tame>
+  <RimWorldAccess.Building.Place.Action.cancel>Abbrechen</RimWorldAccess.Building.Place.Action.cancel>
+
+  <!-- Zone creation (src/Building/ZoneCreationState.cs).
+       Drives create / expand / shrink for Stockpile, Dumping, Growing,
+       Allowed-Area, and Home zones via the same shape-pick flow used by
+       AreaPaintingState. Mode-toggle reuses Building.Paint.ModeBox /
+       ModeSingle; "Shape: {0}" reuses Building.Paint.ShapeChanged;
+       "No shape to confirm" reuses Building.Paint.NoShapeToConfirm;
+       "{N} cells added. Total: {M}" reuses Building.Paint.ConfirmShapeIrregular.
+
+       Validation: CellOutOfBounds / CellAlreadyInZone / CannotPlaceZoneHere
+       / MustBeAdjacentToSelection. CellAlreadyInZone "Cell is already in
+       {label}" vs Building.Zone.CellInOtherZone "Cell is in {label}" — the
+       wording differs intentionally (zone-creation context vs zone-edit
+       context).
+
+       Entry instructions / progress: per the no-glue rule, the long
+       Creating/Expanding/Shrinking openers are split into a verb+target
+       fragment plus the shape-mode instructions key.
+
+       GetZoneTypeName covers the 5 zone-type lowercased nouns plus the
+       "zone" fallback (this is a different fallback than
+       Building.Zone.FallbackName, which is for zone.label being null). -->
+  <RimWorldAccess.Building.Create.CannotRemoveDisconnect>Entfernen nicht möglich. Die Auswahl wäre dann nicht mehr zusammenhängend</RimWorldAccess.Building.Create.CannotRemoveDisconnect>
+  <RimWorldAccess.Building.Create.CellAlreadyInZone>Das Feld gehört bereits zu {0}</RimWorldAccess.Building.Create.CellAlreadyInZone>
+  <RimWorldAccess.Building.Create.MustBeAdjacentToSelection>Das Feld muss an die Auswahl angrenzen</RimWorldAccess.Building.Create.MustBeAdjacentToSelection>
+  <RimWorldAccess.Building.Create.ErrorCreatingZone>Fehler beim Erstellen der Zone: {0}</RimWorldAccess.Building.Create.ErrorCreatingZone>
+
+  <!-- Viewing mode (src/Building/ViewingModeState.cs).
+       Post-placement preview. Shape-name-and-description data still flows
+       through ViewingModeAnnouncer (~45 internal strings, deferred to a
+       later commit); these keys cover the 19 direct Speak calls in
+       ViewingModeState plus the long Confirm() composition.
+
+       Confirm One/Many splits per the no-glue rule: each subject-verb
+       agreement case gets its own whole-phrase key. The {0}=count,
+       {1}=zoneName lowercase, {2}=zone size string variants.
+
+       Subject grammar for the "{0} smaller zone(s)" suffix: One = "zone",
+       Many = "zones".
+
+       Dialog button labels (Leave / Stay / Confirm Exit) match vanilla's
+       generic dialog buttons; we own these labels because the
+       Dialog_MessageBox call sites supply our keys verbatim. -->
+  <RimWorldAccess.Building.View.ReturnedToPreview>Zurück im Ansichtsmodus</RimWorldAccess.Building.View.ReturnedToPreview>
+  <RimWorldAccess.Building.View.AddAnotherShape>Weitere Form hinzufügen</RimWorldAccess.Building.View.AddAnotherShape>
+  <RimWorldAccess.Building.View.NoDesignatorAvailable>Kein Werkzeug verfügbar</RimWorldAccess.Building.View.NoDesignatorAvailable>
+  <RimWorldAccess.Building.View.CannotPlaceHere>Hier lässt sich nichts platzieren</RimWorldAccess.Building.View.CannotPlaceHere>
+  <RimWorldAccess.Building.View.PlacedAt>{0} platziert. Position {1}, {2}</RimWorldAccess.Building.View.PlacedAt>
+  <RimWorldAccess.Building.View.BlueprintFallback>Blaupause</RimWorldAccess.Building.View.BlueprintFallback>
+  <RimWorldAccess.Building.View.FailedToAddBlueprint>Blaupause konnte nicht hinzugefügt werden</RimWorldAccess.Building.View.FailedToAddBlueprint>
+  <RimWorldAccess.Building.View.NoBlueprintHere>Hier gibt es keine Blaupause zum Abbrechen</RimWorldAccess.Building.View.NoBlueprintHere>
+  <RimWorldAccess.Building.View.CancelledBlueprint>{0} abgebrochen</RimWorldAccess.Building.View.CancelledBlueprint>
+  <RimWorldAccess.Building.View.ActionRestored>wiederhergestellt</RimWorldAccess.Building.View.ActionRestored>
+  <RimWorldAccess.Building.View.ActionRemoved>entfernt</RimWorldAccess.Building.View.ActionRemoved>
+  <!-- Zone-aware size wording for a removed/restored segment (ViewingModeAnnouncer.FormatZoneCellsSize),
+       used in place of English word-surgery on the plain Shape.Size* strings. -->
+  <RimWorldAccess.Building.View.RemovedZoneSizeZero>0 Zonenfelder</RimWorldAccess.Building.View.RemovedZoneSizeZero>
+  <RimWorldAccess.Building.View.RemovedZoneSizeOne>1 Zonenfeld</RimWorldAccess.Building.View.RemovedZoneSizeOne>
+  <RimWorldAccess.Building.View.RemovedZoneSizeMany>{0} Zonenfelder</RimWorldAccess.Building.View.RemovedZoneSizeMany>
+  <RimWorldAccess.Building.View.RemovedZoneSizeWxH>{0} mal {1} Zonenfelder</RimWorldAccess.Building.View.RemovedZoneSizeWxH>
+  <RimWorldAccess.Building.View.SegmentRemovedSomeRemain>{1} {0}. {2}. Es gibt noch {3}{4}.</RimWorldAccess.Building.View.SegmentRemovedSomeRemain>
+  <RimWorldAccess.Building.View.SegmentRemovedNoneRemain>{1} {0}. {2}. Keine Abschnitte mehr übrig.</RimWorldAccess.Building.View.SegmentRemovedNoneRemain>
+  <RimWorldAccess.Building.View.RemainingInShapeSuffix>. Verbleibende Formen: {0}</RimWorldAccess.Building.View.RemainingInShapeSuffix>
+  <RimWorldAccess.Building.View.RemainingInSegmentsSuffix> in {0} Abschnitten</RimWorldAccess.Building.View.RemainingInSegmentsSuffix>
+  <RimWorldAccess.Building.View.RemovedItemsReturning>{0} {1} entfernt. Zurück zur Platzierung.</RimWorldAccess.Building.View.RemovedItemsReturning>
+  <RimWorldAccess.Building.View.ReturningToPlacement>Zurück zur Platzierung.</RimWorldAccess.Building.View.ReturningToPlacement>
+  <RimWorldAccess.Building.View.RemovedItems>{0} {1} entfernt</RimWorldAccess.Building.View.RemovedItems>
+  <RimWorldAccess.Building.View.RemovedAllItems>Alle {0} {1} entfernt</RimWorldAccess.Building.View.RemovedAllItems>
+  <RimWorldAccess.Building.View.ZoneEditingCancelled>Zonenbearbeitung abgebrochen.</RimWorldAccess.Building.View.ZoneEditingCancelled>
+  <RimWorldAccess.Building.View.PlacementCancelled>Platzierung abgebrochen.</RimWorldAccess.Building.View.PlacementCancelled>
+  <RimWorldAccess.Building.View.ExitWithRemoval>{1} {2} {0}. {3}</RimWorldAccess.Building.View.ExitWithRemoval>
+  <RimWorldAccess.Building.View.ExitWithRemovalAll>Alle {1} {2} {0}. {3}</RimWorldAccess.Building.View.ExitWithRemovalAll>
+  <RimWorldAccess.Building.View.LeavePreviewBlueprints>Ansichtsmodus verlassen? Alle Blaupausen gehen verloren.</RimWorldAccess.Building.View.LeavePreviewBlueprints>
+  <RimWorldAccess.Building.View.LeavePreviewZones>Ansichtsmodus verlassen? Alle Zonenänderungen werden rückgängig gemacht.</RimWorldAccess.Building.View.LeavePreviewZones>
+  <RimWorldAccess.Building.View.LeavePreviewDesignations>Ansichtsmodus verlassen? Alle Markierungen werden entfernt.</RimWorldAccess.Building.View.LeavePreviewDesignations>
+  <RimWorldAccess.Building.View.DialogLeave>Verlassen</RimWorldAccess.Building.View.DialogLeave>
+  <RimWorldAccess.Building.View.DialogStay>Bleiben</RimWorldAccess.Building.View.DialogStay>
+  <RimWorldAccess.Building.View.DialogConfirmExit>Verlassen bestätigen</RimWorldAccess.Building.View.DialogConfirmExit>
+
+  <!-- ViewingModeState.Confirm() zone-result composition. -->
+  <RimWorldAccess.Building.View.ConfirmZoneCellsRemovedOne>Bestätigt. {0} Zonenfeld entfernt.</RimWorldAccess.Building.View.ConfirmZoneCellsRemovedOne>
+  <RimWorldAccess.Building.View.ConfirmZoneCellsRemovedMany>Bestätigt. {0} Zonenfelder entfernt.</RimWorldAccess.Building.View.ConfirmZoneCellsRemovedMany>
+  <RimWorldAccess.Building.View.ConfirmCellsAddedToZoneOne>Bestätigt. {1} um {0} Feld erweitert.</RimWorldAccess.Building.View.ConfirmCellsAddedToZoneOne>
+  <RimWorldAccess.Building.View.ConfirmCellsAddedToZoneMany>Bestätigt. {1} um {0} Felder erweitert.</RimWorldAccess.Building.View.ConfirmCellsAddedToZoneMany>
+  <RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsOne>Bestätigt. {1} mit {0} Feld erstellt.</RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsOne>
+  <RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsMany>Bestätigt. {1} mit {0} Feldern erstellt.</RimWorldAccess.Building.View.ConfirmZoneCreatedFromCellsMany>
+  <RimWorldAccess.Building.View.ConfirmZoneExpanded>Bestätigt. {1} um {0} erweitert.</RimWorldAccess.Building.View.ConfirmZoneExpanded>
+  <RimWorldAccess.Building.View.ConfirmZoneCreated>Bestätigt. {1} erstellt. Größe: {0}.</RimWorldAccess.Building.View.ConfirmZoneCreated>
+  <RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedOne>Bestätigt. {0} {1} erstellt. Größe: {2}.</RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedOne>
+  <RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedMany>Bestätigt. {0}-mal {1} erstellt. Größen: {2}.</RimWorldAccess.Building.View.ConfirmMultipleZonesCreatedMany>
+  <RimWorldAccess.Building.View.SmallerZonesOne> und {0} kleinere Zone</RimWorldAccess.Building.View.SmallerZonesOne>
+  <RimWorldAccess.Building.View.SmallerZonesMany> und {0} kleinere Zonen</RimWorldAccess.Building.View.SmallerZonesMany>
+  <RimWorldAccess.Building.View.OrdersConfirmedBlueprints>Befehle bestätigt. {0} Blaupausen platziert.</RimWorldAccess.Building.View.OrdersConfirmedBlueprints>
+  <RimWorldAccess.Building.View.OrdersConfirmedDesignations>Befehle bestätigt. {0} Markierungen platziert.</RimWorldAccess.Building.View.OrdersConfirmedDesignations>
+
+  <!-- Storage linking (src/Building/ShelfLinking{State,Patch,Helper,ConfirmDialog}.cs).
+       Keyboard-driven manual storage-link mode and the room-based gizmo
+       linking flow. Open prompt and per-cell feedback are spoken; linking
+       confirmation is shown via Dialog_MessageBox (visible text contains
+       newlines for paragraph breaks — those are formatting, not separators).
+
+       OpenPrompt: {0} = source storage label.
+       StorageWithCountSelected/Deselected: {0} = label, {1} = selected count.
+       LinkedCount / AddedToGroupCount: {0} = formatted count phrase
+       (e.g. "3 shelves, 1 bookcase") from FormatStorageCount.
+
+       FormatStorageCount falls back to English pluralization for def
+       labels; the per-def "{count} {label}" composition reuses
+       Find.ActiveLanguageWorker.Pluralize so non-English languages get
+       proper plural forms. The "shelf"/"shelves" English-specific
+       short-circuit is removed — Pluralize handles it. -->
+  <RimWorldAccess.Building.Shelf.NoStorageSelected>Kein Lager ausgewählt</RimWorldAccess.Building.Shelf.NoStorageSelected>
+  <RimWorldAccess.Building.Shelf.OpenPrompt>Verknüpfungsmodus für Lager. Ausgewählt: {0}. Die Pfeiltasten bewegen den Cursor. Die Leertaste wählt ein passendes Lager aus. Enter verknüpft die Lager.</RimWorldAccess.Building.Shelf.OpenPrompt>
+  <RimWorldAccess.Building.Shelf.LinkingCancelled>Verknüpfen der Lager abgebrochen</RimWorldAccess.Building.Shelf.LinkingCancelled>
+  <RimWorldAccess.Building.Shelf.InvalidPosition>Ungültige Position</RimWorldAccess.Building.Shelf.InvalidPosition>
+  <RimWorldAccess.Building.Shelf.IncompatibleStorageType>{0}. Dieser Lagertyp passt nicht zum Ausgangslager</RimWorldAccess.Building.Shelf.IncompatibleStorageType>
+  <RimWorldAccess.Building.Shelf.NoStorageHere>Hier ist kein Lager</RimWorldAccess.Building.Shelf.NoStorageHere>
+  <RimWorldAccess.Building.Shelf.SourceCannotDeselect>Das Ausgangslager lässt sich nicht abwählen</RimWorldAccess.Building.Shelf.SourceCannotDeselect>
+  <RimWorldAccess.Building.Shelf.StorageDeselected>{0} abgewählt. Insgesamt {1} ausgewählt</RimWorldAccess.Building.Shelf.StorageDeselected>
+  <RimWorldAccess.Building.Shelf.StorageSelected>{0} ausgewählt. Insgesamt {1} ausgewählt</RimWorldAccess.Building.Shelf.StorageSelected>
+  <RimWorldAccess.Building.Shelf.SelectAtLeastOneOther>Wähle mindestens ein weiteres Lager zum Verknüpfen aus. Die Pfeiltasten bewegen den Cursor. Die Leertaste wählt ein passendes Lager aus.</RimWorldAccess.Building.Shelf.SelectAtLeastOneOther>
+  <RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting>Verknüpfen abgebrochen. Der Auswahlmodus bleibt aktiv. Escape beendet den Auswahlmodus.</RimWorldAccess.Building.Shelf.LinkingCancelledStillSelecting>
+  <RimWorldAccess.Building.Shelf.LinkedCount>{0} verknüpft</RimWorldAccess.Building.Shelf.LinkedCount>
+  <RimWorldAccess.Building.Shelf.AddedToGroup>{0} zur Gruppe hinzugefügt</RimWorldAccess.Building.Shelf.AddedToGroup>
+  <RimWorldAccess.Building.Shelf.LinkingFailed>Verknüpfen fehlgeschlagen</RimWorldAccess.Building.Shelf.LinkingFailed>
+  <RimWorldAccess.Building.Shelf.LinkingCancelledShort>Verknüpfen abgebrochen</RimWorldAccess.Building.Shelf.LinkingCancelledShort>
+  <RimWorldAccess.Building.Shelf.NoStorage>kein Lager</RimWorldAccess.Building.Shelf.NoStorage>
+  <RimWorldAccess.Building.Shelf.StorageItemsCount>{0} Lager</RimWorldAccess.Building.Shelf.StorageItemsCount>
+  <RimWorldAccess.Building.Shelf.StorageItemEntry>{0} {1}</RimWorldAccess.Building.Shelf.StorageItemEntry>
+  <RimWorldAccess.Building.Shelf.StorageFallback>Lager</RimWorldAccess.Building.Shelf.StorageFallback>
+  <RimWorldAccess.Building.Shelf.NoGroup>keine Gruppe</RimWorldAccess.Building.Shelf.NoGroup>
+  <RimWorldAccess.Building.Shelf.UnnamedGroup>unbenannte Gruppe</RimWorldAccess.Building.Shelf.UnnamedGroup>
+
+  <!-- Confirm dialog. Newlines (\n) in DialogMessage are visual paragraph
+       breaks rendered by Dialog_MessageBox, not screen reader separators.
+       DialogItem and DialogItemWord (One/Many) compose the bullet list
+       and the "is/are" phrasing for the lead sentence.
+       DialogMessage: {0} = count, {1} = "item is" / "items are",
+       {2} = newline-joined list. -->
+  <RimWorldAccess.Building.Shelf.DialogItem>  - {0}: verknüpft mit '{1}'</RimWorldAccess.Building.Shelf.DialogItem>
+  <RimWorldAccess.Building.Shelf.DialogItemWordOne>Objekt ist bereits in einer anderen Lagergruppe</RimWorldAccess.Building.Shelf.DialogItemWordOne>
+  <RimWorldAccess.Building.Shelf.DialogItemWordMany>Objekte sind bereits in anderen Lagergruppen</RimWorldAccess.Building.Shelf.DialogItemWordMany>
+  <RimWorldAccess.Building.Shelf.DialogMessage>{0} {1}:&#10;&#10;{2}&#10;&#10;In diese Lagergruppe verschieben?</RimWorldAccess.Building.Shelf.DialogMessage>
+  <RimWorldAccess.Building.Shelf.DialogYesLinkAnyway>Ja, trotzdem verknüpfen</RimWorldAccess.Building.Shelf.DialogYesLinkAnyway>
+  <RimWorldAccess.Building.Shelf.DialogDontLink>Nicht verknüpfen</RimWorldAccess.Building.Shelf.DialogDontLink>
+  <RimWorldAccess.Building.Shelf.DialogTitle>Lager verknüpfen</RimWorldAccess.Building.Shelf.DialogTitle>
+
+  <!-- Viewing mode announcer (src/Building/ViewingModeAnnouncer.cs).
+       Pure announcement-composition for ViewingModeState's post-placement preview.
+       ViewingModeState speaks the announcer's return values verbatim (it does NOT
+       re-wrap them), so every fragment the announcer returns is resolved here.
+
+       Composition: the four entry branches (order / zone / area / build) each build
+       a "Viewing mode" prefix + body parts joined by the AnnouncementBuilder, which
+       owns the separators and trailing period. Fragments below therefore carry NO
+       trailing punctuation and NO newline separators. The one exception is
+       SegmentSuffix, which is concatenated INTO a body part (not added as its own
+       part), so it keeps its leading space and parentheses on purpose.
+
+       Placeholder meaning is consistent across keys:
+         {0} count, OR a designator/area/zone label, OR a shape-size string ("7 by 4")
+       Read each value to see the exact order; multi-arg keys note it inline.
+
+       One/Many splits (no-glue rule - whole phrase per agreement case):
+         CellsBlocked(By) cell / cells; Blocked(By) (build) singular/plural;
+         AllCellsBlockedBy cell / cells; ZonesCreatedList zone / zones;
+         EnclosureGapSuffix / EnclosureTotalGapSuffix gap / gaps;
+         TerrainTiles tile / tiles; MoreInGroups / MoreItemsInGroupsSuffix /
+         ItemsInGroups group / groups. The branch in C# picks the key by count==1.
+
+       Vanilla-noun note: shape SIZE strings ("7 by 4", "12 cells") come from the
+       already-localized RimWorldAccess.Building.Shape.Size* keys via
+       ShapeHelper.FormatShapeSize - not duplicated here. Zone-type nouns here are a
+       distinct lowercase-in-sentence form ("stockpile zone created"); the capitalized
+       menu-label forms live under Building.Shape.Name.* / Building.Create.Zone*.
+
+       List joining: ListTwo / ListMany hold the conjunction so "and" never appears as
+       a bare glue particle. CountLabel is the universal "{0} {1}" count+noun fragment.
+
+       Game-data note: the English .Contains() zone/area-label matching in
+       GetZoneTypeName / GetBuiltInAreaName only fires for English game data and falls
+       through to the Generic / game-label path otherwise (TODO-comment pattern). The
+       category-name and stripped game-label fallbacks deliberately surface the game's
+       own text for mod compatibility and are not keyed. -->
+
+  <!-- Prefix and shared composition -->
+  <RimWorldAccess.Building.Announcer.ViewingMode>Ansichtsmodus</RimWorldAccess.Building.Announcer.ViewingMode>
+  <RimWorldAccess.Building.Announcer.SegmentSuffix> ({0})</RimWorldAccess.Building.Announcer.SegmentSuffix>
+  <RimWorldAccess.Building.Announcer.CountLabel>{0} {1}</RimWorldAccess.Building.Announcer.CountLabel>
+  <RimWorldAccess.Building.Announcer.ListTwo>{0} und {1}</RimWorldAccess.Building.Announcer.ListTwo>
+  <RimWorldAccess.Building.Announcer.ListMany>{0} und {1}</RimWorldAccess.Building.Announcer.ListMany>
+
+  <!-- Control hints (joined with commas by the announcer) -->
+  <RimWorldAccess.Building.Announcer.HintNavigateTargets>Bild auf und Bild ab wechseln zwischen den Zielen</RimWorldAccess.Building.Announcer.HintNavigateTargets>
+  <RimWorldAccess.Building.Announcer.HintNavigateObstacles>Bild auf und Bild ab wechseln zwischen den Hindernissen</RimWorldAccess.Building.Announcer.HintNavigateObstacles>
+  <RimWorldAccess.Building.Announcer.HintAddShape>Plus fügt eine weitere Form hinzu</RimWorldAccess.Building.Announcer.HintAddShape>
+  <RimWorldAccess.Building.Announcer.HintUndoLast>Minus entfernt den letzten Abschnitt</RimWorldAccess.Building.Announcer.HintUndoLast>
+  <RimWorldAccess.Building.Announcer.HintConfirm>Enter bestätigt die Platzierung</RimWorldAccess.Building.Announcer.HintConfirm>
+
+  <!-- Order designator entry. {0}=designator label, then shape size and/or target list -->
+  <RimWorldAccess.Building.Announcer.OrderFallback>Befehl</RimWorldAccess.Building.Announcer.OrderFallback>
+  <RimWorldAccess.Building.Announcer.OrderOnTargeting>Befehl: {0}. Größe: {1}. Ziele: {2}</RimWorldAccess.Building.Announcer.OrderOnTargeting>
+  <RimWorldAccess.Building.Announcer.OrderTargeting>Befehl: {0}. Ziele: {1}</RimWorldAccess.Building.Announcer.OrderTargeting>
+  <RimWorldAccess.Building.Announcer.OrderOn>Befehl: {0}. Größe: {1}</RimWorldAccess.Building.Announcer.OrderOn>
+  <RimWorldAccess.Building.Announcer.OrderDesignations>Befehl: {1}. {0} Markierungen</RimWorldAccess.Building.Announcer.OrderDesignations>
+
+  <!-- Order target list grouping. {0}=item count, {1}=group count -->
+  <RimWorldAccess.Building.Announcer.UnknownTarget>unbekanntes Objekt</RimWorldAccess.Building.Announcer.UnknownTarget>
+  <RimWorldAccess.Building.Announcer.TileFallback>Feld</RimWorldAccess.Building.Announcer.TileFallback>
+  <RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne>, dazu {0} weitere Objekte in {1} Gruppe</RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixOne>
+  <RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany>, dazu {0} weitere Objekte in {1} Gruppen</RimWorldAccess.Building.Announcer.MoreItemsInGroupsSuffixMany>
+  <RimWorldAccess.Building.Announcer.ItemsInGroupsOne>{0} Objekte in {1} Gruppe</RimWorldAccess.Building.Announcer.ItemsInGroupsOne>
+  <RimWorldAccess.Building.Announcer.ItemsInGroupsMany>{0} Objekte in {1} Gruppen</RimWorldAccess.Building.Announcer.ItemsInGroupsMany>
+
+  <!-- Zone designator entry. zoneName ({1}/{0}) is a lowercase-in-sentence noun from ZoneType.* -->
+  <RimWorldAccess.Building.Announcer.RemovedFromZone>{0} aus der Zone entfernt</RimWorldAccess.Building.Announcer.RemovedFromZone>
+  <RimWorldAccess.Building.Announcer.NoZoneCellsRemoved>Keine Felder aus der Zone entfernt</RimWorldAccess.Building.Announcer.NoZoneCellsRemoved>
+  <RimWorldAccess.Building.Announcer.NoZoneCellsPlaced>Keine Felder zur Zone hinzugefügt</RimWorldAccess.Building.Announcer.NoZoneCellsPlaced>
+  <RimWorldAccess.Building.Announcer.ZoneCreated>{1} erstellt. Größe: {0}</RimWorldAccess.Building.Announcer.ZoneCreated>
+  <RimWorldAccess.Building.Announcer.ZoneExpandedBy>{0} um {1} erweitert</RimWorldAccess.Building.Announcer.ZoneExpandedBy>
+  <RimWorldAccess.Building.Announcer.ZonesCreatedListOne>{0} {1} erstellt. Größe: {2}</RimWorldAccess.Building.Announcer.ZonesCreatedListOne>
+  <RimWorldAccess.Building.Announcer.ZonesCreatedListMany>{0}-mal {1} erstellt. Größen: {2}</RimWorldAccess.Building.Announcer.ZonesCreatedListMany>
+
+  <!-- "blocked" clauses. {0}=count, {1}=obstacle summary -->
+  <RimWorldAccess.Building.Announcer.CellsBlockedByOne>. {0} Feld blockiert durch {1}</RimWorldAccess.Building.Announcer.CellsBlockedByOne>
+  <RimWorldAccess.Building.Announcer.CellsBlockedByMany>. {0} Felder blockiert durch {1}</RimWorldAccess.Building.Announcer.CellsBlockedByMany>
+  <RimWorldAccess.Building.Announcer.CellsBlockedOne>. {0} Feld blockiert</RimWorldAccess.Building.Announcer.CellsBlockedOne>
+  <RimWorldAccess.Building.Announcer.CellsBlockedMany>. {0} Felder blockiert</RimWorldAccess.Building.Announcer.CellsBlockedMany>
+  <RimWorldAccess.Building.Announcer.AllCellsBlockedByOne>{0} Feld ist durch {1} blockiert</RimWorldAccess.Building.Announcer.AllCellsBlockedByOne>
+  <RimWorldAccess.Building.Announcer.AllCellsBlockedByMany>Alle {0} Felder sind durch {1} blockiert</RimWorldAccess.Building.Announcer.AllCellsBlockedByMany>
+
+  <!-- Zone-type nouns (lowercase-in-sentence) -->
+  <RimWorldAccess.Building.Announcer.ZoneType.Stockpile>Lagerzone</RimWorldAccess.Building.Announcer.ZoneType.Stockpile>
+  <RimWorldAccess.Building.Announcer.ZoneType.Growing>Anbauzone</RimWorldAccess.Building.Announcer.ZoneType.Growing>
+  <RimWorldAccess.Building.Announcer.ZoneType.Dumping>Abfallzone</RimWorldAccess.Building.Announcer.ZoneType.Dumping>
+  <RimWorldAccess.Building.Announcer.ZoneType.Fishing>Angelzone</RimWorldAccess.Building.Announcer.ZoneType.Fishing>
+  <RimWorldAccess.Building.Announcer.ZoneType.Generic>Zone</RimWorldAccess.Building.Announcer.ZoneType.Generic>
+
+  <!-- Zone-blocking obstacle labels (single cell, fed into the counted list) -->
+  <RimWorldAccess.Building.Announcer.UnbuiltSuffix>{0} (noch nicht gebaut)</RimWorldAccess.Building.Announcer.UnbuiltSuffix>
+  <RimWorldAccess.Building.Announcer.StructureFallback>Bauwerk</RimWorldAccess.Building.Announcer.StructureFallback>
+  <RimWorldAccess.Building.Announcer.ExistingZone>{0} (vorhanden)</RimWorldAccess.Building.Announcer.ExistingZone>
+  <RimWorldAccess.Building.Announcer.EdgeArea>Kartenrand</RimWorldAccess.Building.Announcer.EdgeArea>
+  <RimWorldAccess.Building.Announcer.FogOfWar>unerforschtes Gebiet</RimWorldAccess.Building.Announcer.FogOfWar>
+  <RimWorldAccess.Building.Announcer.TerrainFallback>Gelände</RimWorldAccess.Building.Announcer.TerrainFallback>
+  <RimWorldAccess.Building.Announcer.UnknownTerrain>unbekanntes Gelände</RimWorldAccess.Building.Announcer.UnknownTerrain>
+  <RimWorldAccess.Building.Announcer.BlockedCell>blockiertes Feld</RimWorldAccess.Building.Announcer.BlockedCell>
+
+  <!-- Area designator entry. {0}=area name, {1}=size (Allowed); {0}=size, {1}=area name (BuiltIn) -->
+  <RimWorldAccess.Building.Announcer.AreaFallback>Gebiet</RimWorldAccess.Building.Announcer.AreaFallback>
+  <RimWorldAccess.Building.Announcer.AllowedAreaExpanded>{0} um {1} erweitert</RimWorldAccess.Building.Announcer.AllowedAreaExpanded>
+  <RimWorldAccess.Building.Announcer.AllowedAreaCleared>{0} um {1} verkleinert</RimWorldAccess.Building.Announcer.AllowedAreaCleared>
+  <RimWorldAccess.Building.Announcer.BuiltInAreaMarked>{0} für {1} markiert</RimWorldAccess.Building.Announcer.BuiltInAreaMarked>
+  <RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked>{1}: {0} nicht mehr markiert</RimWorldAccess.Building.Announcer.BuiltInAreaUnmarked>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsExpanded>Keine Felder zum Gebiet hinzugefügt</RimWorldAccess.Building.Announcer.NoAreaCellsExpanded>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsCleared>Keine Felder aus dem Gebiet entfernt</RimWorldAccess.Building.Announcer.NoAreaCellsCleared>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsMarked>Keine Felder markiert</RimWorldAccess.Building.Announcer.NoAreaCellsMarked>
+  <RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked>Keine Markierungen entfernt</RimWorldAccess.Building.Announcer.NoAreaCellsUnmarked>
+
+  <!-- Built-in area names (only used when the game's own label is empty) -->
+  <RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand>Gebiet 'Schnee und Sand räumen'</RimWorldAccess.Building.Announcer.BuiltInArea.SnowSand>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.Home>Heimatgebiet</RimWorldAccess.Building.Announcer.BuiltInArea.Home>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof>Gebiet 'Dach bauen'</RimWorldAccess.Building.Announcer.BuiltInArea.BuildRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof>Gebiet 'Dach abreißen'</RimWorldAccess.Building.Announcer.BuiltInArea.NoRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof>Dachgebiet</RimWorldAccess.Building.Announcer.BuiltInArea.IgnoreRoof>
+  <RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear>Gebiet 'Boden entseuchen'</RimWorldAccess.Building.Announcer.BuiltInArea.PollutionClear>
+
+  <!-- Build designator entry. {0}=placed size, {1}=total intended, {2}=plural label, {3}=cost suffix -->
+  <RimWorldAccess.Building.Announcer.BlueprintsFallback>Blaupausen</RimWorldAccess.Building.Announcer.BlueprintsFallback>
+  <RimWorldAccess.Building.Announcer.PlacedOfTotal>{2}: {0} von {1} platziert{3}</RimWorldAccess.Building.Announcer.PlacedOfTotal>
+  <RimWorldAccess.Building.Announcer.AllBlockedBy>Alles blockiert durch {0}</RimWorldAccess.Building.Announcer.AllBlockedBy>
+
+  <!-- Build "blocked" clauses (no "cells" noun - count is of blueprints). {0}=count, {1}=summary -->
+  <RimWorldAccess.Building.Announcer.BlockedByOne>. {0} blockiert durch {1}</RimWorldAccess.Building.Announcer.BlockedByOne>
+  <RimWorldAccess.Building.Announcer.BlockedByMany>. {0} blockiert durch {1}</RimWorldAccess.Building.Announcer.BlockedByMany>
+  <RimWorldAccess.Building.Announcer.BlockedOne>. {0} blockiert</RimWorldAccess.Building.Announcer.BlockedOne>
+  <RimWorldAccess.Building.Announcer.BlockedMany>. {0} blockiert</RimWorldAccess.Building.Announcer.BlockedMany>
+
+  <!-- Build obstacle single-cell labels -->
+  <RimWorldAccess.Building.Announcer.ObstacleFallback>Hindernis</RimWorldAccess.Building.Announcer.ObstacleFallback>
+  <RimWorldAccess.Building.Announcer.BlueprintObstacle>Blaupause</RimWorldAccess.Building.Announcer.BlueprintObstacle>
+  <RimWorldAccess.Building.Announcer.ItemObstacle>Objekt</RimWorldAccess.Building.Announcer.ItemObstacle>
+
+  <!-- Enclosure clauses. {0}=size, {1}=contents (containing forms); {0}=gap count (suffixes) -->
+  <RimWorldAccess.Building.Announcer.EnclosureFormed>Umschlossener Bereich. Größe: {0}</RimWorldAccess.Building.Announcer.EnclosureFormed>
+  <RimWorldAccess.Building.Announcer.EnclosureFormedContaining>Umschlossener Bereich. Größe: {0}. Darin: {1}</RimWorldAccess.Building.Announcer.EnclosureFormedContaining>
+  <RimWorldAccess.Building.Announcer.EnclosureSizeContaining>{0}. Darin: {1}</RimWorldAccess.Building.Announcer.EnclosureSizeContaining>
+  <RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne>. Es gibt aber {0} Lücke</RimWorldAccess.Building.Announcer.EnclosureGapSuffixOne>
+  <RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany>. Es gibt aber {0} Lücken</RimWorldAccess.Building.Announcer.EnclosureGapSuffixMany>
+  <RimWorldAccess.Building.Announcer.EnclosuresFormedList>{0} umschlossene Bereiche: {1}</RimWorldAccess.Building.Announcer.EnclosuresFormedList>
+  <RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne>. Es gibt aber insgesamt {0} Lücke</RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixOne>
+  <RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany>. Es gibt aber insgesamt {0} Lücken</RimWorldAccess.Building.Announcer.EnclosureTotalGapSuffixMany>
+
+  <!-- Meditation/tree protection hint (the summary itself comes from MeditationProtectionHelper) -->
+
+  <!-- Counted-list formatting (FormatCountedList). {0}=item count, {1}=group count -->
+  <RimWorldAccess.Building.Announcer.TerrainTilesOne>{0} Feld {1}</RimWorldAccess.Building.Announcer.TerrainTilesOne>
+  <RimWorldAccess.Building.Announcer.TerrainTilesMany>{0} Felder {1}</RimWorldAccess.Building.Announcer.TerrainTilesMany>
+  <RimWorldAccess.Building.Announcer.MoreInGroupsOne>{0} weitere in {1} kleineren Gruppe</RimWorldAccess.Building.Announcer.MoreInGroupsOne>
+  <RimWorldAccess.Building.Announcer.MoreInGroupsMany>{0} weitere in {1} kleineren Gruppen</RimWorldAccess.Building.Announcer.MoreInGroupsMany>
+
+  <!-- Shape display names (lowercase-in-sentence; distinct from the capitalized
+       Building.Shape.Name.* menu labels because these are pluralized and embedded mid-sentence) -->
+  <RimWorldAccess.Building.Announcer.ShapeName.Manual>manuelle Platzierung</RimWorldAccess.Building.Announcer.ShapeName.Manual>
+  <RimWorldAccess.Building.Announcer.ShapeName.Line>Linie</RimWorldAccess.Building.Announcer.ShapeName.Line>
+  <RimWorldAccess.Building.Announcer.ShapeName.AngledLine>schräge Linie</RimWorldAccess.Building.Announcer.ShapeName.AngledLine>
+  <RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle>gefülltes Rechteck</RimWorldAccess.Building.Announcer.ShapeName.FilledRectangle>
+  <RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle>leeres Rechteck</RimWorldAccess.Building.Announcer.ShapeName.EmptyRectangle>
+  <RimWorldAccess.Building.Announcer.ShapeName.FilledOval>gefülltes Oval</RimWorldAccess.Building.Announcer.ShapeName.FilledOval>
+  <RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>leeres Oval</RimWorldAccess.Building.Announcer.ShapeName.EmptyOval>
+  <RimWorldAccess.Building.Announcer.ShapeName.Generic>Form</RimWorldAccess.Building.Announcer.ShapeName.Generic>
+
+  <!-- Architect mode state machine (src/Building/ArchitectState.cs).
+       Central category/tool/material/placement flow plus building rotation
+       and size readouts. The rotation/size announcements compose via
+       AnnouncementBuilder (period-separated), so each fragment here is a
+       clean phrase without trailing punctuation.
+
+       Reuse decisions (NOT re-added here):
+       - Mode toggle reuses Building.Paint.ModeBox / ModeSingle.
+       - "Cannot remove, would disconnect selection" reuses
+         Building.Create.CannotRemoveDisconnect.
+       - "Deselected, {x}, {z}" reuses Building.Paint.Deselected.
+       - "Cell is already in {0}" reuses Building.Create.CellAlreadyInZone.
+       - "Cell must be adjacent to selection" reuses
+         Building.Create.MustBeAdjacentToSelection.
+       - "No cells selected" reuses Building.Place.NoCellsSelected.
+       - Rotation nouns (capitalized) reuse Map.Direction.North/East/South/West;
+         the relative-extent and wind-turbine direction nouns (lowercase)
+         reuse Map.Direction.Lower.North/South/East/West. GetRotationName is
+         also consumed by BuildingCellHelper, which lowercases it itself.
+
+       Placeholders:
+       - CategorySelected: {0} = category LabelCap.
+       - SelectMaterialFor: {0} = buildable label.
+       - Facing: {0} = capitalized rotation direction.
+       - SizeWxH: {0} = width, {1} = depth (tiles).
+       - ExtendDirection: {0} = tile count, {1} = lowercase direction noun.
+       - Extends: {0} = comma-joined ExtendDirection fragments.
+       - TilesDirection: {0} = tile count, {1} = lowercase direction noun.
+       - WindTurbineClearSpace: {0} = front clearance, {1} = back clearance.
+       - Invalid: {0} = vanilla AcceptanceReport.Reason (already localized).
+       - PlacedOnCells: {0} = designator label, {1} = cell count.
+       - ErrorPlacing: {0} = exception message.
+
+       English-keyword substring lookups: none in this file — designator
+       action gerunds live in ShapePlacementState. -->
+  <RimWorldAccess.Building.Architect.SelectionModeZoneOnly>Der Auswahlmodus lässt sich nur bei Zonen-Tools umschalten</RimWorldAccess.Building.Architect.SelectionModeZoneOnly>
+  <RimWorldAccess.Building.Architect.CategorySelected>Kategorie {0} ausgewählt. Wähle ein Tool aus</RimWorldAccess.Building.Architect.CategorySelected>
+  <RimWorldAccess.Building.Architect.SelectMaterialFor>Wähle das Material für {0} aus</RimWorldAccess.Building.Architect.SelectMaterialFor>
+  <RimWorldAccess.Building.Architect.Facing>Ausrichtung: {0}</RimWorldAccess.Building.Architect.Facing>
+  <RimWorldAccess.Building.Architect.NowFacing>Ausrichtung jetzt: {0}</RimWorldAccess.Building.Architect.NowFacing>
+  <RimWorldAccess.Building.Architect.SizeWxH>Größe: {0} mal {1}</RimWorldAccess.Building.Architect.SizeWxH>
+  <RimWorldAccess.Building.Architect.ExtendDirection>{replace: {0} Felder; "1 Felder"-"1 Feld"} nach {1}</RimWorldAccess.Building.Architect.ExtendDirection>
+  <RimWorldAccess.Building.Architect.Extends>Reicht {0}</RimWorldAccess.Building.Architect.Extends>
+  <RimWorldAccess.Building.Architect.TilesDirection>{0} Felder nach {1}</RimWorldAccess.Building.Architect.TilesDirection>
+  <RimWorldAccess.Building.Architect.WindTurbineClearSpace>Braucht freie Fläche: {0}, {1}</RimWorldAccess.Building.Architect.WindTurbineClearSpace>
+  <RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric>Braucht vorne und hinten freie Fläche</RimWorldAccess.Building.Architect.WindTurbineClearSpaceGeneric>
+  <RimWorldAccess.Building.Architect.CannotDesignateHere>Hier lässt sich nichts markieren</RimWorldAccess.Building.Architect.CannotDesignateHere>
+  <RimWorldAccess.Building.Architect.Invalid>Nicht möglich: {0}</RimWorldAccess.Building.Architect.Invalid>
+  <RimWorldAccess.Building.Architect.PlacedOnCells>{0}: {1} Felder markiert</RimWorldAccess.Building.Architect.PlacedOnCells>
+  <RimWorldAccess.Building.Architect.ErrorPlacing>Fehler beim Markieren: {0}</RimWorldAccess.Building.Architect.ErrorPlacing>
+  <RimWorldAccess.Building.Architect.MenuClosed>Architektmenü geschlossen</RimWorldAccess.Building.Architect.MenuClosed>
+
+  <!-- Architect menu Tab-key entry (src/Building/ArchitectMenuPatch.cs).
+       Harmony patch on UIRoot.UIRootOnGUI that opens/closes the accessible
+       architect treeview and handles per-designator actions (right-click
+       options, info card, material selection). Spoken via TolkHelper.
+
+       These keys are shared with the wider Architect group (ArchitectState /
+       ArchitectPlacementPatch). MenuClosed is announced from two close paths
+       in this file (Tab-toggle and Escape) and is a strong candidate for
+       reuse across the trio; if a sibling file already defines an identical
+       "Architect menu closed" phrase, the merge step should dedupe to one key.
+
+       Placeholders ({0}) follow string.Format:
+         OptionsFor          {0} = designator label (LabelCap)
+         NoMaterialsAvailable {0} = buildable label
+       Single-fragment phrases (no AnnouncementBuilder needed): no trailing
+       punctuation, no embedded newlines. No One/Many splits required here. -->
+  <RimWorldAccess.Building.Architect.NoDesignatorSelected>Kein Tool ausgewählt</RimWorldAccess.Building.Architect.NoDesignatorSelected>
+  <RimWorldAccess.Building.Architect.NoAdditionalOptions>Keine weiteren Optionen</RimWorldAccess.Building.Architect.NoAdditionalOptions>
+  <RimWorldAccess.Building.Architect.OptionsFor>Optionen für {0}</RimWorldAccess.Building.Architect.OptionsFor>
+  <RimWorldAccess.Building.Architect.SelectBuildingForInfoCard>Wähle ein Bauwerk aus, um die Infokarte zu sehen</RimWorldAccess.Building.Architect.SelectBuildingForInfoCard>
+  <RimWorldAccess.Building.Architect.NoMaterialsAvailable>Keine Materialien für {0} verfügbar</RimWorldAccess.Building.Architect.NoMaterialsAvailable>
+
+  <!-- Architect placement input (src/Building/ArchitectPlacementPatch.cs).
+       Biggest single Building file: placement validation, designator
+       entry/exit, rotation, shape-mode prompts, transport-pod / gravship
+       landing, and the entire-zone-deletion confirmation dialog. Strings are
+       emitted from the ArchitectPlacementInputPatch keyboard handler, plus
+       CanPlaceHere/InvalidReason from the mouse hover reader (MapHoverSpeech),
+       which speaks the same verdict the keyboard flow does.
+
+       Placeholders follow string.Format ({0}, {1}, ...).
+       GravshipPositioned / LandingConfirmed: {0} = cell x, {1} = cell z.
+       CannotBeRotated: {0} = capitalized building/designator label.
+       GravshipFacing: {0} = direction word (reuses Map.Direction.*).
+       InvalidReason / CannotLandHere / ErrorPlacing / ErrorCreatingZone: {0}
+       = the underlying reason or exception message (game-supplied where it
+       comes from an AcceptanceReport; our fallback noun where it doesn't).
+
+       Reuse decisions (NOT re-added here):
+       - "No points to remove" -> RimWorldAccess.Building.Place.NoPointsToRemove
+       - "No cells selected"    -> RimWorldAccess.Building.Place.NoCellsSelected
+       - "Cancelled {0}"        -> RimWorldAccess.Building.View.CancelledBlueprint
+       - "No blueprint to cancel here" -> RimWorldAccess.Building.View.NoBlueprintHere
+       - "{0} placed at {1}, {2}" -> RimWorldAccess.Building.View.PlacedAt
+       - Gravship facing words  -> RimWorldAccess.Map.Direction.North/East/South/West
+       - Dialog Cancel button   -> vanilla "CancelButton".Translate()
+
+       Whole-phrase / no-glue splits:
+       - Expand vs create: ZoneExpandedWithCells vs ZoneCreatedWithCells are
+         two complete phrases driven by selectionResult.IsExpansion, rather
+         than abstracting the verb ("expanded"/"created") as a particle.
+       - Zone-deletion dialog: the visual dialog text (DeleteZoneDialogText)
+         keeps its &#10;&#10; paragraph break (genuine dialog formatting). The
+         spoken announcement re-uses the same wording as clean fragments
+         (DeleteZoneConfirmHeading + WillDelete + CannotUndo + UseGizmoHint)
+         composed via AnnouncementBuilder, so no newline acts as a separator.
+         DeleteZoneConfirmTitle ("Delete Zone") is the dialog title and is
+         distinct from DeleteZoneConfirmHeading ("Delete Zone confirmation"),
+         which is the spoken lead-in.
+
+       Landing-invalid reasons (LandReason.*) are spoken via CannotLandHere;
+       building.LabelCap (vanilla) is used directly when an edifice blocks the
+       spot, so no key is added for that case. -->
+  <RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing>Beim Platzieren lässt sich die Form nicht wechseln. Drücke zuerst Escape, um die Auswahl aufzuheben.</RimWorldAccess.Building.ArchitectPlace.CannotChangeShapeWhilePlacing>
+  <RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable>Keine Formen verfügbar.</RimWorldAccess.Building.ArchitectPlace.NoShapesAvailable>
+  <RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode>Der manuelle Modus ist bereits aktiv.</RimWorldAccess.Building.ArchitectPlace.AlreadyInManualMode>
+  <RimWorldAccess.Building.ArchitectPlace.RotateFallbackSubject>Das</RimWorldAccess.Building.ArchitectPlace.RotateFallbackSubject>
+  <RimWorldAccess.Building.ArchitectPlace.CannotBeRotated>{0} lässt sich nicht drehen.</RimWorldAccess.Building.ArchitectPlace.CannotBeRotated>
+  <RimWorldAccess.Building.ArchitectPlace.GravshipFacing>Gravschiff zeigt nach {0}.</RimWorldAccess.Building.ArchitectPlace.GravshipFacing>
+  <RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>Fehler beim Platzieren: {0}</RimWorldAccess.Building.ArchitectPlace.ErrorPlacing>
+  <RimWorldAccess.Building.ArchitectPlace.InvalidReason>Nicht möglich: {0}</RimWorldAccess.Building.ArchitectPlace.InvalidReason>
+  <RimWorldAccess.Building.ArchitectPlace.CanPlaceHere>Platzieren möglich</RimWorldAccess.Building.ArchitectPlace.CanPlaceHere>
+  <RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>Gravschiff steht auf Feld {0}, {1}. Wähle die Landezone aus und bestätige sie im Befehlsmenü.</RimWorldAccess.Building.ArchitectPlace.GravshipPositioned>
+  <!-- {0} = footprint width, {1} = footprint height (cells). -->
+  <RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt>Lege die Landezone für das Gravschiff fest. Grundfläche: {0} mal {1} Felder. Die Pfeiltasten bewegen die Landezone. R dreht die Landezone. Die Leertaste platziert die Landezone.</RimWorldAccess.Building.ArchitectPlace.GravshipLandingPrompt>
+  <RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>Keine Zonenfelder in der Auswahl. Versuch es noch einmal.</RimWorldAccess.Building.ArchitectPlace.NoZoneCellsTryAgain>
+  <RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>Keine gültigen Felder in der Auswahl. Versuch es noch einmal.</RimWorldAccess.Building.ArchitectPlace.NoValidCellsTryAgain>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>Platzierung fehlgeschlagen. Auswahl aufgehoben.</RimWorldAccess.Building.ArchitectPlace.PlacementFailedClearing>
+  <RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint>Die Leertaste setzt den zweiten Punkt</RimWorldAccess.Building.ArchitectPlace.PlaceSecondPoint>
+  <RimWorldAccess.Building.ArchitectPlace.PlacementCompleted>Platzierung abgeschlossen</RimWorldAccess.Building.ArchitectPlace.PlacementCompleted>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted>Zonenbearbeitung abgeschlossen</RimWorldAccess.Building.ArchitectPlace.ZoneEditingCompleted>
+  <RimWorldAccess.Building.ArchitectPlace.SelectionCleared>Auswahl aufgehoben</RimWorldAccess.Building.ArchitectPlace.SelectionCleared>
+  <RimWorldAccess.Building.ArchitectPlace.ExitedPlacement>Platzierungsmodus beendet.</RimWorldAccess.Building.ArchitectPlace.ExitedPlacement>
+  <RimWorldAccess.Building.ArchitectPlace.ExitedZoneEditing>Zonenbearbeitung beendet.</RimWorldAccess.Building.ArchitectPlace.ExitedZoneEditing>
+  <RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition>Ungültige Zielposition</RimWorldAccess.Building.ArchitectPlace.InvalidTargetPosition>
+  <RimWorldAccess.Building.ArchitectPlace.CannotLandHere>Hier kannst du nicht landen: {0}</RimWorldAccess.Building.ArchitectPlace.CannotLandHere>
+  <RimWorldAccess.Building.ArchitectPlace.LandingConfirmed>Landung bestätigt. Position {0}, {1}</RimWorldAccess.Building.ArchitectPlace.LandingConfirmed>
+  <RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget>Fehler: Das Ziel konnte nicht bestätigt werden. Versuch es mit der Maus.</RimWorldAccess.Building.ArchitectPlace.CouldNotConfirmTarget>
+  <RimWorldAccess.Building.ArchitectPlace.TargetingCancelled>Zielauswahl abgebrochen</RimWorldAccess.Building.ArchitectPlace.TargetingCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.OutOfBounds>Außerhalb der Karte</RimWorldAccess.Building.ArchitectPlace.LandReason.OutOfBounds>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Water>Wasser</RimWorldAccess.Building.ArchitectPlace.LandReason.Water>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.OverheadMountain>Höhlendecke (massiv)</RimWorldAccess.Building.ArchitectPlace.LandReason.OverheadMountain>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Impassable>Unpassierbares Gelände</RimWorldAccess.Building.ArchitectPlace.LandReason.Impassable>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.Fogged>Unerforschtes Gebiet</RimWorldAccess.Building.ArchitectPlace.LandReason.Fogged>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.AnotherTransportPod>Eine andere Transportkapsel</RimWorldAccess.Building.ArchitectPlace.LandReason.AnotherTransportPod>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.IncomingSkyfaller>Ein herabstürzendes Objekt</RimWorldAccess.Building.ArchitectPlace.LandReason.IncomingSkyfaller>
+  <RimWorldAccess.Building.ArchitectPlace.LandReason.InvalidSpot>Ungültiger Ort</RimWorldAccess.Building.ArchitectPlace.LandReason.InvalidSpot>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneFallbackName>diese Zone</RimWorldAccess.Building.ArchitectPlace.DeleteZoneFallbackName>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneDialogText>Damit löschst du die ganze Zone ({0}). Das Löschen kannst du im Ansichtsmodus nicht mit Escape rückgängig machen.&#10;&#10;Zonen kannst du auch über das Befehlsmenü löschen. G öffnet das Befehlsmenü.</RimWorldAccess.Building.ArchitectPlace.DeleteZoneDialogText>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmHeading>Zone wirklich löschen?</RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmHeading>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmTitle>Zone löschen</RimWorldAccess.Building.ArchitectPlace.DeleteZoneConfirmTitle>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneWillDelete>Damit löschst du die ganze Zone ({0})</RimWorldAccess.Building.ArchitectPlace.DeleteZoneWillDelete>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo>Das Löschen kannst du im Ansichtsmodus nicht mit Escape rückgängig machen</RimWorldAccess.Building.ArchitectPlace.DeleteZoneCannotUndo>
+  <RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint>Zonen kannst du auch über das Befehlsmenü löschen. G öffnet das Befehlsmenü</RimWorldAccess.Building.ArchitectPlace.DeleteZoneUseGizmoHint>
+  <RimWorldAccess.Building.ArchitectPlace.DeletionCancelled>Löschen abgebrochen. Der Formmodus ist weiter aktiv.</RimWorldAccess.Building.ArchitectPlace.DeletionCancelled>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneFallbackName>Zone</RimWorldAccess.Building.ArchitectPlace.ZoneFallbackName>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells>{0} um {replace: ^{1} Felder; "^1 Felder"-"1 Feld"; "^"-""} erweitert</RimWorldAccess.Building.ArchitectPlace.ZoneExpandedWithCells>
+  <RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells>{0} mit {replace: ^{1} Feldern; "^1 Feldern"-"1 Feld"; "^"-""} erstellt</RimWorldAccess.Building.ArchitectPlace.ZoneCreatedWithCells>
+
+  <!--
+       ArchitectTree group: the treeview-style architect (build) menu with
+       expandable category nodes (Orders, Structure, etc.) and designator
+       leaves (Wall, Door, etc.). Three announcement strings:
+       - MenuOpened   : spoken once when the menu opens, before the current
+                        item is re-announced. Clean phrase fragment, no
+                        trailing punctuation.
+       - NoCategories : spoken when no architect categories are available
+                        (menu immediately closes). No placeholders.
+       - RegionName    : the navigable area's own name, spoken when the tree
+                        area is announced as an area rather than a row (an
+                        empty tree, or a region move). Clean noun phrase.
+       None of these strings take arguments. No One/Many splits needed. No
+       existing Building or Common key matched these values, so all are new.
+  -->
+  <RimWorldAccess.Building.ArchitectTree.MenuOpened>Architektmenü</RimWorldAccess.Building.ArchitectTree.MenuOpened>
+  <RimWorldAccess.Building.ArchitectTree.NoCategories>Keine Kategorien im Architektmenü verfügbar</RimWorldAccess.Building.ArchitectTree.NoCategories>
+  <RimWorldAccess.Building.ArchitectTree.RegionName>Architekt</RimWorldAccess.Building.ArchitectTree.RegionName>
+
+  <!-- =================================================================
+       Facility link info (FacilityLinkHelper). Spoken on placement of
+       facility-linked buildings and in the building inspection tree's
+       "Linked Facilities" category. {N} are counts; lists are game-data
+       labels joined with commas. One/Many splits for building/facility
+       noun agreement. Status words active/inactive used for both the
+       inline "(inactive)" suffix and the " (active)/(inactive)" form.
+       ================================================================= -->
+  <RimWorldAccess.Building.Facility.Adjacent>auf angrenzende Bauwerke</RimWorldAccess.Building.Facility.Adjacent>
+  <RimWorldAccess.Building.Facility.WithinTiles>auf Bauwerke im Umkreis von {0} Feldern</RimWorldAccess.Building.Facility.WithinTiles>
+  <RimWorldAccess.Building.Facility.BoostsStats>Gerät. Verbessert {0}. Wirkt {1}</RimWorldAccess.Building.Facility.BoostsStats>
+  <RimWorldAccess.Building.Facility.LinksToBuildings>Gerät. Wirkt {0}</RimWorldAccess.Building.Facility.LinksToBuildings>
+  <RimWorldAccess.Building.Facility.MaxPerBuilding>Höchstens {0} pro Bauwerk</RimWorldAccess.Building.Facility.MaxPerBuilding>
+  <RimWorldAccess.Building.Facility.AndNMore>{0} und {replace: ^{1} weitere; "^1 weitere"-"1 weiteres"; "^"-""}</RimWorldAccess.Building.Facility.AndNMore>
+  <RimWorldAccess.Building.Facility.AcceptsFacilities>Nimmt Geräte auf: {0}</RimWorldAccess.Building.Facility.AcceptsFacilities>
+  <RimWorldAccess.Building.Facility.ProvidesBonuses>Bietet Boni:</RimWorldAccess.Building.Facility.ProvidesBonuses>
+  <RimWorldAccess.Building.Facility.StatOffset>{0}: {1}</RimWorldAccess.Building.Facility.StatOffset>
+  <RimWorldAccess.Building.Facility.LinkedToOne>Mit {0} Bauwerk verbunden:</RimWorldAccess.Building.Facility.LinkedToOne>
+  <RimWorldAccess.Building.Facility.LinkedToMany>Mit {0} Bauwerken verbunden:</RimWorldAccess.Building.Facility.LinkedToMany>
+  <RimWorldAccess.Building.Facility.NotLinkedToBuildings>Mit keinem Bauwerk verbunden.</RimWorldAccess.Building.Facility.NotLinkedToBuildings>
+  <RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding>Maximal verbunden pro Bauwerk: {0}</RimWorldAccess.Building.Facility.MaxConnectionsPerBuilding>
+  <RimWorldAccess.Building.Facility.BoostedByOne>Von {0} Gerät verbessert:</RimWorldAccess.Building.Facility.BoostedByOne>
+  <RimWorldAccess.Building.Facility.BoostedByMany>Von {0} Geräten verbessert:</RimWorldAccess.Building.Facility.BoostedByMany>
+  <RimWorldAccess.Building.Facility.NoFacilitiesLinked>Keine Geräte verbunden.</RimWorldAccess.Building.Facility.NoFacilitiesLinked>
+  <RimWorldAccess.Building.Facility.CompatibleFacilities>Passende Geräte: {0}</RimWorldAccess.Building.Facility.CompatibleFacilities>
+  <RimWorldAccess.Building.Facility.Active>aktiv</RimWorldAccess.Building.Facility.Active>
+  <RimWorldAccess.Building.Facility.Inactive>inaktiv</RimWorldAccess.Building.Facility.Inactive>
+
+  <!-- Storage-linking gizmo labels and tooltip fallbacks (src/Building/ShelfLinkingPatch.cs).
+       {0}/{1} are localized storage counts from ShelfLinkingHelper.FormatStorageCount. -->
+  <RimWorldAccess.Building.Shelf.AddToGroupWithLinked>{0} zur Gruppe hinzufügen ({1} bereits verknüpft)</RimWorldAccess.Building.Shelf.AddToGroupWithLinked>
+  <RimWorldAccess.Building.Shelf.AddToGroup>{0} zur Gruppe hinzufügen</RimWorldAccess.Building.Shelf.AddToGroup>
+  <RimWorldAccess.Building.Shelf.LinkWithInRoom>{0} im Raum verknüpfen</RimWorldAccess.Building.Shelf.LinkWithInRoom>
+  <RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>Verknüpfe die Lagereinstellungen aller passenden Bauwerke in diesem Raum. Dadurch teilen sie sich die gleichen Lagereinstellungen.</RimWorldAccess.Building.Shelf.RoomGizmoDescFallback>
+  <RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>Starte den Auswahlmodus und wähle selbst aus, welche Bauwerke du verknüpfen willst.</RimWorldAccess.Building.Shelf.ManualGizmoDescFallback>
+  <RimWorldAccess.Building.Shelf.LinkManuallyLabel>Lagereinstellungen manuell verknüpfen</RimWorldAccess.Building.Shelf.LinkManuallyLabel>
+  <RimWorldAccess.Building.Shelf.StorageSettingsLabel>Lagereinstellungen</RimWorldAccess.Building.Shelf.StorageSettingsLabel>
+
+  <!-- Architect buildable skill requirement (src/Building/ArchitectHelper.cs). {0}=skill level. -->
+  <RimWorldAccess.Building.Architect.RequiresConstruction>Mindeststufe Konstruktion: {0}</RimWorldAccess.Building.Architect.RequiresConstruction>
+
+  <!-- Plant-selection menu option details (src/Building/PlantSelectionMenuState.cs). -->
+  <RimWorldAccess.Building.Plant.MinSkillSuffix> (Mindeststufe: {0})</RimWorldAccess.Building.Plant.MinSkillSuffix>
+  <RimWorldAccess.Building.Plant.RequiresPlantsSkill>Mindeststufe Pflanzen: {0}</RimWorldAccess.Building.Plant.RequiresPlantsSkill>
+  <RimWorldAccess.Building.Plant.GrowsInDays>Wachstumsdauer: {0} Tage</RimWorldAccess.Building.Plant.GrowsInDays>
+  <RimWorldAccess.Building.Plant.Yields>Ertrag: {0}</RimWorldAccess.Building.Plant.Yields>
+  <RimWorldAccess.Building.Plant.YieldMultiplier> (Menge: {0})</RimWorldAccess.Building.Plant.YieldMultiplier>
+  <RimWorldAccess.Building.Plant.PurposeFood>Nahrungspflanze</RimWorldAccess.Building.Plant.PurposeFood>
+  <RimWorldAccess.Building.Plant.PurposeHealth>Heilpflanze</RimWorldAccess.Building.Plant.PurposeHealth>
+  <RimWorldAccess.Building.Plant.PurposeBeauty>Zierpflanze</RimWorldAccess.Building.Plant.PurposeBeauty>
+  <RimWorldAccess.Building.Plant.PurposeMisc>Diverses</RimWorldAccess.Building.Plant.PurposeMisc>
+  <RimWorldAccess.Building.Plant.PurposeUnknown>Unbekannt</RimWorldAccess.Building.Plant.PurposeUnknown>
+  <RimWorldAccess.Building.Plant.RoofWarning>Warnung: Braucht freien Himmel. In der Zone gibt es überdachte Felder</RimWorldAccess.Building.Plant.RoofWarning>
+  <RimWorldAccess.Building.Plant.CavePlant>Höhlenpflanze. Braucht Dunkelheit</RimWorldAccess.Building.Plant.CavePlant>
+
+  <!-- Meditation focus label fallback when game data lacks a label (src/Building/MeditationProtectionHelper.cs). -->
+  <RimWorldAccess.Building.Meditation.FocusFallback>Meditationsfokus</RimWorldAccess.Building.Meditation.FocusFallback>
+
+  <!-- Item-type nouns for viewing-mode removal counts (src/Building/ViewingModeSegmentManager.cs). One/Many per type. -->
+  <RimWorldAccess.Building.View.ItemTypeBlueprintOne>Blaupause</RimWorldAccess.Building.View.ItemTypeBlueprintOne>
+  <RimWorldAccess.Building.View.ItemTypeBlueprintMany>Blaupausen</RimWorldAccess.Building.View.ItemTypeBlueprintMany>
+  <RimWorldAccess.Building.View.ItemTypeZoneCellOne>Zonenfeld</RimWorldAccess.Building.View.ItemTypeZoneCellOne>
+  <RimWorldAccess.Building.View.ItemTypeZoneCellMany>Zonenfelder</RimWorldAccess.Building.View.ItemTypeZoneCellMany>
+  <RimWorldAccess.Building.View.ItemTypeDesignationOne>Markierung</RimWorldAccess.Building.View.ItemTypeDesignationOne>
+  <RimWorldAccess.Building.View.ItemTypeDesignationMany>Markierungen</RimWorldAccess.Building.View.ItemTypeDesignationMany>
+
+  <!-- Area undo description (src/Building/AreaUndoTracker.cs). A single area reports its own
+       game label; an ignore-roof stroke touches the build-roof and no-roof areas together, so
+       MultipleAreas wraps the joined labels. {0} = area labels joined by vanilla ToCommaList. -->
+  <RimWorldAccess.Building.AreaUndo.MultipleAreas>Gebiete: {0}</RimWorldAccess.Building.AreaUndo.MultipleAreas>
+
+  <!-- Ctrl+A / Ctrl+Shift+A select-all and undo-scope announcements
+       (src/Building/ArchitectPlacementPatch.cs).
+       Scope labels: {0}=width, {1}=height (integers).
+       Scope-aware announce strings: {0}=scopeLabel, {1}=shapeName, {2}=cellCount.
+       ReturnedToPreviousSelection: {0}=shapeName, {1}=cellCount.
+       ReturnedToScope / NoEnclosureSelectedScope: {0}=scopeName or scopeLabel, {1}=shapeName, {2}=cellCount. -->
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom>Raum, {0} mal {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeRoom>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure>von Blaupausen umschlossener Bereich, {0} mal {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeBlueprintEnclosure>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap>ganze Karte, {0} mal {1}</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeEntireMap>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure>umschlossener Bereich</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEnclosure>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap>ganze Karte</RimWorldAccess.Building.ArchitectPlace.CtrlA.ScopeNameEntireMap>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape>Für 'Alles auswählen' brauchst du eine Form. Drücke Tab, um die Formauswahl zu öffnen.</RimWorldAccess.Building.ArchitectPlace.CtrlA.RequiresShape>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines>Bei Linien kannst du nicht alles auswählen.</RimWorldAccess.Building.ArchitectPlace.CtrlA.NotAvailableForLines>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected>Die ganze Karte ist bereits ausgewählt. Strg plus Umschalt plus A geht einen Schritt zurück.</RimWorldAccess.Building.ArchitectPlace.CtrlA.EntireMapAlreadySelected>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope>Ausgewählt: {0}. {1}, {2} Felder. Noch einmal Strg plus A wählt die ganze Karte aus. Enter bestätigt die Auswahl.</RimWorldAccess.Building.ArchitectPlace.CtrlA.SelectedScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope>Erweitert auf: {0}. {1}, {2} Felder. Strg plus Umschalt plus A geht einen Schritt zurück. Enter bestätigt die Auswahl.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ExpandedToScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope>Kein umschlossener Bereich gefunden. Ausgewählt: {0}. {1}, {2} Felder. Strg plus Umschalt plus A geht einen Schritt zurück. Enter bestätigt die Auswahl.</RimWorldAccess.Building.ArchitectPlace.CtrlA.NoEnclosureSelectedScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope>Es gibt keine vorherige Auswahl.</RimWorldAccess.Building.ArchitectPlace.CtrlA.NoPreviousScope>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint>Auswahl aufgehoben. Gehe zum ersten Punkt und drücke die Leertaste.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ClearedMoveToFirstPoint>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>Zurück zur vorherigen Auswahl. {0}, {1} Felder.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToPreviousSelection>
+  <RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>Zurück zu: {0}. {1}, {2} Felder. Enter bestätigt die Auswahl.</RimWorldAccess.Building.ArchitectPlace.CtrlA.ReturnedToScope>
+
+  <!-- Hidden display-English sweep (returned/assigned strings localized). -->
+  <RimWorldAccess.Building.Scanner.CategoryTargets>Ziele</RimWorldAccess.Building.Scanner.CategoryTargets>
+  <RimWorldAccess.Building.Scanner.CategoryObstacles>Hindernisse</RimWorldAccess.Building.Scanner.CategoryObstacles>
+  <RimWorldAccess.Building.Scanner.FallbackOrder>Befehl</RimWorldAccess.Building.Scanner.FallbackOrder>
+  <RimWorldAccess.Building.Scanner.FallbackTarget>Ziel</RimWorldAccess.Building.Scanner.FallbackTarget>
+  <RimWorldAccess.Building.Scanner.HuntTargets>Ziele zum Jagen</RimWorldAccess.Building.Scanner.HuntTargets>
+  <RimWorldAccess.Building.Scanner.MineTargets>Ziele zum Abbauen</RimWorldAccess.Building.Scanner.MineTargets>
+  <RimWorldAccess.Building.Scanner.CanceledOrders>Abgebrochene Befehle</RimWorldAccess.Building.Scanner.CanceledOrders>
+  <RimWorldAccess.Building.Scanner.HaulTargets>Ziele zum Wegtragen</RimWorldAccess.Building.Scanner.HaulTargets>
+  <RimWorldAccess.Building.Scanner.CutTargets>Ziele zum Schneiden</RimWorldAccess.Building.Scanner.CutTargets>
+  <RimWorldAccess.Building.Scanner.HarvestTargets>Ziele zum Ernten</RimWorldAccess.Building.Scanner.HarvestTargets>
+  <RimWorldAccess.Building.Scanner.TameTargets>Ziele zum Zähmen</RimWorldAccess.Building.Scanner.TameTargets>
+  <RimWorldAccess.Building.Scanner.SlaughterTargets>Ziele zum Schlachten</RimWorldAccess.Building.Scanner.SlaughterTargets>
+  <RimWorldAccess.Building.Scanner.DeconstructTargets>Ziele zum Abreißen</RimWorldAccess.Building.Scanner.DeconstructTargets>
+  <RimWorldAccess.Building.Scanner.GenericTargets>Ziele: {0}</RimWorldAccess.Building.Scanner.GenericTargets>
+  <RimWorldAccess.Building.Scanner.ObstacleWithDesc>Hindernis: {0}</RimWorldAccess.Building.Scanner.ObstacleWithDesc>
+  <RimWorldAccess.Building.Scanner.Enclosure>umschlossenem Bereich, Größe {0}</RimWorldAccess.Building.Scanner.Enclosure>
+  <RimWorldAccess.Building.Scanner.EnclosureNumbered>umschlossenem Bereich {1}, Größe {0}</RimWorldAccess.Building.Scanner.EnclosureNumbered>
+  <RimWorldAccess.Building.Scanner.ObstacleInEnclosure>{0} in {1}</RimWorldAccess.Building.Scanner.ObstacleInEnclosure>
+  <RimWorldAccess.Building.Scanner.ObstacleSomething>Etwas</RimWorldAccess.Building.Scanner.ObstacleSomething>
+  <RimWorldAccess.Building.Scanner.ObstacleBlueprint>Blaupause</RimWorldAccess.Building.Scanner.ObstacleBlueprint>
+  <RimWorldAccess.Building.Scanner.ObstacleItem>Objekt</RimWorldAccess.Building.Scanner.ObstacleItem>
+  <RimWorldAccess.Building.Scanner.ObstacleTerrain>Gelände</RimWorldAccess.Building.Scanner.ObstacleTerrain>
+  <RimWorldAccess.Building.Scanner.ObstacleOutOfBounds>Außerhalb der Karte</RimWorldAccess.Building.Scanner.ObstacleOutOfBounds>
+  <RimWorldAccess.Building.Scanner.ObstacleRoofedArea>Dach</RimWorldAccess.Building.Scanner.ObstacleRoofedArea>
+  <RimWorldAccess.Building.Scanner.ObstacleBlocked>Blockiert</RimWorldAccess.Building.Scanner.ObstacleBlocked>
+  <RimWorldAccess.Building.Scanner.ZoneObstacle>Hindernis</RimWorldAccess.Building.Scanner.ZoneObstacle>
+  <RimWorldAccess.Building.Scanner.ZoneExisting>{0} bereits vorhanden</RimWorldAccess.Building.Scanner.ZoneExisting>
+  <RimWorldAccess.Building.Scanner.ZoneEdgeArea>Kartenrand</RimWorldAccess.Building.Scanner.ZoneEdgeArea>
+  <RimWorldAccess.Building.Scanner.ZoneFogOfWar>Unerforschtes Feld</RimWorldAccess.Building.Scanner.ZoneFogOfWar>
+  <RimWorldAccess.Building.Components.RefuelableStatusLine>Treibstoff: {0} von {1}, {2} Prozent. {3}</RimWorldAccess.Building.Components.RefuelableStatusLine>
+  <RimWorldAccess.Building.Zone.WillExpandExisting>Erweitert die vorhandene Zone.</RimWorldAccess.Building.Zone.WillExpandExisting>
+  <RimWorldAccess.Building.Zone.WillCreateNew>Erstellt eine neue Zone.</RimWorldAccess.Building.Zone.WillCreateNew>
+  <!-- Localization guardrail (D.8) sweep — previously hardcoded English. -->
+  <RimWorldAccess.Building.Meditation.SkippedProtected>{0} übersprungen. Geschützt durch {1}</RimWorldAccess.Building.Meditation.SkippedProtected>
+
+  <!-- Architect tree: right-click options hint and material availability
+       suffixes (composed after the designator / material label). -->
+  <RimWorldAccess.Building.Architect.MoreOptionsHint>(die rechte eckige Klammer öffnet weitere Optionen)</RimWorldAccess.Building.Architect.MoreOptionsHint>
+  <RimWorldAccess.Building.Architect.MaterialAvailableCount>({0} verfügbar)</RimWorldAccess.Building.Architect.MaterialAvailableCount>
+  <RimWorldAccess.Building.Architect.MaterialNoneAvailable>(nicht verfügbar)</RimWorldAccess.Building.Architect.MaterialNoneAvailable>
+
+  <!-- Paint color picker (src/Building/PaintColorHelper.cs). Auto-opens when a paint designator
+       (Paint Floor / Paint Building) is selected, and reopens with 'C' while painting. The color
+       names themselves come from the game's own ColorDef labels. -->
+  <RimWorldAccess.Building.PaintColor.MenuTitle>Farbe auswählen</RimWorldAccess.Building.PaintColor.MenuTitle>
+  <!-- {0} = color name. Spoken after a color is chosen from the picker. -->
+  <RimWorldAccess.Building.PaintColor.Set>Farbe: {0}</RimWorldAccess.Building.PaintColor.Set>
+  <!-- Suffix (composed after ", ") marking the color currently selected on the designator. -->
+  <RimWorldAccess.Building.PaintColor.Current>aktuell</RimWorldAccess.Building.PaintColor.Current>
+
+  <!-- Plan color picker (src/Building/PlanColorHelper.cs). Auto-opens when the architect "Plan"
+       tool is selected, and reopens with 'C' while drawing a plan. The nine planning ColorDefs
+       ship with empty labels, so we supply our own names keyed off each def's name suffix
+       (PlanRed -> Red). -->
+  <RimWorldAccess.Building.PlanColor.MenuTitle>Planfarbe auswählen</RimWorldAccess.Building.PlanColor.MenuTitle>
+  <!-- {0} = color name. Spoken after a color is chosen from the picker. -->
+  <RimWorldAccess.Building.PlanColor.Set>Farbe: {0}</RimWorldAccess.Building.PlanColor.Set>
+  <!-- Suffix (composed after ", ") marking the color currently selected on the designator. -->
+  <RimWorldAccess.Building.PlanColor.Current>aktuell</RimWorldAccess.Building.PlanColor.Current>
+  <!-- The nine planning color names. -->
+  <RimWorldAccess.Building.PlanColor.Gray>Grau</RimWorldAccess.Building.PlanColor.Gray>
+  <RimWorldAccess.Building.PlanColor.Red>Rot</RimWorldAccess.Building.PlanColor.Red>
+  <RimWorldAccess.Building.PlanColor.Orange>Orange</RimWorldAccess.Building.PlanColor.Orange>
+  <RimWorldAccess.Building.PlanColor.Yellow>Gelb</RimWorldAccess.Building.PlanColor.Yellow>
+  <RimWorldAccess.Building.PlanColor.Green>Grün</RimWorldAccess.Building.PlanColor.Green>
+  <RimWorldAccess.Building.PlanColor.Cyan>Türkis</RimWorldAccess.Building.PlanColor.Cyan>
+  <RimWorldAccess.Building.PlanColor.Blue>Blau</RimWorldAccess.Building.PlanColor.Blue>
+  <RimWorldAccess.Building.PlanColor.Purple>Lila</RimWorldAccess.Building.PlanColor.Purple>
+  <RimWorldAccess.Building.PlanColor.Pink>Pink</RimWorldAccess.Building.PlanColor.Pink>
+
+  <!-- Plan management announcements (src/Building/PlanActionHelper.cs). -->
+  <RimWorldAccess.Building.Plan.Hidden>Plan versteckt</RimWorldAccess.Building.Plan.Hidden>
+  <!-- {0} = plan name. -->
+  <RimWorldAccess.Building.Plan.Deleted>Plan {0} gelöscht</RimWorldAccess.Building.Plan.Deleted>
+  <!-- Plan copy/paste (src/Building/PlanClipboard.cs). {0} = plan name, {1} = cell count. -->
+  <RimWorldAccess.Building.Plan.Copied>Plan {0} kopiert</RimWorldAccess.Building.Plan.Copied>
+  <RimWorldAccess.Building.Plan.Pasted>Plan {0} eingefügt, {1} Felder</RimWorldAccess.Building.Plan.Pasted>
+  <RimWorldAccess.Building.Plan.PastedReplaced>Plan {0} eingefügt, {1} Felder. {2} Felder aus anderen Plänen ersetzt</RimWorldAccess.Building.Plan.PastedReplaced>
+  <RimWorldAccess.Building.Plan.PasteNothing>Nichts eingefügt. Hier ist kein Platz frei</RimWorldAccess.Building.Plan.PasteNothing>
+  <RimWorldAccess.Building.Plan.ClipboardEmpty>Kein Plan kopiert</RimWorldAccess.Building.Plan.ClipboardEmpty>
+  <!-- Spoken after copying a plan, and shown in the Copy gizmo's tooltip. -->
+  <RimWorldAccess.Building.Plan.PasteHint>Strg plus V fügt den Plan ein.</RimWorldAccess.Building.Plan.PasteHint>
+  <RimWorldAccess.Building.Plan.PasteRelativeHint>Der Plan wird relativ zu deinem Cursor kopiert. Beim Einfügen landet dein Cursor in der Kopie auf demselben Feld wie jetzt.</RimWorldAccess.Building.Plan.PasteRelativeHint>
+  <!-- Plan gizmo tooltips (the rest reuse the game's own plan-command descriptions). -->
+  <RimWorldAccess.Building.Plan.Desc.Rename>Benenne diesen Plan um.</RimWorldAccess.Building.Plan.Desc.Rename>
+  <RimWorldAccess.Building.Plan.Desc.ToggleVisibility>Verstecke diesen Plan auf der Karte oder zeige ihn wieder an.</RimWorldAccess.Building.Plan.Desc.ToggleVisibility>
+  <RimWorldAccess.Building.Plan.Desc.Expand>Erweitere diesen Plan, indem du weitere Felder markierst.</RimWorldAccess.Building.Plan.Desc.Expand>
+
+</LanguageData>

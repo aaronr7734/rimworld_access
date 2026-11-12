@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    New whole-phrase keys added by the P14a mechanical parity batch.
+    Each entry notes the source file/finding it belongs to.
+  -->
+
+  <!-- ShotReportHelper.cs: the manhunter-per-hit chance line vanilla appends
+       to the shot calculation tooltip for faction-less, non-aggro animals/wild
+       men (Verse/TooltipUtility.ShotCalculationTipString). {0} = vanilla's own
+       "ManhunterPerHit" label, {1} = the chance as a percent. -->
+  <RimWorldAccess.Combat.ShotReport.ManhunterPerHit>{0}: {1}</RimWorldAccess.Combat.ShotReport.ManhunterPerHit>
+</LanguageData>

@@ -1,0 +1,476 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    UI module strings (src/UI/). The UI module hosts shared dialog and
+    menu infrastructure used by the rest of the mod; many of its files
+    (TypeaheadSearchHelper, GuardHelper, MenuHelper, TreeNavigationHelper,
+    TwoLevelMenuHelper, NumericStepperHelper) were already wired through
+    Common.xml in earlier phases. This file covers the remaining
+    state/patch/helper files that still emit module-specific phrasing:
+
+      - WindowlessSaveMenuState.cs       (save/load file browser)
+      - WindowlessFloatMenuState.cs      (keyboard-navigable float menu)
+      - WindowlessPauseMenuState.cs      (in-game pause menu)
+      - WindowlessOptionsMenuState.cs    (options panel + setting hints)
+      - WindowlessDialogState.cs         (generic dialog frame)
+      - WindowlessConfirmationState.cs   (yes/no confirmation)
+      - QuantityMenuState.cs             (numeric quantity picker)
+      - GiveNameDialogPatch.cs           (Dialog_GiveName randomize/accept)
+      - DialogElementExtractor.cs        (Dialog_Rename / Dialog_GiveName /
+                                           Dialog_NamePawn OK feedback)
+      - TransferableQuantityHelper.cs    (caravan/trade quantity setters)
+      - MessageBoxScope.Game.cs          (real Dialog_MessageBox scope)
+      - ExtraMenusState.cs               (extra-menus picker)
+      - Dialog_NameAllowedArea.cs        (zone-area name dialog)
+
+    Phrasing decisions:
+      - The "{Label}. {Position}. No matches for '{X}'" pattern (typeahead
+        no-match in pause/extra menus) is shared (Item.WithPositionNoMatches).
+      - "OK", "Accept", "Cancel" button labels delegate to vanilla
+        translation keys via .Translate() at the call site.
+      - The "RimWorld Access" settings sub-category in the in-game options
+        panel reuses the existing RimWorldAccess.Core.Settings.* keys
+        (canonical wording lives in RimWorldAccess_Core.xml).
+
+    Data such as save file names, faction names, settings category labels
+    from the game (Prefs categories), modder-supplied SettingsCategory()
+    text, mass values, item labels, and dialog button text extracted via
+    reflection from RimWorld dialogs is NOT translated here.
+  -->
+
+
+  <!-- =================================================================
+       Save / load menu (WindowlessSaveMenuState +
+                         WindowlessDeleteConfirmationState).
+       Save mode introduces a virtual "Create New Save" entry at index 0,
+       so position composition has its own keys. Load mode shares
+       Item.WithPosition for the basic line.
+       ================================================================= -->
+  <RimWorldAccess.UI.Save.NoFiles>Keine Speicherstände verfügbar</RimWorldAccess.UI.Save.NoFiles>
+  <RimWorldAccess.UI.Save.InvalidSelection>Ungültige Auswahl</RimWorldAccess.UI.Save.InvalidSelection>
+  <RimWorldAccess.UI.Save.NeedName>Gib dem Speicherstand einen Namen</RimWorldAccess.UI.Save.NeedName>
+  <RimWorldAccess.UI.Save.CannotDeleteCreateNew>Die Zeile für den Speichernamen lässt sich nicht löschen</RimWorldAccess.UI.Save.CannotDeleteCreateNew>
+  <!-- {0} = file name (stripped of extension). -->
+  <!-- Row LABELS only. The mode verb stays in the label because it is the only
+       thing distinguishing a save row (Enter overwrites) from a load row (Enter
+       loads) once inside the list; the composer supplies position, the date-time
+       rides Extras. Overwrite/Load: {0} = file name, stripped of its extension. -->
+
+  <RimWorldAccess.UI.Save.OverwriteLabel>Überschreiben: {0}</RimWorldAccess.UI.Save.OverwriteLabel>
+  <RimWorldAccess.UI.Save.LoadLabel>Laden: {0}</RimWorldAccess.UI.Save.LoadLabel>
+
+  <!-- =================================================================
+       Float menu (WindowlessFloatMenuState). The selection announcement
+       differentiates between a queued action (Shift held while clicking
+       a colonist order) and a normal one. {0} = option label.
+       A focused row (label, disabled state, tooltip, position) renders
+       through AnnouncementComposer.ComposeFocus instead of a hand-built key,
+       and the typeahead search announcements now come from the shared
+       ScreenScope search grammar, so the two keys those hand-built shapes
+       needed are gone. What remains is the queued/normal selection wording
+       and the rejection message.
+       ================================================================= -->
+  <RimWorldAccess.UI.FloatMenu.SelectedQueued>{1}: {0}</RimWorldAccess.UI.FloatMenu.SelectedQueued>
+  <RimWorldAccess.UI.FloatMenu.Selected>Ausgewählt: {0}</RimWorldAccess.UI.FloatMenu.Selected>
+  <!-- Spoken when activating a disabled float-menu option. {0} = option label. -->
+  <RimWorldAccess.UI.FloatMenu.LabelUnavailable>{0}: nicht verfügbar</RimWorldAccess.UI.FloatMenu.LabelUnavailable>
+
+  <!-- =================================================================
+       Quantity menu (QuantityMenuState).
+       Opened: {0} = item label.
+       Invalid: {0} = current numeric buffer.
+       Maximum / Minimum spoken when increment cap is hit. -->
+  <RimWorldAccess.UI.Quantity.Opened>Mengenauswahl: {0}.</RimWorldAccess.UI.Quantity.Opened>
+  <RimWorldAccess.UI.Quantity.Maximum>Maximale Menge</RimWorldAccess.UI.Quantity.Maximum>
+  <RimWorldAccess.UI.Quantity.Minimum>Minimale Menge</RimWorldAccess.UI.Quantity.Minimum>
+  <RimWorldAccess.UI.Quantity.InvalidNumber>Ungültige Zahl: {0}</RimWorldAccess.UI.Quantity.InvalidNumber>
+
+  <!-- =================================================================
+       Pause menu (WindowlessPauseMenuState).
+       Quit prompts share a "Press Enter to confirm, Escape to cancel"
+       suffix. Each prompt is a whole-phrase key so translators can vary
+       wording for politeness register (e.g. "Quit to desktop?" might be
+       expressed differently in some locales). -->
+
+  <!-- =================================================================
+       Options menu (WindowlessOptionsMenuState).
+       The "Press Enter to ..." button hints share a small key set;
+       each is one full phrase so translators can vary verb choice. -->
+  <RimWorldAccess.UI.Options.CannotChangeStoryteller>Der Erzähler lässt sich gerade nicht ändern.</RimWorldAccess.UI.Options.CannotChangeStoryteller>
+  <!-- {0} = mod's SettingsCategory() string. -->
+  <!-- RimWorld Access settings edited directly in this menu (the game has no
+       key for these). WorkMenuView is a two-value enum: Label names the row,
+       Focused/Table are the value words spoken as the current value, and the
+       *Desc keys are the tooltip read after the value. -->
+  <RimWorldAccess.UI.Options.WorkMenuView.Label>Standardansicht des Arbeitsmenüs (F1)</RimWorldAccess.UI.Options.WorkMenuView.Label>
+  <RimWorldAccess.UI.Options.WorkMenuView.Focused>Einzelansicht</RimWorldAccess.UI.Options.WorkMenuView.Focused>
+  <RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>Jeweils eine Person mit ihren Arbeitstypen, gruppiert nach Priorität.</RimWorldAccess.UI.Options.WorkMenuView.FocusedDesc>
+  <RimWorldAccess.UI.Options.WorkMenuView.Table>Tabellenansicht</RimWorldAccess.UI.Options.WorkMenuView.Table>
+  <RimWorldAccess.UI.Options.WorkMenuView.TableDesc>Alle Personen und Arbeitstypen in einer Tabelle, wie im Arbeit-Tab auf dem Bildschirm. Du kannst sortieren und eine Priorität in einem Zug auf mehrere Zellen setzen, wie beim Ziehen mit der Maus.</RimWorldAccess.UI.Options.WorkMenuView.TableDesc>
+  <!-- TradeView is the same shape: which view the trade dialog opens in. -->
+  <RimWorldAccess.UI.Options.TradeView.Label>Standardansicht des Handelsfensters</RimWorldAccess.UI.Options.TradeView.Label>
+  <RimWorldAccess.UI.Options.TradeView.Classic>Klassische Ansicht</RimWorldAccess.UI.Options.TradeView.Classic>
+  <RimWorldAccess.UI.Options.TradeView.ClassicDesc>Drei getrennte Listen: die Waren des Händlers, der laufende Handel samt Bilanz und deine eigenen Waren. Pfeil nach links und Pfeil nach rechts wechseln zwischen den Listen.</RimWorldAccess.UI.Options.TradeView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TradeView.Table>Tabellenansicht</RimWorldAccess.UI.Options.TradeView.Table>
+  <RimWorldAccess.UI.Options.TradeView.TableDesc>Alles in einer sortierbaren Tabelle, wie im Handelsfenster auf dem Bildschirm.</RimWorldAccess.UI.Options.TradeView.TableDesc>
+  <RimWorldAccess.UI.Options.TransferView.Label>Standardansicht für Karawanen und Transportkapseln</RimWorldAccess.UI.Options.TransferView.Label>
+  <RimWorldAccess.UI.Options.TransferView.ClassicDesc>Eine Liste pro Tab, wenn du Karawanen formierst, Karawanen teilst oder Transportkapseln belädst. Pfeil nach links und Pfeil nach rechts wechseln zwischen den Tabs. Mit der Tab-Taste kommst du zur Zusammenfassung und zu den Schaltflächen.</RimWorldAccess.UI.Options.TransferView.ClassicDesc>
+  <RimWorldAccess.UI.Options.TransferView.TableDesc>Jeder Tab als sortierbare Tabelle, wie im Fenster auf dem Bildschirm.</RimWorldAccess.UI.Options.TransferView.TableDesc>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Label>Erzwungene Verlangsamung durch Bedrohungen ansagen</RimWorldAccess.UI.Options.ForcedSlowdowns.Label>
+  <RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>Sagt an, wenn das Spiel wegen einer Bedrohung in der Nähe auf normale Geschwindigkeit schaltet. Sagt auch an, wenn die Verlangsamung endet. Das gilt nur, wenn du schneller als normal spielst.</RimWorldAccess.UI.Options.ForcedSlowdowns.Desc>
+
+  <!-- =================================================================
+       Generic dialog frame (WindowlessDialogState).
+       ButtonExecuted: {0} = button label.
+       ButtonCannotActivate: {0} = disabled reason text.
+       Disabled suffix: ButtonAnnouncement: {0} = button label,
+                          DisabledSuffix: {0} = disabled reason. The two
+                        keys compose because the suffix is conditional. -->
+  <RimWorldAccess.UI.Dialog.ButtonExecuted>{0} gedrückt</RimWorldAccess.UI.Dialog.ButtonExecuted>
+  <RimWorldAccess.UI.Dialog.ButtonCannotActivate>Nicht aktivierbar: {0}</RimWorldAccess.UI.Dialog.ButtonCannotActivate>
+  <!-- TextField announcement: {0} = label, {1} = current value or
+       Empty marker. The Empty placeholder is its own key so non-Latin
+       languages can choose a punctuation-free word. -->
+  <!-- Spoken when a generic dialog opens, and the label that prefixes the
+       re-readable description element. Both are composed in C# with the
+       dialog title and message following, so they end with their own
+       punctuation and no trailing space. -->
+  <RimWorldAccess.UI.Dialog.DescriptionLabel>Dialogbeschreibung:</RimWorldAccess.UI.Dialog.DescriptionLabel>
+  <!-- Dialog_ModMismatch load prompt: {0} = the "Load anyway" button label,
+       {1} = the "Go back" button label (both from vanilla keys). -->
+
+  <!-- =================================================================
+       Name dialogs (DialogElementExtractor + GiveNameDialogPatch).
+       Both surfaces (Dialog_GiveName Patch + DialogElementExtractor's
+       reflection-based OK handlers) emit the same announcement set, so
+       the keys live in one place.
+       ================================================================= -->
+  <!-- {0} = randomized name. -->
+  <RimWorldAccess.UI.Name.Randomized>Name zufällig gewählt: {0}</RimWorldAccess.UI.Name.Randomized>
+  <!-- Submit-success announcements. {0} = first name, {1} = second name. -->
+  <RimWorldAccess.UI.Name.Renamed>Umbenannt in {0}</RimWorldAccess.UI.Name.Renamed>
+
+  <!-- Dialog_GiveName field row labels, one per vanilla name-message key. -->
+  <RimWorldAccess.UI.Name.FieldFaction>Fraktionsname</RimWorldAccess.UI.Name.FieldFaction>
+  <RimWorldAccess.UI.Name.FieldSettlement>Siedlungsname</RimWorldAccess.UI.Name.FieldSettlement>
+  <RimWorldAccess.UI.Name.FieldGravship>Gravschiffname</RimWorldAccess.UI.Name.FieldGravship>
+
+  <!-- Dialog_GiveName Randomize button labels, one per vanilla name-message key. -->
+  <RimWorldAccess.UI.Name.RandomizeFaction>Zufälliger Fraktionsname</RimWorldAccess.UI.Name.RandomizeFaction>
+  <RimWorldAccess.UI.Name.RandomizeSettlement>Zufälliger Siedlungsname</RimWorldAccess.UI.Name.RandomizeSettlement>
+  <RimWorldAccess.UI.Name.RandomizeGravship>Zufälliger Gravschiffname</RimWorldAccess.UI.Name.RandomizeGravship>
+
+  <!-- Dialog_GiveName keyboard announcements (GiveNameDialogPatch).
+       DialogIntro {0} = first prompt; the text-field keys take {0} = prompt,
+       {1} = current value. -->
+
+  <!-- Dialog_NameAllowedArea opening prompt. -->
+
+  <!-- =================================================================
+       TransferableQuantityHelper (caravan/trade quantity setters).
+       AdjustTo and SetToZero share a "{count} {item}" phrasing. The
+       SetToMax variant adds a localized "maximum" suffix and an
+       optional mass tag. {0} = count, {1} = item label.
+       MaxLine: {0} = count, {1} = item, {2} = mass suffix or empty.
+       MassSuffix: {0} = total mass formatted to one decimal. -->
+  <RimWorldAccess.UI.Transferable.QuantitySpoken>{0} {1}</RimWorldAccess.UI.Transferable.QuantitySpoken>
+  <RimWorldAccess.UI.Transferable.MaxLine>{0} {1}{2}. Maximum erreicht.</RimWorldAccess.UI.Transferable.MaxLine>
+  <RimWorldAccess.UI.Transferable.MassSuffix>, {0} kg</RimWorldAccess.UI.Transferable.MassSuffix>
+
+  <!-- =================================================================
+       MessageBox patch + ExtraMenusState + WindowlessConfirmationState.
+       Cancelled is shared (used by all three). -->
+  <RimWorldAccess.UI.Cancelled>Abgebrochen</RimWorldAccess.UI.Cancelled>
+  <RimWorldAccess.UI.Extra.None>Keine Zusatzmenüs verfügbar</RimWorldAccess.UI.Extra.None>
+  <!-- Dev-mode only: the F12 extras entry that opens the debug destinations. -->
+  <RimWorldAccess.UI.Extra.Development>Entwicklertools</RimWorldAccess.UI.Extra.Development>
+
+  <!-- =================================================================
+       Dev-mode debug menu (DevDebugScope over LudeonTK.Dialog_Debug) and the
+       F12 > Development destinations. OptionsRegion names the region for
+       nodes with no category; TabsRegion names the tab strip; Back is
+       the up-level action. TweakValues is the one destination label with no
+       vanilla keybinding to borrow. ToolArmed speaks (from the DevToolTargeting
+       reconcile mirror) after a debug map/world tool leaf arms; ToolApplied and
+       ToolAppliedTile speak after Enter fires the tool at the keyboard cursor
+       ({1}/{2} = map cell x/z, {1} = world tile id); ToolCancelled speaks after
+       Escape (or any other path) puts the tool away. -->
+  <RimWorldAccess.Dev.OptionsRegion>Optionen</RimWorldAccess.Dev.OptionsRegion>
+  <RimWorldAccess.Dev.TabsRegion>Tab-Leiste</RimWorldAccess.Dev.TabsRegion>
+  <RimWorldAccess.Dev.TableRegion>Tabelle</RimWorldAccess.Dev.TableRegion>
+  <RimWorldAccess.Dev.CopyCsv>CSV kopieren</RimWorldAccess.Dev.CopyCsv>
+  <RimWorldAccess.Dev.Back>Zurück</RimWorldAccess.Dev.Back>
+  <RimWorldAccess.Dev.Pinned>gepinnt</RimWorldAccess.Dev.Pinned>
+  <RimWorldAccess.Dev.Unpinned>nicht mehr gepinnt</RimWorldAccess.Dev.Unpinned>
+  <RimWorldAccess.Dev.TweakValues>Feinjustierung</RimWorldAccess.Dev.TweakValues>
+  <RimWorldAccess.Dev.ToolArmed>{0}: Werkzeug bereit. Bewege den Kartencursor und drücke Enter, um das Werkzeug anzuwenden. Escape legt das Werkzeug weg.</RimWorldAccess.Dev.ToolArmed>
+  <RimWorldAccess.Dev.ToolApplied>{0} angewendet auf Feld {1}, {2}.</RimWorldAccess.Dev.ToolApplied>
+  <RimWorldAccess.Dev.ToolAppliedTile>{0} angewendet auf Feld {1}.</RimWorldAccess.Dev.ToolAppliedTile>
+  <RimWorldAccess.Dev.ToolCancelled>Debug-Werkzeug weggelegt.</RimWorldAccess.Dev.ToolCancelled>
+  <!-- Rebindable-action labels for the two debug-tool map/world claims. -->
+  <!-- Rebindable-action labels for the time-speed claims. Normal/Fast/Superfast
+       were registered unlocalized in the dormant inventory (33de46c) and never
+       backfilled when they went live; added here alongside the new Ultrafast. -->
+  <RimWorldAccess.Dev.GodModeOn>Gottmodus an</RimWorldAccess.Dev.GodModeOn>
+  <RimWorldAccess.Dev.GodModeOff>Gottmodus aus</RimWorldAccess.Dev.GodModeOff>
+  <RimWorldAccess.Dev.TickedOnce>Ein Tick vergangen</RimWorldAccess.Dev.TickedOnce>
+  <!-- F12 > Development menu entry labels. Plain names for what each entry
+       OPENS, replacing vanilla's "Toggle ..." keybinding wording. DebugActions
+       and DebugSettings open the debug dialog on those tabs; DebugOutputs opens
+       it on the Output tab (the "Write ..." reports); DebugLog opens the log
+       reader; DebugInspector opens the inspector; AdvanceTick steps one tick.
+       God mode and Tweak values reuse the GodModeOn/Off and TweakValues keys. -->
+  <RimWorldAccess.Dev.Menu.DebugActions>Debug-Aktionsmenü</RimWorldAccess.Dev.Menu.DebugActions>
+  <RimWorldAccess.Dev.Menu.DebugSettings>Debug-Einstellungen</RimWorldAccess.Dev.Menu.DebugSettings>
+  <RimWorldAccess.Dev.Menu.DebugOutputs>Debug-Ausgabemenü</RimWorldAccess.Dev.Menu.DebugOutputs>
+  <RimWorldAccess.Dev.Menu.DebugLog>Debug-Log</RimWorldAccess.Dev.Menu.DebugLog>
+  <RimWorldAccess.Dev.Menu.DebugInspector>Debug-Inspektor</RimWorldAccess.Dev.Menu.DebugInspector>
+  <RimWorldAccess.Dev.Menu.AdvanceTick>Ein Tick weiter</RimWorldAccess.Dev.Menu.AdvanceTick>
+  <!-- Outcome announcements for keyboard-run debug actions (DevActionOutcome).
+       WroteLog reports a log-only action ({0} = entry count, {1} = the first
+       new entry truncated with Ellipsis); Done covers a no-op ({0} = the action
+       label); Failed covers a caught throw ({0} = label, {1} = the first line of
+       the exception message). Window/tool/message outcomes announce elsewhere. -->
+  <RimWorldAccess.Dev.Outcome.WroteLog>{0} Logeinträge geschrieben. {1}. Du findest die Einträge unter Debug-Log im Menü Entwicklertools.</RimWorldAccess.Dev.Outcome.WroteLog>
+  <RimWorldAccess.Dev.Outcome.WroteLogOne>Ein Logeintrag geschrieben. {0}. Du findest den Eintrag unter Debug-Log im Menü Entwicklertools.</RimWorldAccess.Dev.Outcome.WroteLogOne>
+  <RimWorldAccess.Dev.Outcome.Done>{0} erledigt.</RimWorldAccess.Dev.Outcome.Done>
+  <RimWorldAccess.Dev.Outcome.Failed>{0} fehlgeschlagen. Fehler: {1}. Details stehen im Debug-Log.</RimWorldAccess.Dev.Outcome.Failed>
+  <RimWorldAccess.Dev.Outcome.Ellipsis>…</RimWorldAccess.Dev.Outcome.Ellipsis>
+  <!-- Audio feedback for the vanilla dev-key window toggles (BackQuote log,
+       Quote inspector, tweakvalues toolbar) when opened outside the F12 path.
+       {0} = the window's own optionalTitle. -->
+  <RimWorldAccess.Dev.WindowOpenedUnfocused>{0} geöffnet. Öffne mit F12 das Menü Entwicklertools, um zum Fenster zu wechseln.</RimWorldAccess.Dev.WindowOpenedUnfocused>
+  <RimWorldAccess.Dev.WindowClosed>{0} geschlossen.</RimWorldAccess.Dev.WindowClosed>
+  <!-- Confirmation phrasing for the DEV controls embedded in normal screens
+       (research instant-finish/techprint, entity codex discover). The button
+       labels themselves are vanilla dev-tool literals presented verbatim. -->
+  <RimWorldAccess.Dev.NoActions>Keine Entwickleraktionen verfügbar.</RimWorldAccess.Dev.NoActions>
+  <RimWorldAccess.Dev.ResearchFinished>{0} abgeschlossen.</RimWorldAccess.Dev.ResearchFinished>
+  <RimWorldAccess.Dev.ResearchTechprintApplied>Techplan angewendet: {0}.</RimWorldAccess.Dev.ResearchTechprintApplied>
+  <RimWorldAccess.Dev.CodexDiscovered>{0} entdeckt.</RimWorldAccess.Dev.CodexDiscovered>
+  <!-- Confirmation phrasing for the caravan/transporter DEV send/load controls. -->
+  <RimWorldAccess.Dev.EverythingSelected>Alles ausgewählt.</RimWorldAccess.Dev.EverythingSelected>
+  <RimWorldAccess.Dev.TransportersLoadedInstantly>Transporter sind beladen.</RimWorldAccess.Dev.TransportersLoadedInstantly>
+  <!-- Debug log window (EditWindow_Log) reader. Type words and repeat phrasing
+       describe a logged message row; the button labels themselves stay vanilla's
+       own untranslated dev-tool literals (presented verbatim in code). LogCleared
+       and LogCopied confirm otherwise-inaudible actions; LogLeft speaks when
+       Escape stands the reader down while vanilla keeps the window open. -->
+  <RimWorldAccess.Dev.LogMessages>Nachrichten</RimWorldAccess.Dev.LogMessages>
+  <RimWorldAccess.Dev.LogDetails>Details</RimWorldAccess.Dev.LogDetails>
+  <RimWorldAccess.Dev.LogTypeMessage>Nachricht</RimWorldAccess.Dev.LogTypeMessage>
+  <RimWorldAccess.Dev.LogTypeWarning>Warnung</RimWorldAccess.Dev.LogTypeWarning>
+  <RimWorldAccess.Dev.LogTypeError>Fehler</RimWorldAccess.Dev.LogTypeError>
+  <RimWorldAccess.Dev.LogRepeats>{0}. {1}-mal wiederholt</RimWorldAccess.Dev.LogRepeats>
+  <RimWorldAccess.Dev.LogNothingSelected>Keine Nachricht ausgewählt</RimWorldAccess.Dev.LogNothingSelected>
+  <RimWorldAccess.Dev.LogCleared>Log geleert</RimWorldAccess.Dev.LogCleared>
+  <RimWorldAccess.Dev.LogCopied>Log in die Zwischenablage kopiert</RimWorldAccess.Dev.LogCopied>
+  <RimWorldAccess.Dev.LogLeft>Logfenster verlassen</RimWorldAccess.Dev.LogLeft>
+
+  <!-- Tweak-values editor (EditWindow_TweakValues). Rows are grouped into one
+       region per tweak category; TweakRegion is the fallback region name.
+       TweakChanged marks a row whose value differs from its initial ({0} =
+       current, {1} = initial). TweakReset/TweakUnchanged answer the Space reset:
+       the row returned to {0}, or nothing to do. -->
+  <RimWorldAccess.Dev.TweakRegion>Feinjustierung</RimWorldAccess.Dev.TweakRegion>
+  <RimWorldAccess.Dev.TweakChanged>{0}, vorher {1}</RimWorldAccess.Dev.TweakChanged>
+  <RimWorldAccess.Dev.TweakReset>Auf {0} zurückgesetzt</RimWorldAccess.Dev.TweakReset>
+  <RimWorldAccess.Dev.TweakUnchanged>Bereits auf dem Anfangswert</RimWorldAccess.Dev.TweakUnchanged>
+
+  <!-- Debug inspector (EditWindow_DebugInspector). The Inspector region reads the
+       state dump one line per row; InspectorAt names the inspected cell ({0} = x,
+       {1} = z) as part of the region entry announcement. InspectorCopied confirms
+       the clipboard copy. InspectorDeep/InspectorShallow are the two top-row image
+       toggles; InspectorVisibility opens the debug settings dialog. -->
+  <RimWorldAccess.Dev.InspectorRegion>Inspektor</RimWorldAccess.Dev.InspectorRegion>
+  <RimWorldAccess.Dev.InspectorAt>Untersuchtes Feld: {0}, {1}</RimWorldAccess.Dev.InspectorAt>
+  <RimWorldAccess.Dev.InspectorCopied>Inspektortext in die Zwischenablage kopiert</RimWorldAccess.Dev.InspectorCopied>
+  <RimWorldAccess.Dev.InspectorDeep>Ausführliche Untersuchung</RimWorldAccess.Dev.InspectorDeep>
+  <RimWorldAccess.Dev.InspectorShallow>Feldinhalt</RimWorldAccess.Dev.InspectorShallow>
+  <RimWorldAccess.Dev.InspectorVisibility>Sichtbarkeitseinstellungen</RimWorldAccess.Dev.InspectorVisibility>
+
+  <!-- Def editor (EditWindow_DefEditor). A field tree over one Def, opened from
+       the "Edit effecter..." / "Edit Animation..." debug actions. Opened folds
+       the def name ({0}) into the open announcement. Terminal rows append a role
+       word (RoleTextField / RoleCheckbox / RoleComboBox / RoleReadOnly) after the
+       value; NullValue renders a null value. ConfigErrors tails an object row that
+       reports validation errors ({0} = count) and CustomWidgets marks a type whose
+       bespoke editor widgets are not keyboard-reachable. RangeMin/RangeMax caption
+       the two steps of a FloatRange/IntRange edit. NothingAvailable answers Space
+       on a row with no structural action; ActionNew / ActionAdd / ActionDelete are
+       that menu's own options. RegionName names the field tree when the window's
+       def cannot be read; Closed speaks when Escape closes the window. -->
+  <RimWorldAccess.Dev.DefEditor.Opened>Def-Editor. {0}</RimWorldAccess.Dev.DefEditor.Opened>
+  <RimWorldAccess.Dev.DefEditor.RegionName>Def-Editor</RimWorldAccess.Dev.DefEditor.RegionName>
+  <RimWorldAccess.Dev.DefEditor.RoleTextField>Eingabefeld</RimWorldAccess.Dev.DefEditor.RoleTextField>
+  <RimWorldAccess.Dev.DefEditor.RoleCheckbox>Kontrollkästchen</RimWorldAccess.Dev.DefEditor.RoleCheckbox>
+  <RimWorldAccess.Dev.DefEditor.RoleComboBox>Kombinationsfeld</RimWorldAccess.Dev.DefEditor.RoleComboBox>
+  <RimWorldAccess.Dev.DefEditor.RoleReadOnly>schreibgeschützt</RimWorldAccess.Dev.DefEditor.RoleReadOnly>
+  <RimWorldAccess.Dev.DefEditor.NullValue>kein Wert</RimWorldAccess.Dev.DefEditor.NullValue>
+  <RimWorldAccess.Dev.DefEditor.ConfigErrors>{0} Konfigurationsfehler</RimWorldAccess.Dev.DefEditor.ConfigErrors>
+  <RimWorldAccess.Dev.DefEditor.CustomWidgets>Spezielle Editor-Steuerelemente. Mit der Tastatur nicht erreichbar.</RimWorldAccess.Dev.DefEditor.CustomWidgets>
+  <RimWorldAccess.Dev.DefEditor.RangeMin>Minimum</RimWorldAccess.Dev.DefEditor.RangeMin>
+  <RimWorldAccess.Dev.DefEditor.RangeMax>Maximum</RimWorldAccess.Dev.DefEditor.RangeMax>
+  <RimWorldAccess.Dev.DefEditor.NothingAvailable>Hier sind keine Aktionen verfügbar</RimWorldAccess.Dev.DefEditor.NothingAvailable>
+  <RimWorldAccess.Dev.DefEditor.ActionNew>Neu</RimWorldAccess.Dev.DefEditor.ActionNew>
+  <RimWorldAccess.Dev.DefEditor.ActionAdd>Hinzufügen</RimWorldAccess.Dev.DefEditor.ActionAdd>
+  <RimWorldAccess.Dev.DefEditor.ActionDelete>Löschen</RimWorldAccess.Dev.DefEditor.ActionDelete>
+  <RimWorldAccess.Dev.DefEditor.Closed>Def-Editor geschlossen</RimWorldAccess.Dev.DefEditor.Closed>
+
+  <!-- Dev-mode extra information that vanilla shows sighted developers only while
+       Prefs.DevMode is on: the health tab's per-hediff debug block ({0} = the
+       hediff's flattened DebugString: hidden flag, exact severity, tend priority,
+       immunity/addiction detail); the social card's two relation debug figures
+       ({0} = compatibility, {1} = romance chance factor); the age tracker's dev
+       block ({0} = biological age ticks, {1} = birth absolute ticks, {2} =
+       biological ticks per tick, {3} = growth, {4} = age reversal demand deadline
+       ticks, {5} = life stage, {6} = sterile); and the world tile debug ID
+       ({0} = tile id and layer). -->
+  <RimWorldAccess.Dev.Info.Hediff>Entwicklerinfo: {0}.</RimWorldAccess.Dev.Info.Hediff>
+  <RimWorldAccess.Dev.Info.SocialRelation>Entwicklerinfo: Kompatibilität {0}. Faktor für Umwerbungschance {1}.</RimWorldAccess.Dev.Info.SocialRelation>
+  <RimWorldAccess.Dev.Info.Age>Entwicklerinfo: biologisches Alter in Ticks {0}. Geburtszeitpunkt in absoluten Ticks {1}. Biologische Ticks pro Tick {2}. Wachstum {3}. Frist für Altersumkehr in Ticks {4}. Altersgruppe {5}. Unfruchtbar {6}.</RimWorldAccess.Dev.Info.Age>
+  <RimWorldAccess.Dev.Info.WorldTileId>Entwicklerinfo: Feld-ID {0}.</RimWorldAccess.Dev.Info.WorldTileId>
+
+
+  <!-- =================================================================
+       Slider dialog (SliderDialogState — Dialog_Slider keyboard nav).
+       OpenPrompt: {0} = current value text (from textGetter), {1} = min, {2} = max.
+       Confirmed: {0} = confirmed integer value.
+       Cleared: spoken when digit buffer is emptied via Backspace. -->
+  <RimWorldAccess.UI.Slider.OpenPrompt>{0}. {1} bis {2}. Pfeil nach oben und Pfeil nach unten ändern den Wert. Pfeil nach links und Pfeil nach rechts ändern den Wert um zehn Prozent. Du kannst auch eine Zahl eintippen. Enter bestätigt den Wert.</RimWorldAccess.UI.Slider.OpenPrompt>
+  <RimWorldAccess.UI.Slider.Confirmed>{0} bestätigt</RimWorldAccess.UI.Slider.Confirmed>
+  <RimWorldAccess.UI.Slider.Cleared>Eingabe gelöscht</RimWorldAccess.UI.Slider.Cleared>
+
+  <!-- Save menu: no existing files to overwrite (save mode, Down from text field). -->
+  <RimWorldAccess.UI.Save.NoExistingSaves>Es gibt keine Speicherstände zum Überschreiben.</RimWorldAccess.UI.Save.NoExistingSaves>
+
+  <!-- TwoLevelMenuHelper fallback messages, used when a caller does not supply
+       its own context-specific text. -->
+  <RimWorldAccess.TwoLevel.OpenFirstDefault>Drücke zuerst Enter, um dieses Element zu öffnen</RimWorldAccess.TwoLevel.OpenFirstDefault>
+  <RimWorldAccess.TwoLevel.NavigateDownDefault>Gehe zuerst nach unten zu den Schaltflächen</RimWorldAccess.TwoLevel.NavigateDownDefault>
+  <RimWorldAccess.TwoLevel.NoButtonsDefault>Keine Schaltflächen verfügbar</RimWorldAccess.TwoLevel.NoButtonsDefault>
+
+
+  <!-- Generic dialog nav instructions + give-name field labels (src/UI/WindowlessDialogState.cs, DialogElementExtractor.cs). -->
+  <RimWorldAccess.UI.Dialog.NavInstructions>{0} Elemente. Mit den Pfeiltasten navigierst du durch den Dialog. Enter aktiviert das gewählte Element. Escape bricht den Dialog ab.</RimWorldAccess.UI.Dialog.NavInstructions>
+
+  <!-- Save menu: name-row typing instructions and per-row tags.
+       VersionTag: {0} = game version string. -->
+  <RimWorldAccess.UI.Save.AutosaveTag>automatisch gespeichert</RimWorldAccess.UI.Save.AutosaveTag>
+  <RimWorldAccess.UI.Save.VersionTag>Version {0}</RimWorldAccess.UI.Save.VersionTag>
+  <!-- Pause menu option labels the game has no keys for. -->
+  <RimWorldAccess.UI.Pause.PlaySettings>Automatik-Einstellungen</RimWorldAccess.UI.Pause.PlaySettings>
+
+  <!-- Field captions for extracted vanilla name dialogs (Dialog_GiveName and
+       Dialog_Rename subclasses). NameLabel is the generic single-name caption;
+       FactionNameLabel is used for the player faction / settlement name field. -->
+  <RimWorldAccess.UI.Quantity.MassFragment>Masse: {0} Kilogramm</RimWorldAccess.UI.Quantity.MassFragment>
+  <RimWorldAccess.UI.Quantity.NutritionFragment>Nahrung: {0}</RimWorldAccess.UI.Quantity.NutritionFragment>
+  <RimWorldAccess.UI.Quantity.PositionFragment>Position {0} von {1}</RimWorldAccess.UI.Quantity.PositionFragment>
+  <RimWorldAccess.UI.Quantity.TypingFragment>Eingabe: {0}</RimWorldAccess.UI.Quantity.TypingFragment>
+
+  <!-- Generic reader, numeric text fields (U4 slice 1: WidgetCapture.Game.cs
+       numeric brackets + GenericWindowScope.Game.cs enrichment).
+       NumericRange: {0} = lower bound, {1} = upper bound, spoken as
+       supplementary info on a numeric field row. NumericOutOfRange uses the
+       same bound order in the edit-session refusal. PercentValue: {0} = the
+       percent-domain number as typed/shown (vanilla draws a "%" caption next
+       to the field). VectorAxis*: spoken captions for the three fields of a
+       vector input, in draw order. -->
+  <RimWorldAccess.UI.GenericWindow.NumericRange>{0} bis {1}</RimWorldAccess.UI.GenericWindow.NumericRange>
+  <RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>muss eine Zahl sein</RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>
+  <RimWorldAccess.UI.GenericWindow.NumericOutOfRange>muss zwischen {0} und {1} liegen</RimWorldAccess.UI.GenericWindow.NumericOutOfRange>
+  <RimWorldAccess.UI.GenericWindow.PercentValue>{0}%</RimWorldAccess.UI.GenericWindow.PercentValue>
+  <RimWorldAccess.UI.GenericWindow.SensitiveValueSet>{0} Zeichen, verborgen</RimWorldAccess.UI.GenericWindow.SensitiveValueSet>
+  <RimWorldAccess.UI.GenericWindow.VectorAxisX>X</RimWorldAccess.UI.GenericWindow.VectorAxisX>
+  <RimWorldAccess.UI.GenericWindow.VectorAxisY>Y</RimWorldAccess.UI.GenericWindow.VectorAxisY>
+  <RimWorldAccess.UI.GenericWindow.VectorAxisZ>Z</RimWorldAccess.UI.GenericWindow.VectorAxisZ>
+
+  <!-- Generic reader, steppers (U4 slice 2: IntEntry/IntAdjuster fused into
+       one spin-box row). {0} = the composite's own button captions in visual
+       order (e.g. "-10, -1, +1, +10"), spoken as supplementary info on an
+       IntEntry row after the value and role. -->
+  <RimWorldAccess.UI.GenericWindow.StepperSteps>Schritte: {0}</RimWorldAccess.UI.GenericWindow.StepperSteps>
+
+  <!-- Generic reader, labeled composites (U4 slice 4: WidgetCapture.Game.cs
+       composite brackets + GenericWindowScope.Game.cs presentation).
+       LabelPair joins the two halves Listing_Standard.LabelDouble draws as
+       one "name: value" row ({0} = left half, {1} = right half). BarRising /
+       BarFalling speak the change arrows vanilla draws beside a fillable bar,
+       as supplementary info after the percentage. RowSelected /
+       RowNotSelected report whether a selectable checkbox row is the selected
+       one, which vanilla shows as a row highlight; the checkbox state itself
+       is spoken by the role. InfoCardButton names the icon button every
+       Widgets.InfoCardButton overload draws. DeleteNamed names a
+       Listing_Standard.SelectableDef delete icon after its own row
+       ({0} = the row name). -->
+  <RimWorldAccess.UI.GenericWindow.LabelPair>{0}: {1}</RimWorldAccess.UI.GenericWindow.LabelPair>
+  <RimWorldAccess.UI.GenericWindow.BarRising>steigend</RimWorldAccess.UI.GenericWindow.BarRising>
+  <RimWorldAccess.UI.GenericWindow.BarFalling>fallend</RimWorldAccess.UI.GenericWindow.BarFalling>
+  <RimWorldAccess.UI.GenericWindow.RowSelected>Zeile ausgewählt</RimWorldAccess.UI.GenericWindow.RowSelected>
+  <RimWorldAccess.UI.GenericWindow.RowNotSelected>Zeile nicht ausgewählt</RimWorldAccess.UI.GenericWindow.RowNotSelected>
+  <RimWorldAccess.UI.GenericWindow.InfoCardButton>Infokarte</RimWorldAccess.UI.GenericWindow.InfoCardButton>
+  <RimWorldAccess.UI.GenericWindow.DeleteNamed>Löschen: {0}</RimWorldAccess.UI.GenericWindow.DeleteNamed>
+
+  <!-- Generic reader, buttons whose whole caption is a directional glyph
+       (a triangle or arrow character used as an icon, the way a mod draws a
+       small reorder or paging control). Read literally, such a caption
+       announces as its Unicode character name, which says nothing; these
+       name the direction the glyph points instead, exactly as the reader
+       already names a button drawn as a texture. They must stay bare
+       direction words — the button's meaning comes from the row it sits on,
+       and this must never claim it moves or pages anything. -->
+  <RimWorldAccess.UI.GenericWindow.GlyphUp>Oben</RimWorldAccess.UI.GenericWindow.GlyphUp>
+  <RimWorldAccess.UI.GenericWindow.GlyphDown>Unten</RimWorldAccess.UI.GenericWindow.GlyphDown>
+  <RimWorldAccess.UI.GenericWindow.GlyphLeft>Links</RimWorldAccess.UI.GenericWindow.GlyphLeft>
+  <RimWorldAccess.UI.GenericWindow.GlyphRight>Rechts</RimWorldAccess.UI.GenericWindow.GlyphRight>
+
+  <!-- Generic reader, range controls (U4 slice 5: Widgets.IntRange /
+       FloatRange / QualityRange, each presented as two rows, one per thumb).
+       RangeMinimum / RangeMaximum name a thumb on a control that carries no
+       caption of its own; they also name the two type-in boxes of
+       Widgets.FloatRangeWithTypeIn. RangeMinimumNamed / RangeMaximumNamed do
+       the same when a caption exists ({0} = that caption, which is either the
+       caller's own adjacent label or the "min to max" text the control drew
+       for itself). -->
+  <RimWorldAccess.UI.GenericWindow.RangeMinimum>Minimum</RimWorldAccess.UI.GenericWindow.RangeMinimum>
+  <RimWorldAccess.UI.GenericWindow.RangeMaximum>Maximum</RimWorldAccess.UI.GenericWindow.RangeMaximum>
+  <RimWorldAccess.UI.GenericWindow.RangeMinimumNamed>{0}: Minimum</RimWorldAccess.UI.GenericWindow.RangeMinimumNamed>
+  <RimWorldAccess.UI.GenericWindow.RangeMaximumNamed>{0}: Maximum</RimWorldAccess.UI.GenericWindow.RangeMaximumNamed>
+
+  <!-- Mouse drag readers for sliders, range controls and scroll bars. Each is
+       spoken only while the mouse is actually dragging the control, and only
+       when the announced number changes.
+       SliderLabelledValue joins a slider's name to its value ({0} = the name,
+       {1} = the value), and is used once at the start of a drag, for a name
+       that was drawn as a name and value pair on the previous pass: the name
+       is still right but its number is one pass old, so the live one is
+       spoken beside it. Every other slider drag opens with the name alone and
+       then speaks values on their own, so nothing ever doubles up.
+       RangeMinimum / RangeMaximum name the thumb a drag is moving on a
+       two-handle range control; {0} is that thumb's value in the control's own
+       rendering.
+       ScrollPercent / ScrollPercentAcross report how far a scroll bar has been
+       dragged, down and across respectively, as a share of the scrollable
+       extent. -->
+  <RimWorldAccess.UI.Drag.SliderLabelledValue>{0}: {1}</RimWorldAccess.UI.Drag.SliderLabelledValue>
+  <RimWorldAccess.UI.Drag.RangeMinimum>Minimum: {0}</RimWorldAccess.UI.Drag.RangeMinimum>
+  <RimWorldAccess.UI.Drag.RangeMaximum>Maximum: {0}</RimWorldAccess.UI.Drag.RangeMaximum>
+  <RimWorldAccess.UI.Drag.ScrollPercent>{0}% gescrollt</RimWorldAccess.UI.Drag.ScrollPercent>
+  <RimWorldAccess.UI.Drag.ScrollPercentAcross>{0}% seitlich gescrollt</RimWorldAccess.UI.Drag.ScrollPercentAcross>
+
+  <!-- Generic reader, color swatches (capture expansion pack:
+       WidgetCapture.Game.cs ColorBox bracket). One entry of a
+       Widgets.ColorSelector palette, presented as a radio button. The game
+       gives a palette color no name anywhere, so its own hexadecimal value is
+       the only identity there is; {0} is that value, six hex digits with no
+       leading marker. -->
+  <RimWorldAccess.UI.GenericWindow.ColorSwatch>Farbe {0}</RimWorldAccess.UI.GenericWindow.ColorSwatch>
+
+  <!-- Generic reader, HSV color wheel (capture expansion pack:
+       WidgetCapture.Game.cs HSVColorWheel record). The wheel itself is a
+       read-only presence row, since the same color is fully settable via
+       the dialog's own captured H/S/V/R/G/B text fields, so this only names
+       the control; its current value reuses ColorSwatch above. -->
+  <RimWorldAccess.UI.GenericWindow.ColorWheel>Farbkreis</RimWorldAccess.UI.GenericWindow.ColorWheel>
+</LanguageData>

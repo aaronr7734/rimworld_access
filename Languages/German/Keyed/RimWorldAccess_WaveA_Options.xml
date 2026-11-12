@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!--
+    Wave A, package A3 (OptionsScope, src/Shell/Screens/OptionsScope.Game.cs).
+    Every other announcement in the real Dialog_Options rail/pane reuses
+    existing vanilla or RimWorldAccess.Core.Settings./UI.Options. keys; this
+    is the one genuinely new string the package needs.
+  -->
+
+  <!-- Preferred-names fix: a raw Label+ButtonImage pair merged into one row
+       (ListingRowCapture's RecordRawButtonImage) — {0} is the button's own
+       resolved label (e.g. "Delete"), {1} is the adjacent row's text (e.g. a
+       saved name). -->
+  <RimWorldAccess.Options.RawRowAction>{0}: {1}</RimWorldAccess.Options.RawRowAction>
+</LanguageData>
