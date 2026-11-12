@@ -882,6 +882,16 @@ Same status as §3.8 to §3.11. They are settled. Do not re-litigate them and ap
 
 ---
 
+## Section 3.13 (2026-11-12): Binding rulings, sync with the 2026-11 English
+
+- **Loadout tag (Compositable Loadouts): Etikett, plural Etiketten.** Never *Tag*, which a screen
+  reader speaks as the word for day, and never *Markierung*, which this mod already uses for
+  designations (`Compat.Rjw.DesignationsLabel`, Building).
+- **Count announcements get One and Many keys.** The three count keys that had no pair
+  (`Compat.HugsLib.NewsOpened`, `Compat.RimTalk.TTS.VoiceLibrary.GroupHeader`,
+  `Compat.Literature.RescanRequested`) are now split in code, so write plain singular and plural
+  instead of the label form.
+
 ## Section 4 — How to extend this glossary
 
 To find how RimWorld translates a term you don't see above:

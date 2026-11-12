@@ -3,10 +3,6 @@
   <RimWorldAccess.TextInput.LabelDefault>Textfeld</RimWorldAccess.TextInput.LabelDefault>
   <RimWorldAccess.TextInput.LabelFaction>Fraktionsname</RimWorldAccess.TextInput.LabelFaction>
   <RimWorldAccess.TextInput.LabelSettlement>Siedlungsname</RimWorldAccess.TextInput.LabelSettlement>
-  <RimWorldAccess.TextInput.LabelZone>Zonenname</RimWorldAccess.TextInput.LabelZone>
-  <RimWorldAccess.TextInput.LabelPlan>Planname</RimWorldAccess.TextInput.LabelPlan>
-  <RimWorldAccess.TextInput.LabelStorage>Name der Lagergruppe</RimWorldAccess.TextInput.LabelStorage>
-  <RimWorldAccess.TextInput.LabelPen>Gehegename</RimWorldAccess.TextInput.LabelPen>
   <RimWorldAccess.TextInput.LabelScenarioTitle>Szenario-Titel</RimWorldAccess.TextInput.LabelScenarioTitle>
   <RimWorldAccess.TextInput.LabelScenarioSummary>Szenario-Zusammenfassung</RimWorldAccess.TextInput.LabelScenarioSummary>
   <RimWorldAccess.TextInput.LabelScenarioDescription>Szenario-Beschreibung</RimWorldAccess.TextInput.LabelScenarioDescription>

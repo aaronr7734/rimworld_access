@@ -771,7 +771,8 @@
        Dialog_UpdateFeaturesFiltered), which auto-opens whenever an installed
        HugsLib mod's version advances. -->
   <RimWorldAccess.Compat.HugsLib.NewsRegion>更新公告</RimWorldAccess.Compat.HugsLib.NewsRegion>
-  <RimWorldAccess.Compat.HugsLib.NewsOpened>更新公告。{0} 条。</RimWorldAccess.Compat.HugsLib.NewsOpened>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedOne>更新公告。{0} 条。</RimWorldAccess.Compat.HugsLib.NewsOpenedOne>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedMany>更新公告。{0} 条。</RimWorldAccess.Compat.HugsLib.NewsOpenedMany>
   <RimWorldAccess.Compat.HugsLib.NewsEntryTitle>{0} 版本 {1}</RimWorldAccess.Compat.HugsLib.NewsEntryTitle>
   <RimWorldAccess.Compat.HugsLib.NewsImage>图片。</RimWorldAccess.Compat.HugsLib.NewsImage>
   <RimWorldAccess.Compat.HugsLib.NewsCaption>说明: {0}</RimWorldAccess.Compat.HugsLib.NewsCaption>
@@ -843,7 +844,8 @@
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>语音库。</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>筛选条件</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>语音</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>{0}（{1} 个语音）</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>{0}（{1} 个语音）</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>{0}（{1} 个语音）</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>语音名称</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>性别</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>语言</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>
@@ -960,7 +962,8 @@
        campaign S15. -->
   <RimWorldAccess.Compat.Literature.BookCacheCleared>已清除 {0} 条缓存的书籍简介。</RimWorldAccess.Compat.Literature.BookCacheCleared>
   <RimWorldAccess.Compat.Literature.ArtCacheCleared>已清除 {0} 条缓存的艺术品描述。</RimWorldAccess.Compat.Literature.ArtCacheCleared>
-  <RimWorldAccess.Compat.Literature.RescanRequested>已请求对 {0} 张地图重新扫描。</RimWorldAccess.Compat.Literature.RescanRequested>
+  <RimWorldAccess.Compat.Literature.RescanRequestedOne>已请求对 {0} 张地图重新扫描。</RimWorldAccess.Compat.Literature.RescanRequestedOne>
+  <RimWorldAccess.Compat.Literature.RescanRequestedMany>已请求对 {0} 张地图重新扫描。</RimWorldAccess.Compat.Literature.RescanRequestedMany>
 
   <!-- RimworldTogetherChatScope: the multiplayer chat panel (DLG_Chat). -->
   <RimWorldAccess.Compat.RimworldTogether.Chat.Opened>聊天。</RimWorldAccess.Compat.RimworldTogether.Chat.Opened>

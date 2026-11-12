@@ -39,6 +39,7 @@
   <RimWorldAccess.Shell.State.Sortable>sortierbar</RimWorldAccess.Shell.State.Sortable>
   <RimWorldAccess.Shell.State.SortedAscending>aufsteigend sortiert</RimWorldAccess.Shell.State.SortedAscending>
   <RimWorldAccess.Shell.State.SortedDescending>absteigend sortiert</RimWorldAccess.Shell.State.SortedDescending>
+  <RimWorldAccess.Shell.State.SearchMatch>Suchtreffer</RimWorldAccess.Shell.State.SearchMatch>
 
   <!-- ScreenScope shared screen shape (screen-model refactor): the
        automatic Toolbar region name and the empty-region word. -->
@@ -102,6 +103,8 @@
   <RimWorldAccess.Shell.Table.SortCleared>Sortierung aufgehoben. Standardreihenfolge</RimWorldAccess.Shell.Table.SortCleared>
   <RimWorldAccess.Shell.Table.NotSortable>Diese Spalte lässt sich nicht sortieren</RimWorldAccess.Shell.Table.NotSortable>
   <RimWorldAccess.Shell.Table.SortHint>Enter sortiert nach dieser Spalte</RimWorldAccess.Shell.Table.SortHint>
+  <RimWorldAccess.Shell.Table.CellReadOnly>{0}, schreibgeschützt</RimWorldAccess.Shell.Table.CellReadOnly>
+  <RimWorldAccess.Shell.Table.JumpToPawnHint>Drücke Enter, um zu {0} zu springen</RimWorldAccess.Shell.Table.JumpToPawnHint>
 
   <!-- Cross-region typeahead (docs/table-model.md section 7): the locating
        frame spoken after a search jump lands in another region, and the
@@ -127,6 +130,13 @@
        param is the assignment label. PawnTableRegion names a pawn table
        whose main button carries no label. -->
   <RimWorldAccess.Shell.Generic.CellNotReadable>Wert nicht lesbar</RimWorldAccess.Shell.Generic.CellNotReadable>
+  <RimWorldAccess.Shell.Generic.ColumnRemoved>Spalte entfernt: {0}</RimWorldAccess.Shell.Generic.ColumnRemoved>
+  <RimWorldAccess.Shell.Generic.ColumnMoved>{0} verschoben nach Spalte {1}</RimWorldAccess.Shell.Generic.ColumnMoved>
+  <RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>{0} ist die letzte Spalte und lässt sich nicht entfernen</RimWorldAccess.Shell.Generic.CannotRemoveLastColumn>
+  <RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>Spalten lassen sich nur in der Kopfzeile verschieben</RimWorldAccess.Shell.Generic.MoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>Spalten lassen sich nur in der Kopfzeile entfernen</RimWorldAccess.Shell.Generic.RemoveColumnHeaderOnly>
+  <RimWorldAccess.Shell.Generic.ColumnAddedFirst>{0} als erste Spalte hinzugefügt</RimWorldAccess.Shell.Generic.ColumnAddedFirst>
+  <RimWorldAccess.Shell.Generic.ColumnAddedRightOf>{0} hinzugefügt, rechts von {1}</RimWorldAccess.Shell.Generic.ColumnAddedRightOf>
   <RimWorldAccess.Shell.Generic.Incapable>unfähig</RimWorldAccess.Shell.Generic.Incapable>
   <RimWorldAccess.Shell.Generic.Trained>trainiert</RimWorldAccess.Shell.Generic.Trained>
   <RimWorldAccess.Shell.Generic.HourRange>Stunden {0} bis {1}: {2}</RimWorldAccess.Shell.Generic.HourRange>

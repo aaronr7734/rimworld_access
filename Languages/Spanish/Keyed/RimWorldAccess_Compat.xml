@@ -773,7 +773,8 @@
        Dialog_UpdateFeaturesFiltered), which auto-opens whenever an installed
        HugsLib mod's version advances. -->
   <RimWorldAccess.Compat.HugsLib.NewsRegion>Novedades de la actualización</RimWorldAccess.Compat.HugsLib.NewsRegion>
-  <RimWorldAccess.Compat.HugsLib.NewsOpened>Novedades de la actualización. {0} entradas.</RimWorldAccess.Compat.HugsLib.NewsOpened>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedOne>Novedades de la actualización. {0} entrada.</RimWorldAccess.Compat.HugsLib.NewsOpenedOne>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedMany>Novedades de la actualización. {0} entradas.</RimWorldAccess.Compat.HugsLib.NewsOpenedMany>
   <RimWorldAccess.Compat.HugsLib.NewsEntryTitle>{0} versión {1}</RimWorldAccess.Compat.HugsLib.NewsEntryTitle>
   <RimWorldAccess.Compat.HugsLib.NewsImage>Imagen.</RimWorldAccess.Compat.HugsLib.NewsImage>
   <RimWorldAccess.Compat.HugsLib.NewsCaption>Leyenda: {0}</RimWorldAccess.Compat.HugsLib.NewsCaption>
@@ -845,7 +846,8 @@
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>Biblioteca de voces.</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>Filtros</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>Voces</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>{0} ({1} voces)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>{0} ({1} voz)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>{0} ({1} voces)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>Nombre de voz</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>Género</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>Idioma</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>
@@ -962,7 +964,8 @@
        campaign S15. -->
   <RimWorldAccess.Compat.Literature.BookCacheCleared>Se eliminaron {0} sinopsis de libros en caché.</RimWorldAccess.Compat.Literature.BookCacheCleared>
   <RimWorldAccess.Compat.Literature.ArtCacheCleared>Se eliminaron {0} descripciones de arte en caché.</RimWorldAccess.Compat.Literature.ArtCacheCleared>
-  <RimWorldAccess.Compat.Literature.RescanRequested>Se solicitó un nuevo escaneo para {0} mapas.</RimWorldAccess.Compat.Literature.RescanRequested>
+  <RimWorldAccess.Compat.Literature.RescanRequestedOne>Se solicitó un nuevo escaneo para {0} mapa.</RimWorldAccess.Compat.Literature.RescanRequestedOne>
+  <RimWorldAccess.Compat.Literature.RescanRequestedMany>Se solicitó un nuevo escaneo para {0} mapas.</RimWorldAccess.Compat.Literature.RescanRequestedMany>
 
   <!-- RimworldTogetherChatScope: the multiplayer chat panel (DLG_Chat). -->
   <RimWorldAccess.Compat.RimworldTogether.Chat.Opened>Chat.</RimWorldAccess.Compat.RimworldTogether.Chat.Opened>

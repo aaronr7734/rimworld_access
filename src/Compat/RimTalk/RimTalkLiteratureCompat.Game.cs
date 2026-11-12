@@ -272,7 +272,9 @@ namespace RimWorldAccess
             int scanned = totalArtScans - drawEntryArtScans;
             if (scanned > 0)
             {
-                TolkHelper.SpeakData("RimWorldAccess.Compat.Literature.RescanRequested".Translate(scanned));
+                TolkHelper.SpeakData(scanned == 1
+                    ? "RimWorldAccess.Compat.Literature.RescanRequestedOne".Translate(scanned)
+                    : "RimWorldAccess.Compat.Literature.RescanRequestedMany".Translate(scanned));
             }
         }
     }

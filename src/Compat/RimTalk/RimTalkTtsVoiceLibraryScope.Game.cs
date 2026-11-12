@@ -148,7 +148,9 @@ namespace RimWorldAccess.Shell
                     rows.Insert(groupStart, new VoiceRow
                     {
                         IsHeader = true,
-                        HeaderText = "RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader".Translate(lastLanguage, groupCount.ToString()),
+                        HeaderText = groupCount == 1
+                            ? "RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne".Translate(lastLanguage, groupCount)
+                            : "RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany".Translate(lastLanguage, groupCount),
                     });
                     groupStart = -1;
                     groupCount = 0;

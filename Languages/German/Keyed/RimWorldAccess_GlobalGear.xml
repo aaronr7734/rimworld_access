@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Global gear screen (src/Shell/Screens/GlobalGearScope.Game.cs). Holder rows use the shared PawnGroup strings in RimWorldAccess_GlobalHealth.xml. -->
+  <RimWorldAccess.GlobalGear.Title>Ausrüstung auf dieser Karte</RimWorldAccess.GlobalGear.Title>
+  <!-- One row per kind of item. {0} = the item's label ("Duster (normal)"), {1} = the short names of everyone holding one, comma-separated ("Bob, Dylan, Harry"). -->
+  <RimWorldAccess.GlobalGear.WornBy>{0}: getragen von {1}</RimWorldAccess.GlobalGear.WornBy>
+  <RimWorldAccess.GlobalGear.EquippedBy>{0}: ausgerüstet von {1}</RimWorldAccess.GlobalGear.EquippedBy>
+  <!-- {0} = hit points as a percentage, already formatted ("43%"). -->
+  <RimWorldAccess.GlobalGear.Condition>Zustand: {0}</RimWorldAccess.GlobalGear.Condition>
+  <RimWorldAccess.GlobalGear.JumpUnavailable>Zu dieser Spielfigur kann nicht gesprungen werden.</RimWorldAccess.GlobalGear.JumpUnavailable>
+  <!-- After a filter checkbox is toggled. {0} = the checkbox's new state ("checked"), {1} = how many pawns now hold listed gear. -->
+  <RimWorldAccess.GlobalGear.FilterChanged>{0}. {1} Träger aufgelistet.</RimWorldAccess.GlobalGear.FilterChanged>
+  <RimWorldAccess.GlobalGear.FilterChangedOne>{0}. 1 Träger aufgelistet.</RimWorldAccess.GlobalGear.FilterChangedOne>
+</LanguageData>

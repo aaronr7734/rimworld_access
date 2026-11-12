@@ -775,7 +775,8 @@
        Dialog_UpdateFeaturesFiltered), which auto-opens whenever an installed
        HugsLib mod's version advances. -->
   <RimWorldAccess.Compat.HugsLib.NewsRegion>Güncelleme haberleri</RimWorldAccess.Compat.HugsLib.NewsRegion>
-  <RimWorldAccess.Compat.HugsLib.NewsOpened>Güncelleme haberleri. {0} girdi.</RimWorldAccess.Compat.HugsLib.NewsOpened>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedOne>Güncelleme haberleri. {0} girdi.</RimWorldAccess.Compat.HugsLib.NewsOpenedOne>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedMany>Güncelleme haberleri. {0} girdi.</RimWorldAccess.Compat.HugsLib.NewsOpenedMany>
   <RimWorldAccess.Compat.HugsLib.NewsEntryTitle>{0} sürüm {1}</RimWorldAccess.Compat.HugsLib.NewsEntryTitle>
   <RimWorldAccess.Compat.HugsLib.NewsImage>Görsel.</RimWorldAccess.Compat.HugsLib.NewsImage>
   <RimWorldAccess.Compat.HugsLib.NewsCaption>Altyazı: {0}</RimWorldAccess.Compat.HugsLib.NewsCaption>
@@ -849,7 +850,8 @@
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>Ses kütüphanesi.</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>Filtreler</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>Sesler</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>{0} ({1} ses)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>{0} ({1} ses)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>{0} ({1} ses)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>Ses adı</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>Cinsiyet</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>Dil</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>
@@ -966,7 +968,8 @@
        campaign S15. -->
   <RimWorldAccess.Compat.Literature.BookCacheCleared>{0} önbelleğe alınmış kitap özeti temizlendi.</RimWorldAccess.Compat.Literature.BookCacheCleared>
   <RimWorldAccess.Compat.Literature.ArtCacheCleared>{0} önbelleğe alınmış sanat açıklaması temizlendi.</RimWorldAccess.Compat.Literature.ArtCacheCleared>
-  <RimWorldAccess.Compat.Literature.RescanRequested>{0} harita için yeniden tarama istendi.</RimWorldAccess.Compat.Literature.RescanRequested>
+  <RimWorldAccess.Compat.Literature.RescanRequestedOne>{0} harita için yeniden tarama istendi.</RimWorldAccess.Compat.Literature.RescanRequestedOne>
+  <RimWorldAccess.Compat.Literature.RescanRequestedMany>{0} harita için yeniden tarama istendi.</RimWorldAccess.Compat.Literature.RescanRequestedMany>
 
   <!-- RimworldTogetherChatScope: the multiplayer chat panel (DLG_Chat). -->
   <RimWorldAccess.Compat.RimworldTogether.Chat.Opened>Sohbet.</RimWorldAccess.Compat.RimworldTogether.Chat.Opened>

@@ -1025,6 +1025,7 @@
   <RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix> (unterdrückt)</RimWorldAccess.Inspection.InfoCardTree.SuppressedSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix> (Hingabe)</RimWorldAccess.Inspection.InfoCardTree.MinorPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix> (Brennende Hingabe)</RimWorldAccess.Inspection.InfoCardTree.MajorPassionSuffix>
+  <RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix>({0})</RimWorldAccess.Inspection.InfoCardTree.NamedPassionSuffix>
   <RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix> (nicht erfüllt)</RimWorldAccess.Inspection.InfoCardTree.NotMetSuffix>
 
   <!-- Skill rows. Disabled form: {0} = skill label, {1} = vanilla
@@ -1331,7 +1332,6 @@
        level (F0), {1} = XP required for next level (F0). The "XP"
        prefix is mod-side because the vanilla Skills.xml exposes only
        the long-form "Experience" word and we want a compact row. -->
-  <RimWorldAccess.Inspection.Tree.SkillXpProgress>Erfahrungspunkte: {0} / {1}</RimWorldAccess.Inspection.Tree.SkillXpProgress>
 
   <!-- =================================================================
        RangeEditMenuState announcements. Spoken when the user
@@ -1360,6 +1360,7 @@
        ThingCategoryDef. CategoryWithCount: {0} = capitalized category
        label, {1} = item type count. -->
   <RimWorldAccess.Inspection.Inventory.UncategorizedFallback>Ohne Kategorie</RimWorldAccess.Inspection.Inventory.UncategorizedFallback>
+  <RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>{0} (1 Art)</RimWorldAccess.Inspection.Inventory.CategoryWithCountOne>
   <RimWorldAccess.Inspection.Inventory.CategoryWithCount>{0} ({1} Arten)</RimWorldAccess.Inspection.Inventory.CategoryWithCount>
 
   <!-- =================================================================
@@ -1403,9 +1404,7 @@
 
   <!-- Gizmo navigation fallbacks and composed labels (src/Inspection/GizmoNavigationState.cs). -->
   <RimWorldAccess.Inspection.Gizmo.RangeFromMaster>Reichweite: {0} Felder von der Bezugsperson</RimWorldAccess.Inspection.Gizmo.RangeFromMaster>
-  <RimWorldAccess.Inspection.Gizmo.WeaponFallback>Waffe</RimWorldAccess.Inspection.Gizmo.WeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.AttackFallback>Angriff</RimWorldAccess.Inspection.Gizmo.AttackFallback>
-  <RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>Unbekannte Waffe</RimWorldAccess.Inspection.Gizmo.UnknownWeaponFallback>
   <RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>{0}: {1}</RimWorldAccess.Inspection.Gizmo.WeaponVerbLabel>
   <RimWorldAccess.Inspection.Gizmo.UnknownCommand>Unbekannter Befehl</RimWorldAccess.Inspection.Gizmo.UnknownCommand>
 
@@ -1506,4 +1505,10 @@
   <RimWorldAccess.Inspection.Permit.AvailableWithPoints>Verfügbar. Benötigt Ermächtigungspunkte: {0}</RimWorldAccess.Inspection.Permit.AvailableWithPoints>
   <RimWorldAccess.Inspection.Permit.LockedWithReason>Gesperrt ({0})</RimWorldAccess.Inspection.Permit.LockedWithReason>
   <RimWorldAccess.Inspection.Permit.Locked>Gesperrt</RimWorldAccess.Inspection.Permit.Locked>
+  <!-- Need bars: {0} = the level the instant-level marker shows the need moving toward. -->
+  <RimWorldAccess.Inspection.Need.HeadingToward>steuert auf {0} zu</RimWorldAccess.Inspection.Need.HeadingToward>
+  <!-- InspectRows: tab-adapter control rows. {0} = a label drawn beside its value (it carries its own colon), {1} = the value. -->
+  <RimWorldAccess.Inspection.Row.StatLine>{0} {1}</RimWorldAccess.Inspection.Row.StatLine>
+  <!-- {0} = what a row is (a picker, a meal), {1} = its current value or the names behind it. -->
+  <RimWorldAccess.Inspection.Row.LabeledValue>{0}: {1}</RimWorldAccess.Inspection.Row.LabeledValue>
 </LanguageData>

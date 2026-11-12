@@ -775,7 +775,8 @@
        Dialog_UpdateFeaturesFiltered), which auto-opens whenever an installed
        HugsLib mod's version advances. -->
   <RimWorldAccess.Compat.HugsLib.NewsRegion>Новини оновлення</RimWorldAccess.Compat.HugsLib.NewsRegion>
-  <RimWorldAccess.Compat.HugsLib.NewsOpened>Новини оновлення. {0} записів.</RimWorldAccess.Compat.HugsLib.NewsOpened>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedOne>Новини оновлення. {0} запис.</RimWorldAccess.Compat.HugsLib.NewsOpenedOne>
+  <RimWorldAccess.Compat.HugsLib.NewsOpenedMany>Новини оновлення. {0} записів.</RimWorldAccess.Compat.HugsLib.NewsOpenedMany>
   <RimWorldAccess.Compat.HugsLib.NewsEntryTitle>{0}, версія {1}</RimWorldAccess.Compat.HugsLib.NewsEntryTitle>
   <RimWorldAccess.Compat.HugsLib.NewsImage>Зображення.</RimWorldAccess.Compat.HugsLib.NewsImage>
   <RimWorldAccess.Compat.HugsLib.NewsCaption>Підпис: {0}</RimWorldAccess.Compat.HugsLib.NewsCaption>
@@ -844,7 +845,8 @@
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>Бібліотека голосів.</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.Opened>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>Фільтри</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.FiltersRegionName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>Голоси</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.TableRegionName>
-  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>{0} ({1} голосів)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeader>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>{0} ({1} голос)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderOne>
+  <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>{0} ({1} голосів)</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.GroupHeaderMany>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>Назва голосу</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnName>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>Стать</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnGender>
   <RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>Мова</RimWorldAccess.Compat.RimTalk.TTS.VoiceLibrary.ColumnLanguage>
@@ -961,7 +963,8 @@
        campaign S15. -->
   <RimWorldAccess.Compat.Literature.BookCacheCleared>Очищено {0} кешованих синопсисів книг.</RimWorldAccess.Compat.Literature.BookCacheCleared>
   <RimWorldAccess.Compat.Literature.ArtCacheCleared>Очищено {0} кешованих описів мистецтва.</RimWorldAccess.Compat.Literature.ArtCacheCleared>
-  <RimWorldAccess.Compat.Literature.RescanRequested>Запитано повторне сканування для {0} карт.</RimWorldAccess.Compat.Literature.RescanRequested>
+  <RimWorldAccess.Compat.Literature.RescanRequestedOne>Запитано повторне сканування для {0} карти.</RimWorldAccess.Compat.Literature.RescanRequestedOne>
+  <RimWorldAccess.Compat.Literature.RescanRequestedMany>Запитано повторне сканування для {0} карт.</RimWorldAccess.Compat.Literature.RescanRequestedMany>
 
   <!-- RimworldTogetherChatScope: the multiplayer chat panel (DLG_Chat). -->
   <RimWorldAccess.Compat.RimworldTogether.Chat.Opened>Чат.</RimWorldAccess.Compat.RimworldTogether.Chat.Opened>

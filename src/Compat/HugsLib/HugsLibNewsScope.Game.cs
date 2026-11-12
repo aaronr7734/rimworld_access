@@ -97,7 +97,9 @@ namespace RimWorldAccess.Shell
                 return;
             }
             announcedOpen = true;
-            TolkHelper.SpeakData("RimWorldAccess.Compat.HugsLib.NewsOpened".Translate(entryCount).ToString());
+            TolkHelper.SpeakData((entryCount == 1
+                ? "RimWorldAccess.Compat.HugsLib.NewsOpenedOne".Translate(entryCount)
+                : "RimWorldAccess.Compat.HugsLib.NewsOpenedMany".Translate(entryCount)).ToString());
             AnnounceCurrentItem();
         }
 

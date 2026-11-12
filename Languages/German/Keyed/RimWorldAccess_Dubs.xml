@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- Bad Hygiene ground layers: resources key, placement cursor -->
+  <RimWorldAccess.Compat.Dubs.Groundwater.Shallow>Grundwasser: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Shallow>
+  <RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>kein Grundwasser</RimWorldAccess.Compat.Dubs.Groundwater.ShallowNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Deep>tiefes Grundwasser: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Deep>
+  <RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>kein tiefes Grundwasser</RimWorldAccess.Compat.Dubs.Groundwater.DeepNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Ice>unterirdisches Eis: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Ice>
+  <RimWorldAccess.Compat.Dubs.Groundwater.IceNone>kein unterirdisches Eis</RimWorldAccess.Compat.Dubs.Groundwater.IceNone>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Sewage>Abwasserverschmutzung: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Sewage>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>Bewässerung: {0}</RimWorldAccess.Compat.Dubs.Groundwater.Irrigation>
+  <RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>gedüngt</RimWorldAccess.Compat.Dubs.Groundwater.Fertilized>
+
+  <!-- Bad Hygiene scanner category -->
+  <RimWorldAccess.Compat.Dubs.Scanner.Category>Grundwasser</RimWorldAccess.Compat.Dubs.Scanner.Category>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>Flach</RimWorldAccess.Compat.Dubs.Scanner.Sub.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>Tief</RimWorldAccess.Compat.Dubs.Scanner.Sub.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>Unterirdisches Eis</RimWorldAccess.Compat.Dubs.Scanner.Sub.Ice>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>Grundwasser</RimWorldAccess.Compat.Dubs.Scanner.Item.Shallow>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>tiefes Grundwasser</RimWorldAccess.Compat.Dubs.Scanner.Item.Deep>
+  <RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>unterirdisches Eis</RimWorldAccess.Compat.Dubs.Scanner.Item.Ice>
+</LanguageData>

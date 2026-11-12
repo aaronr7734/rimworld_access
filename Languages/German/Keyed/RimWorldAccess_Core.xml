@@ -40,6 +40,7 @@
   <RimWorldAccess.Core.Settings.WrapNavigation.Label>Navigation springt vom Ende zum Anfang (und umgekehrt)</RimWorldAccess.Core.Settings.WrapNavigation.Label>
   <RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>Tätigkeit von Personen beim Bewegen des Cursors ansagen</RimWorldAccess.Core.Settings.ShowPawnActivityOnMap.Label>
   <RimWorldAccess.Core.Settings.ShowCoverInfo.Label>Deckung von Personen im Kampfmodus und von Feinden ansagen</RimWorldAccess.Core.Settings.ShowCoverInfo.Label>
+  <RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>Gesundheit von Spielfiguren im Scanner anzeigen</RimWorldAccess.Core.Settings.ShowPawnHealthInScanner.Label>
   <RimWorldAccess.Core.Settings.AnnounceTerrain.Label>Gelände beim Bewegen des Cursors ansagen</RimWorldAccess.Core.Settings.AnnounceTerrain.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Label>Inhalt unter dem Mauszeiger ansagen</RimWorldAccess.Core.Settings.HoverSpeech.Label>
   <RimWorldAccess.Core.Settings.HoverSpeech.Desc>Sagt beim Bewegen der Maus an, worauf sie zeigt.</RimWorldAccess.Core.Settings.HoverSpeech.Desc>
@@ -73,4 +74,5 @@
 
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Label>Neuigkeiten nach einem Update anzeigen</RimWorldAccess.Core.Settings.ShowWhatsNew.Label>
   <RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>Wenn aktiviert, erscheinen die Neuigkeiten nach einem Update von RimWorld Access im Hauptmenü. Wenn deaktiviert, hörst du nur einen kurzen Hinweis auf das Update. Die Neuigkeiten kannst du dann jederzeit über das Menü öffnen.</RimWorldAccess.Core.Settings.ShowWhatsNew.Desc>
+  <RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>Eine Erklärung der Trefferchance für jeden Schuss erhältst du, indem du einen Schützen auswählst, den Cursor auf ein Ziel bewegst und {0} drückst.</RimWorldAccess.Stat.ShootingAccuracy.HitChanceHint>
 </LanguageData>

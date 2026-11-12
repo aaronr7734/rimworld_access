@@ -132,8 +132,6 @@
        *.YoursOnly / TheirsOnly: shared but trader won't trade;
                               {0} = count.
        ================================================================= -->
-  <RimWorldAccess.Trade.Item.SoloAvailable>{0} verfügbar</RimWorldAccess.Trade.Item.SoloAvailable>
-  <RimWorldAccess.Trade.Item.SoloPriceWithQuality>{0}, {1}</RimWorldAccess.Trade.Item.SoloPriceWithQuality>
   <RimWorldAccess.Trade.Item.NotTradeable>Nicht handelbar</RimWorldAccess.Trade.Item.NotTradeable>
   <RimWorldAccess.Trade.Item.YoursAt>Du hast {0} zu je {1}</RimWorldAccess.Trade.Item.YoursAt>
   <RimWorldAccess.Trade.Item.TheirsAt>Händler hat {0} zu je {1}</RimWorldAccess.Trade.Item.TheirsAt>

@@ -104,16 +104,6 @@
        returned to the text-input layer in an AcceptanceReport — they appear
        to the user as the rejection reason.
        {0} = the conflicting name. -->
-  <RimWorldAccess.Building.Rename.Cancelled>Umbenennen abgebrochen</RimWorldAccess.Building.Rename.Cancelled>
-  <RimWorldAccess.Building.Rename.StorageCancelled>Abgebrochen</RimWorldAccess.Building.Rename.StorageCancelled>
-  <RimWorldAccess.Building.Rename.PenError>Fehler beim Umbenennen der Gehegemarkierung: {0}</RimWorldAccess.Building.Rename.PenError>
-  <RimWorldAccess.Building.Rename.ZoneError>Fehler beim Umbenennen der Zone: {0}</RimWorldAccess.Building.Rename.ZoneError>
-  <RimWorldAccess.Building.Rename.PlanError>Fehler beim Umbenennen des Plans: {0}</RimWorldAccess.Building.Rename.PlanError>
-  <RimWorldAccess.Building.Rename.StorageError>Fehler: {0}</RimWorldAccess.Building.Rename.StorageError>
-  <RimWorldAccess.Building.Rename.StorageMapMissing>Fehler: Karte nicht gefunden.</RimWorldAccess.Building.Rename.StorageMapMissing>
-  <RimWorldAccess.Building.Rename.StorageGroupCreated>Lagergruppe {0} erstellt</RimWorldAccess.Building.Rename.StorageGroupCreated>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>Der Name {0} ist schon an eine Zone vergeben</RimWorldAccess.Building.Rename.NameAlreadyUsedByZone>
-  <RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>Der Name {0} ist schon an eine andere Lagergruppe vergeben</RimWorldAccess.Building.Rename.NameAlreadyUsedByGroup>
 
   <!-- Area selection menu (src/Building/AreaSelectionMenuState.cs).
        Replaces the vanilla FloatMenu shown when an area designator is
@@ -296,6 +286,10 @@
   <RimWorldAccess.Building.Place.SpotScannerCategory>Bauplätze für {0}</RimWorldAccess.Building.Place.SpotScannerCategory>
   <RimWorldAccess.Building.Place.SpotScannerItemLabel>Bauplatz</RimWorldAccess.Building.Place.SpotScannerItemLabel>
   <RimWorldAccess.Building.Place.SpotFacing>Ausrichtung: {0}</RimWorldAccess.Building.Place.SpotFacing>
+  <RimWorldAccess.Building.Place.SolarPartlyRoofed>{0} von {1} Feldern überdacht, Leistung {2}</RimWorldAccess.Building.Place.SolarPartlyRoofed>
+  <RimWorldAccess.Building.Place.DrillReach>{0} in Reichweite des Bohrers</RimWorldAccess.Building.Place.DrillReach>
+  <RimWorldAccess.Building.Place.DrillReachAmount>{1} {0}</RimWorldAccess.Building.Place.DrillReachAmount>
+  <RimWorldAccess.Building.Place.DrillRockOnly>keine Vorkommen in Reichweite, nur {0}</RimWorldAccess.Building.Place.DrillRockOnly>
 
   <!-- Spacing numbers the game draws between this building and others of its def during
        placement (src/Building/PlacementHelpSpeech.Game.cs). {0} = distance in tiles. The game
@@ -303,6 +297,11 @@
        are that color said out loud. -->
   <RimWorldAccess.Building.Place.SpacingInRange>Abstand von {replace: ^{0} Feldern; "^1 Feldern"-"1 Feld"; "^"-""} stimmt</RimWorldAccess.Building.Place.SpacingInRange>
   <RimWorldAccess.Building.Place.SpacingOutOfRange>Abstand von {replace: ^{0} Feldern; "^1 Feldern"-"1 Feld"; "^"-""} stimmt nicht</RimWorldAccess.Building.Place.SpacingOutOfRange>
+  <RimWorldAccess.Building.Place.WindPathClear>Windweg frei</RimWorldAccess.Building.Place.WindPathClear>
+  <RimWorldAccess.Building.Place.WindPathBlocked>Windweg blockiert durch {0}, Leistung um {1} verringert</RimWorldAccess.Building.Place.WindPathBlocked>
+  <RimWorldAccess.Building.Place.WindPathBlockedNoOutput>Windweg blockiert durch {0}, keine Leistung</RimWorldAccess.Building.Place.WindPathBlockedNoOutput>
+  <RimWorldAccess.Building.Place.WindNoneInVacuum>Kein Wind im Vakuum, keine Leistung</RimWorldAccess.Building.Place.WindNoneInVacuum>
+  <RimWorldAccess.Building.Place.WindBlockerCount>{0} x{1}</RimWorldAccess.Building.Place.WindBlockerCount>
 
   <!-- A thing the game highlights on screen while a building is being placed, because that is
        where the building has to go (a geothermal generator highlights every steam geyser).

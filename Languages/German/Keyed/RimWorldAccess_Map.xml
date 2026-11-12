@@ -269,7 +269,7 @@
   <RimWorldAccess.Map.Jump.Boundary>Kartenrand</RimWorldAccess.Map.Jump.Boundary>
   <RimWorldAccess.Map.Jump.Blocked>Blockiert</RimWorldAccess.Map.Jump.Blocked>
   <RimWorldAccess.Map.Jump.NoTerrainChange>Kein Geländewechsel in dieser Richtung</RimWorldAccess.Map.Jump.NoTerrainChange>
-  <RimWorldAccess.Map.Jump.NoStructureChange>Kein Strukturwechsel in dieser Richtung</RimWorldAccess.Map.Jump.NoStructureChange>
+  <RimWorldAccess.Map.Jump.NoStructureChange>Keine Struktur in dieser Richtung</RimWorldAccess.Map.Jump.NoStructureChange>
   <RimWorldAccess.Map.Jump.Moved.One>1 Feld</RimWorldAccess.Map.Jump.Moved.One>
   <RimWorldAccess.Map.Jump.Moved.Many>{0} Felder</RimWorldAccess.Map.Jump.Moved.Many>
 
@@ -615,6 +615,11 @@
        "{prefix}{label}: {score}" when there is no stage label. -->
   <RimWorldAccess.Map.Tile.Room.StatWithStage>{0}{1}: {2} ({3})</RimWorldAccess.Map.Tile.Room.StatWithStage>
   <RimWorldAccess.Map.Tile.Room.Stat>{0}{1}: {2}</RimWorldAccess.Map.Tile.Room.Stat>
+  <RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>Thronsaal für {0} ({1})</RimWorldAccess.Map.Tile.Room.Req.ThroneHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>Schlafzimmer für {0} ({1})</RimWorldAccess.Map.Tile.Room.Req.BedroomHeader>
+  <RimWorldAccess.Map.Tile.Room.Req.AllMet>Alle Anforderungen erfüllt</RimWorldAccess.Map.Tile.Room.Req.AllMet>
+  <RimWorldAccess.Map.Tile.Room.Req.Summary>{0} von {1} Anforderungen erfüllt</RimWorldAccess.Map.Tile.Room.Req.Summary>
+  <RimWorldAccess.Map.Tile.Room.Req.Missing>Fehlt: {0}</RimWorldAccess.Map.Tile.Room.Req.Missing>
 
   <!-- Temperature control building info (used in tile summary and
        in the light/temp hotkey). -->

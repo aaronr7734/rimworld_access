@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LanguageData>
+  <!-- VisibleWealthScope: the wealth breakdown window. Region names. -->
+  <RimWorldAccess.Compat.VisibleWealth.OverviewRegion>Zusammenfassung</RimWorldAccess.Compat.VisibleWealth.OverviewRegion>
+  <RimWorldAccess.Compat.VisibleWealth.NestedRegion>Reichtum nach Kategorie</RimWorldAccess.Compat.VisibleWealth.NestedRegion>
+  <RimWorldAccess.Compat.VisibleWealth.FlatRegion>Reichtumsliste</RimWorldAccess.Compat.VisibleWealth.FlatRegion>
+  <RimWorldAccess.Compat.VisibleWealth.SliceRegion>Kreisdiagramm-Segmente</RimWorldAccess.Compat.VisibleWealth.SliceRegion>
+  <RimWorldAccess.Compat.VisibleWealth.OptionsRegion>Diagrammoptionen</RimWorldAccess.Compat.VisibleWealth.OptionsRegion>
+  <RimWorldAccess.Compat.VisibleWealth.Search>Suche</RimWorldAccess.Compat.VisibleWealth.Search>
+  <!-- Names for the two toolbar pickers the mod captions with an icon only. -->
+  <RimWorldAccess.Compat.VisibleWealth.ChartTypeOption>Diagrammtyp</RimWorldAccess.Compat.VisibleWealth.ChartTypeOption>
+  <RimWorldAccess.Compat.VisibleWealth.PercentOption>Prozentwerte</RimWorldAccess.Compat.VisibleWealth.PercentOption>
+  <!-- Flat list column headers. -->
+  <RimWorldAccess.Compat.VisibleWealth.ItemColumn>Objekt</RimWorldAccess.Compat.VisibleWealth.ItemColumn>
+  <RimWorldAccess.Compat.VisibleWealth.ValueColumn>Wert</RimWorldAccess.Compat.VisibleWealth.ValueColumn>
+  <RimWorldAccess.Compat.VisibleWealth.PercentColumn>Prozent</RimWorldAccess.Compat.VisibleWealth.PercentColumn>
+  <!-- A row's market value as the mod prints it. {0} = the whole-number amount. -->
+  <RimWorldAccess.Compat.VisibleWealth.Money>${0}</RimWorldAccess.Compat.VisibleWealth.Money>
+  <!-- {0} = a percentage such as 3.4%, {1} = the parent category's name. -->
+  <RimWorldAccess.Compat.VisibleWealth.PercentOfTotal>{0} vom Gesamtreichtum</RimWorldAccess.Compat.VisibleWealth.PercentOfTotal>
+  <RimWorldAccess.Compat.VisibleWealth.PercentOfParent>{0} von {1}</RimWorldAccess.Compat.VisibleWealth.PercentOfParent>
+  <!-- A pie slice's parent category. {0} = category name. -->
+  <RimWorldAccess.Compat.VisibleWealth.InParent>Kategorie: {0}</RimWorldAccess.Compat.VisibleWealth.InParent>
+  <RimWorldAccess.Compat.VisibleWealth.NotMatching>Passt nicht zur Suche</RimWorldAccess.Compat.VisibleWealth.NotMatching>
+  <RimWorldAccess.Compat.VisibleWealth.ChartLockedWhileSearching>Das Kreisdiagramm lässt sich während der Suche nicht öffnen oder schließen</RimWorldAccess.Compat.VisibleWealth.ChartLockedWhileSearching>
+  <!-- The pause menu's mod toolbar entry. {0} = the window's name, {1} = a key chord. -->
+  <RimWorldAccess.Compat.VisibleWealth.OpenWithHotkey>{0}, Tastenkürzel {1}</RimWorldAccess.Compat.VisibleWealth.OpenWithHotkey>
+  <!-- {0} = a key name. -->
+  <RimWorldAccess.Compat.VisibleWealth.ShiftChord>Umschalt+{0}</RimWorldAccess.Compat.VisibleWealth.ShiftChord>
+</LanguageData>

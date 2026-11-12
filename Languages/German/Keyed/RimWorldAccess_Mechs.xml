@@ -49,6 +49,7 @@
   <RimWorldAccess.Mechs.Menu.Closed>Mech-Menü geschlossen</RimWorldAccess.Mechs.Menu.Closed>
   <RimWorldAccess.Mechs.Menu.NoMechs>Keine Mechs</RimWorldAccess.Mechs.Menu.NoMechs>
   <RimWorldAccess.Mechs.Menu.NotOnMap>Mech nicht auf der Karte</RimWorldAccess.Mechs.Menu.NotOnMap>
+  <RimWorldAccess.Mechs.Menu.OverseerUnavailable>Der Aufseher konnte nicht gefunden werden.</RimWorldAccess.Mechs.Menu.OverseerUnavailable>
 
   <!-- =================================================================
        Draft column interaction (Enter on Draft cell). CannotDraft is the

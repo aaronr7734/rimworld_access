@@ -30,7 +30,6 @@
   <RimWorldAccess.Abilities.Label.Invalid>ungültig</RimWorldAccess.Abilities.Label.Invalid>
   <RimWorldAccess.Abilities.Label.Location>Ort</RimWorldAccess.Abilities.Label.Location>
   <RimWorldAccess.Abilities.Label.Ground>Boden</RimWorldAccess.Abilities.Label.Ground>
-  <RimWorldAccess.Abilities.Label.Target>Ziel</RimWorldAccess.Abilities.Label.Target>
   <RimWorldAccess.Abilities.Label.Item>Objekt</RimWorldAccess.Abilities.Label.Item>
   <RimWorldAccess.Abilities.Label.Permit>Ermächtigung</RimWorldAccess.Abilities.Label.Permit>
   <RimWorldAccess.Abilities.Label.Jump>Sprung</RimWorldAccess.Abilities.Label.Jump>
@@ -277,9 +276,8 @@
        in the Combat TargetingPatch). {0}/{1} are pre-formatted distances/ranges. -->
   <RimWorldAccess.Abilities.Generic.OutOfRangeError>Außer Reichweite. Distanz: {0}, maximale Reichweite: {1}</RimWorldAccess.Abilities.Generic.OutOfRangeError>
   <RimWorldAccess.Abilities.Generic.TooCloseError>Zu nah. Distanz: {0}, Mindestreichweite: {1}</RimWorldAccess.Abilities.Generic.TooCloseError>
-  <RimWorldAccess.Abilities.Generic.LocationFallback>Ort</RimWorldAccess.Abilities.Generic.LocationFallback>
   <RimWorldAccess.Abilities.Generic.TargetSelected>Ziel ausgewählt: {0}</RimWorldAccess.Abilities.Generic.TargetSelected>
-  <RimWorldAccess.Abilities.Generic.SourceTarget>{0}: {1}</RimWorldAccess.Abilities.Generic.SourceTarget>
+  <RimWorldAccess.Abilities.Generic.SourceTargetSet>{0}: Ziel gesetzt: {1}</RimWorldAccess.Abilities.Generic.SourceTargetSet>
   <!-- Hidden display-English sweep (returned/assigned strings localized). -->
   <RimWorldAccess.Abilities.Teleport.Impassable>Teleport hierher nicht möglich. Das Feld ist unpassierbar</RimWorldAccess.Abilities.Teleport.Impassable>
   <RimWorldAccess.Abilities.Teleport.DoorClosed>Teleport hierher nicht möglich. Die Tür ist geschlossen</RimWorldAccess.Abilities.Teleport.DoorClosed>
