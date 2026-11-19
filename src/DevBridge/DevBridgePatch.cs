@@ -1,27 +1,46 @@
 #if DEBUG
 using HarmonyLib;
+using UnityEngine;
 using Verse;
 
 namespace RimWorldAccess.DevBridge
 {
-    /// <summary>
-    /// Drives the dev bridge from RimWorld's main-thread render loop. UIRootOnGUI runs every
-    /// frame at both the main menu and in-game, so this both lazily starts the server and
-    /// drains any eval work the HTTP thread has queued. Debug builds only.
-    /// </summary>
+    /// <summary>Starts the dev bridge and drains queued eval work on the main thread. Debug builds only.</summary>
     [HarmonyPatch(typeof(UIRoot), "UIRootOnGUI")]
     internal static class DevBridgeDrainPatch
+    {
+        internal static int LastGuiFrame = -1;
+
+        [HarmonyPostfix]
+        public static void Postfix()
+        {
+            LastGuiFrame = Time.frameCount;
+            DevBridgeServer.EnsureStarted();
+            MainThreadDispatcher.DrainPending();
+
+            // After this pass's /inject arms ran, so "wait N" means N real frames (ShellDev.Sequence.Game.cs).
+            RimWorldAccess.Shell.ShellDev.AdvanceSequence();
+        }
+    }
+
+    /// <summary>
+    /// 1.7 skips OnGUI while the window is occluded but still runs Update, so the bridge drains here
+    /// when no GUI pass ran last frame (Update precedes OnGUI). Such evals have no Event.current.
+    /// </summary>
+    [HarmonyPatch(typeof(Root), nameof(Root.Update))]
+    internal static class DevBridgeUpdateDrainPatch
     {
         [HarmonyPostfix]
         public static void Postfix()
         {
+            if (DevBridgeServer.RecentlyActive)
+                RimWorldAccess.Shell.ShellDev.KeepDrawingInBackground();
+
+            if (Time.frameCount - DevBridgeDrainPatch.LastGuiFrame <= 1)
+                return;
+
             DevBridgeServer.EnsureStarted();
             MainThreadDispatcher.DrainPending();
-
-            // Ticks the multi-frame sequence engine once per real frame, after any /inject arm request
-            // queued this pass has had a chance to run — so a "wait N" between two steps is N real
-            // frames, not zero (see ShellDev.Sequence.Game.cs's header for why that matters).
-            RimWorldAccess.Shell.ShellDev.AdvanceSequence();
         }
     }
 }

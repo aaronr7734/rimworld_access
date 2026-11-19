@@ -25,10 +25,13 @@ namespace RimWorldAccess.Shell
     /// </summary>
     public static partial class ShellDev
     {
+        private enum StepKind { Chord, Text, RealModifierDown, RealModifierUp, RealTap }
+
         private struct SequenceAction
         {
-            public bool IsText;
+            public StepKind Kind;
             public string Payload;
+            public KeyCode Key;
             public int WaitFramesBefore;
         }
 
@@ -37,6 +40,9 @@ namespace RimWorldAccess.Shell
         private static int sequenceWaitRemaining;
         private static List<string> sequenceSummaries;
         private static int sequenceStartSpeechStamp;
+        private static int sequenceStartTraceTotal;
+        private const int RealSettleFrames = 5;
+        private static bool sequenceReal;
         private static bool sequenceRunningFlag;
 
         /// <summary>Last frame <see cref="AdvanceSequence"/> did work — see the multi-pass guard inside it.</summary>
@@ -64,18 +70,20 @@ namespace RimWorldAccess.Shell
         /// a sequence is already running; returns null on a successful arm — poll
         /// <see cref="SequenceRunning"/>/<see cref="SequenceResult"/> for the outcome.
         /// </summary>
-        internal static string StartSequence(string script, int defaultWaitFrames)
+        internal static string StartSequence(string script, int defaultWaitFrames, bool real = false)
         {
             if (sequenceRunningFlag)
             {
                 return SequenceAlreadyRunningError;
             }
 
-            sequenceActions = ParseSequenceScript(script, Math.Max(0, defaultWaitFrames));
+            sequenceReal = real && RealInputAvailable;
+            sequenceActions = ParseSequenceScript(script, Math.Max(0, defaultWaitFrames), sequenceReal);
             sequenceActionIndex = 0;
             sequenceWaitRemaining = sequenceActions.Count > 0 ? sequenceActions[0].WaitFramesBefore : 0;
             sequenceSummaries = new List<string>();
             sequenceStartSpeechStamp = SpeechRingStamp();
+            sequenceStartTraceTotal = eventTraceTotal;
             sequenceResultValue = null;
             sequenceRunningFlag = true;
 
@@ -107,21 +115,25 @@ namespace RimWorldAccess.Shell
                 return;
             }
             lastAdvanceFrame = Time.frameCount;
-            if (sequenceActionIndex >= sequenceActions.Count)
-            {
-                FinishSequence();
-                return;
-            }
             if (sequenceWaitRemaining > 0)
             {
                 sequenceWaitRemaining--;
+                return;
+            }
+            if (sequenceActionIndex >= sequenceActions.Count)
+            {
+                FinishSequence();
                 return;
             }
 
             SequenceAction action = sequenceActions[sequenceActionIndex];
             try
             {
-                sequenceSummaries.Add(action.IsText ? InjectText(action.Payload) : Inject(action.Payload));
+                string summary = RunStep(action);
+                if (summary != null)
+                {
+                    sequenceSummaries.Add(summary);
+                }
             }
             catch (Exception ex)
             {
@@ -133,15 +145,32 @@ namespace RimWorldAccess.Shell
             {
                 sequenceWaitRemaining = sequenceActions[sequenceActionIndex].WaitFramesBefore;
             }
+            else if (sequenceReal)
+            {
+                sequenceWaitRemaining = RealSettleFrames;
+            }
             else
             {
                 FinishSequence();
             }
         }
 
+        private static string RunStep(SequenceAction action)
+        {
+            switch (action.Kind)
+            {
+                case StepKind.Text: return InjectText(action.Payload);
+                case StepKind.RealModifierDown: return RealModifier(action.Key, down: true);
+                case StepKind.RealModifierUp: return RealModifier(action.Key, down: false);
+                case StepKind.RealTap: return RealTap(action.Key, action.Payload);
+                default: return Inject(action.Payload);
+            }
+        }
+
         private static void FinishSequence()
         {
             var sb = new StringBuilder();
+            sb.Append(sequenceReal ? "mode: real keys\n" : "mode: synthetic\n");
             for (int i = 0; i < sequenceSummaries.Count; i++)
             {
                 sb.Append(sequenceSummaries[i]);
@@ -149,6 +178,10 @@ namespace RimWorldAccess.Shell
                 {
                     sb.Append('\n');
                 }
+            }
+            if (sequenceReal)
+            {
+                sb.Append("keys:\n").Append(EventTraceSince(sequenceStartTraceTotal)).Append('\n');
             }
             sb.Append("speech:\n").Append(SpeechSince(sequenceStartSpeechStamp));
 
@@ -158,7 +191,7 @@ namespace RimWorldAccess.Shell
             sequenceSummaries = null;
         }
 
-        private static List<SequenceAction> ParseSequenceScript(string script, int defaultWaitFrames)
+        private static List<SequenceAction> ParseSequenceScript(string script, int defaultWaitFrames, bool real)
         {
             var actions = new List<SequenceAction>();
             string[] tokens = (script ?? string.Empty).Split(';');
@@ -185,24 +218,33 @@ namespace RimWorldAccess.Shell
                 string payload = isText ? token.Substring(5) : token;
                 if (isText)
                 {
-                    // One character per FRAME, not one text blob per step: typeahead's
-                    // per-keystroke auto-expand rebuilds the search space, and feeding a whole
-                    // word inside one frame races that rebuild (smoke-caught: "weap" typed
-                    // same-frame found nothing where per-frame keys match fine). Two frames
-                    // between characters mirrors a fast human typist.
+                    // One character per FRAME: typeahead's per-keystroke auto-expand rebuilds the
+                    // search space, and a whole word inside one frame races that rebuild ("weap"
+                    // typed same-frame found nothing). Two frames apart mirrors a fast typist.
                     for (int c = 0; c < payload.Length; c++)
                     {
-                        actions.Add(new SequenceAction
+                        int charWait = c == 0 ? waitBefore : 2;
+                        if (real && TryKeyForCharacter(payload[c], out KeyCode charKey, out bool shift))
                         {
-                            IsText = true,
-                            Payload = payload[c].ToString(),
-                            WaitFramesBefore = c == 0 ? waitBefore : 2,
-                        });
+                            AddRealPress(actions, charKey, shift ? new[] { KeyCode.LeftShift } : new KeyCode[0], payload[c].ToString(), charWait);
+                        }
+                        else
+                        {
+                            actions.Add(new SequenceAction { Kind = StepKind.Text, Payload = payload[c].ToString(), WaitFramesBefore = charWait });
+                        }
                     }
+                }
+                else if (real && TryParseChord(payload, out KeyChord chord))
+                {
+                    var modifiers = new List<KeyCode>();
+                    if (chord.Ctrl) modifiers.Add(KeyCode.LeftControl);
+                    if (chord.Alt) modifiers.Add(KeyCode.LeftAlt);
+                    if (chord.Shift) modifiers.Add(KeyCode.LeftShift);
+                    AddRealPress(actions, chord.Key, modifiers.ToArray(), payload, waitBefore);
                 }
                 else
                 {
-                    actions.Add(new SequenceAction { IsText = isText, Payload = payload, WaitFramesBefore = waitBefore });
+                    actions.Add(new SequenceAction { Kind = StepKind.Chord, Payload = payload, WaitFramesBefore = waitBefore });
                 }
 
                 pendingWait = 0;
@@ -210,6 +252,34 @@ namespace RimWorldAccess.Shell
                 first = false;
             }
             return actions;
+        }
+
+        /// <summary>Modifiers go down the frame before the key and up the frame after; ImguiDispatch reads them live.</summary>
+        private static void AddRealPress(List<SequenceAction> actions, KeyCode key, KeyCode[] modifiers, string label, int waitBefore)
+        {
+            for (int m = 0; m < modifiers.Length; m++)
+            {
+                actions.Add(new SequenceAction { Kind = StepKind.RealModifierDown, Key = modifiers[m], WaitFramesBefore = m == 0 ? waitBefore : 0 });
+            }
+            actions.Add(new SequenceAction { Kind = StepKind.RealTap, Key = key, Payload = label, WaitFramesBefore = modifiers.Length > 0 ? 1 : waitBefore });
+            for (int m = 0; m < modifiers.Length; m++)
+            {
+                actions.Add(new SequenceAction { Kind = StepKind.RealModifierUp, Key = modifiers[m], WaitFramesBefore = m == 0 ? 1 : 0 });
+            }
+        }
+
+        private static bool TryParseChord(string text, out KeyChord chord)
+        {
+            try
+            {
+                chord = KeyChord.Parse(text);
+                return true;
+            }
+            catch (Exception)
+            {
+                chord = default(KeyChord);
+                return false;
+            }
         }
 
         private static bool TryParseWaitToken(string token, out int frames)

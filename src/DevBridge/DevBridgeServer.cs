@@ -100,8 +100,16 @@ namespace RimWorldAccess.DevBridge
             }
         }
 
+        private static long lastRequestTicks;
+
+        internal static bool RecentlyActive
+        {
+            get { return DateTime.UtcNow.Ticks - Interlocked.Read(ref lastRequestTicks) < TimeSpan.TicksPerMinute; }
+        }
+
         private static void Handle(HttpListenerContext ctx)
         {
+            Interlocked.Exchange(ref lastRequestTicks, DateTime.UtcNow.Ticks);
             string path = ctx.Request.Url.AbsolutePath.TrimEnd('/');
 
             if (path == "/health")
@@ -164,7 +172,10 @@ namespace RimWorldAccess.DevBridge
                 "  POST /inject      - body (or ?seq=) = a ';'-separated chord/wait/text script,\n" +
                 "                      run one step per real frame; optional ?wait=N overrides the\n" +
                 "                      default 30-frame gap between steps; returns per-step results\n" +
-                "                      plus everything spoken during the run\n" +
+                "                      plus everything spoken during the run. On 1.7 steps are\n" +
+                "                      real key presses through the engine's input injector\n" +
+                "                      (works in the background); ?synthetic=1 forces the old\n" +
+                "                      synthetic events\n" +
                 "  POST /reload      - hot-swap changed method bodies from the freshly deployed\n" +
                 "                      DLL (optional body = explicit DLL path); reports swapped\n" +
                 "                      methods and anything that needs a restart instead\n\n" +
@@ -218,8 +229,9 @@ namespace RimWorldAccess.DevBridge
                 int.TryParse(waitParam, out wait);
             }
 
+            bool real = ctx.Request.QueryString["synthetic"] != "1";
             string startError = MainThreadDispatcher.RunOnMainThread(
-                () => RimWorldAccess.Shell.ShellDev.StartSequence(script, wait));
+                () => RimWorldAccess.Shell.ShellDev.StartSequence(script, wait, real));
             if (startError != null)
             {
                 Write(ctx, 200, startError);

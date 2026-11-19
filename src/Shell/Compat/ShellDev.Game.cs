@@ -1,4 +1,5 @@
 #if DEBUG
+using System;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
@@ -58,6 +59,15 @@ namespace RimWorldAccess.Shell
                 eventTrace.RemoveAt(0);
             }
             eventTrace.Add(line);
+            eventTraceTotal++;
+        }
+
+        private static int eventTraceTotal;
+
+        private static string EventTraceSince(int stamp)
+        {
+            int count = Math.Min(eventTraceTotal - stamp, eventTrace.Count);
+            return count <= 0 ? "(none)" : string.Join("\n", eventTrace.GetRange(eventTrace.Count - count, count).ToArray());
         }
 
         /// <summary>

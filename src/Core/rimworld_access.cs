@@ -44,6 +44,7 @@ namespace RimWorldAccess
             // see ImeFunnel.RouteImeCommittedChar and FocusStack.OfferChar for the successor.
 
             HarmonyInstance.PatchAll(Assembly.GetExecutingAssembly());
+            WaylithCharacterTap.Install();
 
             // DLC-safe: patch Start() on each Dialog_BeginLordJob subclass we don't already
             // patch declaratively. The shared prefix returns false while LordJobDialogState is

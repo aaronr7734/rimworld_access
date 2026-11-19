@@ -35,6 +35,7 @@ namespace RimWorldAccess
                 || ScannerSearchState.IsActive
                 || MenuSearchState.IsActive;
             ImeInputHost.Pump(imeSinkActive, c => RouteImeCommittedChar(c));
+            WaylithCharacterTap.PumpEditSession(imeSinkActive);
         }
 
         /// <summary>Diverts a composing IME keystroke to the hidden field. Returns whether the caller should consume the event; this method does not consume it.</summary>
