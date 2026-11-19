@@ -5,8 +5,9 @@ using Verse;
 namespace RimWorldAccess
 {
     /// <summary>
-    /// Maps terrain types to audio files for audio feedback during map navigation.
-    /// Uses language-independent defNames instead of translated labels.
+    /// Picks the navigation cue for a terrain from the game's own data: its tags, category,
+    /// construction effect, cost materials and burn source. Modded terrain that
+    /// declares the same data sounds right with no table entry.
     /// </summary>
     public static class TerrainAudioHelper
     {
@@ -16,215 +17,168 @@ namespace RimWorldAccess
         /// </summary>
         public const string WallAudioFile = "wall.wav";
 
+        private const string SoilAudio = "soil.wav";
+        private const string RichSoilAudio = "Rich Soil.wav";
+        private const string StonySoilAudio = "stoney Soil.wav";
+        private const string MudAudio = "mud.wav";
+        private const string MarshAudio = "marsh.wav";
+        private const string SandAudio = "sand.wav";
+        private const string WaterAudio = "water.wav";
+        private const string IceAudio = "ice.wav";
+        private const string LavaAudio = "lava.wav";
+        private const string RoughStoneAudio = "rough stone.wav";
+        private const string SmoothStoneAudio = "smooth stone.wav";
+        private const string StoneFlooringAudio = "stone flooring.wav";
+        private const string MetalFlooringAudio = "metal flooring.wav";
+        private const string WoodFlooringAudio = "wood flooring.wav";
+        private const string CarpetAudio = "carpet.wav";
+
         /// <summary>
-        /// Exact defName-to-audio mapping for all known terrain types.
-        /// To add a terrain-specific sound, update the value for that defName.
+        /// Vanilla terrains whose defs carry nothing that names their surface: no material,
+        /// construction effect, or tag that tells them apart from a generic floor.
         /// </summary>
-        private static readonly Dictionary<string, string> exactTerrainAudioMap = new Dictionary<string, string>()
+        private static readonly Dictionary<string, string> unmarkedTerrainAudio = new Dictionary<string, string>()
         {
-            // Soil/Earth
-            { "Soil", "soil.wav" },
-            { "SoilRich", "Rich Soil.wav" },
-            { "Gravel", "stoney Soil.wav" },
-            { "MossyTerrain", "soil.wav" },
-            { "MarshyTerrain", "mud.wav" },
-            { "Mud", "mud.wav" },
-            { "Marsh", "mud.wav" },
-            { "PackedDirt", "soil.wav" },
-            { "Riverbank", "mud.wav" },
-            { "FungalGravel", "stoney Soil.wav" },
-            { "GlowforestSoil", "soil.wav" },
-            { "GrasslandSoil", "soil.wav" },
-            { "DryLakeBed", "soil.wav" },
-
-            // Sand
-            { "Sand", "soil.wav" },
-            { "SoftSand", "soil.wav" },
-
-            // Stone Tiles
-            { "TileSandstone", "stone flooring.wav" },
-            { "TileGranite", "stone flooring.wav" },
-            { "TileLimestone", "stone flooring.wav" },
-            { "TileSlate", "stone flooring.wav" },
-            { "TileMarble", "stone flooring.wav" },
-            { "TileVacstone", "stone flooring.wav" },
-
-            // Fine Stone Tiles (Royalty)
-            { "FineTileSandstone", "stone flooring.wav" },
-            { "FineTileGranite", "stone flooring.wav" },
-            { "FineTileLimestone", "stone flooring.wav" },
-            { "FineTileSlate", "stone flooring.wav" },
-            { "FineTileMarble", "stone flooring.wav" },
-            { "FineTileVacstone", "stone flooring.wav" },
-
-            // Morbid Tiles (Ideology)
-            { "Tile_MorbidSandstone", "stone flooring.wav" },
-            { "Tile_MorbidGranite", "stone flooring.wav" },
-            { "Tile_MorbidLimestone", "stone flooring.wav" },
-            { "Tile_MorbidSlate", "stone flooring.wav" },
-            { "Tile_MorbidMarble", "stone flooring.wav" },
-            { "Tile_MorbidVacstone", "stone flooring.wav" },
-
-            // Spikecore Tiles (Ideology)
-            { "Tile_SpikecoreSandstone", "stone flooring.wav" },
-            { "Tile_SpikecoreGranite", "stone flooring.wav" },
-            { "Tile_SpikecoreLimestone", "stone flooring.wav" },
-            { "Tile_SpikecoreSlate", "stone flooring.wav" },
-            { "Tile_SpikecoreMarble", "stone flooring.wav" },
-            { "Tile_SpikecoreVacstone", "stone flooring.wav" },
-
-            // Totemic Tiles (Ideology)
-            { "Tile_TotemicSandstone", "stone flooring.wav" },
-            { "Tile_TotemicGranite", "stone flooring.wav" },
-            { "Tile_TotemicLimestone", "stone flooring.wav" },
-            { "Tile_TotemicSlate", "stone flooring.wav" },
-            { "Tile_TotemicMarble", "stone flooring.wav" },
-            { "Tile_TotemicVacstone", "stone flooring.wav" },
-
-            // Flagstone
-            { "FlagstoneSandstone", "stone flooring.wav" },
-            { "FlagstoneGranite", "stone flooring.wav" },
-            { "FlagstoneLimestone", "stone flooring.wav" },
-            { "FlagstoneSlate", "stone flooring.wav" },
-            { "FlagstoneMarble", "stone flooring.wav" },
-            { "FlagstoneVacstone", "stone flooring.wav" },
-
-            // Other Hard Floors
-            { "PavedTile", "stone flooring.wav" },
-            { "Concrete", "stone flooring.wav" },
-            { "SterileTile", "stone flooring.wav" },
-            { "MetalTile", "stone flooring.wav" },
-            { "SilverTile", "stone flooring.wav" },
-            { "GoldTile", "stone flooring.wav" },
-            { "AncientTile", "stone flooring.wav" },
-            { "Plates_Spikecore", "stone flooring.wav" },
-            { "Tile_Transhumanist", "stone flooring.wav" },
-            { "Voidmetal", "stone flooring.wav" },
-            { "BioferritePlate", "stone flooring.wav" },
-            { "BurnedBioferritePlate", "stone flooring.wav" },
-            { "BrokenAsphalt", "stone flooring.wav" },
-
-            // Natural Rock (smooth)
-            { "VolcanicRock", "stone flooring.wav" },
-            { "VolcanicRock_Smooth", "stone flooring.wav" },
-
-            // Wood Floors
-            { "WoodPlankFloor", "wood flooring.wav" },
-            { "AncientWoodPlankFloor", "wood flooring.wav" },
-            { "BurnedWoodPlankFloor", "wood flooring.wav" },
-            { "Bridge", "wood flooring.wav" },
-            { "Boards_Totemic", "wood flooring.wav" },
-
-            // Carpet
-            { "Carpet", "carpet.wav" },
-            { "CarpetFine", "carpet.wav" },
-            { "Carpet_Morbid", "carpet.wav" },
-            { "Carpet_MindbendA", "carpet.wav" },
-            { "Carpet_MindbendB", "carpet.wav" },
-            { "Carpet_MindbendC", "carpet.wav" },
-            { "Carpet_MindbendD", "carpet.wav" },
-            { "Carpet_MindbendE", "carpet.wav" },
-            { "Carpet_Transhumanist", "carpet.wav" },
-            { "BurnedCarpet", "carpet.wav" },
-            { "StrawMatting", "carpet.wav" },
-            { "BurnedStrawMatting", "carpet.wav" },
-
-            // Water
-            { "WaterDeep", "water.wav" },
-            { "WaterOceanDeep", "water.wav" },
-            { "WaterShallow", "water.wav" },
-            { "WaterOceanShallow", "water.wav" },
-            { "WaterMovingShallow", "water.wav" },
-            { "WaterMovingChestDeep", "water.wav" },
-            { "ToxicWaterDeep", "water.wav" },
-            { "ToxicWaterOceanDeep", "water.wav" },
-            { "ToxicWaterShallow", "water.wav" },
-            { "ToxicWaterOceanShallow", "water.wav" },
-            { "ToxicWaterMovingShallow", "water.wav" },
-            { "ToxicWaterMovingChestDeep", "water.wav" },
-            { "HotSpring", "water.wav" },
-
-            // Ice/Lava
-            { "Ice", "water.wav" },
-            { "LavaDeep", "water.wav" },
-            { "CooledLava", "stone flooring.wav" },
-
-            // Other
-            { "AncientMegastructure", "stone flooring.wav" },
-            { "Flesh", "mud.wav" },
-            { "GraySurface", "stone flooring.wav" },
+            { "LavaDeep", LavaAudio },
+            { "LavaShallow", LavaAudio },
+            { "AncientTile", MetalFlooringAudio },
+            { "Voidmetal", MetalFlooringAudio },
+            { "OrbitalPlatform", MetalFlooringAudio },
+            { "MechanoidPlatform", MetalFlooringAudio },
+            { "AncientWoodPlankFloor", WoodFlooringAudio },
+            { "StrawMatting", CarpetAudio },
+            { "CooledLava", RoughStoneAudio },
+            { "MarshyTerrain", MudAudio },
+            { "Riverbank", MudAudio },
+            { "Flesh", MudAudio },
+            { "InsectSludge", MudAudio },
         };
 
-        /// <summary>
-        /// Substring patterns for matching unknown/modded terrain defNames.
-        /// Only checked when no exact defName match is found.
-        /// Order matters - more specific patterns should come first.
-        /// </summary>
-        private static readonly List<KeyValuePair<string, string>> substringTerrainAudioMap = new List<KeyValuePair<string, string>>()
-        {
-            new KeyValuePair<string, string>("Sandstone", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Granite", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Limestone", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Slate", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Marble", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Vacstone", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Flagstone", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Tile", "stone flooring.wav"),
-            new KeyValuePair<string, string>("Concrete", "stone flooring.wav"),
-            new KeyValuePair<string, string>("WoodPlank", "wood flooring.wav"),
-            new KeyValuePair<string, string>("Bridge", "wood flooring.wav"),
-            new KeyValuePair<string, string>("Boards", "wood flooring.wav"),
-            new KeyValuePair<string, string>("Carpet", "carpet.wav"),
-            new KeyValuePair<string, string>("Straw", "carpet.wav"),
-            new KeyValuePair<string, string>("Mud", "mud.wav"),
-            new KeyValuePair<string, string>("Marsh", "mud.wav"),
-            new KeyValuePair<string, string>("Water", "water.wav"),
-            new KeyValuePair<string, string>("Lava", "water.wav"),
-            new KeyValuePair<string, string>("Ice", "water.wav"),
-            new KeyValuePair<string, string>("Soil", "soil.wav"),
-            new KeyValuePair<string, string>("Sand", "soil.wav"),
-            new KeyValuePair<string, string>("Gravel", "stoney Soil.wav"),
-        };
+        private static readonly Dictionary<TerrainDef, string> audioCache = new Dictionary<TerrainDef, string>();
+        private static Dictionary<TerrainDef, List<TerrainDef>> burnSources;
+        private static EffecterDef constructWood;
 
         /// <summary>
-        /// Gets the audio filename for a given terrain type.
-        /// Checks exact defName match first, then falls back to substring matching.
+        /// Gets the audio filename for a terrain, or null for terrain with no surface to step on.
         /// </summary>
-        /// <param name="terrain">The terrain definition</param>
-        /// <returns>Audio filename if a match is found, null otherwise</returns>
         public static string GetAudioForTerrain(TerrainDef terrain)
         {
             if (terrain == null)
                 return null;
 
-            string defName = terrain.defName;
-
-            // Check exact defName match first
-            if (exactTerrainAudioMap.TryGetValue(defName, out string audioFile))
+            if (!audioCache.TryGetValue(terrain, out string audio))
             {
-                return audioFile;
+                // Seeded before classifying so a burn-source cycle resolves instead of recursing.
+                audioCache[terrain] = StoneFlooringAudio;
+                audio = Classify(terrain);
+                audioCache[terrain] = audio;
             }
+            return audio;
+        }
 
-            // Fall back to substring matching for unknown/modded terrains
-            foreach (var kvp in substringTerrainAudioMap)
+        private static string Classify(TerrainDef terrain)
+        {
+            if (unmarkedTerrainAudio.TryGetValue(terrain.defName, out string audio))
+                return audio;
+
+            if (terrain.IsIce)
+                return IceAudio;
+            if (terrain.HasTag("WaterMarshy"))
+                return MarshAudio;
+            if (terrain.IsWater)
+                return WaterAudio;
+            if (terrain.categoryType == TerrainDef.TerrainCategoryType.Sand)
+                return SandAudio;
+            if (terrain.categoryType == TerrainDef.TerrainCategoryType.Stone)
+                return terrain.smoothedTerrain != null ? RoughStoneAudio : SmoothStoneAudio;
+
+            audio = MaterialAudio(terrain);
+            if (audio != null)
+                return audio;
+
+            // A burned floor keeps the sound of what it burned from.
+            if (BurnSources().TryGetValue(terrain, out List<TerrainDef> sources))
             {
-                if (defName.Contains(kvp.Key))
+                foreach (TerrainDef source in sources)
                 {
-                    return kvp.Value;
+                    audio = GetAudioForTerrain(source);
+                    if (audio != StoneFlooringAudio)
+                        return audio;
                 }
             }
 
+            if (terrain.HasTag("Mud"))
+                return MudAudio;
+            // Growing media laid as floors (fungal gravel) carry fertility but no soil tag.
+            if (terrain.IsSoil || terrain.categoryType == TerrainDef.TerrainCategoryType.Soil || terrain.fertility > 0f)
+                return GradeSoil(terrain);
+
+            if (terrain.exposesToVacuum)
+                return null;
+
+            return StoneFlooringAudio;
+        }
+
+        private static string MaterialAudio(TerrainDef terrain)
+        {
+            if (terrain.IsCarpet)
+                return CarpetAudio;
+            if (terrain.constructEffect != null)
+            {
+                if (terrain.constructEffect == EffecterDefOf.ConstructMetal)
+                    return MetalFlooringAudio;
+                if (constructWood == null)
+                    constructWood = DefDatabase<EffecterDef>.GetNamedSilentFail("ConstructWood");
+                if (terrain.constructEffect == constructWood)
+                    return WoodFlooringAudio;
+            }
+
+            // Metallic costs are skipped: concrete is paid for in steel.
+            List<ThingDefCountClass> costs = terrain.CostList;
+            if (costs == null)
+                return null;
+            foreach (ThingDefCountClass cost in costs)
+            {
+                List<StuffCategoryDef> categories = cost.thingDef?.stuffProps?.categories;
+                if (categories == null)
+                    continue;
+                if (categories.Contains(StuffCategoryDefOf.Fabric))
+                    return CarpetAudio;
+                if (categories.Contains(StuffCategoryDefOf.Woody))
+                    return WoodFlooringAudio;
+            }
             return null;
         }
 
         /// <summary>
-        /// Checks if a terrain type has a matching audio file.
+        /// Graded against vanilla soil's own fertility: richer reads as rich soil, poorer
+        /// (but still growable) as stony soil. Infertile packed dirt stays plain soil.
         /// </summary>
-        /// <param name="terrain">The terrain definition</param>
-        /// <returns>True if an audio match exists, false otherwise</returns>
-        public static bool HasAudioMatch(TerrainDef terrain)
+        private static string GradeSoil(TerrainDef terrain)
         {
-            return GetAudioForTerrain(terrain) != null;
+            float baseline = TerrainDefOf.Soil.fertility;
+            if (terrain.fertility > baseline)
+                return RichSoilAudio;
+            if (terrain.fertility > 0f && terrain.fertility < baseline)
+                return StonySoilAudio;
+            return SoilAudio;
+        }
+
+        private static Dictionary<TerrainDef, List<TerrainDef>> BurnSources()
+        {
+            if (burnSources != null)
+                return burnSources;
+
+            burnSources = new Dictionary<TerrainDef, List<TerrainDef>>();
+            foreach (TerrainDef def in DefDatabase<TerrainDef>.AllDefsListForReading)
+            {
+                if (def.burnedDef == null)
+                    continue;
+                if (!burnSources.TryGetValue(def.burnedDef, out List<TerrainDef> list))
+                    burnSources[def.burnedDef] = list = new List<TerrainDef>();
+                list.Add(def);
+            }
+            return burnSources;
         }
 
         /// <summary>

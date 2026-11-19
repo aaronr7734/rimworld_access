@@ -6,7 +6,7 @@ The map is your colony: a grid of tiles where most of the game takes place. A cu
 
 The **arrow keys** move the cursor one tile at a time, with the camera following. Up, Down, Left, and Right work as you would expect.
 
-As you move, the tile underfoot plays a terrain sound. Soil, stone, sand, water, and built flooring each have distinct audio cues, so with practice you can tell where you are by ear. Moving against a wall plays its own sound, which helps you trace room edges.
+As you move, the tile underfoot plays a terrain sound. Soil, sand, mud, marsh, rough and smooth rock, water, ice, lava, and wood, stone, metal, and carpeted floors each have their own sound, so with practice you can tell where you are by ear. Moving against a wall plays its own sound, which helps you trace room edges.
 
 As you arrow around, the mod announces the name of what is under the cursor. Number keys are for deeper, on-demand detail rather than something you press after every step.
 
