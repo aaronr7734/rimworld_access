@@ -18,10 +18,10 @@ namespace RimWorldAccess.Shell
     ///
     /// Script grammar: semicolon-separated tokens, each one of a chord (anything
     /// <see cref="KeyChord.Parse"/> accepts, e.g. "F12", "Ctrl+Shift+G"), "wait N" (an explicit
-    /// frame count, added to the default), or "text:abc" (routed through <see cref="InjectText"/>
-    /// character by character). The default wait applies BETWEEN two action steps that don't have
-    /// an explicit "wait" between them; the very first action fires as soon as
-    /// <see cref="AdvanceSequence"/> is first called unless the script itself opens with a "wait".
+    /// frame count, added to the default), or "text:abc" (one character per step; physical presses
+    /// in real mode, else <see cref="InjectText"/>). The default wait applies BETWEEN two action
+    /// steps without an explicit "wait"; the first action fires as soon as
+    /// <see cref="AdvanceSequence"/> is first called unless the script opens with a "wait".
     /// </summary>
     public static partial class ShellDev
     {
@@ -70,7 +70,7 @@ namespace RimWorldAccess.Shell
         /// a sequence is already running; returns null on a successful arm — poll
         /// <see cref="SequenceRunning"/>/<see cref="SequenceResult"/> for the outcome.
         /// </summary>
-        internal static string StartSequence(string script, int defaultWaitFrames, bool real = false)
+        internal static string StartSequence(string script, int defaultWaitFrames, bool real)
         {
             if (sequenceRunningFlag)
             {
@@ -160,8 +160,8 @@ namespace RimWorldAccess.Shell
             switch (action.Kind)
             {
                 case StepKind.Text: return InjectText(action.Payload);
-                case StepKind.RealModifierDown: return RealModifier(action.Key, down: true);
-                case StepKind.RealModifierUp: return RealModifier(action.Key, down: false);
+                case StepKind.RealModifierDown: RealModifier(action.Key, down: true); return null;
+                case StepKind.RealModifierUp: RealModifier(action.Key, down: false); return null;
                 case StepKind.RealTap: return RealTap(action.Key, action.Payload);
                 default: return Inject(action.Payload);
             }
@@ -234,7 +234,7 @@ namespace RimWorldAccess.Shell
                         }
                     }
                 }
-                else if (real && TryParseChord(payload, out KeyChord chord))
+                else if (real && KeyChord.TryParse(payload, out KeyChord chord))
                 {
                     var modifiers = new List<KeyCode>();
                     if (chord.Ctrl) modifiers.Add(KeyCode.LeftControl);
@@ -265,20 +265,6 @@ namespace RimWorldAccess.Shell
             for (int m = 0; m < modifiers.Length; m++)
             {
                 actions.Add(new SequenceAction { Kind = StepKind.RealModifierUp, Key = modifiers[m], WaitFramesBefore = m == 0 ? 1 : 0 });
-            }
-        }
-
-        private static bool TryParseChord(string text, out KeyChord chord)
-        {
-            try
-            {
-                chord = KeyChord.Parse(text);
-                return true;
-            }
-            catch (Exception)
-            {
-                chord = default(KeyChord);
-                return false;
             }
         }
 

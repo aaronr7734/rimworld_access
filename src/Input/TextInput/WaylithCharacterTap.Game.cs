@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using UnityEngine;
+using Verse;
 
 namespace RimWorldAccess
 {
@@ -26,7 +27,31 @@ namespace RimWorldAccess
         // Holds the platform's observer registration; disposing it would detach the tap.
         private static IDisposable registration;
 
-        private static Assembly windowingAssembly;
+        private static bool platformResolved;
+
+        /// <summary>The 1.7 Waylith.Windowing assembly, or null on 1.6.</summary>
+        internal static Assembly WindowingAssembly { get; private set; }
+
+        /// <summary>The engine's <c>IPlatform</c> (EngineApplication.Instance.WindowSystem), or null on 1.6.</summary>
+        internal static object Platform { get; private set; }
+
+        /// <summary>
+        /// Resolves <see cref="WindowingAssembly"/> and <see cref="Platform"/> once, by exact
+        /// assembly name: a missing type must not trigger AccessTools' all-assemblies sweep, which
+        /// is every miss on 1.6.
+        /// </summary>
+        internal static void ResolvePlatform()
+        {
+            if (platformResolved)
+                return;
+            platformResolved = true;
+            Type engineType = FindAssembly("Waylith")?.GetType("Waylith.EngineApplication");
+            if (engineType == null)
+                return;
+            WindowingAssembly = FindAssembly("Waylith.Windowing");
+            object engine = AccessTools.Property(engineType, "Instance")?.GetValue(null);
+            Platform = engine == null ? null : AccessTools.Property(engineType, "WindowSystem")?.GetValue(engine);
+        }
 
         private static Assembly FindAssembly(string name)
         {
@@ -44,21 +69,17 @@ namespace RimWorldAccess
             if (registration != null)
                 return;
 
-            // Resolved per assembly by exact name: a missing type must not trigger AccessTools'
-            // all-assemblies sweep, which is every miss on 1.6.
-            Assembly engineAssembly = FindAssembly("Waylith");
-            if (engineAssembly == null)
+            if (FindAssembly("Waylith") == null)
                 return;
 
             try
             {
-                Type engineType = engineAssembly.GetType("Waylith.EngineApplication");
-                windowingAssembly = FindAssembly("Waylith.Windowing");
-                Type observerInterface = windowingAssembly?.GetType("Waylith.Windowing.IWindowEventObserver");
+                ResolvePlatform();
+                Assembly windowing = WindowingAssembly;
+                object platform = Platform;
+                Type observerInterface = windowing?.GetType("Waylith.Windowing.IWindowEventObserver");
                 MethodInfo queue = AccessTools.Method(
                     FindAssembly("UnityStubs")?.GetType("UnityEngine.InputSystem.InputSystem"), "QueueTextInput", new[] { typeof(char) });
-                object engine = engineType == null ? null : AccessTools.Property(engineType, "Instance")?.GetValue(null);
-                object platform = engine == null ? null : AccessTools.Property(engineType, "WindowSystem")?.GetValue(engine);
                 MethodInfo addObserver = platform == null || observerInterface == null
                     ? null : platform.GetType().GetMethod("AddEventObserver", new[] { observerInterface });
                 if (queue == null || addObserver == null)
@@ -68,7 +89,7 @@ namespace RimWorldAccess
                 }
 
                 queueTextInput = (Action<char>)Delegate.CreateDelegate(typeof(Action<char>), queue);
-                object observer = Activator.CreateInstance(EmitObserver(observerInterface));
+                object observer = Activator.CreateInstance(EmitObserver(observerInterface, windowing));
                 registration = (IDisposable)addObserver.Invoke(platform, new[] { observer });
             }
             catch (Exception ex)
@@ -79,6 +100,8 @@ namespace RimWorldAccess
 
         private static bool editSessionOpen;
         private static IMECompositionMode modeBeforeEditSession;
+        private static LoadedLanguage imeCheckedLanguage;
+        private static bool languageUsesIme;
 
         /// <summary>
         /// Every OnGUI pass: holds the platform text session open while a shell text-edit sink is
@@ -89,7 +112,12 @@ namespace RimWorldAccess
         /// </summary>
         internal static void PumpEditSession(bool editSinkActive)
         {
-            bool wanted = editSinkActive && registration != null && !ImeInputHost.LanguageUsesIme();
+            if (editSinkActive && registration != null && imeCheckedLanguage != LanguageDatabase.activeLanguage)
+            {
+                imeCheckedLanguage = LanguageDatabase.activeLanguage;
+                languageUsesIme = ImeInputHost.LanguageUsesIme();
+            }
+            bool wanted = editSinkActive && registration != null && !languageUsesIme;
             if (wanted == editSessionOpen)
                 return;
 
@@ -129,7 +157,7 @@ namespace RimWorldAccess
         /// WaylithCharacterTap.OnKeyText(key.Text.ToString());
         /// </code>
         /// </summary>
-        private static Type EmitObserver(Type observerInterface)
+        private static Type EmitObserver(Type observerInterface, Assembly windowingAssembly)
         {
             MethodInfo onEvent = observerInterface.GetMethod("OnEvent");
             ParameterInfo[] parameters = onEvent.GetParameters();

@@ -19,7 +19,8 @@ namespace RimWorldAccess.Shell
         private static bool realInputResolved;
         private static object injector, mainWindow;
         private static Type physicalKeyType;
-        private static MethodInfo injectKeyDown, injectKeyDownThroughKeymap, injectKeyUp, injectSetFocused, requestRedraw;
+        private static MethodInfo injectKeyDown, injectKeyDownThroughKeymap, injectKeyUp, injectSetFocused;
+        private static Action requestRedraw;
 
         internal static bool RealInputAvailable
         {
@@ -36,25 +37,16 @@ namespace RimWorldAccess.Shell
                 return;
             realInputResolved = true;
 
-            Assembly engineAssembly = null, windowingAssembly = null;
-            foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
-            {
-                string name = assembly.GetName().Name;
-                if (name == "Waylith")
-                    engineAssembly = assembly;
-                else if (name == "Waylith.Windowing")
-                    windowingAssembly = assembly;
-            }
-            if (engineAssembly == null || windowingAssembly == null)
+            WaylithCharacterTap.ResolvePlatform();
+            Assembly windowingAssembly = WaylithCharacterTap.WindowingAssembly;
+            object platform = WaylithCharacterTap.Platform;
+            if (windowingAssembly == null || platform == null)
                 return;
 
-            Type engineType = engineAssembly.GetType("Waylith.EngineApplication");
             physicalKeyType = windowingAssembly.GetType("Waylith.Windowing.PhysicalKey");
             Type injectorType = windowingAssembly.GetType("Waylith.Windowing.IInputInjector");
             Type windowType = windowingAssembly.GetType("Waylith.Windowing.IWindow");
-            object engineInstance = engineType?.GetProperty("Instance")?.GetValue(null);
-            object platform = engineInstance == null ? null : engineType.GetProperty("WindowSystem")?.GetValue(engineInstance);
-            if (platform == null || physicalKeyType == null || injectorType == null)
+            if (physicalKeyType == null || injectorType == null)
                 return;
 
             var windows = platform.GetType().GetProperty("Windows")?.GetValue(platform) as System.Collections.IList;
@@ -64,7 +56,9 @@ namespace RimWorldAccess.Shell
             injectKeyDownThroughKeymap = injectorType.GetMethod("KeyDownThroughKeymap", new[] { physicalKeyType, timeSpanArg });
             injectKeyUp = injectorType.GetMethod("KeyUp", new[] { physicalKeyType, timeSpanArg });
             injectSetFocused = injectorType.GetMethod("SetFocused", new[] { windowType, typeof(bool) });
-            requestRedraw = windowType.GetMethod("RequestRedraw", Type.EmptyTypes);
+            MethodInfo redraw = windowType.GetMethod("RequestRedraw", Type.EmptyTypes);
+            if (mainWindow != null && redraw != null)
+                requestRedraw = (Action)Delegate.CreateDelegate(typeof(Action), mainWindow, redraw);
             if (mainWindow != null && injectKeyDown != null && injectKeyDownThroughKeymap != null && injectKeyUp != null && injectSetFocused != null)
                 injector = platform.GetType().GetProperty("InputInjector")?.GetValue(platform);
         }
@@ -73,8 +67,7 @@ namespace RimWorldAccess.Shell
         internal static void KeepDrawingInBackground()
         {
             ResolveRealInput();
-            if (mainWindow != null)
-                requestRedraw?.Invoke(mainWindow, null);
+            requestRedraw?.Invoke();
         }
 
         private static readonly Dictionary<KeyCode, string> PhysicalKeyRenames = new Dictionary<KeyCode, string>
@@ -118,11 +111,9 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>Presses (down) or releases (up) a modifier key; held across frames by the caller.</summary>
-        private static string RealModifier(KeyCode modifier, bool down)
+        private static void RealModifier(KeyCode modifier, bool down)
         {
-            object physical = ToPhysicalKey(modifier);
-            InvokeInjector(down ? injectKeyDown : injectKeyUp, physical);
-            return null;
+            InvokeInjector(down ? injectKeyDown : injectKeyUp, ToPhysicalKey(modifier));
         }
 
         /// <summary>One full press of a non-modifier key, translated through the active keyboard layout.</summary>

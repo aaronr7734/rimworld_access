@@ -20,7 +20,7 @@ namespace RimWorldAccess
             CustomCheckboxLabeledTap.Patch(harmony, "Hospitality.CustomWidget", "Hospitality.Utilities.CustomWidget");
             CustomCheckboxLabeledTap.Patch(harmony, "CashRegister.CustomWidget");
             CashRegisterCompat.RegisterGizmoHandlers();
-            CashRegisterShiftsAdapter.TryRegister();
+            CashRegisterShiftsCompat.Register(harmony);
             HospitalityGuestTabAdapter.TryRegister();
             GastronomyRestaurantTabAdapter.TryRegister();
             StorefrontStoreTabAdapter.TryRegister();

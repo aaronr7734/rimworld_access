@@ -587,30 +587,41 @@
   <RimWorldAccess.Compat.CashRegister.RadiusTitle>Radius</RimWorldAccess.Compat.CashRegister.RadiusTitle>
   <RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>Toggle include room</RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>
 
-  <!-- CashRegisterShiftsAdapter: the Shifts tab's staff/hour scheduling grid,
-       served as a structured tree instead of the tab's own invisible bare
-       GUI.DrawTexture hour cells. TabName and NoOne are fallbacks for the
-       mod's own TabRegisterShifts / TabRegisterShiftsEmpty. -->
+  <!-- CashRegisterShiftsScope / CashRegisterShiftScope: the Shifts tab as a
+       shift list, and one shift's hours on the Schedule grid's grammar, since
+       the tab's own hour cells are bare GUI.DrawTexture calls. TabName and
+       NoOne are fallbacks for the mod's own TabRegisterShifts and
+       TabRegisterShiftsEmpty. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Shifts</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Shift {0}, on duty now. {1}. Hours: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Shift {0}, off duty now. {1}. Hours: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftName>Shift {0}</RimWorldAccess.Compat.CashRegisterShifts.ShiftName>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftRowLabel>Shift {0}, {1}</RimWorldAccess.Compat.CashRegisterShifts.ShiftRowLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOnDuty>{0}. On duty now. Hours: {1}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOffDuty>{0}. Off duty now. Hours: {1}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.NoShiftHere>No shift here</RimWorldAccess.Compat.CashRegisterShifts.NoShiftHere>
   <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (unavailable)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Hour {0}: {1}, current hour</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>No one</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>none</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>all day</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
   <RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>{0} to {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>
   <RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>{0}</RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>
-  <RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>Assigned: {0}.</RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourColumn>Hour {0}</RimWorldAccess.Compat.CashRegisterShifts.HourColumn>
+  <RimWorldAccess.Compat.CashRegisterShifts.OnDuty>On duty</RimWorldAccess.Compat.CashRegisterShifts.OnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.OffDuty>Off duty</RimWorldAccess.Compat.CashRegisterShifts.OffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.OnDutyCurrentHour>On duty, current hour</RimWorldAccess.Compat.CashRegisterShifts.OnDutyCurrentHour>
+  <RimWorldAccess.Compat.CashRegisterShifts.OffDutyCurrentHour>Off duty, current hour</RimWorldAccess.Compat.CashRegisterShifts.OffDutyCurrentHour>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourSet>Hour {0} set to {1}</RimWorldAccess.Compat.CashRegisterShifts.HourSet>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourAlreadySet>Hour {0}: already set to {1}</RimWorldAccess.Compat.CashRegisterShifts.HourAlreadySet>
+  <RimWorldAccess.Compat.CashRegisterShifts.PaintedHours>Painted {0} on {1}</RimWorldAccess.Compat.CashRegisterShifts.PaintedHours>
+  <RimWorldAccess.Compat.CashRegisterShifts.HoursAlreadySet>{0} already set to {1}</RimWorldAccess.Compat.CashRegisterShifts.HoursAlreadySet>
   <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>Assign staff</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>
+  <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffToShift>Assign staff to Shift {0}</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffToShift>
   <RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>Delete shift</RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>
   <RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>Add shift</RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourRow>Hour {0}: {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRow>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourToggled>{0}.</RimWorldAccess.Compat.CashRegisterShifts.HourToggled>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftAddedAt>Shift {0} added.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAddedAt>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>Shift deleted.</RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>Shift added.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>This register already has the maximum of {0} shifts.</RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>
   <RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>Action failed.</RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>
+  <RimWorldAccess.Compat.CashRegisterShifts.Closed>{0} closed</RimWorldAccess.Compat.CashRegisterShifts.Closed>
 
   <!-- JecsAbilityCompat / JecsAbilityCommandHandler: JecsTools' AbilityUser
        framework (RimWorld of Magic spells and any other mod built on it).

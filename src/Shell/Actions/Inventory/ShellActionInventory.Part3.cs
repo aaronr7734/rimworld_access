@@ -275,6 +275,24 @@ namespace RimWorldAccess.Shell
             c.Register(InputAction.ForScreen("schedule", "schedule.grid.paintToLastPawn",
                 new List<KeyChord> { KeyChord.Of(KeyCode.End, ctrl: true, shift: true) }));
 
+            // ---- CashRegister Shifts tab -> CashRegisterShiftsScope (list), CashRegisterShiftScope (one shift's hours) ----
+            c.Register(InputAction.ForScreen("cashRegisterShifts", "cashRegisterShifts.contextMenu",
+                new List<KeyChord> { KeyChord.Of(KeyCode.RightBracket) }));
+            c.Register(InputAction.ForScreen("cashRegisterShifts", "cashRegisterShifts.addShift",
+                new List<KeyChord> { KeyChord.Of(KeyCode.A, alt: true) }));
+            c.Register(InputAction.ForScreen("cashRegisterShifts", "cashRegisterShifts.assignStaff",
+                new List<KeyChord> { KeyChord.Of(KeyCode.S, alt: true) }));
+            c.Register(InputAction.ForScreen("cashRegisterShift", "cashRegisterShift.assignStaff",
+                new List<KeyChord> { KeyChord.Of(KeyCode.S, alt: true) }));
+            c.Register(InputAction.ForScreen("cashRegisterShift", "cashRegisterShift.paintLeft",
+                new List<KeyChord> { KeyChord.Of(KeyCode.LeftArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("cashRegisterShift", "cashRegisterShift.paintRight",
+                new List<KeyChord> { KeyChord.Of(KeyCode.RightArrow, shift: true) }));
+            c.Register(InputAction.ForScreen("cashRegisterShift", "cashRegisterShift.paintToFirstHour",
+                new List<KeyChord> { KeyChord.Of(KeyCode.Home, shift: true) }));
+            c.Register(InputAction.ForScreen("cashRegisterShift", "cashRegisterShift.paintToLastHour",
+                new List<KeyChord> { KeyChord.Of(KeyCode.End, shift: true) }));
+
             // ---- Research detail view -> ResearchDetailScope ----
             // Tree navigation is shared ScreenScope/TreeRegionScope grammar.
             c.Register(InputAction.ForScreen("researchDetail", "researchDetail.infoCard",

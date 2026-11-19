@@ -1,0 +1,1 @@
+Cash Register's Shifts tab is now a list of your shifts with their staff and hours; press Enter on a shift to edit its hours, starting at the current hour, with the same painting keys as the Schedule tab. Alt+A adds a shift and opens it straight away, and Alt+S assigns staff to the shift you're on.

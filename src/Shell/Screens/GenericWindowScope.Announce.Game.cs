@@ -417,6 +417,7 @@ namespace RimWorldAccess.Shell
                     d.ReadOnly = true;
                     break;
             }
+            ApplyTypeInValue(d, row);
             return d;
         }
 
@@ -561,6 +562,7 @@ namespace RimWorldAccess.Shell
                 default:
                     return;
             }
+            ApplyTypeInValue(d, row);
             TolkHelper.SpeakData(AnnouncementComposer.ComposeStateChange(d, TranslatedShellVocabulary.Instance));
         }
 

@@ -120,6 +120,7 @@ namespace RimWorldAccess
             new Entry("ThingFilterMenuState.Close", () => { if (ThingFilterMenuState.IsActive) ThingFilterMenuState.Close(); }),
             new Entry("BillsMenuState.Close", () => { if (BillsMenuState.IsActive) BillsMenuState.Close(); }),
             new Entry("EntityTabState.Close", () => { if (EntityTabState.IsActive) EntityTabState.Close(); }),
+            new Entry("CashRegisterShiftsState.Close", () => { if (CashRegisterShiftsState.IsActive) CashRegisterShiftsState.Close(); }),
 
             // FactionTab speaks on Close() and has no other deterministic close path, so the
             // silent ResetHard() is used. Mech's Close() reopens gizmo navigation, wrong at a
@@ -337,6 +338,7 @@ namespace RimWorldAccess
 
             new Entry("BillsMenuState.Close", () => { if (Current.ProgramState == ProgramState.Entry && BillsMenuState.IsActive) BillsMenuState.Close(); }),
             new Entry("EntityTabState.Close", () => { if (Current.ProgramState == ProgramState.Entry && EntityTabState.IsActive) EntityTabState.Close(); }),
+            new Entry("CashRegisterShiftsState.Close", () => { if (Current.ProgramState == ProgramState.Entry && CashRegisterShiftsState.IsActive) CashRegisterShiftsState.Close(); }),
 
             // Same method choices as the OnGameLoad twins: ResetHard() for the two whose
             // Close() speaks or reopens gizmo navigation, Close() for Styling.

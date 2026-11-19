@@ -761,14 +761,18 @@ namespace RimWorldAccess.Shell
                 TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.PaintedHours".Loc(brush.LabelCap, FormatChangedHourRanges(changedHours), pawn.LabelShort));
                 return;
             }
-            string hourRange = boundaryHour == 0
+            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready".Loc(FormatEdgeHourRange(startHour, boundaryHour), brush.LabelCap, pawn.LabelShort));
+        }
+
+        internal static string FormatEdgeHourRange(int startHour, int boundaryHour)
+        {
+            return boundaryHour == 0
                 ? (startHour == 0
                     ? (string)"RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFirstOnly".Translate()
                     : (string)"RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeFromZero".Translate(startHour))
                 : (startHour == HourCount - 1
                     ? (string)"RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeLastOnly".Translate()
                     : (string)"RimWorldAccess.Pawns.Schedule.BulkPaint.HourRangeToLast".Translate(startHour));
-            TolkHelper.Speak("RimWorldAccess.Pawns.Schedule.BulkPaint.HoursAlready".Loc(hourRange, brush.LabelCap, pawn.LabelShort));
         }
 
         /// <summary>Ctrl+Shift+Home/End: paint the focused hour for every row from here to the first or last one.</summary>
@@ -812,7 +816,7 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>Groups a sorted list of hour indices into consecutive ranges.</summary>
-        private static string FormatChangedHourRanges(List<int> hours)
+        internal static string FormatChangedHourRanges(List<int> hours)
         {
             if (hours.Count == 0)
             {

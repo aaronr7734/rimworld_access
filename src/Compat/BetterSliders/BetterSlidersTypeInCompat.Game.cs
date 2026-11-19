@@ -58,6 +58,7 @@ namespace RimWorldAccess
 
         public static void HysteresisPrefix(Rect region)
         {
+            WidgetCapture.NoteSliderTypeInOffered();
             Event current = Event.current;
             if (current == null || !WidgetCapture.LastValueControlFocused)
             {

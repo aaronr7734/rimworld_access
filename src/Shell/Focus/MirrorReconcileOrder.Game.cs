@@ -140,6 +140,8 @@ namespace RimWorldAccess.Shell
             // Same tab-attached family; order relative to the others never matters.
             new MirrorReconcileEntry("GeneInspectionScopeMirror", GeneInspectionScopeMirror.Reconcile),
 
+            new MirrorReconcileEntry("CashRegisterShiftsScopeMirror", CashRegisterShiftsScopeMirror.Reconcile),
+
             new MirrorReconcileEntry("GizmoScopeMirror", GizmoScopeMirror.Reconcile),
 
             // After GizmoScopeMirror: a mouse click on the Wildlife main button can open this screen

@@ -596,32 +596,41 @@
   <RimWorldAccess.Compat.CashRegister.RadiusTitle>Radio</RimWorldAccess.Compat.CashRegister.RadiusTitle>
   <RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>Alternar inclusión de habitación</RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>
 
-  <!-- CashRegisterShiftsAdapter: the Shifts tab's staff/hour scheduling grid,
-       served as a structured tree instead of the tab's own invisible bare
-       GUI.DrawTexture hour cells. Wording baked from CashRegister's own
-       English strings ("TabRegisterShifts" = "Shifts", "TabRegisterShiftsEmpty"
-       = "No one") since those keys cannot be called via Translate() from our
-       C# — see the adapter's class remarks. -->
+  <!-- CashRegisterShiftsScope / CashRegisterShiftScope: the Shifts tab as a
+       shift list, and one shift's hours on the Schedule grid's grammar, since
+       the tab's own hour cells are bare GUI.DrawTexture calls. TabName and
+       NoOne are fallbacks for the mod's own TabRegisterShifts and
+       TabRegisterShiftsEmpty. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Turnos</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Turno {0}, en servicio ahora. {1}. Horas: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Turno {0}, fuera de servicio ahora. {1}. Horas: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftName>Turno {0}</RimWorldAccess.Compat.CashRegisterShifts.ShiftName>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftRowLabel>Turno {0}, {1}</RimWorldAccess.Compat.CashRegisterShifts.ShiftRowLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOnDuty>{0}. De servicio ahora. Horas: {1}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOffDuty>{0}. Fuera de servicio ahora. Horas: {1}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.NoShiftHere>No hay ningún turno aquí</RimWorldAccess.Compat.CashRegisterShifts.NoShiftHere>
   <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (no disponible)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Hora {0}: {1}, hora actual</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>Nadie</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>ninguna</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>todo el día</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
   <RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>{0} a {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>
   <RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>{0}</RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>
-  <RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>Asignado: {0}.</RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourColumn>Hora {0}</RimWorldAccess.Compat.CashRegisterShifts.HourColumn>
+  <RimWorldAccess.Compat.CashRegisterShifts.OnDuty>de servicio</RimWorldAccess.Compat.CashRegisterShifts.OnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.OffDuty>fuera de servicio</RimWorldAccess.Compat.CashRegisterShifts.OffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.OnDutyCurrentHour>de servicio, hora actual</RimWorldAccess.Compat.CashRegisterShifts.OnDutyCurrentHour>
+  <RimWorldAccess.Compat.CashRegisterShifts.OffDutyCurrentHour>fuera de servicio, hora actual</RimWorldAccess.Compat.CashRegisterShifts.OffDutyCurrentHour>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourSet>Hora {0} establecida como {1}</RimWorldAccess.Compat.CashRegisterShifts.HourSet>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourAlreadySet>Hora {0}: ya establecida como {1}</RimWorldAccess.Compat.CashRegisterShifts.HourAlreadySet>
+  <RimWorldAccess.Compat.CashRegisterShifts.PaintedHours>Establecido como {0} en {1}</RimWorldAccess.Compat.CashRegisterShifts.PaintedHours>
+  <RimWorldAccess.Compat.CashRegisterShifts.HoursAlreadySet>{0}: ya establecido como {1}</RimWorldAccess.Compat.CashRegisterShifts.HoursAlreadySet>
   <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>Asignar personal</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>
+  <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffToShift>Asignar personal al turno {0}</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffToShift>
   <RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>Eliminar turno</RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>
   <RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>Agregar turno</RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourRow>Hora {0}: {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRow>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourToggled>{0}.</RimWorldAccess.Compat.CashRegisterShifts.HourToggled>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftAddedAt>Turno {0} agregado.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAddedAt>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>Turno eliminado.</RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>Turno agregado.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>Esta caja registradora ya tiene el máximo de {0} turnos.</RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>
   <RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>La acción falló.</RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>
+  <RimWorldAccess.Compat.CashRegisterShifts.Closed>{0} cerrado</RimWorldAccess.Compat.CashRegisterShifts.Closed>
 
   <!-- HospitalityAreaColumnHandler: the Guests table's area-of-accommodation
        and shopping-area columns. Both null-area words are ours rather than

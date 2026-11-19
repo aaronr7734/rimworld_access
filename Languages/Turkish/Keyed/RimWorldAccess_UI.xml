@@ -381,6 +381,8 @@
   <RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>bir sayı olmalı</RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>
   <RimWorldAccess.UI.GenericWindow.NumericOutOfRange>{0} ile {1} arasında olmalı</RimWorldAccess.UI.GenericWindow.NumericOutOfRange>
   <RimWorldAccess.UI.GenericWindow.PercentValue>{0}%</RimWorldAccess.UI.GenericWindow.PercentValue>
+  <RimWorldAccess.UI.GenericWindow.TypeInBoxValue>sayı kutusu {0}</RimWorldAccess.UI.GenericWindow.TypeInBoxValue>
+  <RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>{0}, sayı kutusu {1}</RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>
   <RimWorldAccess.UI.GenericWindow.SensitiveValueSet>{0} karakter, gizli</RimWorldAccess.UI.GenericWindow.SensitiveValueSet>
   <RimWorldAccess.UI.GenericWindow.VectorAxisX>X</RimWorldAccess.UI.GenericWindow.VectorAxisX>
   <RimWorldAccess.UI.GenericWindow.VectorAxisY>Y</RimWorldAccess.UI.GenericWindow.VectorAxisY>

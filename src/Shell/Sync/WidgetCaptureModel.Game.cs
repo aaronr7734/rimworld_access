@@ -368,6 +368,9 @@ namespace RimWorldAccess.Shell
         public int SliderTypeInOwner = -1;
         public bool SliderTypeInHigh;
 
+        /// <summary>Slider/Range rows only: a mod offers a type-in box for this control, shown or still hidden by its hover rule.</summary>
+        public bool TypeInBoxOffered;
+
         /// <summary>
         /// TextField/TextArea/FillableBar rows only: the caption a labeled wrapper's bracket
         /// carried onto this row. Deliberately NOT stored in <see cref="Label"/>: a text

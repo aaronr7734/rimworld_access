@@ -368,32 +368,41 @@
   <RimWorldAccess.Compat.CashRegister.RadiusTitle>Радиус</RimWorldAccess.Compat.CashRegister.RadiusTitle>
   <RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>Переключить учёт помещения</RimWorldAccess.Compat.CashRegister.ToggleIncludeRoom>
 
-  <!-- CashRegisterShiftsAdapter: the Shifts tab's staff/hour scheduling grid,
-       served as a structured tree instead of the tab's own invisible bare
-       GUI.DrawTexture hour cells. Wording baked from CashRegister's own
-       English strings ("TabRegisterShifts" = "Shifts", "TabRegisterShiftsEmpty"
-       = "No one") since those keys cannot be called via Translate() from our
-       C# — see the adapter's class remarks. -->
+  <!-- CashRegisterShiftsScope / CashRegisterShiftScope: the Shifts tab as a
+       shift list, and one shift's hours on the Schedule grid's grammar, since
+       the tab's own hour cells are bare GUI.DrawTexture calls. TabName and
+       NoOne are fallbacks for the mod's own TabRegisterShifts and
+       TabRegisterShiftsEmpty. -->
   <RimWorldAccess.Compat.CashRegisterShifts.TabName>Смены</RimWorldAccess.Compat.CashRegisterShifts.TabName>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>Смена {0}, сейчас на дежурстве. {1}. Часы: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOnDuty>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>Смена {0}, сейчас не на дежурстве. {1}. Часы: {2}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftLabelOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftName>Смена {0}</RimWorldAccess.Compat.CashRegisterShifts.ShiftName>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftRowLabel>Смена {0}, {1}</RimWorldAccess.Compat.CashRegisterShifts.ShiftRowLabel>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOnDuty>{0}. Сейчас на дежурстве. Часы: {1}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOffDuty>{0}. Сейчас не на дежурстве. Часы: {1}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftSummaryOffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.NoShiftHere>Здесь нет смены</RimWorldAccess.Compat.CashRegisterShifts.NoShiftHere>
   <RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>{0} (недоступно)</RimWorldAccess.Compat.CashRegisterShifts.PawnUnavailable>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>Час {0}: {1}, текущий час</RimWorldAccess.Compat.CashRegisterShifts.HourRowCurrent>
   <RimWorldAccess.Compat.CashRegisterShifts.NoOne>Никто</RimWorldAccess.Compat.CashRegisterShifts.NoOne>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursNone>нет</RimWorldAccess.Compat.CashRegisterShifts.HoursNone>
   <RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>весь день</RimWorldAccess.Compat.CashRegisterShifts.HoursAllDay>
   <RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>{0}–{1}</RimWorldAccess.Compat.CashRegisterShifts.HourRangeSpan>
   <RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>{0}</RimWorldAccess.Compat.CashRegisterShifts.HourSingleSpan>
-  <RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>Назначено: {0}.</RimWorldAccess.Compat.CashRegisterShifts.AssignedLine>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourColumn>Час {0}</RimWorldAccess.Compat.CashRegisterShifts.HourColumn>
+  <RimWorldAccess.Compat.CashRegisterShifts.OnDuty>На дежурстве</RimWorldAccess.Compat.CashRegisterShifts.OnDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.OffDuty>Не на дежурстве</RimWorldAccess.Compat.CashRegisterShifts.OffDuty>
+  <RimWorldAccess.Compat.CashRegisterShifts.OnDutyCurrentHour>На дежурстве, текущий час</RimWorldAccess.Compat.CashRegisterShifts.OnDutyCurrentHour>
+  <RimWorldAccess.Compat.CashRegisterShifts.OffDutyCurrentHour>Не на дежурстве, текущий час</RimWorldAccess.Compat.CashRegisterShifts.OffDutyCurrentHour>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourSet>Час {0}: задано, {1}</RimWorldAccess.Compat.CashRegisterShifts.HourSet>
+  <RimWorldAccess.Compat.CashRegisterShifts.HourAlreadySet>Час {0}: уже задано, {1}</RimWorldAccess.Compat.CashRegisterShifts.HourAlreadySet>
+  <RimWorldAccess.Compat.CashRegisterShifts.PaintedHours>{0} применено: {1}</RimWorldAccess.Compat.CashRegisterShifts.PaintedHours>
+  <RimWorldAccess.Compat.CashRegisterShifts.HoursAlreadySet>{0}: уже задано, {1}</RimWorldAccess.Compat.CashRegisterShifts.HoursAlreadySet>
   <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>Назначить персонал</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffAction>
+  <RimWorldAccess.Compat.CashRegisterShifts.AssignStaffToShift>Назначить персонал на смену {0}</RimWorldAccess.Compat.CashRegisterShifts.AssignStaffToShift>
   <RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>Удалить смену</RimWorldAccess.Compat.CashRegisterShifts.DeleteShiftAction>
   <RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>Добавить смену</RimWorldAccess.Compat.CashRegisterShifts.AddShiftAction>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourRow>Час {0}: {1}</RimWorldAccess.Compat.CashRegisterShifts.HourRow>
-  <RimWorldAccess.Compat.CashRegisterShifts.HourToggled>{0}.</RimWorldAccess.Compat.CashRegisterShifts.HourToggled>
+  <RimWorldAccess.Compat.CashRegisterShifts.ShiftAddedAt>Смена {0} добавлена.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAddedAt>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>Смена удалена.</RimWorldAccess.Compat.CashRegisterShifts.ShiftDeleted>
-  <RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>Смена добавлена.</RimWorldAccess.Compat.CashRegisterShifts.ShiftAdded>
   <RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>Максимальное количество смен для этого аппарата уже достигнуто: {0_numCase ? смена : смены : смен}.</RimWorldAccess.Compat.CashRegisterShifts.ShiftCapReached>
   <RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>Действие не удалось.</RimWorldAccess.Compat.CashRegisterShifts.ActionFailed>
+  <RimWorldAccess.Compat.CashRegisterShifts.Closed>{0}: закрыто</RimWorldAccess.Compat.CashRegisterShifts.Closed>
 
   <!-- HospitalityAreaColumnHandler: the Guests table's area-of-accommodation
        and shopping-area columns. Both null-area words are ours rather than

@@ -17,6 +17,7 @@ namespace RimWorldAccess.Shell
         // -1 when the last value control recorded into the suppressed scratch sink, whose
         // indexes mean nothing to a scope.
         private static int lastValueControlIndex = -1;
+        private static List<CapturedWidget> lastValueControlSink;
 
         // The capture index the owning scope's cursor acts on, which on a fused row differs
         // from focusedIndex: there the ring outlines the caption, not the control.
@@ -25,6 +26,17 @@ namespace RimWorldAccess.Shell
         private static void NoteValueControl(List<CapturedWidget> sink, int index)
         {
             lastValueControlIndex = ReferenceEquals(sink, suppressedScratchSink) ? -1 : index;
+            lastValueControlSink = sink;
+        }
+
+        /// <summary>A mod's type-in box belongs to the Slider or Range recorded last, whether or not it draws this pass.</summary>
+        internal static void NoteSliderTypeInOffered()
+        {
+            if (passOpen && lastValueControlIndex >= 0 && lastValueControlSink != null
+                && lastValueControlIndex < lastValueControlSink.Count)
+            {
+                lastValueControlSink[lastValueControlIndex].TypeInBoxOffered = true;
+            }
         }
 
         /// <summary>Call right after <see cref="BeginPass"/>.</summary>
