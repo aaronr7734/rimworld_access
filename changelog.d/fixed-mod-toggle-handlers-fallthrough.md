@@ -1,1 +1,0 @@
-Fixed some mod buttons going silent when pressed. Vanilla Expanded's right-click toggles, Keyz' Allow Utilities forbid toggles and Multi Verb Combat Framework attack buttons now say their new state or start targeting the way other buttons do.

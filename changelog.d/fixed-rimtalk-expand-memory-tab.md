@@ -1,1 +1,0 @@
-RimTalk Expand Memory's new memory tab works from the keyboard again. Its timeline, the archive chronicle, and the details of the memory you pick are all readable, and you can select, pin, filter, edit, summarize, archive and delete memories.

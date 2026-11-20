@@ -1,1 +1,0 @@
-Settings pages built with XML Extensions now name each collapsible section, say how deeply it is nested and whether it is open, and open or close it with Enter or the Right and Left arrows. Button-style toggles and choices say whether they are on or picked, and the search box is named and tells you how many results it found.

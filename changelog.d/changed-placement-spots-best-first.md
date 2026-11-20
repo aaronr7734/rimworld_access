@@ -1,1 +1,0 @@
-Placement spots now list the best places first, not just the nearest, and each one says how well the building would work there: a wind turbine's wind path and output, a solar panel's roof cover, and the deposits a deep drill would reach once a scanner shows them.

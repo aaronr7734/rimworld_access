@@ -1,1 +1,0 @@
-Pawn tables from mods like Numbers now report the sort a table already has, so the header names the sorted column and its direction even after a mouse sort or reopening the tab, and the next sort step starts from there.

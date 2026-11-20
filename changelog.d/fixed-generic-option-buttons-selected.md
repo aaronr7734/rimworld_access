@@ -1,1 +1,0 @@
-Option buttons that mark the current choice with a colour or a missing button background, such as RimTalk's bubble theme and Animal Traits' filters, read as radio buttons with the selected one announced.

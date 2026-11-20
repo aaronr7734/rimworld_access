@@ -1,1 +1,0 @@
-[Choice Of Psycasts](https://steamcommunity.com/sharedfiles/filedetails/?id=2293460251) is now supported. The Learn a Psycast button says which psylink level it offers, each psycast in its menu reads its stats and description, and Alt+I opens the psycast's info card.

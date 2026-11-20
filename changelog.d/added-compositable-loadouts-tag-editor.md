@@ -1,1 +1,0 @@
-Compositable Loadouts' tag editor now works from the keyboard. You can pick, create, rename and delete tags, set what a tag holds and how many, add and reorder alternatives, browse and search things by category with the mod's own sorting and filters, and assign a tag to many colonists at once.

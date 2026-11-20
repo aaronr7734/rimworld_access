@@ -1,1 +1,0 @@
-When a shape places nothing because every cell is near an anima tree or another building with its radius warning on, the mod now tells you which building is protecting those cells and how to turn the warning off, instead of saying there were no valid cells. The same goes for shapes blocked entirely by obstacles, which now say how many obstacles were in the way.

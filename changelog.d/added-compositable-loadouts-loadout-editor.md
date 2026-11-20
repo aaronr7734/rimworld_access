@@ -1,1 +1,0 @@
-Compositable Loadouts' loadout editor now works from the keyboard: add, edit, remove and reorder a pawn's tags, change when each tag is active, read the weight and stat bonuses for any state, open the pawn stats and coverage panels, and switch pawns with comma and period.

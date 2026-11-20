@@ -1,1 +1,0 @@
-When a menu sends you to a pawn or a spot on the map, Escape now takes you back to the menu you came from, on the row you left. This works from the gear, health, social and combat log menus, the Animals, Wildlife, Mechs and Assign tables, notifications, and quest jump buttons. Pressing any other key first leaves you where you are.

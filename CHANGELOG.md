@@ -6,6 +6,67 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](https:
 
 <!-- BUILD_CHANGELOG_INSERT: release notes are compiled here from changelog.d/ fragments by scripts/build_changelog.py. Do not remove this marker. -->
 
+## [2.0 RC 7] - 2026-11-19
+
+RimWorld Access is now available in German. This update also adds health and gear overviews, new terrain sounds, smarter placement help, and better support for many mods. Typing works again on the latest RimWorld 1.7 update.
+
+### Added
+
+- RimWorld Access is now available in German, thanks to Christopher Proß.
+- New health overview on Alt+Shift+H. It lists every downed, bleeding, injured or sick pawn on the map, and Enter jumps to a pawn with their health tab open.
+- New gear overview on Alt+Shift+G. It lists every weapon and piece of apparel on the map and who has it, and Enter jumps to that pawn's gear tab.
+- The scanner says when a pawn is downed, bleeding or hurt. You can turn this off in the RimWorld Access options.
+- When a menu jumps you to a pawn or a spot on the map, Escape takes you back to the menu.
+- New terrain sounds, including sand, rough stone and ice. Terrain added by other mods gets a fitting sound too.
+- Mouse tracking (Alt+Shift+M) works on the world map, and Ctrl+Arrow keys jump between biomes there.
+- Placing a wind turbine tells you whether anything blocks its wind and how much output you would lose.
+- Room stats (5) say whether a noble's bedroom or throne room meets their title's requirements, thanks to Miguel Ángel Insfrán. Inside an animal pen, they also give the pen's size and how much food it grows.
+- Needs say whether they're rising or falling.
+- Expanding a skill reads the game's full skill tooltip, including learning speed and the daily learning cap.
+- Damaged items in inventory and caravan lists say how worn they are.
+- Command buttons from mods without dedicated support read the text they show, instead of an internal name.
+- [Numbers](https://steamcommunity.com/sharedfiles/filedetails/?id=1414302321) is now supported. Every column reads its value, Enter does what a click would, and you can move or remove columns from the header row.
+- [Compositable Loadouts](https://steamcommunity.com/sharedfiles/filedetails/?id=2679126859) is now supported, including its loadouts tab, loadout and tag editors, and bill repeat mode.
+- [Visible Wealth](https://steamcommunity.com/sharedfiles/filedetails/?id=3461137081) is now supported. The wealth breakdown reads as a tree, and the pie chart as a list of slices with their share.
+- [BetterSliders](https://steamcommunity.com/sharedfiles/filedetails/?id=2218078784) is now supported. Start typing a number on any slider to set it with the mod's edit box, including on RimWorld Access's own screens like Options.
+- [Choice Of Psycasts](https://steamcommunity.com/sharedfiles/filedetails/?id=2293460251) is now supported. Each psycast in its menu reads its stats and description.
+- [Carry Different Medicine Types](https://steamcommunity.com/sharedfiles/filedetails/?id=3014295064) is now supported. The Assign tab's Carry column lists each medicine a colonist carries.
+- [Drafted Auto-Combat](https://steamcommunity.com/sharedfiles/filedetails/?id=3546270076) is now supported. Ability buttons say when auto-cast is on, and their Right Bracket menu toggles it.
+- [Tech Advancing](https://steamcommunity.com/sharedfiles/filedetails/?id=735268789) is now supported, including its config window in the research menu.
+- Better support for the Hospitality mods. Hospitality's Guest tab, Gastronomy's Dining tab and Storefront's Shop tab are fully supported, and Cash Register shifts are edited like the Schedule tab.
+- Better support for Colony Manager Redux, including its newest job options, shortcut rows and Overview grouping.
+- With Dubs Bad Hygiene, pressing 3 reads the groundwater under the cursor, and the scanner has a Groundwater category. Recommended spots for wells are ranked by how much water they would draw.
+- With Vehicle Framework, Go here asks which way the vehicle should face, and selected colonists can board a vehicle as a group from the orders menu.
+- Better support for Vanilla Expanded. Inspecting an outpost lists its pawns and stored items, outpost Give and Take windows work like caravan loading, and the animal Genes tab reads every gene.
+- Settings pages built with XML Extensions read their sections, toggles and search results correctly.
+- Smaller improvements for Allow Tool, Alpha Memes, Character Development, Vanilla Skills Expanded, Way Better Romance and others.
+
+### Changed
+
+- Recommended placement spots list the best places first and say how well the building would work there, like a solar panel's roof cover.
+- The Structure jump skips open ground, and the Impassable jump stops at closed doors.
+- The global log shows only what happened on the map you're viewing.
+- Bills in a bill list say their progress, like 3/10.
+- Confirming a target says what you ordered, like "Mortar forced target set: chinchilla".
+- The menu wrap sound is shorter and quieter.
+- The European Portuguese translation is more complete and reads more naturally.
+
+### Fixed
+
+- Typing works again on the latest RimWorld 1.7 update, and accent keys work in text boxes.
+- Fixed the game slowly using more memory after you named your faction, renamed something, or answered some dialogs.
+- Fixed other mods' hotkeys firing while you type or use a RimWorld Access menu.
+- Fixed being unable to drop items from a caravan that shares a world tile with something else.
+- Fixed the health tab not saying how severe each condition is.
+- Fixed an info card opened from another info card showing the wrong stats.
+- Fixed the command button menu naming what lies under unexplored ground.
+- Fixed renaming zones and storage skipping the game's own rename dialog.
+- Fixed the starting pawn filter's Add trait picker not opening in languages other than English, thanks to Miguel Ángel Insfrán.
+- Fixed a mortar or turret's Set forced target button reading as "Unknown weapon".
+- Fixed some mod buttons going silent when pressed or right-clicked.
+- RimTalk, RimWorld Together and Animal Traits work correctly with RimWorld Access again after their latest updates.
+
+
 ## [2.0 RC 6] - 2026-10-19
 
 Just one small fix this time.

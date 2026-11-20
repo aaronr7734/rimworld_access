@@ -1,1 +1,0 @@
-Persona Director's batch director works from the keyboard again, including the new auto evolution button and a box to select every listed pawn. Its history and auto evolution windows can now be read too.

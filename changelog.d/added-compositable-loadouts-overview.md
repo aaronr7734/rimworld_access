@@ -1,1 +1,0 @@
-Compositable Loadouts' loadouts tab now works from the keyboard. Every colonist's tags are in one table you can sort, search and filter, and you can add, remove, reorder, copy and move tags between colonists, change states, and act on several selected colonists at once.

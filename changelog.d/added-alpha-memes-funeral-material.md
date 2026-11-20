@@ -1,1 +1,0 @@
-When an [Alpha Memes](https://steamcommunity.com/sharedfiles/filedetails/?id=2661356814) funeral ritual needs a material, its material button now appears in the ritual window's Buttons region, and Enter lets you pick a different material.

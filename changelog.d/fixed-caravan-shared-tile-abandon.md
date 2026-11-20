@@ -1,1 +1,0 @@
-Fixed being unable to drop items from a caravan that shares a world tile with something else. Its row in the tile list now opens the full caravan screen, and the abandon confirmation now takes the keyboard instead of hiding behind it.

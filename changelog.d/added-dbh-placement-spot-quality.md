@@ -1,1 +1,0 @@
-With Dubs Bad Hygiene, placement spots for wells, wind pumps and surface water inlets are ranked by how much water they would draw and say their ground capacity. Placing a surface water inlet also tells you its capacity and whether the water would be stagnant.

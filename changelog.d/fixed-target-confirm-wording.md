@@ -1,1 +1,0 @@
-Confirming a target on the map now says what you ordered and where. A turret says "Mortar forced target set: chinchilla", weapons and other targeted actions say "target set", and an empty spot is read as its map coordinates instead of just "location".

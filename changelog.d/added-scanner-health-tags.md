@@ -1,1 +1,0 @@
-The scanner now tells you when a pawn is downed, bleeding, or hurt, for example "downed, bleeding out in 2 hours, 45% health". Healthy pawns sound the same as before. You can turn this off in the RimWorld Access options with "Show pawn health in the scanner".

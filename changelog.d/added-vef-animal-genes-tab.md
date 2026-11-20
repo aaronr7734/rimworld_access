@@ -1,1 +1,0 @@
-The animal Genes tab from Vanilla Expanded Framework, used by the Vanilla Expanded animal genetics mods, now reads every gene with its full description, plus the animal's stability, lifespan and feratype. Alt+I on a gene or the feratype opens its info card.

@@ -1,1 +1,0 @@
-Vehicle Framework's upgrade tree now reads as a tree: each upgrade sits under the one it builds on, extra prerequisites are spoken as "also requires", and the tab, buttons and messages use Vehicle Framework's own wording.

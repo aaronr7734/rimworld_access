@@ -1,1 +1,0 @@
-Mouse tracking now works on the world map and the starting site screen: with it turned on (Alt+Shift+M), moving the mouse onto a tile reads it just like the arrow keys do. On the in-game world map, Alt+Shift+J moves your cursor to the tile under the mouse.
