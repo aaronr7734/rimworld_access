@@ -65,6 +65,41 @@ namespace RimWorldAccess.Shell
             RegisterPopTeardown(EndChooseSilently);
         }
 
+        public override void OnPush()
+        {
+            base.OnPush();
+            DrugPolicyRowDrawPatch.Register(this);
+        }
+
+        public override void OnPop()
+        {
+            base.OnPop();
+            DrugPolicyRowDrawPatch.Unregister(this);
+        }
+
+        internal bool ShowsSliderFocus
+        {
+            get { return ReferenceEquals(FocusStack.Top, this); }
+        }
+
+        internal int FocusedSliderOrdinal
+        {
+            get
+            {
+                switch (choosing ? chooseColumn : CurrentColumn())
+                {
+                    case DrugColumn.Frequency:
+                        return 0;
+                    case DrugColumn.MoodThreshold:
+                        return 1;
+                    case DrugColumn.JoyThreshold:
+                        return 2;
+                    default:
+                        return -1;
+                }
+            }
+        }
+
         internal bool Owns(Window window)
         {
             return ReferenceEquals(window, dialog);
@@ -284,6 +319,21 @@ namespace RimWorldAccess.Shell
             {
                 return base.ContentCellText(region, row, column);
             }
+            string text = DrugCellText(row, column);
+            float box;
+            bool drawn;
+            if (row != DrugListDataRow() || column != (int)CurrentColumn() || string.IsNullOrEmpty(text)
+                || !FocusedCellBox(out box, out drawn))
+            {
+                return text;
+            }
+            var d = new ElementDescription { Value = text };
+            SliderTypeInText.ApplyBoxValue(d, box);
+            return d.Value;
+        }
+
+        private string DrugCellText(int row, int column)
+        {
             if (policy == null || row < 0 || row >= policy.Count)
             {
                 return "";
@@ -496,6 +546,7 @@ namespace RimWorldAccess.Shell
             if (changed)
             {
                 sound.PlayOneShotOnCamera();
+                DrugPolicyRowDrawPatch.ForgetSliderValue();
             }
             SpeakCellValue(row, column);
         }
@@ -584,6 +635,36 @@ namespace RimWorldAccess.Shell
                 AppendChooseDigit(c);
             }
             return true;
+        }
+
+        private bool FocusedCellBox(out float value, out bool drawn)
+        {
+            value = 0f;
+            drawn = false;
+            if (choosing || !SliderTypeInFocus.BoxesAvailable || Model.RegionIndex != DrugsRegion)
+            {
+                return false;
+            }
+            DrugPolicyEntry entry = CurrentDrugEntry();
+            int ordinal = FocusedSliderOrdinal;
+            if (entry == null || !entry.allowScheduled || ordinal < 0)
+            {
+                return false;
+            }
+            float drawnValue;
+            drawn = DrugPolicyRowDrawPatch.TryGetFocusedSliderValue(entry, ordinal, out drawnValue);
+            switch (CurrentColumn())
+            {
+                case DrugColumn.MoodThreshold:
+                    value = entry.onlyIfMoodBelow;
+                    return true;
+                case DrugColumn.JoyThreshold:
+                    value = entry.onlyIfJoyBelow;
+                    return true;
+                default:
+                    value = drawnValue;
+                    return drawn;
+            }
         }
 
         private void AppendChooseDigit(char c)

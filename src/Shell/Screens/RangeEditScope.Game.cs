@@ -12,16 +12,15 @@ namespace RimWorldAccess.Shell
     /// scope rides the focus stack through <see cref="RangeEditScopeMirror"/> instead of a
     /// WindowStack mirror, the same shape as <see cref="BillsScope"/>/<see cref="BillConfigScope"/>.
     ///
-    /// Enter and Escape both simply close — every Left/Right press has already been written
-    /// through, so there is no apply and no discard, matching a released vanilla slider.
+    /// Enter and Escape both close (Enter edits a type-in box instead where the caller offered one):
+    /// every Left/Right press is already written through, matching a released vanilla slider.
     /// Left/Right adjust the focused row's value via the
     /// base ScreenScope's generic CanAdjustContentItem/AdjustContentItem path (the old bespoke
     /// rangeEdit.decrease/increase action ids are now orphaned — same chords, ridden by the
     /// shared claim instead, mirroring StorageSettingsScope's own expand/collapse retirement).
     /// Up/Down ride the base's generic region-item navigation (no bespoke Previous/Next claims
     /// needed — RangeEditMenuState.SelectPrevious/SelectNext/ToggleSelection are retired). There
-    /// is no typeahead in this menu (no <see cref="ICharSink"/>), matching all four callers' shared
-    /// grammar (none of them route text through this sub-screen).
+    /// is no typeahead in this menu; typed characters reach only a type-in box.
     /// </summary>
     public sealed class RangeEditScope : ScreenScope
     {
@@ -70,6 +69,12 @@ namespace RimWorldAccess.Shell
                 Label = RangeEditMenuState.BuildAnnouncement(index),
                 Role = ElementRole.Stepper,
             };
+        }
+
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            high = index == 1;
+            return RangeEditMenuState.TryGetTypeInBoxValue(index, out value);
         }
 
         protected override bool CanAdjustContentItem(int region, int index)

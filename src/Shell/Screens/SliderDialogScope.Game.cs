@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HarmonyLib;
 using Verse;
 
 namespace RimWorldAccess.Shell
@@ -12,7 +13,7 @@ namespace RimWorldAccess.Shell
     /// bodies are live: unblocked, Escape closes without our announcement and Enter closes WITHOUT
     /// invoking <c>confirmAction</c>. Hence <see cref="OwnsCancel"/> is unconditionally true and both
     /// paths stamp <see cref="ShellFrameStamps"/>. Digits arrive layout-resolved via
-    /// <see cref="CharSink"/>.
+    /// <see cref="CharSink"/> and stay this dialog's own clamped entry even where a type-in box draws.
     /// </summary>
     public sealed class SliderDialogScope : ScreenScope
     {
@@ -116,6 +117,19 @@ namespace RimWorldAccess.Shell
             return true;
         }
 
+        private bool CursorOnSliderRow()
+        {
+            ListModel region = Model.CurrentRegion;
+            return Model.RegionIndex == 0 && region != null && !region.IsEmpty;
+        }
+
+        internal static bool CursorOnSlider(Window window)
+        {
+            SliderDialogScope scope = TextDialogShared.ScopeOwning<SliderDialogScope>(
+                window, delegate(SliderDialogScope s, Window w) { return s.Owns(w); });
+            return scope != null && scope.CursorOnSliderRow();
+        }
+
         /// <summary>True when an unmanaged window sits above this dialog on the stack.</summary>
         private bool ForeignWindowAbove()
         {
@@ -145,6 +159,22 @@ namespace RimWorldAccess.Shell
         {
             ShellFrameStamps.MarkCancelConsumed();
             SliderDialogState.Cancel();
+        }
+    }
+
+    [HarmonyPatch(typeof(Dialog_Slider), nameof(Dialog_Slider.DoWindowContents))]
+    public static class SliderDialogSliderFocusPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix(Dialog_Slider __instance)
+        {
+            SoleSliderFocus.Enter(SliderDialogScope.CursorOnSlider(__instance));
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            SoleSliderFocus.Exit();
         }
     }
 }

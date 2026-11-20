@@ -412,26 +412,35 @@ namespace RimWorldAccess.Shell
                 case PlanetRow.Temperature:
                 case PlanetRow.Population:
                 case PlanetRow.LandmarkDensity:
-                    return ResolveSliderRect(row);
                 case PlanetRow.Pollution:
-                    // Unlike the four Overall* sliders, Pollution's caption IS the live percent
-                    // value (:165), not a fixed Low/Normal/High key.
-                    return FindCapturedWidgetRect(WidgetKind.Slider, WorldParamsPageBridge.Pollution.ToStringPercent(), 0);
+                {
+                    string label;
+                    int ordinal;
+                    SliderDescriptor(row, out label, out ordinal);
+                    return FindCapturedWidgetRect(WidgetKind.Slider, label, ordinal);
+                }
                 default: // AdvancedSettings
                     return FindCapturedWidgetRect(WidgetKind.Button, (string)"Edit".Translate() + "...", 0);
             }
         }
 
         /// <summary>
-        /// The four sliders share one HorizontalSlider middle-label parameter (:144-158) and
+        /// The four Overall* sliders share one HorizontalSlider middle-label parameter (:144-158) and
         /// several translate to identical text in English, so the ordinal CaptureDescriptor.FindIndex
         /// needs is how many EARLIER rows in this fixed draw sequence resolve to the SAME text this
         /// pass — never a hardcoded position, so a language where all four differ still resolves.
         /// </summary>
-        private Rect ResolveSliderRect(PlanetRow row)
+        private static void SliderDescriptor(PlanetRow row, out string label, out int ordinal)
         {
+            ordinal = 0;
+            if (row == PlanetRow.Pollution)
+            {
+                // Pollution's caption IS its live percent value (:165), not a fixed Low/Normal/High key.
+                label = WorldParamsPageBridge.Pollution.ToStringPercent();
+                return;
+            }
             string myLabel = SliderMiddleLabel(row);
-            int ordinal = 0;
+            label = myLabel;
             foreach (PlanetRow earlier in SliderRowsInDrawOrder())
             {
                 if (earlier == row)
@@ -443,7 +452,39 @@ namespace RimWorldAccess.Shell
                     ordinal++;
                 }
             }
-            return FindCapturedWidgetRect(WidgetKind.Slider, myLabel, ordinal);
+        }
+
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            value = 0f;
+            high = false;
+            if (region != 0 || index < 0 || index >= planetRows.Count || !IsSliderRow(planetRows[index]) || !WorldParamsPageBridge.IsBound)
+            {
+                return false;
+            }
+            switch (planetRows[index])
+            {
+                case PlanetRow.Rainfall: value = (float)WorldParamsPageBridge.Rainfall; break;
+                case PlanetRow.Temperature: value = (float)WorldParamsPageBridge.Temperature; break;
+                case PlanetRow.Population: value = (float)WorldParamsPageBridge.Population; break;
+                case PlanetRow.LandmarkDensity: value = (float)WorldParamsPageBridge.LandmarkDensity; break;
+                default: value = WorldParamsPageBridge.Pollution; break;
+            }
+            return true;
+        }
+
+        private void ReportFocusedSlider()
+        {
+            ListModel region = Model.CurrentRegion;
+            if (Model.RegionIndex != 0 || region == null || region.IsEmpty
+                || region.Index < 0 || region.Index >= planetRows.Count || !IsSliderRow(planetRows[region.Index]))
+            {
+                return;
+            }
+            string label;
+            int ordinal;
+            SliderDescriptor(planetRows[region.Index], out label, out ordinal);
+            WidgetCapture.SetFocusedContentControl(WidgetKind.Slider, label, ordinal);
         }
 
         private static string SliderMiddleLabel(PlanetRow row)
@@ -539,7 +580,7 @@ namespace RimWorldAccess.Shell
                     Find.WindowStack.Add(new Dialog_AdvancedGameConfig());
                     break;
                 default:
-                    // Sliders adjust with Left/Right; Enter just re-reads.
+                    // Sliders adjust with Left/Right; without a type-in box Enter just re-reads.
                     AnnounceCurrentItem();
                     break;
             }
@@ -590,6 +631,7 @@ namespace RimWorldAccess.Shell
             // dispatcher; mirroring the seed buffer is a no-op in browse mode.
             ShellTextFocus.ReleaseNativeFocus();
             seedSession.MirrorLive();
+            ReportFocusedSlider();
         }
 
         private void RandomizeSeed()
@@ -807,6 +849,12 @@ namespace RimWorldAccess.Shell
                     yield return deleteLabel;
                 }
             }
+        }
+
+        /// <summary>A slider's type-in box is presented on its slider row.</summary>
+        protected override bool ExcludeFromCapturedExtras(CapturedWidget widget)
+        {
+            return widget.SliderTypeInOwner >= 0;
         }
 
         // Claim gates.

@@ -260,6 +260,15 @@ namespace RimWorldAccess.Shell
         // ring inline, in the same nested call that has the real rect.
         private static int focusedIndex = -1;
 
+        private static bool focusedSliderLabeledBody;
+        private static bool lastGetRectWasRinged;
+        private static bool sliderBelowRingedRow;
+
+        internal static bool DrawingFocusedSlider
+        {
+            get { return passOpen && (focusedSliderLabeledBody || lastGetRectWasRinged || sliderBelowRingedRow); }
+        }
+
         /// <summary>Rows recorded by the current/most recent pass, in draw order.</summary>
         public static IReadOnlyList<CapturedListingRow> Items
         {
@@ -290,6 +299,9 @@ namespace RimWorldAccess.Shell
             focusedIndex = -1;
             ringFocus = focus;
             ClearPendingIdentity();
+            focusedSliderLabeledBody = false;
+            lastGetRectWasRinged = false;
+            sliderBelowRingedRow = false;
             passOpen = true;
             // Self-heal: a body that threw last pass never ran its postfix to unwind these.
             insideDoOptionsDepth = 0;
@@ -311,6 +323,9 @@ namespace RimWorldAccess.Shell
             focusedIndex = -1;
             ringFocus = ListingRingFocus.None;
             ClearPendingIdentity();
+            focusedSliderLabeledBody = false;
+            lastGetRectWasRinged = false;
+            sliderBelowRingedRow = false;
             InjectedClickGuard.InFlight = false;
         }
 
@@ -416,6 +431,7 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
+            lastGetRectWasRinged = false;
             object rowObject = pendingRowObject;
             // An object marker outranks any key, and both one-shots are spent by this row whether
             // or not it turns out to be the ringed one.
@@ -439,6 +455,7 @@ namespace RimWorldAccess.Shell
             {
                 return;
             }
+            lastGetRectWasRinged = true;
 #if DEBUG
             if (rowObject != null && row.DrawnLabel != null && ringFocus.LabelTripwire != null
                 && !string.Equals(row.DrawnLabel, ringFocus.LabelTripwire, StringComparison.Ordinal))
@@ -594,6 +611,7 @@ namespace RimWorldAccess.Shell
 
         internal static void ExitSliderLabel()
         {
+            focusedSliderLabeledBody = false;
             pendingSliderLabel = null;
         }
 
@@ -604,6 +622,16 @@ namespace RimWorldAccess.Shell
         internal static string CurrentSliderLabel
         {
             get { return pendingSliderLabelFrame == Time.frameCount ? pendingSliderLabel : null; }
+        }
+
+        internal static void EnterSliderBelowRingedRow()
+        {
+            sliderBelowRingedRow = passOpen && lastGetRectWasRinged;
+        }
+
+        internal static void ExitSliderBelowRingedRow()
+        {
+            sliderBelowRingedRow = false;
         }
 
         internal static void RecordSlider(string label, string tooltip)
@@ -620,6 +648,7 @@ namespace RimWorldAccess.Shell
             };
             items.Add(row);
             pendingRectRow = row;
+            focusedSliderLabeledBody = items.Count - 1 == focusedIndex;
         }
 
         internal static void RecordComboBox(string label, string tooltip)
@@ -944,6 +973,30 @@ namespace RimWorldAccess.Shell
         {
             ListingRowCapture.ExitSliderLabel();
             ListingRowCapture.ExitListingBody();
+        }
+    }
+
+    [HarmonyPatch]
+    internal static class ListingRowSliderBelowRingedRowPatch
+    {
+        static IEnumerable<MethodBase> TargetMethods()
+        {
+            yield return AccessTools.Method(typeof(Listing_Standard), "Slider",
+                new[] { typeof(float), typeof(float), typeof(float) });
+            yield return AccessTools.Method(typeof(Listing_Standard), "IntRange",
+                new[] { typeof(IntRange).MakeByRefType(), typeof(int), typeof(int) });
+        }
+
+        [HarmonyPrefix]
+        public static void Prefix()
+        {
+            ListingRowCapture.EnterSliderBelowRingedRow();
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            ListingRowCapture.ExitSliderBelowRingedRow();
         }
     }
 

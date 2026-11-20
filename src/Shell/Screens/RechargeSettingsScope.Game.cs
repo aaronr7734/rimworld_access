@@ -108,13 +108,29 @@ namespace RimWorldAccess.Shell
         protected override void ActivateContentItem(int region, int index)
         {
             // Flat stepper rows have no separate "activate" beyond adjusting;
-            // Enter just re-reads the current value.
+            // without a type-in box Enter just re-reads the current value.
             AnnounceCurrentItem();
         }
 
         protected override bool CanAdjustContentItem(int region, int index)
         {
             return true;
+        }
+
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            FloatRange range = rangeField(dialog);
+            high = index == MaxRow;
+            value = high ? range.max : range.min;
+            return region == ThresholdRegion && (index == MinRow || high);
+        }
+
+        internal static bool CursorOnRange(Dialog_RechargeSettings window)
+        {
+            RechargeSettingsScope scope = TextDialogShared.ScopeOwning<RechargeSettingsScope>(
+                window, delegate(RechargeSettingsScope s, Window w) { return ReferenceEquals(s.dialog, w); });
+            ListModel region = scope?.Model.CurrentRegion;
+            return region != null && !region.IsEmpty && scope.Model.RegionIndex == ThresholdRegion;
         }
 
         // MUTATION-C: mirrors Dialog_RechargeSettings.DoWindowContents (decompiled
@@ -140,8 +156,7 @@ namespace RimWorldAccess.Shell
             AnnounceCurrentItem();
         }
 
-        // The whole FloatRange widget rings for either row (:44 — one
-        // Widgets.FloatRange, no per-thumb geometry vanilla exposes).
+        // One Widgets.FloatRange (:48) rings for either row; vanilla exposes no per-thumb geometry.
         protected internal override Rect FocusedContentRect()
         {
             ListModel region = Model.CurrentRegion;
@@ -172,6 +187,23 @@ namespace RimWorldAccess.Shell
             float margin = MarginOf(dialog);
             return new Rect(0f, 0f, dialog.windowRect.width, dialog.windowRect.height)
                 .ContractedBy(margin);
+        }
+    }
+
+    /// <summary>The dialog's body draws only the recharge FloatRange, so it reports that control's focus.</summary>
+    [HarmonyPatch(typeof(Dialog_RechargeSettings), nameof(Dialog_RechargeSettings.DoWindowContents))]
+    public static class RechargeSettingsSliderFocusPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix(Dialog_RechargeSettings __instance)
+        {
+            SoleSliderFocus.Enter(RechargeSettingsScope.CursorOnRange(__instance));
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            SoleSliderFocus.Exit();
         }
     }
 }

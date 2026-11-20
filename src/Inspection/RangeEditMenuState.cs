@@ -38,12 +38,60 @@ namespace RimWorldAccess
         private static Action onClosed;
         private static string percentNoun;
         private static float percentStep;
+        private static object typeInBoxOwner;
+        private static int typeInBoxDrawnFrame = -1;
+        private static int rangeDrawDepth;
 
         public static bool IsActive => isActive;
+
+        /// <summary>The open range is drawn by a game range widget keyed by <paramref name="owner"/>; see <see cref="EnterRangeDraw"/>.</summary>
+        public static void OfferTypeInBox(object owner)
+        {
+            typeInBoxOwner = owner;
+            typeInBoxDrawnFrame = -1;
+        }
+
+        /// <summary>The range widget drawing right now is the one this editor edits.</summary>
+        internal static bool DrawingEditedRange => rangeDrawDepth > 0;
+
+        /// <summary>Brackets a range widget's draw; true (pair with <see cref="ExitRangeDraw"/>) only for the edited range.</summary>
+        internal static bool EnterRangeDraw(object owner, RangeType type)
+        {
+            if (!isActive || typeInBoxOwner == null || !ReferenceEquals(owner, typeInBoxOwner) || type != currentRangeType)
+            {
+                return false;
+            }
+            rangeDrawDepth++;
+            typeInBoxDrawnFrame = Time.frameCount;
+            return true;
+        }
+
+        internal static void ExitRangeDraw()
+        {
+            if (rangeDrawDepth > 0)
+            {
+                rangeDrawDepth--;
+            }
+        }
+
+        /// <summary>The raw bound a type-in box shows, while the edited range's widget is still drawing.</summary>
+        internal static bool TryGetTypeInBoxValue(int selectedOption, out float value)
+        {
+            value = 0f;
+            if (!isActive || typeInBoxOwner == null || currentRangeType == RangeType.Quality || getFloatRange == null
+                || typeInBoxDrawnFrame < 0 || Time.frameCount - typeInBoxDrawnFrame > 2)
+            {
+                return false;
+            }
+            FloatRange range = getFloatRange();
+            value = selectedOption == 0 ? range.min : range.max;
+            return true;
+        }
 
         public static void OpenHitPointsRange(Func<FloatRange> get, Action<FloatRange> set, Action onClosed = null)
         {
             isActive = true;
+            typeInBoxOwner = null;
             currentRangeType = RangeType.HitPoints;
             getFloatRange = get;
             setFloatRange = set;
@@ -53,6 +101,7 @@ namespace RimWorldAccess
         public static void OpenQualityRange(Func<QualityRange> get, Action<QualityRange> set, Action onClosed = null)
         {
             isActive = true;
+            typeInBoxOwner = null;
             currentRangeType = RangeType.Quality;
             getQualityRange = get;
             setQualityRange = set;
@@ -60,19 +109,14 @@ namespace RimWorldAccess
         }
 
         /// <summary>
-        /// New range type: reached only from
-        /// the policy window's Reading Policy "Book Effects" panel,
-        /// Anomaly-DLC-gated. Step size, clamping, and percent formatting mirror the retired
-        /// inline slider's MentalBreakChance case exactly (0.05f step); the label is vanilla's
-        /// own bare noun key ("BookMentalBreakChance" — verified against decompiled
-        /// Verse/ThingFilterUI.cs:113-121's DrawMentalBreakFilterConfig, which itself uses the
-        /// templated "MaxMentalBreakChance" key as the widget's own internal label, not this
-        /// noun; "BookMentalBreakChance" = "Mental break chance" per Core/MainTabs.xml, the same
-        /// key already used by the pre-migration policy editor).
+        /// Reading Policy "Book Effects" only (Anomaly). Labelled with vanilla's bare noun
+        /// "BookMentalBreakChance"; the widget's own "MaxMentalBreakChance" key is a template
+        /// (Verse/ThingFilterUI.cs:113-121).
         /// </summary>
         public static void OpenMentalBreakChanceRange(Func<FloatRange> get, Action<FloatRange> set, Action onClosed = null)
         {
             isActive = true;
+            typeInBoxOwner = null;
             currentRangeType = RangeType.MentalBreakChance;
             getFloatRange = get;
             setFloatRange = set;
@@ -88,6 +132,7 @@ namespace RimWorldAccess
             float step = 0.01f, Action onClosed = null)
         {
             isActive = true;
+            typeInBoxOwner = null;
             currentRangeType = RangeType.Percent;
             percentNoun = noun;
             percentStep = step;
@@ -106,6 +151,7 @@ namespace RimWorldAccess
             setQualityRange = null;
             onClosed = null;
             percentNoun = null;
+            typeInBoxOwner = null;
         }
 
         /// <summary>

@@ -24,6 +24,7 @@ namespace RimWorldAccess.Shell
             else
             {
                 d = DescribeContentItem(Model.RegionIndex, region.Index) ?? new ElementDescription();
+                ApplySliderBoxValue(d);
             }
             if (!d.PositionIndex.HasValue)
             {

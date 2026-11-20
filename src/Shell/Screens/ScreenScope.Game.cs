@@ -209,6 +209,7 @@ namespace RimWorldAccess.Shell
             LearningHelperOpenerClaims.RegisterForScreen(this);
 
             RegisterPopTeardown(extrasEditSession.CancelIfActive);
+            RegisterPopTeardown(CancelSliderTypeIn);
         }
 
         /// <summary>
@@ -695,6 +696,8 @@ namespace RimWorldAccess.Shell
             DisarmDefaultAccept();
             awaitingEntryAnnouncement = !suppressNextEntryAnnouncement;
             suppressNextEntryAnnouncement = false;
+            ReturnFromOwnEdit = ownEditReturnPending;
+            ownEditReturnPending = false;
             lastAnnouncedLevel = null;
             lastAnnouncedLevelRegion = -1;
             buttonPassSinceFocus = false;

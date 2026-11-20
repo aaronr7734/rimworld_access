@@ -61,6 +61,8 @@ namespace RimWorldAccess.Shell
 
         private bool announcedOpen;
 
+        private static readonly Dictionary<FieldInfo, bool> sliderFields = new Dictionary<FieldInfo, bool>();
+
         public DevDefEditorScope(Window window)
         {
             this.window = window;
@@ -98,15 +100,74 @@ namespace RimWorldAccess.Shell
         {
             base.OnPush();
             BuildTree();
+            DefEditorRowCapture.SliderScope = this;
+        }
+
+        public override void OnPop()
+        {
+            base.OnPop();
+            if (ReferenceEquals(DefEditorRowCapture.SliderScope, this))
+            {
+                DefEditorRowCapture.SliderScope = null;
+            }
+        }
+
+        /// <summary>The focused row's node, kept while a text session's shadow scope sits on top.</summary>
+        internal TreeNode_Editor FocusedValueNode
+        {
+            get
+            {
+                FocusScope top = FocusStack.Top;
+                return ReferenceEquals(top, this) || top is TextSessionScope
+                    ? CurrentTreeItem()?.Data as TreeNode_Editor
+                    : null;
+            }
+        }
+
+        /// <summary>A float row's <c>[EditSliderRange]</c> slider (Listing_TreeDefs.cs:184-188); vanilla's int rows draw a text field only.</summary>
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            value = 0f;
+            high = false;
+            var node = TreeItemAt(index)?.Data as TreeNode_Editor;
+            if (node == null || !DefEditorRowCapture.DrewRecently(node)
+                || node.nodeType != EditTreeNodeType.TerminalValue || node.ObjectType != typeof(float)
+                || !HasSliderRange(node))
+            {
+                return false;
+            }
+            value = (float)node.Value;
+            return true;
+        }
+
+        /// <summary>Every float slider row already edits its value as text on Enter.</summary>
+        protected override bool HasOwnNumberEntry(int region, int index)
+        {
+            return true;
+        }
+
+        private static bool HasSliderRange(TreeNode_Editor node)
+        {
+            FieldInfo field = node.owningField;
+            if (field == null)
+            {
+                return false;
+            }
+            bool has;
+            if (!sliderFields.TryGetValue(field, out has))
+            {
+                has = TryGetSliderRange(node, out _, out _);
+                sliderFields[field] = has;
+            }
+            return has;
         }
 
         public override void OnFocus()
         {
             base.OnFocus();
 
-            // Announce only on the first focus. Every later focus is a return from a windowless
-            // picker this scope opened, whose own option action already re-announced the row; a
-            // cancelled picker returns silently.
+            // Only the first focus announces: a later one returns from a picker that already
+            // re-announced the row, or was cancelled silently.
             if (!announcedOpen)
             {
                 announcedOpen = true;
@@ -737,10 +798,8 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// The focused row's band, resolved against the nodes <see cref="DefEditorRowCapture"/> saw
-        /// vanilla draw this pass. The lookup is by reference, so it cannot land on a neighbour: a row
-        /// vanilla did not draw (collapsed under its own expansion state, scrolled out, or a wrapper
-        /// row with no node behind it) has no entry and gets no ring.
+        /// The focused row's band among the nodes <see cref="DefEditorRowCapture"/> saw vanilla draw
+        /// this pass, by reference; a row vanilla did not draw gets no ring.
         /// </summary>
         protected internal override Rect FocusedContentRect()
         {

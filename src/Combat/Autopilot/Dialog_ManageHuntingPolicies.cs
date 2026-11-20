@@ -100,8 +100,19 @@ namespace RimWorldAccess
             y += RowHeight + RowGap;
             FloatRange range = policy.RevengeChance;
             // Own key: vanilla's HarmedRevengeChance label has no {0}, which would hide the range.
-            Widgets.FloatRange(sliderRow, GetHashCode(), ref range, 0f, 1f,
-                "RimWorldAccess.Autopilot.HuntRevengeRange.SliderLabel", ToStringStyle.PercentOne);
+            bool edited = RangeEditMenuState.EnterRangeDraw(policy, RangeEditMenuState.RangeType.Percent);
+            try
+            {
+                Widgets.FloatRange(sliderRow, GetHashCode(), ref range, 0f, 1f,
+                    "RimWorldAccess.Autopilot.HuntRevengeRange.SliderLabel", ToStringStyle.PercentOne);
+            }
+            finally
+            {
+                if (edited)
+                {
+                    RangeEditMenuState.ExitRangeDraw();
+                }
+            }
             policy.RevengeChance = range;
             RecordRow(SliderRowIndex, sliderRow);
 

@@ -104,6 +104,8 @@ namespace RimWorldAccess
             /// requested one after validation or clamping.
             /// </summary>
             public Func<object> GetValue { get; set; }
+            public Func<float> LiveSliderValue { get; set; }
+            public bool SliderIsRangeMax { get; set; }
             /// <summary>
             /// Quantity fields: display as a percentage even when the max range exceeds 1.
             /// </summary>

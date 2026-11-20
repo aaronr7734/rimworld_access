@@ -166,7 +166,7 @@ namespace RimWorldAccess.Shell
 
         public override ICharSink CharSink
         {
-            get { return EnableTypeahead ? this : base.CharSink; }
+            get { return EnableTypeahead || HasTypableSliderBox() ? this : base.CharSink; }
         }
 
         /// <summary>
@@ -176,6 +176,8 @@ namespace RimWorldAccess.Shell
         /// </summary>
         public virtual bool HandleChar(char c)
         {
+            if (TryTypeIntoSliderBox(c))
+                return true;
             if (!EnableTypeahead)
                 return false;
             if (!TypeaheadMatcher.AcceptsSearchChar(c, typeahead.HasActiveSearch, TypeaheadAcceptsDigits))

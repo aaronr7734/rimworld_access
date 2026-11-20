@@ -15,11 +15,9 @@ namespace RimWorldAccess.Shell
     /// Verse/Listing_TreeDefs.cs:107) — which carries the <c>TreeNode_Editor</c> itself, so rows
     /// are keyed by node REFERENCE and the scope's own row resolves to its rect directly.
     ///
-    /// Reference identity is what makes the ring correct here: vanilla keeps its own expansion
-    /// state (its <c>openMask</c>), which this scope's keyboard expansion never writes, so the two
-    /// row sequences diverge the moment the player expands anything. A row vanilla did not draw
-    /// this pass — collapsed on its side, scrolled out, or a wrapper row with no vanilla node
-    /// behind it — simply has no entry, and no ring is drawn.
+    /// Reference identity keeps the ring correct: vanilla's own expansion state (<c>openMask</c>)
+    /// is never written by the keyboard, so the two row sequences diverge. A row vanilla did not
+    /// draw this pass has no entry, and no ring is drawn.
     /// </summary>
     internal static class DefEditorRowCapture
     {
@@ -34,10 +32,47 @@ namespace RimWorldAccess.Shell
         private static readonly AccessTools.FieldRef<Listing, float> CurYRef =
             AccessTools.FieldRefAccess<Listing, float>("curY");
 
+        internal static DevDefEditorScope SliderScope;
+
+        // Set on every event type, unlike Recording: a type-in mod's hover test runs on Layout too.
+        private static TreeNode_Editor focusedValueNode;
+        private static bool drawingFocusedSlider;
+        private static TreeNode_Editor drawnNode;
+        private static int drawnFrame = -1;
+
+        internal static bool DrawingFocusedSlider
+        {
+            get { return drawingFocusedSlider; }
+        }
+
+        /// <summary>Whether vanilla drew <paramref name="node"/>'s value widget as the focused row within the last frames.</summary>
+        internal static bool DrewRecently(TreeNode_Editor node)
+        {
+            return drawnFrame >= 0 && Time.frameCount - drawnFrame <= 2 && ReferenceEquals(node, drawnNode);
+        }
+
+        internal static void EnterValueWidget(TreeNode_Editor node)
+        {
+            if (focusedValueNode == null || !ReferenceEquals(node, focusedValueNode))
+            {
+                return;
+            }
+            drawingFocusedSlider = true;
+            drawnNode = node;
+            drawnFrame = Time.frameCount;
+        }
+
+        internal static void ExitValueWidget()
+        {
+            drawingFocusedSlider = false;
+        }
+
         internal static void BeginPass(Window window)
         {
             try
             {
+                DevDefEditorScope owner = SliderScope;
+                focusedValueNode = owner != null && owner.Owns(window) ? owner.FocusedValueNode : null;
                 Event ev = Event.current;
                 if (ev == null || ev.type == EventType.Layout)
                 {
@@ -60,6 +95,8 @@ namespace RimWorldAccess.Shell
         internal static void EndPass()
         {
             Recording = false;
+            focusedValueNode = null;
+            drawingFocusedSlider = false;
         }
 
         /// <summary>
@@ -110,6 +147,22 @@ namespace RimWorldAccess.Shell
         public static void Finalizer()
         {
             DefEditorRowCapture.EndPass();
+        }
+    }
+
+    [HarmonyPatch(typeof(Listing_TreeDefs), "ValueEditWidgetRight")]
+    internal static class DefEditorValueWidgetPatch
+    {
+        [HarmonyPrefix]
+        public static void Prefix(TreeNode_Editor node)
+        {
+            DefEditorRowCapture.EnterValueWidget(node);
+        }
+
+        [HarmonyFinalizer]
+        public static void Finalizer()
+        {
+            DefEditorRowCapture.ExitValueWidget();
         }
     }
 

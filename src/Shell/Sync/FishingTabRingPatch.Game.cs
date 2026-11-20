@@ -40,7 +40,7 @@ namespace RimWorldAccess.Shell
         /// <summary>:107, whose tooltip key is the literal nearest the call.</summary>
         internal const string FishPopulation = "FishPopulationDesc";
 
-        /// <summary>:109, likewise.</summary>
+        /// <summary>:109, likewise. The slider under it at :110 carries the same token, so one focus rings both.</summary>
         internal const string MinimumPopulation = "MinimumPopulationDesc";
     }
 
@@ -48,7 +48,7 @@ namespace RimWorldAccess.Shell
     /// The row calls <c>FillTab</c> makes, resolved by exact signature: plain
     /// ButtonText (decompiled Verse/Listing_Standard.cs:248), both Label
     /// overloads (:95 and :100 — the unpause row passes a TaggedString, every
-    /// other label a string) and the default CheckboxLabeled (:215).
+    /// other label a string), the default CheckboxLabeled (:215) and Slider (:372).
     /// </summary>
     internal static class FishingRowCalls
     {
@@ -67,6 +67,10 @@ namespace RimWorldAccess.Shell
         internal static readonly MethodInfo CheckboxLabeled =
             AccessTools.Method(typeof(Listing_Standard), "CheckboxLabeled",
                 new[] { typeof(string), typeof(bool).MakeByRefType(), typeof(string), typeof(float), typeof(float) });
+
+        internal static readonly MethodInfo Slider =
+            AccessTools.Method(typeof(Listing_Standard), "Slider",
+                new[] { typeof(float), typeof(float), typeof(float) });
     }
 
     /// <summary>
@@ -139,8 +143,8 @@ namespace RimWorldAccess.Shell
     }
 
     /// <summary>
-    /// The seven value rows of <c>FillTab</c>, in IL order (decompiled
-    /// RimWorld/ITab_Fishing.cs:44, :65, :70, :81, :88, :107, :109). The
+    /// The eight value rows of <c>FillTab</c>, in IL order (decompiled
+    /// RimWorld/ITab_Fishing.cs:44, :65, :70, :81, :88, :107, :109, :110). The
     /// repeat-mode switch (:62) and the pause-when-satisfied nesting (:86) need
     /// no mirroring: an unexecuted branch emits no marker.
     /// </summary>
@@ -152,7 +156,7 @@ namespace RimWorldAccess.Shell
             RowCallTargets = new[]
             {
                 FishingRowCalls.ButtonText, FishingRowCalls.Label,
-                FishingRowCalls.TaggedLabel, FishingRowCalls.CheckboxLabeled,
+                FishingRowCalls.TaggedLabel, FishingRowCalls.CheckboxLabeled, FishingRowCalls.Slider,
             },
             Sites = new[]
             {
@@ -196,6 +200,12 @@ namespace RimWorldAccess.Shell
                 {
                     RowCall = FishingRowCalls.Label,
                     Payload = MarkerPayload.HarvestedKey,
+                    ExpectedKey = FishingRowKeys.MinimumPopulation,
+                },
+                new MarkerSite
+                {
+                    RowCall = FishingRowCalls.Slider,
+                    Payload = MarkerPayload.SyntheticKey,
                     ExpectedKey = FishingRowKeys.MinimumPopulation,
                 },
             },

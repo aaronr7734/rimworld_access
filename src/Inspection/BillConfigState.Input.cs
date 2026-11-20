@@ -65,6 +65,30 @@ namespace RimWorldAccess
             return field != null && field.TakesTypedNumber;
         }
 
+        /// <summary>The raw value the dialog's slider or range draws for this row; <paramref name="high"/> picks a range's maximum.</summary>
+        internal static bool TryGetSliderBox(int index, out float value, out bool high)
+        {
+            value = 0f;
+            high = false;
+            FieldDescriptor field = isActive && bill != null ? RowAt(index) : null;
+            switch (field?.Type)
+            {
+                case MenuItemType.SkillRangeMin:
+                    value = bill.allowedSkillRange.min;
+                    return true;
+                case MenuItemType.SkillRangeMax:
+                    value = bill.allowedSkillRange.max;
+                    high = true;
+                    return true;
+                case MenuItemType.IngredientSearchRadius:
+                    // Dialog_BillConfig.cs:515 draws an unlimited radius at the slider's 100 end.
+                    value = Mathf.Min(bill.ingredientSearchRadius, 100f);
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>The row's current value as the digits an exact-entry session starts from.</summary>
         internal static string TypedNumberSeed(int index)
         {
@@ -72,10 +96,8 @@ namespace RimWorldAccess
             return field != null && field.GetNumericText != null ? field.GetNumericText() : "";
         }
 
-        /// <summary>
-        /// Writes a typed whole number through the field's own commit method, which carries that
-        /// field's vanilla-harvested clamp. Runs once, on the text session's Enter-confirm.
-        /// </summary>
+        /// <summary>Writes a typed whole number through the field's own commit method, which carries that
+        /// field's vanilla-harvested clamp. Runs once, on the text session's Enter-confirm.</summary>
         internal static void ApplyTypedNumber(int index, int value)
         {
             FieldDescriptor field = RowAt(index);

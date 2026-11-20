@@ -268,6 +268,19 @@ namespace RimWorldAccess.Shell
             AnnounceSettingStateChange(region, index);
         }
 
+        protected sealed override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            value = 0f;
+            high = false;
+            if (region < 0 || region >= ActiveRegions.Count || ActiveRegions[region] != RegionKind.CustomDifficulty
+                || index < 0 || index >= CustomRows.Count)
+                return false;
+            if (!(CustomRows[index].Setting is DifficultySliderSetting slider) || !slider.IsEnabled)
+                return false;
+            value = slider.WidgetValue;
+            return true;
+        }
+
         /// <summary>
         /// Opt-in gate for the radio-group contract, where arrowing onto a choice selects it. True
         /// pre-game, where the picks are chargen configuration; false in-game, where

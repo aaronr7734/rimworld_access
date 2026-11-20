@@ -310,8 +310,8 @@
   <RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>debe ser un número</RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>
   <RimWorldAccess.UI.GenericWindow.NumericOutOfRange>debe estar entre {0} y {1}</RimWorldAccess.UI.GenericWindow.NumericOutOfRange>
   <RimWorldAccess.UI.GenericWindow.PercentValue>{0}%</RimWorldAccess.UI.GenericWindow.PercentValue>
-  <RimWorldAccess.UI.GenericWindow.TypeInBoxValue>cuadro numérico {0}</RimWorldAccess.UI.GenericWindow.TypeInBoxValue>
-  <RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>{0}, cuadro numérico {1}</RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>
+  <RimWorldAccess.UI.GenericWindow.TypeInBoxValue>cuadro de edición {0}</RimWorldAccess.UI.GenericWindow.TypeInBoxValue>
+  <RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>{0}, cuadro de edición {1}</RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>
   <RimWorldAccess.UI.GenericWindow.SensitiveValueSet>{0} caracteres, oculto</RimWorldAccess.UI.GenericWindow.SensitiveValueSet>
   <RimWorldAccess.UI.GenericWindow.VectorAxisX>X</RimWorldAccess.UI.GenericWindow.VectorAxisX>
   <RimWorldAccess.UI.GenericWindow.VectorAxisY>Y</RimWorldAccess.UI.GenericWindow.VectorAxisY>

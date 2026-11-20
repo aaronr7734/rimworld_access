@@ -305,6 +305,7 @@ namespace RimWorldAccess
                     Type = FieldType.Quantity,
                     CurrentValue = $"{(currentRange.min * 100):F0}%",
                     Data = new float[] { 0f, maxSeverity },
+                    LiveSliderValue = part is ScenPart_ForcedHediff ? () => ((FloatRange)severityRangeField.GetValue(part)).min : (Func<float>)null,
                     SetValue = (val) =>
                     {
                         var range = (FloatRange)severityRangeField.GetValue(part);
@@ -322,6 +323,8 @@ namespace RimWorldAccess
                     Type = FieldType.Quantity,
                     CurrentValue = $"{(currentRange.max * 100):F0}%",
                     Data = new float[] { 0f, maxSeverity },
+                    LiveSliderValue = part is ScenPart_ForcedHediff ? () => ((FloatRange)severityRangeField.GetValue(part)).max : (Func<float>)null,
+                    SliderIsRangeMax = true,
                     SetValue = (val) =>
                     {
                         var range = (FloatRange)severityRangeField.GetValue(part);
@@ -596,6 +599,7 @@ namespace RimWorldAccess
                     Type = FieldType.Quantity,
                     CurrentValue = currentRange.min.ToString(),
                     Data = new int[] { 15, currentRange.max - 4 },
+                    LiveSliderValue = part is ScenPart_PawnFilter_Age ? () => ((IntRange)ageRangeField.GetValue(part)).min : (Func<float>)null,
                     SetValue = (val) =>
                     {
                         var range = (IntRange)ageRangeField.GetValue(part);
@@ -614,6 +618,8 @@ namespace RimWorldAccess
                     Type = FieldType.Quantity,
                     CurrentValue = currentRange.max.ToString(),
                     Data = new int[] { currentRange.min + 4, 120 },
+                    LiveSliderValue = part is ScenPart_PawnFilter_Age ? () => ((IntRange)ageRangeField.GetValue(part)).max : (Func<float>)null,
+                    SliderIsRangeMax = true,
                     SetValue = (val) =>
                     {
                         var range = (IntRange)ageRangeField.GetValue(part);
@@ -661,6 +667,7 @@ namespace RimWorldAccess
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentChance * 100:F0}%",
                         Data = new float[] { 0f, 1f },
+                        LiveSliderValue = () => (float)mechChanceField.GetValue(part),
                         // MUTATION-C: mirrors ScenPart_StartingMech's overseenByPlayerPawnChance HorizontalSlider(0,1,step 0.01) (decompiled RimWorld/ScenPart_StartingMech.cs:23-49).
                         SetValue = (val) => mechChanceField.SetValue(part, Convert.ToSingle(val))
                     });
@@ -816,6 +823,7 @@ namespace RimWorldAccess
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentRange.min * 100:F0}%",
                         Data = new float[] { 0f, 1f },
+                        LiveSliderValue = () => ((FloatRange)levelRangeField.GetValue(part)).min,
                         SetValue = (val) => {
                             var range = (FloatRange)levelRangeField.GetValue(part);
                             float newMin = Convert.ToSingle(val);
@@ -831,6 +839,8 @@ namespace RimWorldAccess
                         Type = FieldType.Quantity,
                         CurrentValue = $"{currentRange.max * 100:F0}%",
                         Data = new float[] { 0f, 1f },
+                        LiveSliderValue = () => ((FloatRange)levelRangeField.GetValue(part)).max,
+                        SliderIsRangeMax = true,
                         SetValue = (val) => {
                             var range = (FloatRange)levelRangeField.GetValue(part);
                             float newMax = Convert.ToSingle(val);

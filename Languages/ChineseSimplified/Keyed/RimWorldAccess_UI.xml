@@ -302,8 +302,8 @@
   <RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>必须为数字</RimWorldAccess.UI.GenericWindow.NumericMustBeNumber>
   <RimWorldAccess.UI.GenericWindow.NumericOutOfRange>必须介于 {0} 与 {1} 之间</RimWorldAccess.UI.GenericWindow.NumericOutOfRange>
   <RimWorldAccess.UI.GenericWindow.PercentValue>{0}%</RimWorldAccess.UI.GenericWindow.PercentValue>
-  <RimWorldAccess.UI.GenericWindow.TypeInBoxValue>数字框 {0}</RimWorldAccess.UI.GenericWindow.TypeInBoxValue>
-  <RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>{0}, 数字框 {1}</RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>
+  <RimWorldAccess.UI.GenericWindow.TypeInBoxValue>编辑框 {0}</RimWorldAccess.UI.GenericWindow.TypeInBoxValue>
+  <RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>{0}, 编辑框 {1}</RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox>
   <RimWorldAccess.UI.GenericWindow.SensitiveValueSet>{0} 个字符，已隐藏</RimWorldAccess.UI.GenericWindow.SensitiveValueSet>
   <RimWorldAccess.UI.GenericWindow.VectorAxisX>X</RimWorldAccess.UI.GenericWindow.VectorAxisX>
   <RimWorldAccess.UI.GenericWindow.VectorAxisY>Y</RimWorldAccess.UI.GenericWindow.VectorAxisY>

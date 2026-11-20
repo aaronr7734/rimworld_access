@@ -131,6 +131,18 @@ namespace RimWorldAccess.Shell
             AdjustRow(index, direction, large: false);
         }
 
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            value = 0f;
+            high = false;
+            if (!(AnomalySettingsDialogState.RowAt(index) is DifficultySliderSetting slider))
+            {
+                return false;
+            }
+            value = slider.WidgetValue;
+            return true;
+        }
+
         /// <summary>Alt+S and Alt+R as real rows, each teaching its chord; both run the state's vehicles.</summary>
         protected override IReadOnlyList<ScreenAction> DeclaredActions
         {

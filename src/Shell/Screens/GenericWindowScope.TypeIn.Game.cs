@@ -1,6 +1,3 @@
-using System.Text.RegularExpressions;
-using UnityEngine;
-using Verse;
 
 namespace RimWorldAccess.Shell
 {
@@ -55,7 +52,7 @@ namespace RimWorldAccess.Shell
             editingTypeIn = true;
             session.EnterEdit(
                 captureRows[row.TypeInCaptureIndex].Text,
-                TypeInEditSpec,
+                SliderTypeInText.EditSpec,
                 row.Label,
                 ApplyEditedText,
                 ReAnnounceRow,
@@ -77,22 +74,6 @@ namespace RimWorldAccess.Shell
         }
 
         /// <summary>
-        /// The box's owner has its own parse and clamp and may deliberately accept values past
-        /// the slider's ends, so the only refusal is text that is no number at all.
-        /// </summary>
-        private static readonly TextFieldSpec TypeInEditSpec = new TextFieldSpec(
-            labelKey: "RimWorldAccess.TextInput.LabelDefault",
-            maxLength: null,
-            minLength: 1,
-            customValidator: text =>
-            {
-                float parsed;
-                return float.TryParse(text ?? "", out parsed)
-                    ? AcceptanceReport.WasAccepted
-                    : new AcceptanceReport("RimWorldAccess.UI.GenericWindow.NumericMustBeNumber".Translate().ToString());
-            });
-
-        /// <summary>
         /// The box shows the control's raw value, which is what typing sets. Where the spoken label
         /// or value renders it differently (an option slider reading "100%" over index 3), the box's
         /// number is spoken too, so the player types what a sighted player would. A hover-only box
@@ -101,14 +82,10 @@ namespace RimWorldAccess.Shell
         private void ApplyTypeInValue(ElementDescription d, PresentationRow row)
         {
             float box;
-            if (!TryGetTypeInValue(row, out box) || HasNumber(d.Label, box) || HasNumber(d.Value, box))
+            if (TryGetTypeInValue(row, out box))
             {
-                return;
+                SliderTypeInText.ApplyBoxValue(d, box);
             }
-            string spoken = box.ToString("0.###");
-            d.Value = string.IsNullOrEmpty(d.Value)
-                ? "RimWorldAccess.UI.GenericWindow.TypeInBoxValue".Translate(spoken).ToString()
-                : "RimWorldAccess.UI.GenericWindow.ValueWithTypeInBox".Translate(d.Value, spoken).ToString();
         }
 
         private bool TryGetTypeInValue(PresentationRow row, out float value)
@@ -134,32 +111,6 @@ namespace RimWorldAccess.Shell
                 return true;
             }
             return false;
-        }
-
-        /// <summary>Whether <paramref name="text"/> renders <paramref name="value"/> as one of its numbers.</summary>
-        private static bool HasNumber(string text, float value)
-        {
-            if (string.IsNullOrEmpty(text))
-            {
-                return false;
-            }
-            foreach (Match match in NumberToken.Matches(text))
-            {
-                float parsed;
-                if (float.TryParse(match.Value, out parsed) && Mathf.Abs(parsed - value) < 0.0005f)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private static readonly Regex NumberToken = new Regex(@"-?\d+(?:[.,]\d+)?", RegexOptions.Compiled);
-
-        /// <summary>Only a character that can open a number types into the box; letters stay typeahead.</summary>
-        private static bool StartsNumber(char c)
-        {
-            return char.IsDigit(c) || c == '-' || c == '+' || c == '.' || c == ',';
         }
     }
 }

@@ -109,7 +109,6 @@ namespace RimWorldAccess
             planetCoverageIndex = Array.FindIndex(activePlanetCoverages, c => Math.Abs(c - coverage) < 0.01f);
             if (planetCoverageIndex < 0) planetCoverageIndex = 0; // Default to first option
 
-            // Rainfall
             rainfallIndex = (int)WorldParamsPageBridge.Rainfall;
 
             // Temperature
@@ -237,6 +236,12 @@ namespace RimWorldAccess
 
         // ===== VALUE / WARNING READOUT =====
 
+        // A slider type-in box writes any number, so a level can sit past the enum's named values.
+        private static string LevelLabel(string[] labels, int index)
+        {
+            return index >= 0 && index < labels.Length ? labels[index] : index.ToString();
+        }
+
         public static string GetValueString(WorldParamField field)
         {
             switch (field)
@@ -251,16 +256,16 @@ namespace RimWorldAccess
                     return coverageValue;
 
                 case WorldParamField.Rainfall:
-                    return RainfallLabels[rainfallIndex];
+                    return LevelLabel(RainfallLabels, rainfallIndex);
 
                 case WorldParamField.Temperature:
-                    return TemperatureLabels[temperatureIndex];
+                    return LevelLabel(TemperatureLabels, temperatureIndex);
 
                 case WorldParamField.Population:
-                    return PopulationLabels[populationIndex];
+                    return LevelLabel(PopulationLabels, populationIndex);
 
                 case WorldParamField.LandmarkDensity:
-                    return LandmarkDensityLabels[landmarkDensityIndex];
+                    return LevelLabel(LandmarkDensityLabels, landmarkDensityIndex);
 
                 case WorldParamField.Pollution:
                     return pollutionValue.ToStringPercent();

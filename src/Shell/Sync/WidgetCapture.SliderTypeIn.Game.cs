@@ -23,6 +23,12 @@ namespace RimWorldAccess.Shell
         // from focusedIndex: there the ring outlines the caption, not the control.
         private static int focusedControlIndex = -1;
 
+        // A typed content row's control, matched live by (kind, label, ordinal) like CaptureDescriptor.
+        private static WidgetKind contentFocusKind;
+        private static string contentFocusLabel;
+        private static int contentFocusOrdinal = -1;
+        private static int contentFocusSeen;
+
         private static void NoteValueControl(List<CapturedWidget> sink, int index)
         {
             lastValueControlIndex = ReferenceEquals(sink, suppressedScratchSink) ? -1 : index;
@@ -43,6 +49,33 @@ namespace RimWorldAccess.Shell
         internal static void SetFocusedControl(int index)
         {
             focusedControlIndex = index;
+        }
+
+        /// <summary>Inside a live pass, before its controls draw: the Slider or Range the owning scope's typed content row acts on.</summary>
+        internal static void SetFocusedContentControl(WidgetKind kind, string label, int ordinal)
+        {
+            contentFocusKind = kind;
+            contentFocusLabel = label ?? "";
+            contentFocusOrdinal = ordinal;
+            contentFocusSeen = 0;
+        }
+
+        private static void ClearFocusedContentControl()
+        {
+            contentFocusOrdinal = -1;
+        }
+
+        private static void MaybeMatchFocusedContentControl(WidgetKind kind, string label, int index)
+        {
+            if (contentFocusOrdinal < 0 || detachedPass || RecordingSuppressed
+                || kind != contentFocusKind || (label ?? "") != contentFocusLabel)
+            {
+                return;
+            }
+            if (contentFocusSeen++ == contentFocusOrdinal)
+            {
+                focusedControlIndex = index;
+            }
         }
 
         /// <summary>A live pass is still inside the Slider or Range recorded last, and the owning scope's cursor sits on it.</summary>

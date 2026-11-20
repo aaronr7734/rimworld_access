@@ -537,14 +537,17 @@ namespace RimWorldAccess
             Tooltip = tooltipFunc?.Invoke() ?? "";
         }
 
+        public float WidgetValue
+        {
+            get { return reciprocate ? Reciprocal(getter(), reciprocalCutoff) : getter(); }
+        }
+
         public override string GetAnnouncement()
         {
             if (!IsEnabled)
                 return $"{Label}: {(string)"Disabled".Translate()}";
 
-            float value = getter();
-            if (reciprocate)
-                value = Reciprocal(value, reciprocalCutoff);
+            float value = WidgetValue;
             string valueStr = value.ToStringByStyle(style, numberSense);
             string tooltipStr = tooltipFunc != null ? tooltipFunc() : Tooltip;
             return $"{Label}. {valueStr}. {tooltipStr}";

@@ -34,6 +34,9 @@ namespace RimWorldAccess
             MethodInfo beginHysteresis = surface.Method(controller, "BeginHysteresis", new[] { typeof(Rect) });
             MethodInfo drawMinimum = surface.Method(controller, "DrawMinimumEntry", entryParameters);
             MethodInfo drawMaximum = surface.Method(controller, "DrawMaximumEntry", entryParameters);
+            Type uiHelper = surface.Type("SirRandoo.BetterSliders.Helpers.UiHelper");
+            MethodInfo textField = surface.Method(uiHelper, "TextField",
+                new[] { typeof(Rect), typeof(string), typeof(string).MakeByRefType() });
             if (!surface.Ready)
             {
                 return;
@@ -49,6 +52,11 @@ namespace RimWorldAccess
                 harmony.Patch(drawMaximum,
                     prefix: new HarmonyMethod(typeof(BetterSlidersTypeInCompat), nameof(MaximumEntryPrefix)),
                     finalizer: new HarmonyMethod(typeof(BetterSlidersTypeInCompat), nameof(EntryFinalizer)));
+                harmony.Patch(textField,
+                    postfix: new HarmonyMethod(typeof(BetterSlidersTypeInCompat), nameof(TextFieldPostfix)));
+                SliderTypeInFocus.BoxesAvailable = true;
+                // NumberEntryController.SetMinimumValue fills the box with value.ToString("N").
+                SliderTypeInFocus.BoxValueFormat = value => value.ToString("N");
             }
             catch (Exception ex)
             {
@@ -60,7 +68,7 @@ namespace RimWorldAccess
         {
             WidgetCapture.NoteSliderTypeInOffered();
             Event current = Event.current;
-            if (current == null || !WidgetCapture.LastValueControlFocused)
+            if (current == null || !SliderTypeInFocus.CursorOnDrawingSlider)
             {
                 return;
             }
@@ -88,17 +96,34 @@ namespace RimWorldAccess
         public static void MinimumEntryPrefix()
         {
             WidgetCapture.EnterSliderTypeIn(high: false);
+            SliderTypeInFocus.EnterEntry(high: false);
         }
 
         public static void MaximumEntryPrefix()
         {
             WidgetCapture.EnterSliderTypeIn(high: true);
+            SliderTypeInFocus.EnterEntry(high: true);
         }
 
         /// <summary>Finalizer, not postfix: the bracket must unwind even when the drawer throws, or a later TextField this pass would be claimed as a type-in box.</summary>
         public static void EntryFinalizer()
         {
             WidgetCapture.ExitSliderTypeIn();
+            SliderTypeInFocus.ExitEntry();
+        }
+
+        /// <summary>
+        /// The box's own text field. A scope editing through the box reports its buffer here as
+        /// the typed text, which the mod then parses exactly as it would a mouse user's typing.
+        /// </summary>
+        public static void TextFieldPostfix(string content, ref string newContent, ref bool __result)
+        {
+            string typed;
+            if (SliderTypeInFocus.TryOverrideBoxText(content, out typed))
+            {
+                newContent = typed;
+                __result = true;
+            }
         }
     }
 }

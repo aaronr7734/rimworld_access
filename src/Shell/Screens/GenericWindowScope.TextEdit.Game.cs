@@ -243,7 +243,7 @@ namespace RimWorldAccess.Shell
                 session.FeedChar(c);
                 return true;
             }
-            if (HasTypeIn(row) && StartsNumber(c))
+            if (HasTypeIn(row) && SliderTypeInText.StartsNumber(c))
             {
                 BeginTypeInEdit(row, announcePrompt: false);
                 session.FeedChar(c);

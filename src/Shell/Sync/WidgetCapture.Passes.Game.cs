@@ -86,6 +86,7 @@ namespace RimWorldAccess.Shell
             selectedHighlightValid = false;
             WidgetCapture.focusedIndex = focusedIndex;
             focusedControlIndex = -1;
+            ClearFocusedContentControl();
             lastValueControlIndex = -1;
             passOpen = true;
             passOpenFrame = Time.frameCount;
@@ -424,6 +425,7 @@ namespace RimWorldAccess.Shell
             passOpen = false;
             focusedIndex = -1;
             focusedControlIndex = -1;
+            ClearFocusedContentControl();
             // Unconsumed live descriptor posts deliberately SURVIVE EndPass and expire by frame
             // deadline in BeginPass instead: clearing here races the dispatcher against the
             // Layout/Repaint pairing, killing a post that lands between a frame's two passes.

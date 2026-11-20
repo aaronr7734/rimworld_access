@@ -96,6 +96,30 @@ namespace RimWorldAccess.Shell
                 : (string)"RimWorldAccess.ScenarioBuilder.PartLabelWithSummary".Translate(part.Label, part.Summary);
         }
 
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            FieldNode box = SliderFieldAt(region, index);
+            value = box != null ? box.Field.LiveSliderValue() : 0f;
+            high = box != null && box.Field.SliderIsRangeMax;
+            return box != null;
+        }
+
+        protected override bool HasOwnNumberEntry(int region, int index)
+        {
+            return SliderFieldAt(region, index)?.Field.Type == ScenarioBuilderState.FieldType.Quantity;
+        }
+
+        private FieldNode SliderFieldAt(int region, int index)
+        {
+            if (region != TreeRegionIndex || !editModeField(page))
+                return null;
+            int treeIndex = index - PrefixRowCountFor(region);
+            IReadOnlyList<InspectionTreeItem> visible = partsPanel.Tree.Visible;
+            if (treeIndex < 0 || treeIndex >= visible.Count)
+                return null;
+            return visible[treeIndex] is FieldNode field && field.Field.LiveSliderValue != null ? field : null;
+        }
+
         protected override ElementDescription DescribeTreeNode(InspectionTreeItem item)
         {
             var d = new ElementDescription();

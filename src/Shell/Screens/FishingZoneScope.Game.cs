@@ -166,6 +166,13 @@ namespace RimWorldAccess.Shell
             FishingZoneMenuState.ExecuteRow(item);
         }
 
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            high = false;
+            value = 0f;
+            return region == TreeRegionIndex && FishingZoneMenuState.TryGetSliderValue(TreeRowAt(index), out value);
+        }
+
         /// <summary>A value row steps by one; every other row keeps the base's expand/collapse.</summary>
         protected override void AdjustContentItem(int region, int index, int direction)
         {

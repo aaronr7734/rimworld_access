@@ -144,6 +144,9 @@ namespace RimWorldAccess.Shell
                 // no map loaded. Internally gated to Repaint.
                 UiPointerFollow.Tick();
 
+                // Resolves a slider type-in edit's re-announcement once its window has redrawn.
+                SliderTypeInFocus.Tick();
+
                 // Sample the char-sink owner once per pass, after every mirror has reconciled.
                 // A change to a non-null owner means a menu just opened, so this frame's char
                 // events are the opener keystroke's twins and must not seed the new menu's

@@ -22,10 +22,9 @@ namespace RimWorldAccess.Shell
     ///
     /// ROW IDENTITY IS BY OBJECT, NEVER BY TEXT: every row carries the vanilla object it was
     /// built from in <see cref="ThingFilterSessionCore.FilterNodeData.Reference"/>, exactly the
-    /// arguments vanilla passes to its three row painters. A row that cannot be identified this
-    /// way draws NOTHING — the undiscovered-items row is a freshly built list per pass, so it
-    /// never matches by reference and is deliberately left unringed. A wrong ring is worse than
-    /// no ring.
+    /// arguments vanilla passes to its three row painters. A row not identified this way draws
+    /// NOTHING: the undiscovered-items row is rebuilt per pass, never matches by reference, and
+    /// stays unringed. A wrong ring is worse than no ring.
     ///
     /// The open-state sync is EDGE-TRIGGERED, so vanilla's own bits stay vanilla's: an open bit
     /// is written only when the model's expansion actually changes, and the first sight of a node
@@ -264,9 +263,48 @@ namespace RimWorldAccess.Shell
             }
         }
 
+        /// <summary>The range editor's type-in box: these two private statics each draw one Widgets.FloatRange for their filter.</summary>
+        [HarmonyPatch(typeof(ThingFilterUI), "DrawHitPointsFilterConfig")]
+        internal static class HitPointsRangeDrawPatch
+        {
+            [HarmonyPrefix]
+            public static void Prefix(ThingFilter __2, out bool __state)
+            {
+                __state = RangeEditMenuState.EnterRangeDraw(__2, RangeEditMenuState.RangeType.HitPoints);
+            }
+
+            [HarmonyFinalizer]
+            public static void Finalizer(bool __state)
+            {
+                if (__state)
+                {
+                    RangeEditMenuState.ExitRangeDraw();
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(ThingFilterUI), "DrawMentalBreakFilterConfig")]
+        internal static class MentalBreakRangeDrawPatch
+        {
+            [HarmonyPrefix]
+            public static void Prefix(ThingFilter __2, out bool __state)
+            {
+                __state = RangeEditMenuState.EnterRangeDraw(__2, RangeEditMenuState.RangeType.MentalBreakChance);
+            }
+
+            [HarmonyFinalizer]
+            public static void Finalizer(bool __state)
+            {
+                if (__state)
+                {
+                    RangeEditMenuState.ExitRangeDraw();
+                }
+            }
+        }
+
         /// <summary>
-        /// The three identifiable row painters. All are private, so each patch needs its own
-        /// TargetMethod, and arguments must bind positionally (<c>__0</c>) rather than by name.
+        /// The three identifiable row painters: private, so each needs its own TargetMethod, and
+        /// arguments bind positionally (<c>__0</c>).
         /// </summary>
         [HarmonyPatch]
         internal static class CategoryRowPatch

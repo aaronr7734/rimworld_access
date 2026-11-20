@@ -48,6 +48,15 @@ namespace RimWorldAccess
             }
         }
 
+        internal static bool TryGetSliderValue(InspectionTreeItem item, out float value)
+        {
+            value = 0f;
+            if (RowOf(item)?.Kind != MenuItemType.MinimumPopulation || targetPopulationPctField == null || fishingZone == null)
+                return false;
+            value = (float)targetPopulationPctField.GetValue(fishingZone);
+            return true;
+        }
+
         /// <summary>The row's current value as the digits an exact-entry session starts from.</summary>
         internal static string TypedNumberSeed(InspectionTreeItem item)
         {

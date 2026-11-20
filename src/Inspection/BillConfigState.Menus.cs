@@ -489,6 +489,9 @@ namespace RimWorldAccess
                 case MenuItemType.SkillRangeMax:
                     return Ring(Shell.BillConfigRowKeys.SkillRange, VanillaSkillRangeLabel());
 
+                case MenuItemType.IngredientSearchRadius:
+                    return Ring(Shell.BillConfigRowKeys.IngredientRadius, Shell.BillConfigRowKeys.RawBand);
+
                 case MenuItemType.Extra:
                     return field.RingKey == null
                         ? Shell.ListingRingFocus.None

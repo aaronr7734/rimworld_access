@@ -243,7 +243,7 @@ namespace RimWorldAccess.Shell
             SuppressNextEntryAnnouncement();
             base.OnFocus();
             SyncSelectionFromDialog();
-            pendingAnnounce = true;
+            pendingAnnounce = !ReturnFromOwnEdit;
         }
 
         /// <summary>
@@ -650,6 +650,23 @@ namespace RimWorldAccess.Shell
                     break;
             }
             return d;
+        }
+
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            value = 0f;
+            high = false;
+            if (region != PaneRegion || index < 0 || index >= paneRows.Count)
+            {
+                return false;
+            }
+            PaneRow row = paneRows[index];
+            if (row.Source != PaneRowSource.Captured || row.Captured.Kind != ListingRowKind.Slider)
+            {
+                return false;
+            }
+            value = row.Captured.SliderValue;
+            return true;
         }
 
         protected override void ActivateContentItem(int region, int index)

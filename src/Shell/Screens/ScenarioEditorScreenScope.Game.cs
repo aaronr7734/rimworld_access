@@ -529,9 +529,9 @@ namespace RimWorldAccess.Shell
         }
 
         // ------------------------------------------------------------------
-        // Focus ring. The config column and the edit pane's metadata labels are keyed rows; a
-        // scenario part rings by its live ScenPart, which Listing_ScenEdit hands the bracket as a
-        // parameter. Rows with no vanilla counterpart return None.
+        // Focus ring. The config column and edit pane metadata labels are keyed rows; a scenario part,
+        // and a slider field drawn in its rect, ring by its live ScenPart (a GetScenPartRect parameter);
+        // route candidates keep the part alone. Rows with no vanilla counterpart return None.
         // ------------------------------------------------------------------
 
         Window IListingRingClient.ListingRingWindow
@@ -544,6 +544,9 @@ namespace RimWorldAccess.Shell
             ListModel region = Model.CurrentRegion;
             if (region == null || region.IsEmpty)
                 return ListingRingFocus.None;
+            FieldNode box = SliderFieldAt(Model.RegionIndex, region.Index);
+            if (box != null && box.Parent is PartNode owner)
+                return new ListingRingFocus { RowObject = owner.Data };
             return RowFocus(Model.RegionIndex, region.Index);
         }
 

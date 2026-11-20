@@ -477,6 +477,7 @@ namespace RimWorldAccess.Shell
             RangeEditMenuState.OpenHitPointsRange(
                 () => BuildFilterContext(region).CurrentFilter?.AllowedHitPointsPercents ?? FloatRange.ZeroToOne,
                 v => { ThingFilter f = BuildFilterContext(region).CurrentFilter; if (f != null) f.AllowedHitPointsPercents = v; });
+            RangeEditMenuState.OfferTypeInBox(FilterForRegion(region));
         }
 
         /// <summary>Opens the shared Quality range sub-editor. See <see cref="ActivateHitPointsRangeRow"/>'s remarks.</summary>
@@ -493,6 +494,7 @@ namespace RimWorldAccess.Shell
             RangeEditMenuState.OpenMentalBreakChanceRange(
                 () => BuildFilterContext(region).CurrentFilter?.AllowedMentalBreakChance ?? FloatRange.ZeroToOne,
                 v => { ThingFilter f = BuildFilterContext(region).CurrentFilter; if (f != null) f.AllowedMentalBreakChance = v; });
+            RangeEditMenuState.OfferTypeInBox(FilterForRegion(region));
         }
 
         // Tree node describe/activate: SpecialFilter/Category/ThingDef only.

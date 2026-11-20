@@ -239,6 +239,8 @@ namespace RimWorldAccess.Shell
                 }
                 return;
             }
+            if (TryBeginSliderTypeIn(announcePrompt: true))
+                return;
             ActivateContentItem(Model.RegionIndex, region.Index);
         }
 

@@ -222,6 +222,10 @@ namespace RimWorldAccess
             d.Role = ElementRole.Slider;
             d.AtMinimum = v <= from;
             d.AtMaximum = v >= to;
+            if (SliderTypeInFocus.BoxesAvailable)
+            {
+                SliderTypeInText.ApplyBoxValue(d, v);
+            }
             if (includeRange)
             {
                 d.Extras = "RimWorldAccess.UI.GenericWindow.NumericRange"

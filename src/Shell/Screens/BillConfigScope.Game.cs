@@ -162,6 +162,16 @@ namespace RimWorldAccess.Shell
             BillConfigState.AdjustValue(index, direction);
         }
 
+        protected override bool TryGetSliderBox(int region, int index, out float value, out bool high)
+        {
+            return BillConfigState.TryGetSliderBox(index, out value, out high);
+        }
+
+        protected override bool HasOwnNumberEntry(int region, int index)
+        {
+            return BillConfigState.RowTakesTypedNumber(index);
+        }
+
         // Lifecycle.
 
         public override void OnPush()
@@ -292,11 +302,9 @@ namespace RimWorldAccess.Shell
     {
         private const string Site = "Dialog_BillConfig.DoWindowContents#";
 
-        /// <summary>
-        /// The tripwire the three raw <c>GetRect</c> bands carry. Those bands run under no outer
-        /// Listing_Standard tap, so their DrawnLabel is null and any non-null tripwire passes; this
-        /// value is never a label vanilla draws, so a stale one cannot match it either.
-        /// </summary>
+        /// <summary>The tripwire the raw <c>GetRect</c> bands and the radius slider carry. Those run under
+        /// no outer Listing_Standard tap, so their DrawnLabel is null and any non-null tripwire passes;
+        /// this value is never a label vanilla draws, so a stale one cannot match it either.</summary>
         internal const string RawBand = "<raw band>";
 
         /// <summary>decompiled RimWorld/Dialog_BillConfig.cs:126, whose caption is the repeat mode's own label.</summary>
@@ -355,6 +363,9 @@ namespace RimWorldAccess.Shell
 
         /// <summary>:401, the "no styles available" band. Never focused.</summary>
         internal const string NoStyles = Site + "noStyles";
+
+        /// <summary>:515, the radius slider, whose caption vanilla truncates to the pane width.</summary>
+        internal const string IngredientRadius = "Dialog_BillConfig.DoIngredientConfigPane#radius";
     }
 
     /// <summary>
@@ -386,6 +397,9 @@ namespace RimWorldAccess.Shell
 
         internal static readonly MethodInfo GetRect =
             AccessTools.Method(typeof(Listing), "GetRect", new[] { typeof(float), typeof(float) });
+
+        internal static readonly MethodInfo Slider =
+            AccessTools.Method(typeof(Listing_Standard), "Slider", new[] { typeof(float), typeof(float), typeof(float) });
     }
 
     /// <summary>
@@ -442,6 +456,31 @@ namespace RimWorldAccess.Shell
         {
             return new MarkerSite { RowCall = rowCall, Payload = MarkerPayload.SyntheticKey, ExpectedKey = key };
         }
+
+        [HarmonyTranspiler]
+        public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)
+        {
+            return ListingRowMarkerInjector.Inject(instructions, __originalMethod, Plan);
+        }
+    }
+
+    /// <summary>The ingredient pane's one row call (decompiled RimWorld/Dialog_BillConfig.cs:515); Dialog_MechBillConfig draws it through base.</summary>
+    [HarmonyPatch(typeof(Dialog_BillConfig), "DoIngredientConfigPane")]
+    internal static class BillConfigRadiusMarkerPatch
+    {
+        private static readonly MarkerPlan Plan = new MarkerPlan
+        {
+            RowCallTargets = new[] { BillConfigRowCalls.Slider },
+            Sites = new[]
+            {
+                new MarkerSite
+                {
+                    RowCall = BillConfigRowCalls.Slider,
+                    Payload = MarkerPayload.SyntheticKey,
+                    ExpectedKey = BillConfigRowKeys.IngredientRadius,
+                },
+            },
+        };
 
         [HarmonyTranspiler]
         public static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions, MethodBase __originalMethod)

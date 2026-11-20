@@ -37,6 +37,7 @@ namespace RimWorldAccess.Shell
             int index = sink.Count;
             MaybeArmMatch(WidgetKind.Slider, effectiveLabel, index);
             MaybeLiveAdjustMatch(effectiveLabel, index);
+            MaybeMatchFocusedContentControl(WidgetKind.Slider, effectiveLabel, index);
             sink.Add(new CapturedWidget
             {
                 Kind = WidgetKind.Slider,
@@ -117,6 +118,7 @@ namespace RimWorldAccess.Shell
             // Empty label by construction — see RequestAdjustRange. No MaybeArmMatch: the armed
             // detached channel has no range action.
             MaybeLiveRangeAdjustMatch("", index);
+            MaybeMatchFocusedContentControl(WidgetKind.Range, "", index);
             sink.Add(new CapturedWidget
             {
                 Kind = WidgetKind.Range,

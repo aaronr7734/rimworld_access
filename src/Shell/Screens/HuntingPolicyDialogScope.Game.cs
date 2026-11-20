@@ -159,6 +159,7 @@ namespace RimWorldAccess.Shell
                     "HarmedRevengeChance".Translate().ToString(),
                     () => edited.RevengeChance,
                     v => edited.RevengeChance = v);
+                RangeEditMenuState.OfferTypeInBox(edited);
                 return;
             }
             if (index == VeneratedRow)
