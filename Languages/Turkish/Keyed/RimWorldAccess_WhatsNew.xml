@@ -108,6 +108,61 @@ RimWorld 1.7'de birkaç saat oynadıktan sonra RimWorld Access'in kendi seslerin
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc7>Bu sürümü geciktirdiğim için özür dilerim. Son birkaç haftadır iş ve bazı sağlık sorunları yüzünden çok meşguldüm ama umarım bu bol içerikli yamacık yokluğumu telafi eder. Hepinize minnettarım!\n
+RimWorld Access artık Almanca olarak da kullanılabiliyor. Bu güncelleme ayrıca sağlık ve ekipman genel bakışlarını, yeni zemin seslerini, daha akıllı yerleştirme yardımını ve birçok mod için daha iyi destek ekliyor. RimWorld 1.7'nin son güncellemesinde yazı yazma yeniden çalışıyor.\n
+Yeni özellikler.\n
+RimWorld Access artık Almanca olarak da kullanılabiliyor, bunun için Christopher Proß'a teşekkürler.\n
+Alt+Shift+H ile yeni sağlık genel bakışı. Haritadaki etkisiz hâlde olan, kanayan, yaralı veya hasta her karakteri listeliyor; Enter ise seni o karaktere götürüp sağlık sekmesini açıyor.\n
+Alt+Shift+G ile yeni ekipman genel bakışı. Haritadaki her silahı ve giysiyi ve kimde olduğunu listeliyor; Enter ise seni o karaktere götürüp ekipman sekmesini açıyor.\n
+Tarayıcı bir karakterin etkisiz hâlde, kanıyor veya yaralı olduğunu söylüyor. Bunu RimWorld Access ayarlarından kapatabilirsin.\n
+Bir menü seni bir karaktere veya haritadaki bir yere götürdüğünde, Escape seni menüye geri getiriyor.\n
+Kum, sert taş ve buz dahil yeni zemin sesleri. Diğer modların eklediği zeminlere de uygun bir ses veriliyor.\n
+Fare takibi (Alt+Shift+M) artık dünya haritasında da çalışıyor ve orada Ctrl+Ok tuşları biyomlar arasında atlıyor.\n
+Bir rüzgâr türbini yerleştirirken rüzgârını bir şeyin engelleyip engellemediği ve ne kadar güç kaybedeceğin söyleniyor.\n
+Oda istatistikleri (5), bir soylunun yatak odasının veya taht odasının ünvanının gereksinimlerini karşılayıp karşılamadığını söylüyor; bunun için Miguel Ángel Insfrán'a teşekkürler. Bir hayvan ağılının içinde ağılın boyutunu ve ne kadar yiyecek yetiştirdiğini de veriyor.\n
+İhtiyaçlar artık yükselip alçaldığını söylüyor.\n
+Bir beceriyi genişletmek artık oyunun tam beceri ipucunu, öğrenme hızı ve günlük öğrenme sınırı dahil, okuyor.\n
+Envanter ve kervan listelerindeki hasarlı öğeler ne kadar yıpranmış olduklarını söylüyor.\n
+Özel desteği olmayan modların komut düğmeleri, dahili bir ad yerine gösterdikleri metni okuyor.\n
+Numbers artık destekleniyor. Her sütun değerini okuyor, Enter bir tıklamanın yapacağını yapıyor ve sütunları başlık satırından taşıyabilir veya kaldırabilirsin.\n
+Compositable Loadouts artık destekleniyor; yükleme sekmesi, yükleme ve etiket düzenleyicileri ve sipariş tekrar modu dahil.\n
+Visible Wealth artık destekleniyor. Servet dökümü ağaç olarak, pasta grafiği ise payları ile birlikte bir dilim listesi olarak okunuyor.\n
+BetterSliders artık destekleniyor. Herhangi bir kaydırıcıda yazmaya başlayıp bir sayı girerek modun düzenleme kutusuyla ayarlayabilirsin; Ayarlar gibi RimWorld Access'in kendi ekranları da dahil.\n
+Choice Of Psycasts artık destekleniyor. Menüsündeki her psi-becerisi istatistiklerini ve açıklamasını okuyor.\n
+Carry Different Medicine Types artık destekleniyor. Ata sekmesindeki Taşı sütunu bir kolonicinin taşıdığı her ilacı listeliyor.\n
+Drafted Auto-Combat artık destekleniyor. Yetenek düğmeleri otomatik kullanımın açık olduğunu söylüyor ve Sağ köşeli parantez menüleri onu açıp kapatıyor.\n
+Tech Advancing artık destekleniyor; araştırma menüsündeki yapılandırma penceresi de dahil.\n
+Hospitality modları için daha iyi destek. Hospitality'nin Misafir sekmesi, Gastronomy'nin Yemek sekmesi ve Storefront'un Dükkân sekmesi tam olarak destekleniyor, Cash Register vardiyaları ise Program sekmesi gibi düzenleniyor.\n
+Colony Manager Redux için daha iyi destek; en yeni iş seçenekleri, kısayol satırları ve Genel bakış gruplaması dahil.\n
+Dubs Bad Hygiene ile 3'e basmak imlecin altındaki yeraltı suyunu okuyor ve tarayıcıda bir Yeraltı suyu kategorisi var. Kuyular için önerilen yerler çekecekleri su miktarına göre sıralanıyor.\n
+Vehicle Framework ile Buraya git, aracın hangi yöne bakacağını soruyor ve seçili kolonicilar emir menüsünden bir araca grup olarak binebiliyor.\n
+Vanilla Expanded için daha iyi destek. Bir karakolu incelemek karakterlerini ve depolanan öğelerini listeliyor, karakol Ver ve Al pencereleri kervan yükleme gibi çalışıyor ve hayvan Genler sekmesi her geni okuyor.\n
+XML Extensions ile oluşturulan ayar sayfaları bölümlerini, anahtarlarını ve arama sonuçlarını doğru okuyor.\n
+Allow Tool, Alpha Memes, Character Development, Vanilla Skills Expanded, Way Better Romance ve diğerleri için daha küçük iyileştirmeler.\n
+Değişiklikler.\n
+Önerilen yerleştirme alanları en iyi yerleri başa koyuyor ve binanın orada ne kadar iyi çalışacağını söylüyor; örneğin bir güneş panelinin çatı örtüsü gibi.\n
+Yapı atlaması açık araziyi atlıyor, Geçilemez atlaması ise kapalı kapılarda duruyor.\n
+Genel kayıt yalnızca baktığın haritada olanları gösteriyor.\n
+Sipariş listesindeki siparişler ilerlemesini söylüyor; örneğin 3/10 gibi.\n
+Bir hedefi onaylamak ne emrettiğini söylüyor; örneğin "Havan zorunlu hedefi belirlendi: çinçilla" gibi.\n
+Menü başa dönme sesi daha kısa ve daha sessiz.\n
+Avrupa Portekizcesi çevirisi daha eksiksiz ve daha doğal okunuyor.\n
+Düzeltmeler.\n
+RimWorld 1.7'nin son güncellemesinde yazı yazma yeniden çalışıyor ve aksan tuşları metin kutularında çalışıyor.\n
+Oyunun, fraksiyonuna ad verdikten, bir şeyi yeniden adlandırdıktan veya bazı diyaloglara yanıt verdikten sonra yavaş yavaş daha fazla bellek kullanması düzeltildi.\n
+Yazı yazarken veya bir RimWorld Access menüsünü kullanırken diğer modların kısayollarının tetiklenmesi düzeltildi.\n
+Dünya haritasında başka bir şeyle aynı karoyu paylaşan bir kervandan öğe bırakılamaması düzeltildi.\n
+Sağlık sekmesinin her durumun ne kadar ağır olduğunu söylememesi düzeltildi.\n
+Başka bir bilgi kartından açılan bilgi kartının yanlış istatistikleri göstermesi düzeltildi.\n
+Komut düğmesi menüsünün keşfedilmemiş zeminin altında ne olduğunu söylemesi düzeltildi.\n
+Bölgeleri ve depolamayı yeniden adlandırırken oyunun kendi yeniden adlandırma diyaloğunun atlanması düzeltildi.\n
+Başlangıç karakteri filtresinin Özellik ekle seçicisinin İngilizce dışındaki dillerde açılmaması düzeltildi; bunun için Miguel Ángel Insfrán'a teşekkürler.\n
+Bir havan veya taretin Zorunlu hedef belirle düğmesinin "Bilinmeyen silah" olarak okunması düzeltildi.\n
+Bazı mod düğmelerinin basıldığında veya sağ tıklandığında sessiz kalması düzeltildi.\n
+RimTalk, RimWorld Together ve Animal Traits son güncellemelerinden sonra RimWorld Access ile yeniden doğru çalışıyor.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 

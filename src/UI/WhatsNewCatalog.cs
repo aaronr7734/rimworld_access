@@ -58,6 +58,7 @@ namespace RimWorldAccess
             new Announcement("2.0 RC 4", readKey: "2.0-rc4", messageId: "2_0_rc4"),
             new Announcement("2.0 RC 5", readKey: "2.0-rc5", messageId: "2_0_rc5"),
             new Announcement("2.0 RC 6", readKey: "2.0-rc6", messageId: "2_0_rc6"),
+            new Announcement("2.0 RC 7", readKey: "2.0-rc7", messageId: "2_0_rc7"),
         };
     }
 }

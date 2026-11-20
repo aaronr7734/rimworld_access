@@ -107,6 +107,61 @@ Unter RimWorld 1.7 fielen die eigenen Geräusche von RimWorld Access nach ein pa
 Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
 Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc7>Entschuldigt die Verspätung. Arbeit und ein paar gesundheitliche Probleme haben mich in den letzten Wochen auf Trab gehalten. Ich hoffe, dieser ordentliche Brocken von einem Patch macht meine Abwesenheit wieder wett. Ich weiß euch alle sehr zu schätzen!\n
+RimWorld Access gibt es jetzt auf Deutsch. Dieses Update bringt außerdem Übersichten für Gesundheit und Ausrüstung, neue Geländegeräusche, schlauere Platzierungshilfen und bessere Unterstützung für viele Mods. Das Tippen funktioniert wieder mit dem neuesten Update von RimWorld 1.7.\n
+Neue Funktionen.\n
+RimWorld Access gibt es jetzt auf Deutsch, dank Christopher Proß.\n
+Neue Gesundheitsübersicht auf Alt+Umschalt+H. Sie listet jede Spielfigur auf der Karte, die am Boden liegt, blutet, verletzt oder krank ist. Enter springt zur Spielfigur und öffnet ihren Körper-Tab.\n
+Neue Ausrüstungsübersicht auf Alt+Umschalt+G. Sie listet jede Waffe und jedes Kleidungsstück auf der Karte und wer es hat. Enter springt zum Inventar-Tab dieser Spielfigur.\n
+Der Scanner sagt, wenn eine Spielfigur am Boden liegt, blutet oder verletzt ist. Das kannst du in den Optionen von RimWorld Access ausschalten.\n
+Wenn dich ein Menü zu einer Spielfigur oder einer Stelle auf der Karte springen lässt, bringt dich Escape zurück ins Menü.\n
+Neue Geländegeräusche, darunter Sand, rauer Stein und Eis. Gelände aus anderen Mods bekommt ebenfalls ein passendes Geräusch.\n
+Die Mausverfolgung (Alt+Umschalt+M) funktioniert auf der Weltkarte, und mit Strg+Pfeiltasten springst du dort zwischen Biomen.\n
+Beim Platzieren einer Windturbine hörst du, ob etwas ihren Wind blockiert und wie viel Leistung dir dadurch fehlt.\n
+Die Raumstatistiken (5) sagen, ob das Schlafzimmer oder der Thronsaal eines Adligen die Anforderungen seines Titels erfüllt, dank Miguel Ángel Insfrán. In einem Tiergehege nennen sie außerdem die Größe des Geheges und wie viel Futter dort wächst.\n
+Bedürfnisse sagen, ob sie steigen oder fallen.\n
+Wenn du eine Fertigkeit aufklappst, liest die Mod den vollständigen Tooltip des Spiels vor, inklusive Lerngeschwindigkeit und der täglichen Lernobergrenze.\n
+Beschädigte Gegenstände in Inventar- und Karawanenlisten sagen, wie abgenutzt sie sind.\n
+Befehlsschaltflächen aus Mods ohne eigene Unterstützung lesen den Text vor, den sie anzeigen, statt eines internen Namens.\n
+Numbers wird jetzt unterstützt. Jede Spalte liest ihren Wert vor, Enter tut, was ein Klick tun würde, und in der Kopfzeile kannst du Spalten verschieben oder entfernen.\n
+Compositable Loadouts wird jetzt unterstützt, einschließlich Loadout-Tab, Loadout- und Tag-Editoren und Wiederholungsmodus für Aufträge.\n
+Visible Wealth wird jetzt unterstützt. Die Aufschlüsselung des Reichtums liest sich als Baum, das Kreisdiagramm als Liste von Segmenten mit ihrem Anteil.\n
+BetterSliders wird jetzt unterstützt. Fang auf einem beliebigen Schieberegler an, eine Zahl zu tippen, und sie wird über das Eingabefeld der Mod gesetzt, auch auf den eigenen Bildschirmen von RimWorld Access wie den Optionen.\n
+Choice Of Psycasts wird jetzt unterstützt. Jede Psycast-Fähigkeit in ihrem Menü liest ihre Werte und Beschreibung vor.\n
+Carry Different Medicine Types wird jetzt unterstützt. Die Spalte "Tragen" im Zuweisungs-Tab listet jede Medizin, die ein Kolonist bei sich trägt.\n
+Drafted Auto-Combat wird jetzt unterstützt. Fähigkeitsschaltflächen sagen, wenn das automatische Einsetzen aktiv ist, und ihr Menü auf der rechten eckigen Klammer schaltet es um.\n
+Tech Advancing wird jetzt unterstützt, einschließlich seines Konfigurationsfensters im Forschungsmenü.\n
+Bessere Unterstützung für die Hospitality-Mods. Der Gäste-Tab von Hospitality, der Speise-Tab von Gastronomy und der Laden-Tab von Storefront werden vollständig unterstützt, und die Schichten von Cash Register bearbeitest du wie den Zeitplan-Tab.\n
+Bessere Unterstützung für Colony Manager Redux, einschließlich der neuesten Auftragsoptionen, Verknüpfungszeilen und der Gruppierung in der Übersicht.\n
+Mit Dubs Bad Hygiene liest die Taste 3 das Grundwasser unter dem Cursor vor, und der Scanner hat eine Kategorie "Grundwasser". Empfohlene Stellen für Brunnen sind danach geordnet, wie viel Wasser sie fördern würden.\n
+Mit Vehicle Framework fragt "Gehe hier hin", in welche Richtung das Fahrzeug zeigen soll, und ausgewählte Kolonisten können über das Befehlsmenü gemeinsam in ein Fahrzeug einsteigen.\n
+Bessere Unterstützung für Vanilla Expanded. Wenn du einen Außenposten untersuchst, werden seine Spielfiguren und gelagerten Gegenstände aufgelistet, die Fenster zum Geben und Nehmen von Außenposten funktionieren wie das Beladen von Karawanen, und der Gene-Tab von Tieren liest jedes Gen vor.\n
+Einstellungsseiten, die mit XML Extensions gebaut sind, lesen ihre Abschnitte, Schalter und Suchergebnisse korrekt vor.\n
+Kleinere Verbesserungen für Allow Tool, Alpha Memes, Character Development, Vanilla Skills Expanded, Way Better Romance und andere.\n
+Änderungen.\n
+Empfohlene Platzierungsstellen nennen die besten Orte zuerst und sagen, wie gut das Gebäude dort funktionieren würde, etwa die Dachabdeckung bei einem Solarpanel.\n
+Der Strukturen-Sprung überspringt offenes Gelände, und der Sprung zu Unpassierbarem hält an geschlossenen Türen an.\n
+Das globale Logbuch zeigt nur, was auf der Karte passiert ist, die du gerade ansiehst.\n
+Aufträge in einer Auftragsliste sagen ihren Fortschritt, etwa 3/10.\n
+Wenn du ein Ziel bestätigst, hörst du, was du befohlen hast, etwa "Mörser: erzwungenes Ziel gesetzt: Chinchilla".\n
+Das Geräusch beim Umbrechen eines Menüs ist kürzer und leiser.\n
+Die europäisch-portugiesische Übersetzung ist vollständiger und liest sich natürlicher.\n
+Fehlerbehebungen.\n
+Das Tippen funktioniert wieder mit dem neuesten Update von RimWorld 1.7, und Akzenttasten funktionieren in Textfeldern.\n
+Behoben: Das Spiel brauchte nach dem Benennen deiner Fraktion, dem Umbenennen von etwas oder dem Beantworten mancher Dialoge langsam immer mehr Speicher.\n
+Behoben: Hotkeys anderer Mods wurden ausgelöst, während du getippt oder ein Menü von RimWorld Access benutzt hast.\n
+Behoben: Aus einer Karawane, die ein Weltfeld mit etwas anderem teilt, ließen sich keine Gegenstände ablegen.\n
+Behoben: Der Körper-Tab sagte nicht, wie schwer jeder Zustand ist.\n
+Behoben: Eine Infokarte, die aus einer anderen Infokarte geöffnet wurde, zeigte die falschen Werte.\n
+Behoben: Das Menü der Befehlsschaltflächen nannte, was unter unerforschtem Boden liegt.\n
+Behoben: Beim Umbenennen von Zonen und Lagern wurde der eigene Umbenennen-Dialog des Spiels übersprungen.\n
+Behoben: Die Auswahl "Merkmal hinzufügen" im Filter für Startspielfiguren öffnete sich in anderen Sprachen als Englisch nicht, dank Miguel Ángel Insfrán.\n
+Behoben: Die Schaltfläche "Ziel angreifen" eines Mörsers oder Geschützturms las "Unbekannte Waffe" vor.\n
+Behoben: Manche Mod-Schaltflächen blieben stumm, wenn du sie gedrückt oder rechts angeklickt hast.\n
+RimTalk, RimWorld Together und Animal Traits funktionieren nach ihren neuesten Updates wieder richtig mit RimWorld Access.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access wurde aktualisiert. Die Änderungen findest du auf der Webseite. Wähle dazu "Änderungsprotokoll im Browser öffnen".</RimWorldAccess.WhatsNew.Message.Default>
 

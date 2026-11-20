@@ -107,6 +107,61 @@ Correction des sons propres à RimWorld Access, comme les sons de terrain et le 
 Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
 Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc6>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc7>Désolé pour le retard. Le travail et quelques soucis de santé m'ont tenu très occupé ces dernières semaines, mais j'espère que ce patch bien costaud saura me faire pardonner mon absence. Je vous remercie tous !\n
+RimWorld Access est maintenant disponible en allemand. Cette mise à jour ajoute aussi des aperçus de la santé et du matériel, de nouveaux sons de terrain, une aide au placement plus intelligente et une meilleure prise en charge de nombreux mods. La saisie de texte refonctionne sur la dernière mise à jour de RimWorld 1.7.\n
+Nouveautés.\n
+RimWorld Access est maintenant disponible en allemand, grâce à Christopher Proß.\n
+Nouvel aperçu de la santé sur Alt+Maj+H. Il liste chaque personnage à terre, qui saigne, blessé ou malade sur la carte, et Entrée vous amène à un personnage avec son onglet Santé ouvert.\n
+Nouvel aperçu du matériel sur Alt+Maj+G. Il liste chaque arme et chaque vêtement sur la carte, et qui les possède, et Entrée vous amène à l'onglet Matériel de ce personnage.\n
+Le scanner indique quand un personnage est à terre, saigne ou est blessé. Vous pouvez le désactiver dans les options de RimWorld Access.\n
+Quand un menu vous amène à un personnage ou à un endroit de la carte, Échap vous ramène au menu.\n
+Nouveaux sons de terrain, dont le sable, la roche brute et la glace. Les terrains ajoutés par d'autres mods ont aussi un son adapté.\n
+Le suivi de la souris (Alt+Maj+M) fonctionne sur la carte du monde, et Ctrl+touches fléchées saute d'un biome à l'autre.\n
+Placer une éolienne vous indique si quelque chose bloque son vent et combien de production vous perdriez.\n
+Les statistiques de la salle (5) indiquent si la chambre ou la salle du trône d'un noble respecte les exigences de son titre, grâce à Miguel Ángel Insfrán. Dans un enclos d'animaux, elles donnent aussi la taille de l'enclos et la quantité de nourriture qu'il produit.\n
+Les besoins indiquent s'ils augmentent ou diminuent.\n
+Développer une compétence lit l'info-bulle complète du jeu, y compris la vitesse d'apprentissage et le plafond d'apprentissage quotidien.\n
+Les objets endommagés dans les listes d'inventaire et de caravane indiquent leur degré d'usure.\n
+Les boutons de commande des mods sans prise en charge dédiée lisent le texte qu'ils affichent, au lieu d'un nom interne.\n
+Numbers est maintenant pris en charge. Chaque colonne lit sa valeur, Entrée fait ce que ferait un clic, et vous pouvez déplacer ou retirer des colonnes depuis la ligne d'en-tête.\n
+Compositable Loadouts est maintenant pris en charge, y compris son onglet d'équipements, ses éditeurs d'équipements et d'étiquettes, et le mode de répétition des tâches.\n
+Visible Wealth est maintenant pris en charge. La répartition de la richesse se lit comme un arbre, et le diagramme circulaire comme une liste de parts avec leur proportion.\n
+BetterSliders est maintenant pris en charge. Commencez à taper un nombre sur n'importe quel curseur pour le régler avec la zone de saisie du mod, y compris sur les écrans propres à RimWorld Access comme les Options.\n
+Choice Of Psycasts est maintenant pris en charge. Chaque psycast de son menu lit ses statistiques et sa description.\n
+Carry Different Medicine Types est maintenant pris en charge. La colonne Porter de l'onglet Assigner liste chaque médicament qu'un colon transporte.\n
+Drafted Auto-Combat est maintenant pris en charge. Les boutons de capacité indiquent quand le lancement automatique est activé, et leur menu Crochet droit l'active ou le désactive.\n
+Tech Advancing est maintenant pris en charge, y compris sa fenêtre de configuration dans le menu de recherche.\n
+Meilleure prise en charge des mods Hospitality. L'onglet Invité de Hospitality, l'onglet Restauration de Gastronomy et l'onglet Boutique de Storefront sont entièrement pris en charge, et les horaires de Cash Register se modifient comme l'onglet Planning.\n
+Meilleure prise en charge de Colony Manager Redux, y compris ses nouvelles options de tâches, ses lignes de raccourcis et son regroupement dans la vue d'ensemble.\n
+Avec Dubs Bad Hygiene, appuyer sur 3 lit la nappe d'eau souterraine sous le curseur, et le scanner a une catégorie Eau souterraine. Les emplacements recommandés pour les puits sont classés selon la quantité d'eau qu'ils fourniraient.\n
+Avec Vehicle Framework, Aller ici demande dans quelle direction le véhicule doit être orienté, et les colons sélectionnés peuvent monter à bord d'un véhicule en groupe depuis le menu des ordres.\n
+Meilleure prise en charge de Vanilla Expanded. Inspecter un avant-poste liste ses personnages et ses objets stockés, les fenêtres de don et de prise des avant-postes fonctionnent comme le chargement de caravane, et l'onglet Gènes des animaux lit chaque gène.\n
+Les pages de réglages créées avec XML Extensions lisent correctement leurs sections, leurs options à cocher et leurs résultats de recherche.\n
+Petites améliorations pour Allow Tool, Alpha Memes, Character Development, Vanilla Skills Expanded, Way Better Romance et d'autres.\n
+Changements.\n
+Les emplacements recommandés pour construire sont listés du meilleur au moins bon et indiquent l'efficacité qu'aurait le bâtiment à cet endroit, comme la couverture de toit d'un panneau solaire.\n
+Le saut de structure ignore le terrain dégagé, et le saut d'infranchissable s'arrête aux portes fermées.\n
+Le journal global n'affiche que ce qui s'est passé sur la carte que vous regardez.\n
+Les tâches d'une liste de tâches indiquent leur avancement, comme 3/10.\n
+Confirmer une cible indique ce que vous avez ordonné, comme « Cible forcée de mortier définie : chinchilla ».\n
+Le son de bouclage des menus est plus court et plus discret.\n
+La traduction en portugais européen est plus complète et se lit plus naturellement.\n
+Corrections.\n
+La saisie de texte refonctionne sur la dernière mise à jour de RimWorld 1.7, et les touches d'accents fonctionnent dans les zones de texte.\n
+Correction du jeu qui utilisait lentement de plus en plus de mémoire après avoir nommé votre faction, renommé quelque chose ou répondu à certaines boîtes de dialogue.\n
+Correction des raccourcis d'autres mods qui se déclenchaient pendant que vous tapiez ou utilisiez un menu de RimWorld Access.\n
+Correction de l'impossibilité de déposer des objets d'une caravane qui partage une tuile du monde avec autre chose.\n
+Correction de l'onglet Santé qui n'indiquait pas la gravité de chaque état.\n
+Correction d'une fiche d'informations ouverte depuis une autre fiche d'informations qui affichait les mauvaises statistiques.\n
+Correction du menu des boutons de commande qui nommait ce qui se trouve sous le terrain inexploré.\n
+Correction du renommage des zones et des stockages qui contournait la boîte de renommage du jeu.\n
+Correction du sélecteur Ajouter un trait du filtre des personnages de départ qui ne s'ouvrait pas dans les langues autres que l'anglais, grâce à Miguel Ángel Insfrán.\n
+Correction du bouton Forcer une cible d'un mortier ou d'une tourelle qui se lisait « Arme inconnue ».\n
+Correction de certains boutons de mods qui devenaient muets quand on appuyait dessus ou qu'on faisait un clic droit.\n
+RimTalk, RimWorld Together et Animal Traits fonctionnent de nouveau correctement avec RimWorld Access après leurs dernières mises à jour.\n
+Vous pouvez rouvrir ce message à tout moment depuis Quoi de neuf dans le menu principal ou le menu pause.\n
+Appuyez sur Échap, ou choisissez Fermer, quand vous avez terminé. Merci d'y jouer, et bon jeu !</RimWorldAccess.WhatsNew.Message.2_0_rc7>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access a été mis à jour. Choisissez Ouvrir le journal des modifications pour lire ce qui a changé sur le site web.</RimWorldAccess.WhatsNew.Message.Default>
 

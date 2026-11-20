@@ -108,6 +108,61 @@ Corrigidos os sons do próprio RimWorld Access, como os sons de terreno e o som 
 Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
 Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc6>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc7>Desculpem a demora para lançar esta atualização. O trabalho e alguns problemas de saúde me deixaram ocupado nas últimas semanas, mas espero que este patch parrudo compense a minha ausência. Eu agradeço a todos vocês!\n
+O RimWorld Access agora está disponível em alemão. Esta atualização também traz visões gerais de saúde e de itens, novos sons de terreno, uma ajuda de posicionamento mais inteligente e melhor suporte a vários mods. A digitação voltou a funcionar na atualização mais recente do RimWorld 1.7.\n
+Novidades.\n
+O RimWorld Access agora está disponível em alemão, graças a Christopher Proß.\n
+Nova visão geral de saúde no Alt+Shift+H. Ela lista todo personagem caído, sangrando, ferido ou doente no mapa, e o Enter salta até o personagem com a aba Saúde aberta.\n
+Nova visão geral de itens no Alt+Shift+G. Ela lista todas as armas e peças de aparência no mapa e quem as tem, e o Enter salta até a aba Itens desse personagem.\n
+O scanner avisa quando um personagem está caído, sangrando ou ferido. Você pode desativar isso nas opções do RimWorld Access.\n
+Quando um menu leva você até um personagem ou um ponto do mapa, o Esc leva você de volta ao menu.\n
+Novos sons de terreno, incluindo areia, pedra bruta e gelo. Terrenos adicionados por outros mods também ganham um som apropriado.\n
+O rastreamento do mouse (Alt+Shift+M) funciona no mapa-múndi, e as teclas Ctrl+Seta saltam entre biomas lá.\n
+Ao posicionar uma turbina eólica, você ouve se algo bloqueia o vento dela e quanto de produção você perderia.\n
+As estatísticas do cômodo (5) dizem se o quarto ou o salão do trono de um nobre atende aos requisitos do título dele, graças a Miguel Ángel Insfrán. Dentro de um curral de animais, elas também dizem o tamanho do curral e quanta comida ele produz.\n
+As necessidades dizem se estão subindo ou descendo.\n
+Expandir uma habilidade lê a dica completa da habilidade do jogo, incluindo a velocidade de aprendizado e o limite diário de aprendizado.\n
+Itens danificados nas listas de inventário e de caravana dizem o quanto estão desgastados.\n
+Botões de comando de mods sem suporte dedicado leem o texto que mostram, em vez de um nome interno.\n
+O Numbers agora tem suporte. Cada coluna lê seu valor, o Enter faz o que um clique faria, e você pode mover ou remover colunas na linha de cabeçalho.\n
+O Compositable Loadouts agora tem suporte, incluindo a aba de equipamentos, os editores de equipamento e de marcadores, e o modo de repetição das tarefas.\n
+O Visible Wealth agora tem suporte. O detalhamento da riqueza é lido como uma árvore, e o gráfico de pizza como uma lista de fatias com a sua participação.\n
+O BetterSliders agora tem suporte. Comece a digitar um número em qualquer controle deslizante para defini-lo com a caixa de edição do mod, inclusive nas telas do próprio RimWorld Access, como as Opções.\n
+O Choice Of Psycasts agora tem suporte. Cada poder psíquico no menu dele lê suas estatísticas e descrição.\n
+O Carry Different Medicine Types agora tem suporte. A coluna Carregar da aba Atribuir lista cada medicina que um colono carrega.\n
+O Drafted Auto-Combat agora tem suporte. Os botões de habilidade dizem quando o lançamento automático está ativado, e o menu deles no Colchete Direito o alterna.\n
+O Tech Advancing agora tem suporte, incluindo a janela de configuração no menu de pesquisa.\n
+Melhor suporte aos mods do Hospitality. A aba Convidado do Hospitality, a aba Refeições do Gastronomy e a aba Loja do Storefront têm suporte completo, e os turnos do Cash Register são editados como a aba Cronograma.\n
+Melhor suporte ao Colony Manager Redux, incluindo suas opções de trabalho mais novas, linhas de atalho e agrupamento da Visão geral.\n
+Com o Dubs Bad Hygiene, pressionar 3 lê a água subterrânea sob o cursor, e o scanner tem uma categoria Água subterrânea. Os locais recomendados para poços são ordenados pela quantidade de água que renderiam.\n
+Com o Vehicle Framework, Ir aqui pergunta para que lado o veículo deve ficar virado, e colonos selecionados podem embarcar em um veículo em grupo pelo menu de ordens.\n
+Melhor suporte ao Vanilla Expanded. Inspecionar um posto avançado lista seus personagens e itens armazenados, as janelas de Dar e Receber dos postos avançados funcionam como o carregamento de caravanas, e a aba Genes dos animais lê todos os genes.\n
+As páginas de configurações criadas com o XML Extensions leem corretamente suas seções, opções e resultados de busca.\n
+Pequenas melhorias para o Allow Tool, Alpha Memes, Character Development, Vanilla Skills Expanded, Way Better Romance e outros.\n
+Mudanças.\n
+Os locais de posicionamento recomendados listam os melhores primeiro e dizem quão bem a construção funcionaria ali, como a cobertura de teto de um painel solar.\n
+O salto de estrutura ignora terreno aberto, e o salto de intransitável para em portas fechadas.\n
+O registro global mostra apenas o que aconteceu no mapa que você está vendo.\n
+As tarefas em uma lista de tarefas dizem seu progresso, como 3/10.\n
+Confirmar um alvo diz o que você ordenou, como "Morteiro, alvo de ataque forçado definido: chinchila".\n
+O som de volta ao início dos menus está mais curto e mais baixo.\n
+A tradução em português europeu está mais completa e soa mais natural.\n
+Correções.\n
+A digitação voltou a funcionar na atualização mais recente do RimWorld 1.7, e as teclas de acento funcionam nas caixas de texto.\n
+Corrigido o jogo que usava cada vez mais memória aos poucos depois de você dar nome à sua facção, renomear algo ou responder a alguns diálogos.\n
+Corrigido os atalhos de outros mods que disparavam enquanto você digitava ou usava um menu do RimWorld Access.\n
+Corrigido não ser possível largar itens de uma caravana que divide um ponto do mundo com outra coisa.\n
+Corrigido a aba Saúde que não dizia a gravidade de cada condição.\n
+Corrigido uma ficha de informações aberta a partir de outra ficha de informações que mostrava as estatísticas erradas.\n
+Corrigido o menu do botão de comando que dizia o que há sob o terreno inexplorado.\n
+Corrigido renomear zonas e armazenamentos sem passar pelo diálogo de renomear do próprio jogo.\n
+Corrigido o seletor Adicionar traço do filtro de personagens iniciais que não abria em idiomas diferentes do inglês, graças a Miguel Ángel Insfrán.\n
+Corrigido o botão Forçar ataque em alvo de um morteiro ou torreta que era lido como "Arma desconhecida".\n
+Corrigido alguns botões de mods que ficavam em silêncio ao serem pressionados ou clicados com o botão direito.\n
+O RimTalk, o RimWorld Together e o Animal Traits voltaram a funcionar corretamente com o RimWorld Access depois de suas atualizações mais recentes.\n
+Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi atualizado. Escolha Abrir changelog para ler o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 
