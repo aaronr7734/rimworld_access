@@ -3395,7 +3395,7 @@
 <p>The map is your colony: a grid of tiles where most of the game takes place. A cursor moves over it with the arrow keys, terrain under the cursor plays a distinct sound, and number keys provide on-demand information about a tile. This page covers getting around the map and controlling game time. For finding and jumping to specific things, see <a href="#concepts-the-scanner">the scanner</a>.</p>
 <h2 id="concepts-the-map-moving-the-cursor">Moving the cursor<a class="headerlink" href="#concepts-the-map-moving-the-cursor" title="Permanent link">&para;</a></h2>
 <p>The <strong>arrow keys</strong> move the cursor one tile at a time, with the camera following. Up, Down, Left, and Right work as you would expect.</p>
-<p>As you move, the tile underfoot plays a terrain sound. Soil, stone, sand, water, and built flooring each have distinct audio cues, so with practice you can tell where you are by ear. Moving against a wall plays its own sound, which helps you trace room edges.</p>
+<p>As you move, the tile underfoot plays a terrain sound. Soil, sand, mud, marsh, rough and smooth rock, water, ice, lava, and wood, stone, metal, and carpeted floors each have their own sound, so with practice you can tell where you are by ear. Moving against a wall plays its own sound, which helps you trace room edges.</p>
 <p>As you arrow around, the mod announces the name of what is under the cursor. Number keys are for deeper, on-demand detail rather than something you press after every step.</p>
 <h2 id="concepts-the-map-what-is-on-this-tile-number-keys-17">What is on this tile? (number keys 1–7)<a class="headerlink" href="#concepts-the-map-what-is-on-this-tile-number-keys-17" title="Permanent link">&para;</a></h2>
 <p>With the cursor on a tile, press a number key to hear a specific category of information about that tile. These are spot-checks; most of this information is also announced as you move.</p>
@@ -3415,9 +3415,9 @@
 <p>Tile-by-tile movement is fine for close work, but crossing the map one step at a time is slow. Jump modes let a single keypress leap to the next thing in a given direction. Four jump modes are available:</p>
 <ul>
 <li><strong>Preset distance:</strong> jumps a fixed number of tiles in the direction you choose.</li>
-<li><strong>Impassable:</strong> jumps to the last tile a colonist could walk to that way, stopping before a wall, a rock face, deep water, or anything else that would block a pawn.</li>
+<li><strong>Impassable:</strong> jumps to the last tile a colonist could walk to that way, stopping before a wall, a rock face, deep water, or anything else that would block a pawn. It also stops on a closed door, so you know you have reached one.</li>
 <li><strong>Terrain:</strong> jumps to the next tile whose ground is different, so a stretch of sand or a paved floor crosses in one press.</li>
-<li><strong>Structure:</strong> jumps to the next tile whose building is different, so a run of marble wall crosses in one press and lands where that wall changes or ends. Standing on open ground, it finds the next building instead.</li>
+<li><strong>Structure:</strong> never lands on open ground. Standing on a building, it jumps to the last tile of that run, so a stretch of marble wall crosses in one press and stops on its far end. If a different building comes right after, it stops there instead. Press again from the end and it skips the open ground to the next building, which is also where it goes when you start on open ground.</li>
 </ul>
 <p>Blueprints and frames count as the thing they will become, so a colony under construction navigates like the one being built.</p>
 <p>Controls:</p>
@@ -3427,7 +3427,7 @@
 <li><strong>Shift+Left / Shift+Right</strong> adjust the preset distance by 1.</li>
 <li><strong>Shift+Ctrl+Left / Shift+Ctrl+Right</strong> adjust the preset distance by 10.</li>
 </ul>
-<p>The scanning modes cover an unpredictable number of tiles, so they announce the distance before describing where the cursor landed, for example "7 tiles. Marble wall." When there is nothing to jump to, the mod says so and stays put: "blocked", "no terrain change that way", "no structure change that way", or "map boundary".</p>
+<p>The scanning modes cover an unpredictable number of tiles, so they announce the distance before describing where the cursor landed, for example "7 tiles. Marble wall." When there is nothing to jump to, the mod says so and stays put: "blocked", "no terrain change that way", "no structure that way", or "map boundary".</p>
 <p>No jump crosses into unexplored ground. A scan stops at the fog line, so a jump never tells you what is hiding in the dark.</p>
 <p>Jump modes are also used when sizing a wall or zone during building placement. See the <a href="#building-architect">Architect menu page</a> for that flow.</p>
 <h2 id="concepts-the-map-controlling-time">Controlling time<a class="headerlink" href="#concepts-the-map-controlling-time" title="Permanent link">&para;</a></h2>
@@ -3580,6 +3580,23 @@
 <li><strong>Alt+B</strong>: the pawn's recent combat log (their last several fights).</li>
 </ul>
 <p>These prioritize the thing under the cursor first, then fall back to the pawn you selected with comma/period or an Alt+number. Place the cursor on an enemy raider and press <strong>Alt+H</strong> to get the raider's health, not your selected colonist's. Move the cursor off anything specific and the keys report on the selected pawn instead.</p>
+<h2 id="concepts-checking-on-pawns-finding-who-has-an-item">Finding who has an item<a class="headerlink" href="#concepts-checking-on-pawns-finding-who-has-an-item" title="Permanent link">&para;</a></h2>
+<p>Press <strong>Alt+Shift+G</strong> to open the gear menu. It is one list of every weapon and piece of apparel worn or held by anyone you can see on the map, with weapons and belts first, then apparel in the gear tab's order. Things pawns carry in their inventory are left out; the inventory screens cover those. Each row names the item and who has it, like "Duster (normal), worn by Bob, Dylan, Harry". Identical items share a row, so a duster of a different quality, or one that is tainted, gets its own. When only one pawn has the item, the row also says its condition if it is damaged.</p>
+<p>Press <strong>Right arrow</strong> on an item to step into the pawns who have it, then <strong>Up</strong> and <strong>Down</strong> to move between them. Each pawn is marked as colonist, prisoner, visitor, hostile and so on, along with the condition of their piece when it is damaged. Press <strong>Left arrow</strong> to go back to the item. Start typing an item's or pawn's name to find it.</p>
+<p>Press <strong>Enter</strong> on a pawn to close the menu, jump to them and open their gear tab with the cursor on that item. If only one pawn has the item, Enter on the item does the same. You can also open this menu from the F12 extras menu.</p>
+<p>Press <strong>Tab</strong> to reach the filters: Colonists, Colony animals, Colony mechanoids, Prisoners and slaves, Visitors, and Hostiles. They all start checked. Press <strong>Enter</strong> or <strong>Space</strong> on one to hide or show that group's gear, and the menu tells you how many holders are left. Pawns with no faction at all, like a wild man, count as visitors here. The menu remembers your filters, separately from the health overview.</p>
+<p>The menu updates itself while it is open, paused or not. If the pawn or item you are on moves, the cursor goes with it. If it disappears, the cursor moves to the next row in the same list, and if that list is now empty, back up to its heading.</p>
+<h2 id="concepts-checking-on-pawns-the-health-overview-altshifth">The health overview (Alt+Shift+H)<a class="headerlink" href="#concepts-checking-on-pawns-the-health-overview-altshifth" title="Permanent link">&para;</a></h2>
+<p>After a raid, or whenever you want to know who needs a doctor, press <strong>Alt+Shift+H</strong> for the health overview. It lists every downed, bleeding, injured, or sick pawn you can see on the current map, so healthy pawns stay out of the way. It is also in the F12 extras menu.</p>
+<p>The overview always has five headings: Downed and bleeding, Downed, Bleeding, Injured, and Sick. A hurt pawn shows up under exactly one of the first four, the first that fits, so someone who is downed and bleeding is only listed under Downed and bleeding. A Deathless pawn who is bleeding still counts as bleeding. Injured is everyone who is hurt but neither downed nor bleeding.</p>
+<p>Sick is separate: anyone with a disease the game would give them the "sick" mood for, like the flu, plague, malaria, sleeping sickness, gut worms, muscle parasites, or an infection, is listed there too, even if they also appear under an injury heading. Sick normally comes last, but it moves to the top while one of its diseases is life-threatening.</p>
+<p>Every heading sums up what is under it, like "Bleeding. 3 pawns, soonest bleeds out in 2 hours", "Injured. 4 pawns, lowest 38% health", "Sick. 2 pawns, most urgent Ana, Flu (major): 52%", or "Downed. None". Inside a heading the most urgent pawn comes first: whoever will bleed out soonest, otherwise whoever has the lowest health. Each pawn reads their name and who they are (colonist, colony animal, prisoner, visitor, hostile and so on), then whether they are downed, how long until they bleed out, and their overall health.</p>
+<p>Under Sick, the most urgent pawn is whoever has a life-threatening disease, then whoever is closest to losing the race between their immunity and the disease. Each sick pawn reads their name and who they are, then every disease with its severity. Open a pawn with <strong>Right</strong> to get one row per disease, with its severity, a medical emergency warning when it is life-threatening, their immunity, and whether it is tended or needs tending, all read from the game's own tooltip.</p>
+<p>Use <strong>Right</strong> and <strong>Left</strong> to open and close a heading, or just start typing a name to find a pawn anywhere in the tree. Press <strong>Enter</strong> on a pawn to close the overview, jump to them, and open their health tab. Press <strong>Enter</strong> on a disease to do the same with the cursor already on that disease. <strong>Alt+I</strong> opens the pawn's info card, or the disease's on a disease row.</p>
+<p>Press <strong>Tab</strong> to reach the filters: Colonists, Colony animals, Colony mechanoids, Prisoners and slaves, Visitors, and Hostiles. They all start checked. Press <strong>Enter</strong> or <strong>Space</strong> on one to hide or show that group, and the overview tells you how many pawns are left. Wild animals are never listed, and other pawns with no faction, like a wild man, count as visitors. Your filters are remembered, separately from the gear menu.</p>
+<p>The overview keeps itself up to date while it is open, paused or not, without saying anything. If the pawn you are on moves to a different heading, the cursor follows them as long as that heading is open. If they leave the list, say because they were patched up, the cursor moves to the next pawn in the same list, and if the list is now empty, back up to its heading. It never throws you back to the top.</p>
+<!-- source: GlobalHealthScope.Game.cs, MapOverviewScope.Game.cs, MapPawnGroup.Game.cs, PawnHealthSummary.Game.cs -->
+
 <h2 id="concepts-checking-on-pawns-finding-conditions-with-type-ahead">Finding conditions with type-ahead<a class="headerlink" href="#concepts-checking-on-pawns-finding-conditions-with-type-ahead" title="Permanent link">&para;</a></h2>
 <p>For a deeper read on a pawn's health state, open the pawn's inspect view (press <strong>Enter</strong> on the pawn under the cursor, or <strong>Ctrl+Alt+Enter</strong> on a pawn selected via the colonist bar). From the top section of the inspect screen, start typing to jump to a condition:</p>
 <ul>
@@ -4290,7 +4307,7 @@
 </ul>
 <p>So to lay out a 12-tile wall: set the preset distance to 12 with <strong>Shift+Right</strong> (pressing it until the mod announces 12), press <strong>Space</strong> to set the first point, then <strong>Ctrl+Right</strong> to jump 12 tiles east, <strong>Space</strong> again, and <strong>Enter</strong> to place.</p>
 <p>The jump distance counts the starting tile, so a distance of 13 moves the cursor 14 tiles including the start. To enclose a 12-by-12 interior, set the jump distance to 13: the walls form a 14-by-14 exterior, and the two wall tiles on each side leave 12 by 12 of open floor inside.</p>
-<p><strong>Impassable</strong> jumps the cursor to the last tile a colonist could walk to in that direction, which is handy when you want to pick up exactly where an existing structure ends. <strong>Terrain</strong> and <strong>Structure</strong> jump to the next tile whose ground or building is different, which is the quick way to find the far corner of a room or the end of a wall you already built. See <a href="#concepts-the-map">the map page</a> for all four.</p>
+<p><strong>Impassable</strong> jumps the cursor to the last tile a colonist could walk to in that direction, which is handy when you want to pick up exactly where an existing structure ends. <strong>Terrain</strong> jumps to the next tile whose ground is different, and <strong>Structure</strong> jumps to the far end of the wall or building you are standing on, then on to the next building. Together they are the quick way to find the far corner of a room or the end of a wall you already built. See <a href="#concepts-the-map">the map page</a> for all four.</p>
 <p><strong>Shift+Up</strong> and <strong>Shift+Down</strong> cycle through all available jump modes. These keys change the mode; they do not move the cursor.</p>
 <p>For jump modes in other contexts (navigating the map outside of building), see <a href="#concepts-the-map">the map</a>.</p>
 <h3 id="building-architect-building-more-than-one-shape-at-once">Building more than one shape at once<a class="headerlink" href="#building-architect-building-more-than-one-shape-at-once" title="Permanent link">&para;</a></h3>
@@ -4510,6 +4527,7 @@
 <p>The world map shows the planet your colony sits on. Press <strong>F8</strong> to open it; press <strong>F8</strong> again to return to your colony.</p>
 <h2 id="world-world-map-moving-around">Moving around<a class="headerlink" href="#world-world-map-moving-around" title="Permanent link">&para;</a></h2>
 <p><strong>Arrow keys</strong> move between tiles. The camera follows. When you enter a new biome, the mod announces the biome name and reads a short description.</p>
+<p><strong>Ctrl+Arrow keys</strong> jump to the next biome boundary in that direction, stopping on the first tile of a different biome. This is a quick way to find the edge of a desert or the start of a forest. If there is no other biome that way, the mod tells you how many tiles it searched.</p>
 <h2 id="world-world-map-reading-tile-information">Reading tile information<a class="headerlink" href="#world-world-map-reading-tile-information" title="Permanent link">&para;</a></h2>
 <p>As you arrow around, the mod announces a summary for each tile, including terrain and biome. The number keys let you dig into specific details on demand:</p>
 <ul>
@@ -4971,9 +4989,18 @@
 <td><strong>Alt+B</strong></td>
 <td>Read the selected pawn's combat log (10 most recent battle entries)</td>
 </tr>
+<tr>
+<td><strong>Alt+Shift+G</strong></td>
+<td>Open the gear menu: every weapon and piece of apparel on the map, one row per item, with who has it</td>
+</tr>
+<tr>
+<td><strong>Alt+Shift+H</strong></td>
+<td>Open the health overview: every downed, bleeding, or injured pawn on the map</td>
+</tr>
 </tbody>
 </table>
 <p>Alt+H, Alt+M, Alt+N, and Alt+G work on your pawns, enemy pawns, and animals. Alt+P opens a sortable table covering every colonist.</p>
+<p>Alt+Shift+H opens the health overview, which sorts everyone hurt on the current map under four headings: Downed and bleeding, Downed, Bleeding, and Injured, most urgent first. Press Enter on a pawn to jump to them and open their health tab. In both the health overview and the gear menu, Tab reaches checkboxes that show or hide colonists, colony animals, colony mechanoids, prisoners and slaves, visitors, and hostiles.</p>
 <p>For checking on pawns in depth, see <a href="#concepts-checking-on-pawns">Checking on pawns</a>.</p>
 <h3 id="reference-keyboard-acting-on-the-map">Acting on the map<a class="headerlink" href="#reference-keyboard-acting-on-the-map" title="Permanent link">&para;</a></h3>
 <table>
@@ -5191,6 +5218,10 @@
 <td>Jump to the first or last item</td>
 </tr>
 <tr>
+<td><strong>Ctrl+Up / Ctrl+Down</strong></td>
+<td>Move the current item up or down, in lists you can reorder such as bills, queued operations, starting colonists, and the mod list</td>
+</tr>
+<tr>
 <td><strong>Type any text</strong></td>
 <td>Type-ahead: jump to the matching entry. Works in every menu and list</td>
 </tr>
@@ -5279,7 +5310,7 @@
 </tr>
 </tbody>
 </table>
-<p>Biome is announced when you arrow onto a tile, not via a number key.</p>
+<p>Biome is announced when you arrow onto a tile, not via a number key. Press <strong>Ctrl+Arrow</strong> to jump to the next biome boundary in that direction.</p>
 <h3 id="reference-keyboard-travel-and-caravans">Travel and caravans<a class="headerlink" href="#reference-keyboard-travel-and-caravans" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -5483,6 +5514,9 @@
 <h2 id="reference-settings-show-cover-info-for-drafted-and-hostile-pawns">Show cover info for drafted and hostile pawns<a class="headerlink" href="#reference-settings-show-cover-info-for-drafted-and-hostile-pawns" title="Permanent link">&para;</a></h2>
 <p><strong>Default: on.</strong></p>
 <p>When on, cover information is included in the cursor announcement for drafted pawns and hostile pawns. For example: "Bob, behind sandbag (good cover), melee attacking." Applies during combat.</p>
+<h2 id="reference-settings-show-pawn-health-in-the-scanner">Show pawn health in the scanner<a class="headerlink" href="#reference-settings-show-pawn-health-in-the-scanner" title="Permanent link">&para;</a></h2>
+<p><strong>Default: on.</strong></p>
+<p>When on, pawns in the scanner are followed by a short health note if anything is wrong with them, for example: "Bob, downed, bleeding out in 2 hours, 45% health." Healthy pawns get no note.</p>
 <h2 id="reference-settings-announce-terrain-on-cursor-movement">Announce terrain on cursor movement<a class="headerlink" href="#reference-settings-announce-terrain-on-cursor-movement" title="Permanent link">&para;</a></h2>
 <p><strong>Default: on.</strong></p>
 <p>When on, the terrain name is spoken each time the cursor moves to a new tile. The terrain sound effect plays independently of this setting.</p>
@@ -5652,15 +5686,73 @@
 <p>Older changes (before version 2.0) are in the <a href="#reference-changelog-archive">pre-2.0 changelog archive</a>.</p>
 <!-- BUILD_CHANGELOG_INSERT: do not remove this marker. -->
 
+<h2 id="reference-changelog-20-rc-7-2026-11-19">[2.0 RC 7] - 2026-11-19<a class="headerlink" href="#reference-changelog-20-rc-7-2026-11-19" title="Permanent link">&para;</a></h2>
+<p>RimWorld Access is now available in German. This update also adds health and gear overviews, new terrain sounds, smarter placement help, and better support for many mods. Typing works again on the latest RimWorld 1.7 update.</p>
+<h3 id="reference-changelog-added">Added<a class="headerlink" href="#reference-changelog-added" title="Permanent link">&para;</a></h3>
+<ul>
+<li>RimWorld Access is now available in German, thanks to Christopher Proß.</li>
+<li>New health overview on Alt+Shift+H. It lists every downed, bleeding, injured or sick pawn on the map, and Enter jumps to a pawn with their health tab open.</li>
+<li>New gear overview on Alt+Shift+G. It lists every weapon and piece of apparel on the map and who has it, and Enter jumps to that pawn's gear tab.</li>
+<li>The scanner says when a pawn is downed, bleeding or hurt. You can turn this off in the RimWorld Access options.</li>
+<li>When a menu jumps you to a pawn or a spot on the map, Escape takes you back to the menu.</li>
+<li>New terrain sounds, including sand, rough stone and ice. Terrain added by other mods gets a fitting sound too.</li>
+<li>Mouse tracking (Alt+Shift+M) works on the world map, and Ctrl+Arrow keys jump between biomes there.</li>
+<li>Placing a wind turbine tells you whether anything blocks its wind and how much output you would lose.</li>
+<li>Room stats (5) say whether a noble's bedroom or throne room meets their title's requirements, thanks to Miguel Ángel Insfrán. Inside an animal pen, they also give the pen's size and how much food it grows.</li>
+<li>Needs say whether they're rising or falling.</li>
+<li>Expanding a skill reads the game's full skill tooltip, including learning speed and the daily learning cap.</li>
+<li>Damaged items in inventory and caravan lists say how worn they are.</li>
+<li>Command buttons from mods without dedicated support read the text they show, instead of an internal name.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1414302321">Numbers</a> is now supported. Every column reads its value, Enter does what a click would, and you can move or remove columns from the header row.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2679126859">Compositable Loadouts</a> is now supported, including its loadouts tab, loadout and tag editors, and bill repeat mode.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3461137081">Visible Wealth</a> is now supported. The wealth breakdown reads as a tree, and the pie chart as a list of slices with their share.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2218078784">BetterSliders</a> is now supported. Start typing a number on any slider to set it with the mod's edit box, including on RimWorld Access's own screens like Options.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=2293460251">Choice Of Psycasts</a> is now supported. Each psycast in its menu reads its stats and description.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3014295064">Carry Different Medicine Types</a> is now supported. The Assign tab's Carry column lists each medicine a colonist carries.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3546270076">Drafted Auto-Combat</a> is now supported. Ability buttons say when auto-cast is on, and their Right Bracket menu toggles it.</li>
+<li><a href="https://steamcommunity.com/sharedfiles/filedetails/?id=735268789">Tech Advancing</a> is now supported, including its config window in the research menu.</li>
+<li>Better support for the Hospitality mods. Hospitality's Guest tab, Gastronomy's Dining tab and Storefront's Shop tab are fully supported, and Cash Register shifts are edited like the Schedule tab.</li>
+<li>Better support for Colony Manager Redux, including its newest job options, shortcut rows and Overview grouping.</li>
+<li>With Dubs Bad Hygiene, pressing 3 reads the groundwater under the cursor, and the scanner has a Groundwater category. Recommended spots for wells are ranked by how much water they would draw.</li>
+<li>With Vehicle Framework, Go here asks which way the vehicle should face, and selected colonists can board a vehicle as a group from the orders menu.</li>
+<li>Better support for Vanilla Expanded. Inspecting an outpost lists its pawns and stored items, outpost Give and Take windows work like caravan loading, and the animal Genes tab reads every gene.</li>
+<li>Settings pages built with XML Extensions read their sections, toggles and search results correctly.</li>
+<li>Smaller improvements for Allow Tool, Alpha Memes, Character Development, Vanilla Skills Expanded, Way Better Romance and others.</li>
+</ul>
+<h3 id="reference-changelog-changed">Changed<a class="headerlink" href="#reference-changelog-changed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Recommended placement spots list the best places first and say how well the building would work there, like a solar panel's roof cover.</li>
+<li>The Structure jump skips open ground, and the Impassable jump stops at closed doors.</li>
+<li>The global log shows only what happened on the map you're viewing.</li>
+<li>Bills in a bill list say their progress, like 3/10.</li>
+<li>Confirming a target says what you ordered, like "Mortar forced target set: chinchilla".</li>
+<li>The menu wrap sound is shorter and quieter.</li>
+<li>The European Portuguese translation is more complete and reads more naturally.</li>
+</ul>
+<h3 id="reference-changelog-fixed">Fixed<a class="headerlink" href="#reference-changelog-fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Typing works again on the latest RimWorld 1.7 update, and accent keys work in text boxes.</li>
+<li>Fixed the game slowly using more memory after you named your faction, renamed something, or answered some dialogs.</li>
+<li>Fixed other mods' hotkeys firing while you type or use a RimWorld Access menu.</li>
+<li>Fixed being unable to drop items from a caravan that shares a world tile with something else.</li>
+<li>Fixed the health tab not saying how severe each condition is.</li>
+<li>Fixed an info card opened from another info card showing the wrong stats.</li>
+<li>Fixed the command button menu naming what lies under unexplored ground.</li>
+<li>Fixed renaming zones and storage skipping the game's own rename dialog.</li>
+<li>Fixed the starting pawn filter's Add trait picker not opening in languages other than English, thanks to Miguel Ángel Insfrán.</li>
+<li>Fixed a mortar or turret's Set forced target button reading as "Unknown weapon".</li>
+<li>Fixed some mod buttons going silent when pressed or right-clicked.</li>
+<li>RimTalk, RimWorld Together and Animal Traits work correctly with RimWorld Access again after their latest updates.</li>
+</ul>
 <h2 id="reference-changelog-20-rc-6-2026-10-19">[2.0 RC 6] - 2026-10-19<a class="headerlink" href="#reference-changelog-20-rc-6-2026-10-19" title="Permanent link">&para;</a></h2>
 <p>Just one small fix this time.</p>
-<h3 id="reference-changelog-fixed">Fixed<a class="headerlink" href="#reference-changelog-fixed" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_1">Fixed<a class="headerlink" href="#reference-changelog-fixed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed RimWorld Access's own sounds, like terrain sounds and the menu wrap sound, cutting out after a few hours of play on RimWorld 1.7 until you restarted the game.</li>
 </ul>
 <h2 id="reference-changelog-20-rc-5-2026-10-15">[2.0 RC 5] - 2026-10-15<a class="headerlink" href="#reference-changelog-20-rc-5-2026-10-15" title="Permanent link">&para;</a></h2>
 <p>This update adds support for RimWorld 1.7, along with a batch of fixes for mods and the combat autopilot.</p>
-<h3 id="reference-changelog-added">Added<a class="headerlink" href="#reference-changelog-added" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-added_1">Added<a class="headerlink" href="#reference-changelog-added_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>RimWorld Access now supports RimWorld 1.7.</li>
 <li>Vanilla Outposts Expanded's Create outpost screen is now accessible. Each outpost is one row that tells you whether you can build it and what's missing, and Enter creates it.</li>
@@ -5668,7 +5760,7 @@
 <li>In Progression: Education, the teacher and student lists in class dialogs now include each colonist's details, like their other classes and how much a session will teach them.</li>
 <li>RimWorld 1.7's frame profiler, found in the debug actions menu, is now accessible. Most controls have their own shortcuts, announced as you move to them.</li>
 </ul>
-<h3 id="reference-changelog-fixed_1">Fixed<a class="headerlink" href="#reference-changelog-fixed_1" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_2">Fixed<a class="headerlink" href="#reference-changelog-fixed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed the combat autopilot doing nothing for animals drafted with mods like Draftable Animals.</li>
 <li>Fixed autopilot pawns set to keep their distance backing away from melee enemies that can't reach them, like a prisoner locked in a cell or a raider behind a wall.</li>
@@ -5681,40 +5773,40 @@
 </ul>
 <h2 id="reference-changelog-20-rc-4-2026-10-03">[2.0 RC 4] - 2026-10-03<a class="headerlink" href="#reference-changelog-20-rc-4-2026-10-03" title="Permanent link">&para;</a></h2>
 <p>Just one small fix this time.</p>
-<h3 id="reference-changelog-fixed_2">Fixed<a class="headerlink" href="#reference-changelog-fixed_2" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_3">Fixed<a class="headerlink" href="#reference-changelog-fixed_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed being kicked out of placement mode when jumping to a colonist with Alt and a number. If anything else kicks you out, the mod now tells you.</li>
 </ul>
 <h2 id="reference-changelog-20-rc-3-2026-10-03">[2.0 RC 3] - 2026-10-03<a class="headerlink" href="#reference-changelog-20-rc-3-2026-10-03" title="Permanent link">&para;</a></h2>
 <p>This quick patch fixes a few bugs and improves the new global logging feature introduced in the last patch.</p>
-<h3 id="reference-changelog-added_1">Added<a class="headerlink" href="#reference-changelog-added_1" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-added_2">Added<a class="headerlink" href="#reference-changelog-added_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Pressing Enter on a log entry now jumps to the pawn in it. When an entry names more than one pawn, a menu asks which one.</li>
 </ul>
-<h3 id="reference-changelog-changed">Changed<a class="headerlink" href="#reference-changelog-changed" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-changed_1">Changed<a class="headerlink" href="#reference-changelog-changed_1" title="Permanent link">&para;</a></h3>
 <ul>
 <li>The global log is now two logs, social and combat, one tab each. Left and Right Arrow switch between them, and each log keeps its own filters, so the combat log can show everyone on the map while the social log sticks to your colony.</li>
 <li>The medical defaults window, opened from the Assign tab's medical care menu, now reads as a table. Each group is a row and each care level is a column, so you can hear every group's setting and change it with Enter.</li>
 </ul>
-<h3 id="reference-changelog-fixed_3">Fixed<a class="headerlink" href="#reference-changelog-fixed_3" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_4">Fixed<a class="headerlink" href="#reference-changelog-fixed_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed the meme picker leaving out memes from mods that add a fourth, extreme impact level, such as Alpha Memes.</li>
 <li>Fixed wild men showing the Tame column as not applicable in the wildlife menu, so they can now be marked for taming from there.</li>
 </ul>
 <h2 id="reference-changelog-20-rc-2-2026-09-29">[2.0 RC 2] - 2026-09-29<a class="headerlink" href="#reference-changelog-20-rc-2-2026-09-29" title="Permanent link">&para;</a></h2>
-<h3 id="reference-changelog-added_2">Added<a class="headerlink" href="#reference-changelog-added_2" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-added_3">Added<a class="headerlink" href="#reference-changelog-added_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Adaptive Storage Framework storage now has a full Contents list. Each item reads its mass and days until it rots. You can also change the stack limit, allow or forbid items, and drop them.</li>
 <li>Caravan formation, caravan splitting and transport pod loading are back to the classic lists by default. Every row now reads what the game shows beside it, like mass, value and rot time. Press Ctrl+Tab (Option+Tab on a Mac) to switch to the table view.</li>
 <li>Added the global log, opened with Alt+L or from the F12 menu. It lists every social and combat event in the world and goes back much further than the game's own log. You can filter it, search it by typing, and jump to the pawns in any entry.</li>
 <li>With Vehicle Framework, the split caravan window now has a Vehicles tab. You can split vehicles off a caravan and assign their seats.</li>
 </ul>
-<h3 id="reference-changelog-changed_1">Changed<a class="headerlink" href="#reference-changelog-changed_1" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-changed_2">Changed<a class="headerlink" href="#reference-changelog-changed_2" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Changing a pawn's autopilot settings no longer cancels an order you just gave. The pawn finishes that order first. Engage orders still take effect right away.</li>
 <li>The flight recorder no longer logs every frame while a menu is open, so recordings are much shorter.</li>
 </ul>
-<h3 id="reference-changelog-fixed_4">Fixed<a class="headerlink" href="#reference-changelog-fixed_4" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_5">Fixed<a class="headerlink" href="#reference-changelog-fixed_5" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Fixed the control type and state announcement settings turning themselves back on after restarting the game.</li>
 <li>The caravan info screen now gives locations as a biome and map coordinates instead of tile numbers. Southern and western coordinates also read correctly now.</li>
@@ -5741,7 +5833,7 @@
 <p>Some popular mods now have dedicated support, and mods without it are covered by a reader that handles most windows on its own.</p>
 <p>Also new: text the game only shows under the mouse pointer is now spoken, developer mode is fully accessible if a little clunky, there are five new languages, and an optional mouse mode reads whatever the pointer touches.</p>
 <p>Behind the scenes, rebuilding how one screen works went from about three days to about twenty minutes, so screens should improve a lot faster from here.</p>
-<h3 id="reference-changelog-added_3">Added<a class="headerlink" href="#reference-changelog-added_3" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-added_4">Added<a class="headerlink" href="#reference-changelog-added_4" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Many popular mods now have dedicated support. <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1874644848">Character Editor</a> got the most work: the whole editor is a proper screen, covering appearance, health, needs, social, inventory, genes and xenotypes, the browsers, presets, and the def editor. Also supported: <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3005289691">RimWorld Together</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3310027356">Colony Manager Redux</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=3014915404">Vehicle Framework</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=1201382956">A RimWorld of Magic</a>, <a href="https://steamcommunity.com/sharedfiles/filedetails/?id=927155256">Simple Sidearms</a>, the Vanilla Expanded mods, Hospitality, RimTalk, Interaction Bubbles, Allow Tool, Alpha Memes, Dubs Bad Hygiene, the Progression mods, and anything built on JecsTools, HugsLib, or XML Extensions. The experience may not be as nice as the vanilla game experience, but I've done what I can. I can't play every mod out there, nor do I have the money to fix them all, but tools will be coming soon so mod builders can add accessibility for their own mods. Stay tuned!</li>
 <li>Mods without dedicated support are now covered by a generic window reader. It makes settings pages, dialogs, and custom windows navigable, and it recognizes every element type RimWorld supports, and a few others too! Page Up and Page Down jump between a page's sections, and disabled controls say why they are disabled. It is always on, and dedicated support simply takes over where something better exists.</li>
@@ -5773,7 +5865,7 @@
 <li>Ctrl+C copies a colonist's work priorities and Ctrl+V pastes them onto another, in both the focused view and the table view.</li>
 <li>RimWorld Access can keep the game paused when it matters. New games start paused and quiet, opening the research screen from a finished-research popup stays paused, and the game stays paused after you close a trade. Each is a setting you can switch off.</li>
 </ul>
-<h3 id="reference-changelog-changed_2">Changed<a class="headerlink" href="#reference-changelog-changed_2" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-changed_3">Changed<a class="headerlink" href="#reference-changelog-changed_3" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Navigation is consistent within each kind of screen now, instead of being reinvented screen by screen. Several shapes remain, because the game's own interface has several: trees, tables, screens whose sections you move between with Left and Right, and screens whose sections you move between with Tab. What is shared is everything inside them. Every row announces the same way, in the order you choose. Checkboxes say checked or not checked and toggle with Space or Enter, dropdowns open on Enter, sliders and steppers adjust with Left and Right and accept a typed value, radio buttons select as you arrow onto them, tables read cell by cell under sortable headers, and disabled controls stay in the list and say why.</li>
 <li>You can always reach a screen's buttons. The game's own toolbar is now shown on every screen and Tab walks every button on it, so you should not end up stranded on a screen not knowing which key moves you forward. Shift+Enter presses the screen's next button from anywhere on it, whether that is Generate, Save, Done, or Accept. Enter on something that is not an interactive control names the button a second Enter would press, so you hear the consequence before committing to it.</li>
@@ -5797,7 +5889,7 @@
 <ul>
 <li>The text panels the mod used to draw over the screen are gone: the world map information box, the landing-site panels, and the placement instruction box. The game's own highlights and windows carry that information now, and nothing is spoken any differently.</li>
 </ul>
-<h3 id="reference-changelog-fixed_5">Fixed<a class="headerlink" href="#reference-changelog-fixed_5" title="Permanent link">&para;</a></h3>
+<h3 id="reference-changelog-fixed_6">Fixed<a class="headerlink" href="#reference-changelog-fixed_6" title="Permanent link">&para;</a></h3>
 <ul>
 <li>Speech no longer goes silent on Windows. Machines with AVX-512 processors were rejecting any announcement containing a non-ASCII character, so an accented letter, a curly apostrophe, or CJK text produced silence while plain English spoke normally. Announcements carrying stray invisible characters from mod content were dropped outright. Both are fixed, and any remaining speech failure now logs the exact text so it can be diagnosed from your log file.</li>
 <li>Actions now go through the game's own rules everywhere, closing a long list of cases where this mod could do something the game would refuse, or skip a warning it would show. Among them: drafting respects downed pawns and mech overseer range; taming and slaughter show their bond, faction, and veneration confirmations; surgeries respect availability and speak the game's reason when refused; caravan equipping shows the persona weapon warning; accepting a quest shows the royal favor warning; research honors benches, techprints, and prerequisites; bill counts follow each recipe's limits; and name fields cap at the lengths the game really accepts.</li>
