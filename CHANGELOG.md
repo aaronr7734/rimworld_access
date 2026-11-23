@@ -6,6 +6,13 @@ Older changes (before version 2.0) are in the [pre-2.0 changelog archive](https:
 
 <!-- BUILD_CHANGELOG_INSERT: release notes are compiled here from changelog.d/ fragments by scripts/build_changelog.py. Do not remove this marker. -->
 
+## [2.0 RC 8] - 2026-11-22
+
+### Added
+
+- With VFE Tribals or Tech Advancing, research is now grouped by tech level. You can turn this off in the RimWorld Access options.
+
+
 ## [2.0 RC 7] - 2026-11-19
 
 RimWorld Access is now available in German. This update also adds health and gear overviews, new terrain sounds, smarter placement help, and better support for many mods. Typing works again on the latest RimWorld 1.7 update.
