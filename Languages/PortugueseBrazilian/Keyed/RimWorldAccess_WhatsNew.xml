@@ -163,6 +163,12 @@ O RimTalk, o RimWorld Together e o Animal Traits voltaram a funcionar corretamen
 Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
 Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc8>Só uma pequena novidade desta vez.\n
+Novidades.\n
+Com VFE Tribals ou Tech Advancing, as pesquisas agora são agrupadas por nível de tecnologia. Você pode desativar isso nas opções do RimWorld Access.\n
+Você pode reabrir isto a qualquer momento em Novidades, no menu principal ou no menu de pausa.\n
+Pressione Esc, ou escolha Fechar, quando terminar. Obrigado por jogar, e aproveite!</RimWorldAccess.WhatsNew.Message.2_0_rc8>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>O RimWorld Access foi atualizado. Escolha Abrir changelog para ler o que mudou no site.</RimWorldAccess.WhatsNew.Message.Default>
 

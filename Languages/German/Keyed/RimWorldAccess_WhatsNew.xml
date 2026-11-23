@@ -162,6 +162,12 @@ RimTalk, RimWorld Together und Animal Traits funktionieren nach ihren neuesten U
 Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
 Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc8>Diesmal gibt es nur eine kleine Neuerung.\n
+Neue Funktionen.\n
+Mit VFE Tribals oder Tech Advancing wird die Forschung jetzt nach Techstufe gruppiert. Du kannst das in den Optionen von RimWorld Access abschalten.\n
+Du kannst diese Mitteilung jederzeit über "Neuigkeiten" im Hauptmenü oder im Pausenmenü wieder öffnen.\n
+Drücke Escape oder wähle "Schließen", wenn du fertig bist. Danke fürs Spielen und viel Spaß!</RimWorldAccess.WhatsNew.Message.2_0_rc8>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access wurde aktualisiert. Die Änderungen findest du auf der Webseite. Wähle dazu "Änderungsprotokoll im Browser öffnen".</RimWorldAccess.WhatsNew.Message.Default>
 

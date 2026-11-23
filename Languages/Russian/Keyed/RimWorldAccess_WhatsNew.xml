@@ -142,6 +142,12 @@ RimTalk, RimWorld Together и Animal Traits снова правильно раб
 Вы можете открыть это сообщение снова в любое время через «Что нового» в главном меню или меню паузы.\n
 Когда закончите, нажмите Escape или выберите «Закрыть». Спасибо, что играете, и приятной игры!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc8>На этот раз всего одно небольшое дополнение.\n
+Новые возможности.\n
+С VFE Tribals или Tech Advancing исследования теперь группируются по техническому уровню. Это можно отключить в настройках RimWorld Access.\n
+Вы можете открыть это сообщение снова в любое время через «Что нового» в главном меню или меню паузы.\n
+Когда закончите, нажмите Escape или выберите «Закрыть». Спасибо, что играете, и приятной игры!</RimWorldAccess.WhatsNew.Message.2_0_rc8>
+
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access обновлён. Выберите «Открыть список изменений», чтобы прочитать об изменениях на сайте.</RimWorldAccess.WhatsNew.Message.Default>
   <RimWorldAccess.WhatsNew.Button.NextAnnouncement>Перейти к следующему объявлению (осталось {0})</RimWorldAccess.WhatsNew.Button.NextAnnouncement>
   <RimWorldAccess.WhatsNew.Button.MarkAllRead>Отметить все {0_numCase ? объявление : объявления : объявлений} как прочитанные</RimWorldAccess.WhatsNew.Button.MarkAllRead>

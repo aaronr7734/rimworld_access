@@ -163,6 +163,12 @@ RimTalk, RimWorld Together ve Animal Traits son güncellemelerinden sonra RimWor
 Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
 İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc7>
 
+  <RimWorldAccess.WhatsNew.Message.2_0_rc8>Bu sefer sadece küçük bir ekleme var.\n
+Yeni özellikler.\n
+VFE Tribals veya Tech Advancing ile araştırmalar artık teknoloji seviyesine göre gruplanıyor. Bunu RimWorld Access seçeneklerinden kapatabilirsin.\n
+Bunu istediğin zaman ana menüdeki veya duraklatma menüsündeki Yenilikler'den yeniden açabilirsin.\n
+İşin bittiğinde Escape'e bas veya Kapat'ı seç. Oynadığın için teşekkürler, iyi oyunlar!</RimWorldAccess.WhatsNew.Message.2_0_rc8>
+
   <!-- Fallback message when a version has no message of its own. -->
   <RimWorldAccess.WhatsNew.Message.Default>RimWorld Access güncellendi. Web sitesinde neyin değiştiğini okumak için 'Değişiklik günlüğünü aç' seçeneğini seç.</RimWorldAccess.WhatsNew.Message.Default>
 
