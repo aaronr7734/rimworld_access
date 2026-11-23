@@ -18,6 +18,8 @@ namespace RimWorldAccess
 
         public override void Activate(Harmony harmony)
         {
+            ResearchTechLevelGrouping.Offer();
+
             if (!TechAdvancingCompat.Gate.Ensure())
             {
                 return;

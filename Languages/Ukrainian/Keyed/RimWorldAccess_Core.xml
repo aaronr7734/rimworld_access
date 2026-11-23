@@ -55,6 +55,8 @@
   <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>Нова гра починається на паузі, щоб ви могли зорієнтуватися перед тим, як почнеться відлік часу.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Залишатися на паузі на екрані досліджень</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Відкриття екрана досліджень з діалогу про завершене дослідження залишає гру на паузі.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>Групувати дослідження за рівнем технологій</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>Розділяє кожну групу статусу досліджень за рівнями технологій, для модів, у яких важливо завершити рівень технологій.</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Залишатися на паузі після торгівлі</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Закриття екрана торгівлі залишає гру на паузі, доки ви не відновите її.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
 

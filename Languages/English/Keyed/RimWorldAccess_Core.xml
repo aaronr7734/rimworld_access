@@ -52,6 +52,8 @@
   <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>A new game begins paused so you can get your bearings before time starts.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Stay paused on the research screen</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Opening the research screen from a completed-research dialog keeps the game paused.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>Group research by tech level</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>Splits each research status group into tech levels, for mods where finishing a tech level matters.</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Stay paused after trading</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Closing the trade screen keeps the game paused until you resume.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
 

@@ -243,36 +243,82 @@ namespace RimWorldAccess
             }
         }
 
-        /// <summary>Creates a status group node (Completed, Available, Locked, In Progress).</summary>
+        /// <summary>Creates a status group node; with tech-level grouping, a multi-level group nests one sub-group per level.</summary>
         private static InspectionTreeItem CreateStatusGroupNode(StatusLabel status, List<ResearchProjectDef> projects, int level, InspectionTreeItem parent)
         {
+            string statusLabel = FormatStatusGroupLabel(status, projects.Count);
             var statusNode = new InspectionTreeItem
             {
                 Type = InspectionTreeItem.ItemType.Category,
-                Label = FormatStatusGroupLabel(status, projects.Count),
+                Label = statusLabel,
                 IndentLevel = level,
                 IsExpandable = true,
                 IsExpanded = false,
                 Parent = parent
             };
 
+            if (!ResearchTechLevelGrouping.Active || projects.Count == 0)
+            {
+                AddProjectNodes(statusNode, projects, level + 1);
+                return statusNode;
+            }
+
+            var byTechLevel = projects
+                .GroupBy(p => p.techLevel)
+                .OrderBy(g => g.Key == TechLevel.Undefined ? int.MaxValue : (int)g.Key)
+                .ToList();
+
+            statusNode.Label = "RimWorldAccess.Research.TechLevel.StatusSummary".Translate(
+                statusLabel,
+                string.Join(", ", byTechLevel.Select(g =>
+                    "RimWorldAccess.Research.TechLevel.Count".Translate(g.Count(), TechLevelLabel(g.Key)).ToString())));
+
+            if (byTechLevel.Count == 1)
+            {
+                AddProjectNodes(statusNode, projects, level + 1);
+                return statusNode;
+            }
+
+            statusNode.ExpandedLabel = statusLabel;
+            foreach (var techGroup in byTechLevel)
+            {
+                var techNode = new InspectionTreeItem
+                {
+                    Type = InspectionTreeItem.ItemType.Category,
+                    Label = "RimWorldAccess.Research.TechLevel.Group".Translate(TechLevelLabel(techGroup.Key), techGroup.Count()),
+                    IndentLevel = level + 1,
+                    IsExpandable = true,
+                    IsExpanded = false,
+                    Parent = statusNode
+                };
+                AddProjectNodes(techNode, techGroup.ToList(), level + 2);
+                statusNode.Children.Add(techNode);
+            }
+
+            return statusNode;
+        }
+
+        private static string TechLevelLabel(TechLevel techLevel)
+        {
+            return techLevel.ToStringHuman().CapitalizeFirst();
+        }
+
+        private static void AddProjectNodes(InspectionTreeItem parentNode, List<ResearchProjectDef> projects, int level)
+        {
             foreach (var project in projects.OrderBy(p => p.LabelCap.ToString()))
             {
-                var projectNode = new InspectionTreeItem
+                parentNode.Children.Add(new InspectionTreeItem
                 {
                     Type = InspectionTreeItem.ItemType.Item,
                     Label = FormatProjectLabel(project),
-                    IndentLevel = level + 1,
+                    IndentLevel = level,
                     IsExpandable = false,
                     IsExpanded = false,
                     Data = project,
                     LinkedDef = project,
-                    Parent = statusNode
-                };
-                statusNode.Children.Add(projectNode);
+                    Parent = parentNode
+                });
             }
-
-            return statusNode;
         }
 
         /// <summary>Formats a project label with its cost and progress.</summary>

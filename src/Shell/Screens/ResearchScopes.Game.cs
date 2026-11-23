@@ -104,9 +104,15 @@ namespace RimWorldAccess.Shell
         {
             var d = new ElementDescription();
             d.Role = ElementRole.TreeItem;
-            d.Label = item.Type == InspectionTreeItem.ItemType.Category
-                ? item.Label + TreeNavigationHelper.FormatExpansionSpaceSuffix(item)
+            if (item.Type != InspectionTreeItem.ItemType.Category)
+            {
+                d.Label = item.Label;
+                return d;
+            }
+            string label = item.IsExpanded && !string.IsNullOrEmpty(item.ExpandedLabel)
+                ? item.ExpandedLabel
                 : item.Label;
+            d.Label = label + TreeNavigationHelper.FormatExpansionSpaceSuffix(item);
             return d;
         }
 

@@ -55,6 +55,8 @@
   <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>Une nouvelle partie commence en pause afin de vous laisser le temps de vous repérer avant que le temps ne s'écoule.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Rester en pause sur l'écran de recherche</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Ouvrir l'écran de recherche depuis une boîte de dialogue de recherche terminée maintient la partie en pause.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>Regrouper les recherches par niveau technique</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>Divise chaque groupe de statut de recherche par niveau technique, pour les mods où terminer un niveau technique compte.</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Rester en pause après un échange commercial</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Fermer l'écran d'échange maintient la partie en pause jusqu'à ce que vous repreniez.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
 

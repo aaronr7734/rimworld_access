@@ -55,6 +55,8 @@
   <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>Yeni bir oyun duraklatılmış başlar, böylece zaman akmadan önce durumu kavrayabilirsin.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Araştırma ekranında duraklatılmış kal</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Tamamlanan araştırma iletişim kutusundan araştırma ekranını açmak oyunu duraklatılmış tutar.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>Araştırmaları teknoloji seviyesine göre grupla</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>Her araştırma durum grubunu teknoloji seviyelerine böler; bir teknoloji seviyesini tamamlamanın önemli olduğu modlar içindir.</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Ticaretten sonra duraklatılmış kal</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Ticaret ekranını kapatmak, sen devam ettirene kadar oyunu duraklatılmış tutar.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
 

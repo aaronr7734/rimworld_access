@@ -180,6 +180,8 @@ namespace RimWorldAccess
         /// <summary>Choosing the research screen from a research-finished dialog leaves the game paused.</summary>
         public bool StayPausedAfterResearch = true;
 
+        public bool GroupResearchByTechLevel = true;
+
         /// <summary>Closing the trade screen leaves the game paused until the player resumes.</summary>
         public bool StayPausedAfterTrade = true;
 
@@ -247,6 +249,7 @@ namespace RimWorldAccess
             Scribe_Values.Look(ref ScannerAutoJump, "ScannerAutoJump", false);
             Scribe_Values.Look(ref PauseOnGameStart, "PauseOnGameStart", true);
             Scribe_Values.Look(ref StayPausedAfterResearch, "StayPausedAfterResearch", true);
+            Scribe_Values.Look(ref GroupResearchByTechLevel, "GroupResearchByTechLevel", true);
             Scribe_Values.Look(ref StayPausedAfterTrade, "StayPausedAfterTrade", true);
             base.ExposeData();
         }

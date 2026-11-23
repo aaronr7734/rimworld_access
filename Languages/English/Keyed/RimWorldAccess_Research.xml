@@ -35,6 +35,14 @@
   <RimWorldAccess.Research.Status.Completed>Completed ({0})</RimWorldAccess.Research.Status.Completed>
   <RimWorldAccess.Research.Status.Locked>Locked ({0})</RimWorldAccess.Research.Status.Locked>
 
+  <!-- Tech-level grouping inside a status group.
+       StatusSummary: {0} = status group label (e.g. "Available (15)"), {1} = comma-separated Count entries.
+       Count: {0} = number of projects, {1} = tech level name (e.g. "Neolithic").
+       Group: {0} = tech level name, {1} = number of projects. -->
+  <RimWorldAccess.Research.TechLevel.StatusSummary>{0}: {1}</RimWorldAccess.Research.TechLevel.StatusSummary>
+  <RimWorldAccess.Research.TechLevel.Count>{0} {1}</RimWorldAccess.Research.TechLevel.Count>
+  <RimWorldAccess.Research.TechLevel.Group>{0} ({1})</RimWorldAccess.Research.TechLevel.Group>
+
   <!-- Short status words used inline in labels (e.g. after prereq/dep rows). -->
   <RimWorldAccess.Research.Status.CompletedWord>Completed</RimWorldAccess.Research.Status.CompletedWord>
   <RimWorldAccess.Research.Status.AvailableWord>Available</RimWorldAccess.Research.Status.AvailableWord>

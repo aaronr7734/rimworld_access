@@ -52,6 +52,8 @@
   <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>Ein neues Spiel beginnt pausiert. So kannst du dich orientieren, bevor die Zeit läuft.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Im Forschungsmenü pausiert bleiben</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Das Spiel bleibt pausiert, wenn du das Forschungsmenü aus dem Fenster "Forschung abgeschlossen" öffnest.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>Forschung nach Techstufe gruppieren</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>Teilt jede Statusgruppe der Forschung nach Techstufen auf, für Mods, in denen das Abschließen einer Techstufe zählt.</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Nach dem Handeln pausiert bleiben</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Das Spiel bleibt nach dem Schließen des Handelsfensters pausiert, bis du weiterspielst.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
 

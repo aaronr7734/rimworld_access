@@ -55,6 +55,8 @@
   <RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>Um novo jogo começa pausado para você se orientar antes que o tempo comece a passar.</RimWorldAccess.Core.Settings.PauseOnGameStart.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>Continuar pausado na tela de pesquisa</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>Abrir a tela de pesquisa a partir de uma caixa de diálogo de pesquisa concluída mantém o jogo pausado.</RimWorldAccess.Core.Settings.StayPausedAfterResearch.Desc>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>Agrupar pesquisas por nível de tecnologia</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label>
+  <RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>Divide cada grupo de status de pesquisa por nível de tecnologia, para mods em que concluir um nível de tecnologia faz diferença.</RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>Continuar pausado após negociar</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label>
   <RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>Fechar a tela de negociação mantém o jogo pausado até você retomar.</RimWorldAccess.Core.Settings.StayPausedAfterTrade.Desc>
 

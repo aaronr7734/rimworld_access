@@ -214,6 +214,17 @@ namespace RimWorldAccess.Shell
                 30f, 0.6f);
             settings.StayPausedAfterResearch = stayPausedAfterResearch;
 
+            if (ResearchTechLevelGrouping.Offered)
+            {
+                bool groupByTechLevel = settings.GroupResearchByTechLevel;
+                listing.CheckboxLabeled(
+                    "RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Label".Translate(),
+                    ref groupByTechLevel,
+                    "RimWorldAccess.Core.Settings.GroupResearchByTechLevel.Desc".Translate(),
+                    30f, 0.6f);
+                settings.GroupResearchByTechLevel = groupByTechLevel;
+            }
+
             bool stayPausedAfterTrade = settings.StayPausedAfterTrade;
             listing.CheckboxLabeled(
                 "RimWorldAccess.Core.Settings.StayPausedAfterTrade.Label".Translate(),

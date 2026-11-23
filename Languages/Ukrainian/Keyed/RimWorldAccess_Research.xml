@@ -35,6 +35,11 @@
   <RimWorldAccess.Research.Status.Completed>Завершено ({0})</RimWorldAccess.Research.Status.Completed>
   <RimWorldAccess.Research.Status.Locked>Заблоковано ({0})</RimWorldAccess.Research.Status.Locked>
 
+  <!-- Count is "Neolithic (12)" rather than "12 Neolithic", since many game translations name tech levels with adjectives. -->
+  <RimWorldAccess.Research.TechLevel.StatusSummary>{0}: {1}</RimWorldAccess.Research.TechLevel.StatusSummary>
+  <RimWorldAccess.Research.TechLevel.Count>{1} ({0})</RimWorldAccess.Research.TechLevel.Count>
+  <RimWorldAccess.Research.TechLevel.Group>{0} ({1})</RimWorldAccess.Research.TechLevel.Group>
+
   <!-- Short status words used inline in labels (e.g. after prereq/dep rows). -->
   <RimWorldAccess.Research.Status.CompletedWord>Завершено</RimWorldAccess.Research.Status.CompletedWord>
   <RimWorldAccess.Research.Status.AvailableWord>Доступно</RimWorldAccess.Research.Status.AvailableWord>
