@@ -27,9 +27,12 @@
 #   two Workshop change notes on the very first publish only.
 #
 # Authentication: steamcmd prompts for your password and Steam Guard code on the
-# first login and caches the session, so later runs are non-interactive. Run
-#   steamcmd +login <your_steam_account> +quit
-# once by hand first if you want to get the Steam Guard prompt out of the way.
+# first login and caches the session, so later runs are non-interactive. On
+# macOS steamcmd keeps that cache in $HOME/Library/Application Support/Steam/
+# config/config.vdf, the same file the Steam client owns. steamcmd runs with
+# its own HOME (STEAMCMD_HOME, default ~/.steamcmd-home) so nothing else writes
+# that file. Log in there once by hand:
+#   HOME=~/.steamcmd-home steamcmd +login <your_steam_account> +quit
 #
 # Notes / known limitations:
 #   * Title + description are set on creation only (matching RimWorld's own
@@ -77,6 +80,9 @@ while [[ $# -gt 0 ]]; do
 done
 
 : "${STEAM_USER:?Set STEAM_USER to your Steam account name}"
+
+STEAMCMD_HOME="${STEAMCMD_HOME:-$HOME/.steamcmd-home}"
+mkdir -p "$STEAMCMD_HOME"
 
 command -v steamcmd >/dev/null || { echo "steamcmd not found on PATH" >&2; exit 1; }
 command -v dotnet   >/dev/null || { echo "dotnet not found on PATH" >&2; exit 1; }
@@ -171,7 +177,7 @@ PY
 do_upload() {
   echo ">> Uploading via steamcmd (you may be prompted for Steam Guard)..."
   set +e
-  steamcmd +login "$STEAM_USER" +workshop_build_item "$VDF_FILE" +quit | tee "$LOG_FILE"
+  HOME="$STEAMCMD_HOME" steamcmd +login "$STEAM_USER" +workshop_build_item "$VDF_FILE" +quit | tee "$LOG_FILE"
   local rc=${PIPESTATUS[0]}
   set -e
   if [[ $rc -ne 0 ]]; then
